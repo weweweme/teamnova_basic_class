@@ -40,7 +40,7 @@ public class Main {
                     drawStar();
                     break;
                 case "4":
-                    // TODO: 보너스 과제
+                    drawSudoku();
                     break;
                 default:
                     // 1~4 외의 입력은 종료 의사로 간주
@@ -465,5 +465,72 @@ public class Main {
         boolean inYRange = (py >= minY - 1) && (py <= maxY + 1);
 
         return inXRange && inYRange;
+    }
+
+    // drawSudoku: 유사 스도쿠(라틴 방진) 출력 메서드
+    // n×n 격자에 0~n-1 숫자를 행/열 중복 없이 배치
+    private static void drawSudoku() {
+        // =====================================================
+        // 설계 1단계: 출발점
+        // 사용자 입력 숫자 n = 격자의 크기
+        // 1 → 1×1, 2 → 2×2, 3 → 3×3, ...
+        // =====================================================
+        System.out.println("\n=== 유사 스도쿠 ===");
+        System.out.println("0: 메인 메뉴로 돌아가기");
+        System.out.println("숫자 입력: 해당 크기의 스도쿠 출력\n");
+
+        while (true) {
+            System.out.print("스도쿠 크기 입력 (0=돌아가기): ");
+            String input = scanner.nextLine();
+
+            if (input.equals("0")) {
+                System.out.println();
+                return;
+            }
+
+            // 숫자 검증: 모든 문자가 숫자인지 확인
+            boolean isNumber = true;
+            for (int i = 0; i < input.length(); i++) {
+                if (!Character.isDigit(input.charAt(i))) {
+                    isNumber = false;
+                    break;
+                }
+            }
+
+            if (!isNumber || input.isEmpty()) {
+                System.out.println("올바른 숫자를 입력해주세요.\n");
+                continue;
+            }
+
+            int n = Integer.parseInt(input);
+
+            if (n < 1) {
+                System.out.println("1 이상의 숫자를 입력해주세요.\n");
+                continue;
+            }
+
+            // =====================================================
+            // 설계 2단계: 라틴 방진 알고리즘
+            // 핵심 공식: value = (row + col) % n
+            //
+            // 이 공식이 중복을 방지하는 이유:
+            // - 행 고정: col이 0~n-1일 때 (row+col)%n은 0~n-1을 한 번씩 생성
+            // - 열 고정: row가 0~n-1일 때 (row+col)%n은 0~n-1을 한 번씩 생성
+            // =====================================================
+            System.out.println();
+
+            // 2중 for문으로 n×n 격자 순회
+            for (int row = 0; row < n; row++) {
+                for (int col = 0; col < n; col++) {
+                    // 라틴 방진 공식: 행과 열의 합을 n으로 나눈 나머지
+                    int value = (row + col) % n;
+                    System.out.print(value + " ");
+                }
+                // 한 행 출력 완료 후 줄바꿈
+                System.out.println();
+            }
+
+            System.out.println();
+        }
     }
 }

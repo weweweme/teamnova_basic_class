@@ -37,7 +37,7 @@ public class Main {
                     drawCircle();
                     break;
                 case "3":
-                    // TODO: 별 그리기
+                    drawStar();
                     break;
                 case "4":
                     // TODO: 보너스 과제
@@ -263,5 +263,207 @@ public class Main {
 
             System.out.println();
         }
+    }
+
+    // drawStar: 6각 별(다윗의 별) 그리기 과제 메서드
+    // 두 개의 정삼각형이 겹쳐진 형태
+    private static void drawStar() {
+        // =====================================================
+        // 설계 1단계: 출발점
+        // 사용자 입력 숫자 = 별의 크기 n (반높이)
+        // =====================================================
+        System.out.println("\n=== 별 그리기 ===");
+        System.out.println("0: 메인 메뉴로 돌아가기");
+        System.out.println("숫자 입력: 해당 크기의 6각 별 출력\n");
+
+        while (true) {
+            System.out.print("별 크기 입력 (0=돌아가기): ");
+            String input = scanner.nextLine();
+
+            if (input.equals("0")) {
+                System.out.println();
+                return;
+            }
+
+            // 숫자 검증: 모든 문자가 숫자인지 확인
+            boolean isNumber = true;
+            for (int i = 0; i < input.length(); i++) {
+                if (!Character.isDigit(input.charAt(i))) {
+                    isNumber = false;
+                    break;
+                }
+            }
+
+            if (!isNumber || input.isEmpty()) {
+                System.out.println("올바른 숫자를 입력해주세요.\n");
+                continue;
+            }
+
+            int n = Integer.parseInt(input);
+
+            if (n < 1) {
+                System.out.println("1 이상의 숫자를 입력해주세요.\n");
+                continue;
+            }
+
+            // n=1인 경우: 별 하나만 출력
+            // 6각 별의 최소 단위 = 점 하나
+            if (n == 1) {
+                System.out.println("\n*\n");
+                continue;
+            }
+
+            // =====================================================
+            // 설계 2단계: 6각 별 = 두 삼각형의 합성
+            // 삼각형1 (△): 꼭짓점이 위, 밑변이 아래
+            // 삼각형2 (▽): 꼭짓점이 아래, 밑변이 위
+            // =====================================================
+
+            // =====================================================
+            // 설계 3단계: 좌표계 정의
+            // - 전체 높이: 2n (0 ~ 2n)
+            // - 전체 너비: 2n (0 ~ 2n)
+            // - 중심: (n, n)
+            // =====================================================
+
+            // =====================================================
+            // 설계 4단계: 삼각형 꼭짓점 정의
+            //
+            // 삼각형1 (△ 위를 향함):
+            //   - 상단 꼭짓점: (n, 0)
+            //   - 좌하단: (0, n + n/2)
+            //   - 우하단: (2n, n + n/2)
+            //
+            // 삼각형2 (▽ 아래를 향함):
+            //   - 하단 꼭짓점: (n, 2n)
+            //   - 좌상단: (0, n - n/2)
+            //   - 우상단: (2n, n - n/2)
+            // =====================================================
+            System.out.println();
+
+            // 삼각형1 (△) 꼭짓점 좌표
+            int t1TopX = n;
+            int t1TopY = 0;
+            int t1LeftX = 0;
+            int t1LeftY = n + n / 2;
+            int t1RightX = 2 * n;
+            int t1RightY = n + n / 2;
+
+            // 삼각형2 (▽) 꼭짓점 좌표
+            int t2BottomX = n;
+            int t2BottomY = 2 * n;
+            int t2LeftX = 0;
+            int t2LeftY = n - n / 2;
+            int t2RightX = 2 * n;
+            int t2RightY = n - n / 2;
+
+            // =====================================================
+            // 설계 5단계: 각 점이 6개의 변 중 하나 위에 있는지 판정
+            // 직선 위 판정: 두 점을 지나는 직선에서의 거리 계산
+            // =====================================================
+
+            // 임계값: 직선에서 얼마나 떨어져도 '*'로 출력할지
+            // n에 비례하게 설정하여 크기에 따라 선 두께 조절
+            double threshold = 0.5;
+
+            // y좌표 순회: 0부터 2n까지
+            for (int y = 0; y <= 2 * n; y++) {
+                // x좌표 순회: 0부터 2n까지
+                for (int x = 0; x <= 2 * n; x++) {
+                    boolean onStar = false;
+
+                    // 삼각형1 (△)의 3개 변 체크
+                    // 변1: 상단 꼭짓점 → 좌하단 (왼쪽 변)
+                    if (isOnLineSegment(x, y, t1TopX, t1TopY, t1LeftX, t1LeftY, threshold)) {
+                        onStar = true;
+                    }
+                    // 변2: 상단 꼭짓점 → 우하단 (오른쪽 변)
+                    if (isOnLineSegment(x, y, t1TopX, t1TopY, t1RightX, t1RightY, threshold)) {
+                        onStar = true;
+                    }
+                    // 변3: 좌하단 → 우하단 (밑변)
+                    if (isOnLineSegment(x, y, t1LeftX, t1LeftY, t1RightX, t1RightY, threshold)) {
+                        onStar = true;
+                    }
+
+                    // 삼각형2 (▽)의 3개 변 체크
+                    // 변4: 하단 꼭짓점 → 좌상단 (왼쪽 변)
+                    if (isOnLineSegment(x, y, t2BottomX, t2BottomY, t2LeftX, t2LeftY, threshold)) {
+                        onStar = true;
+                    }
+                    // 변5: 하단 꼭짓점 → 우상단 (오른쪽 변)
+                    if (isOnLineSegment(x, y, t2BottomX, t2BottomY, t2RightX, t2RightY, threshold)) {
+                        onStar = true;
+                    }
+                    // 변6: 좌상단 → 우상단 (윗변)
+                    if (isOnLineSegment(x, y, t2LeftX, t2LeftY, t2RightX, t2RightY, threshold)) {
+                        onStar = true;
+                    }
+
+                    if (onStar) {
+                        System.out.print("* ");
+                    } else {
+                        System.out.print("  ");
+                    }
+                }
+                System.out.println();
+            }
+
+            System.out.println();
+        }
+    }
+
+    // isOnLineSegment: 점 (px, py)가 선분 (x1,y1)-(x2,y2) 위에 있는지 판정
+    // threshold: 직선에서의 허용 거리 (선 두께)
+    // 반환값: true면 선분 위에 있음
+    private static boolean isOnLineSegment(int px, int py, int x1, int y1, int x2, int y2, double threshold) {
+        // =====================================================
+        // 직선의 방정식: ax + by + c = 0
+        // 두 점 (x1,y1), (x2,y2)를 지나는 직선:
+        // (y2-y1)*x - (x2-x1)*y + (x2-x1)*y1 - (y2-y1)*x1 = 0
+        //
+        // 점 (px, py)에서 직선까지의 거리:
+        // |a*px + b*py + c| / sqrt(a² + b²)
+        // =====================================================
+
+        // 직선 계수 계산
+        int a = y2 - y1;
+        int b = -(x2 - x1);
+        int c = (x2 - x1) * y1 - (y2 - y1) * x1;
+
+        // 분자: |a*px + b*py + c|
+        double numerator = Math.abs(a * px + b * py + c);
+
+        // 분모: sqrt(a² + b²)
+        double denominator = Math.sqrt(a * a + b * b);
+
+        // 분모가 0이면 두 점이 같은 점 (선분이 아님)
+        if (denominator == 0) {
+            return false;
+        }
+
+        // 점에서 직선까지의 거리
+        double distance = numerator / denominator;
+
+        // 거리가 임계값 이하인지 확인
+        if (distance > threshold) {
+            return false;
+        }
+
+        // =====================================================
+        // 선분 범위 체크: 점이 선분의 경계 내에 있는지
+        // x, y 각각 min~max 범위 내에 있어야 함
+        // 약간의 여유(1)를 두어 경계 포함
+        // =====================================================
+        int minX = Math.min(x1, x2);
+        int maxX = Math.max(x1, x2);
+        int minY = Math.min(y1, y2);
+        int maxY = Math.max(y1, y2);
+
+        // 점이 선분의 x, y 범위 내에 있는지 확인
+        boolean inXRange = (px >= minX - 1) && (px <= maxX + 1);
+        boolean inYRange = (py >= minY - 1) && (py <= maxY + 1);
+
+        return inXRange && inYRange;
     }
 }

@@ -98,8 +98,89 @@ public class Main {
                     break;
 
                 case "2":
-                    drawCircle();
+                    /*
+                     * 원 그리기
+                     *
+                     * 1. 기준: r = 원의 반지름
+                     * r을 입력하면 중심은 (r, r)이 됨
+                     * 예: r=3 입력 => 중심 (3,3), 캔버스 크기 0~6 (2r)
+                     *
+                     * 2. 아이디어: 중심에서 r만큼 떨어진 점들을 찍으면 원이 된다
+                     *
+                     * 3. 규칙
+                     * 중심에서 각 점까지의 거리 공식 (피타고라스 정리)
+                     * https://m.blog.naver.com/jamogenius/221134715541
+                     * 거리² = (x-rx)² + (y-ry)² 공식을 완성시키는 x, y 좌표에 점을 찍어 원을 완성하기
+                     *
+                     * 4. 구현
+                     * [입력] 사용자로부터 r 입력
+                     * [처리]
+                     * 좌표 전체를 순회하며 각 점에서 중심(r,r)까지의 거리² 계산
+                     * 거리²가 r - 0.5 ≤ 거리 ≤ r + 0.5 범위 내인지 판정
+                     * - 정확히 r²인 점만 찍으면 정수 좌표 특성상 원이 끊어짐
+                     *   하지만 원은 2.5 같은 위치를 지나갈 수 있음
+                     *
+                     *   0   1   2   ○   3   4   <= 원이 2.5 위치를 지남
+                     *           ⬆      ⬆ ️
+                     *          2와 3 중 뭘 찍어야 하나?
+                     *          둘 다 원에서 0.5 떨어져 있음
+                     *
+                     *   허용치 < 0.5 => 둘 다 탈락 => 구멍
+                     *   허용치 >= 0.5 => 최소 하나 포함 => 연결됨
+                     *
+                     * - 허용 거리 ±0.5를 양변에 제곱하면 r²-r ≤ 거리 ≤ r²+r (이보다 작으면 끊어지고, 크면 두꺼워짐)
+                     * [출력] 범위 내면 '*', 아니면 ' ' 출력
+                     */
+
+                    System.out.println("\n=== 원 그리기 ===");
+                    System.out.println("0: 메인 메뉴로 돌아가기");
+                    System.out.println("숫자 입력: 해당 반지름의 원 출력\n");
+
+                    while (true) {
+                        int r = getValidNumber("원 반지름 입력 (0=돌아가기): ");
+                        if (r == 0) {
+                            System.out.println();
+                            break;
+                        }
+
+                        // r=1: 일반 공식으로는 제대로 안 그려지는 엣지케이스
+                        if (r == 1) {
+                            System.out.println();
+                            System.out.println(" * ");
+                            System.out.println("* *");
+                            System.out.println(" * ");
+                            System.out.println();
+                            continue;
+                        }
+
+                        System.out.println();
+
+                        // 허용 범위: r²-r ~ r²+r
+                        int rSquared = r * r;
+                        int rSquaredMin = rSquared - r;
+                        int rSquaredMax = rSquared + r;
+
+                        // 캔버스(0~2r) 전체 순회
+                        for (int y = 0; y <= 2 * r; y++) {
+                            for (int x = 0; x <= 2 * r; x++) {
+                                // 중심 (r,r)까지의 거리²
+                                int dx = x - r;
+                                int dy = y - r;
+                                int distanceSquared = dx * dx + dy * dy;
+
+                                if (distanceSquared >= rSquaredMin && distanceSquared <= rSquaredMax) {
+                                    System.out.print("*");
+                                } else {
+                                    System.out.print(" ");
+                                }
+                            }
+                            System.out.println();
+                        }
+
+                        System.out.println();
+                    }
                     break;
+                    
                 case "3":
                     drawStar();
                     break;
@@ -116,93 +197,6 @@ public class Main {
 
         // 자원 해제: Scanner는 내부적으로 System.in을 잡고 있으므로 닫아줌
         scanner.close();
-    }
-
-    /*
-     * 원 그리기
-     *
-     * 1. 기준: r = 원의 반지름
-     * r을 입력하면 중심은 (r, r)이 됨
-     * 예: r=3 입력 => 중심 (3,3), 캔버스 크기 0~6 (2r)
-     *
-     * 2. 아이디어: 중심에서 r만큼 떨어진 점들을 찍으면 원이 된다
-     *
-     * 3. 규칙
-     * 중심에서 각 점까지의 거리 공식 (피타고라스 정리)
-     * https://m.blog.naver.com/jamogenius/221134715541
-     * 거리² = (x-rx)² + (y-ry)² 공식을 완성시키는 x, y 좌표에 점을 찍어 원을 완성하기
-     *
-     * 4. 구현
-     * [입력] 사용자로부터 r 입력
-     * [처리]
-     * 좌표 전체를 순회하며 각 점에서 중심(r,r)까지의 거리² 계산
-     * 거리²가 r - 0.5 ≤ 거리 ≤ r + 0.5 범위 내인지 판정
-     * - 정확히 r²인 점만 찍으면 정수 좌표 특성상 원이 끊어짐
-     *   하지만 원은 2.5 같은 위치를 지나갈 수 있음
-     *
-     *   0   1   2   ○   3   4   <= 원이 2.5 위치를 지남
-     *           ⬆      ⬆ ️
-     *          2와 3 중 뭘 찍어야 하나?
-     *          둘 다 원에서 0.5 떨어져 있음
-     *
-     *   허용치 < 0.5 => 둘 다 탈락 => 구멍
-     *   허용치 >= 0.5 => 최소 하나 포함 => 연결됨
-     *
-     * - 허용 거리 ±0.5를 양변에 제곱하면 r²-r ≤ 거리 ≤ r²+r (이보다 작으면 끊어지고, 크면 두꺼워짐)
-     * [출력] 범위 내면 '*', 아니면 ' ' 출력
-     */
-    private static void drawCircle() {
-        System.out.println("\n=== 원 그리기 ===");
-        System.out.println("0: 메인 메뉴로 돌아가기");
-        System.out.println("숫자 입력: 해당 반지름의 원 출력\n");
-
-        while (true) {
-            int r = getValidNumber("원 반지름 입력 (0=돌아가기): ");
-            if (r == 0) {
-                System.out.println();
-                return;
-            }
-
-            // r=1: 일반 공식으로는 제대로 안 그려지는 엣지케이스
-            if (r == 1) {
-                System.out.println();
-                System.out.println(" * ");
-                System.out.println("* *");
-                System.out.println(" * ");
-                System.out.println();
-                continue;
-            }
-
-            System.out.println();
-
-            // 허용 범위 계산
-            // 예: r=5 => rSquared=25, 범위는 20~30
-            int rSquared = r * r;
-            int rSquaredMin = rSquared - r;  // r²-r (±0.5 허용의 하한)
-            int rSquaredMax = rSquared + r;  // r²+r (±0.5 허용의 상한)
-
-            // 캔버스 전체를 순회하며 각 점이 원 위에 있는지 판정
-            // 캔버스 크기: 0~2r (중심이 (r,r)이므로 양쪽으로 r씩 필요)
-            for (int y = 0; y <= 2 * r; y++) {
-                for (int x = 0; x <= 2 * r; x++) {
-                    // 현재 점 (x,y)에서 중심 (r,r)까지의 거리² 계산
-                    // 피타고라스: 거리² = dx² + dy²
-                    int dx = x - r;  // x방향 거리
-                    int dy = y - r;  // y방향 거리
-                    int distanceSquared = dx * dx + dy * dy;
-
-                    // 거리²가 허용 범위 내에 있으면 원 위의 점
-                    if (distanceSquared >= rSquaredMin && distanceSquared <= rSquaredMax) {
-                        System.out.print("*");
-                    } else {
-                        System.out.print(" ");
-                    }
-                }
-                System.out.println();
-            }
-
-            System.out.println();
-        }
     }
 
     /*

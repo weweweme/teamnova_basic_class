@@ -27,6 +27,7 @@ public class Main {
             System.out.println("2. 원 그리기");
             System.out.println("3. 별 그리기");
             System.out.println("4. 유사 스도쿠");
+            System.out.println("999. 비운의 실패작 육망성");
             System.out.println("그 외: 종료");
             System.out.print("선택: ");
 
@@ -180,7 +181,7 @@ public class Main {
 
                         int r = Integer.parseInt(inputStr);
 
-                        // r=1: 일반 공식으로는 제대로 안 그려지는 엣지케이스
+                        // r=1: 현재 코드로는 제대로 안 그려지는 엣지케이스
                         if (r == 1) {
                             System.out.println();
                             System.out.println(" * ");
@@ -223,111 +224,9 @@ public class Main {
                     break;
 
                 case "3":
-                    /*
-                     * 육망성 별 그리기
-                     *
-                     * 1. 기준: n = 별의 반높이 (전체 캔버스 2n × 2n)
-                     *
-                     * 2. 아이디어: 위로 향하는 삼각형(△)과 아래로 향하는 삼각형(▽)을 겹쳐서 그림
-                     *
-                     * 3. 규칙
-                     * △의 3개 변 + ▽의 3개 변 = 총 6개 변
-                     * 각 변은 직선이고, 직선도 정수가 아닌 위치를 지나감
-                     * => 원 그리기와 같은 문제: 딱 직선 위에 있는 정수 점이 별로 없음 => 끊어짐
-                     * 직선에서 ±0.5 거리 이내인 점도 포함해서 해결
-                     * 6개 변 중 하나라도 가까우면 * 출력하는 방식
-                     *
-                     * 4. 구현
-                     * [입력] 사용자로부터 n 입력
-                     * [처리]
-                     * 두 삼각형의 꼭짓점 좌표 계산
-                     * 2중 for문으로 (x,y) 좌표 전체 순회 (0~2n)
-                     * 각 점에서 6개 변까지의 거리 계산
-                     * [출력] 6개의 변 중 하나라도 범위라고 판단되면 '*', 아니면 ' ' 출력
-                     */
-
+                    // TODO: 오각별 구현 예정
                     System.out.println("\n=== 별 그리기 ===");
-                    System.out.println("0: 메인 메뉴로 돌아가기");
-                    System.out.println("숫자 입력: 해당 크기의 6각 별 출력\n");
-
-                    while (true) {
-                        System.out.print("별 크기 입력 (0=돌아가기): ");
-                        String inputStr = scanner.nextLine();
-
-                        // 0 입력시 메뉴로 복귀
-                        if (inputStr.equals("0")) {
-                            System.out.println();
-                            break;
-                        }
-
-                        // 숫자 검증: 빈 문자열이거나 숫자가 아닌 문자가 있으면 무효
-                        boolean isValid = !inputStr.isEmpty();
-                        for (int i = 0; i < inputStr.length() && isValid; i++) {
-                            if (!Character.isDigit(inputStr.charAt(i))) {
-                                isValid = false;
-                            }
-                        }
-                        if (!isValid) {
-                            System.out.println("올바른 숫자를 입력해주세요.\n");
-                            continue;
-                        }
-
-                        int n = Integer.parseInt(inputStr);
-
-                        // n=1: 별 하나만 출력
-                        if (n == 1) {
-                            System.out.println("\n*\n");
-                            continue;
-                        }
-
-                        System.out.println();
-
-                        /*
-                         * 캔버스: 0~2n, 중심: (n, n)
-                         *
-                         * 꼭대기는 맨 위(y=0), 밑변은 중심보다 n/2 아래
-                         * 꼭대기는 맨 아래(y=2n), 윗변은 중심보다 n/2 위
-                         *
-                         * n/2는 두 삼각형이 겹치는 정도 (위쪽 삼각형 밑변과 아래쪽 삼각형 윗변 사이 거리)
-                         * 값이 작아질수록(n/3, n/4) 두 가로선이 가까워져서 가운데 빈 공간이 좁아짐 => 별 모양이 이상해짐
-                         */
-
-                        // 꼭짓점: 상단(n,0), 좌하단(0, n+n/2), 우하단(2n, n+n/2)
-                        int t1TopY = 0;
-                        int t1LeftX = 0;
-                        int t1LeftY = n + n / 2;
-                        int t1RightX = 2 * n;
-                        int t1RightY = n + n / 2;
-
-                        // 꼭짓점: 하단(n,2n), 좌상단(0, n-n/2), 우상단(2n, n-n/2)
-                        int t2BottomY = 2 * n;
-                        int t2LeftX = 0;
-                        int t2LeftY = n - n / 2;
-                        int t2RightX = 2 * n;
-                        int t2RightY = n - n / 2;
-
-                        // 캔버스 전체를 순회하며 각 점이 별 위에 있는지 판정
-                        // 원 그리기와 같은 원리: 직선에서 0.5 이내인 점을 찍음 (함수 내부에서 처리)
-                        for (int y = 0; y <= 2 * n; y++) {
-                            for (int x = 0; x <= 2 * n; x++) {
-                                // 현재 점 (x,y)가 6개 변 중 하나라도 가까우면 별 위의 점
-                                // △: 꼭대기-좌하단, 꼭대기-우하단, 좌하단-우하단 (3개)
-                                // ▽: 꼭대기-좌상단, 꼭대기-우상단, 좌상단-우상단 (3개)
-                                boolean onStar =
-                                    isNearLine(x, y, n, t1TopY, t1LeftX, t1LeftY) ||
-                                    isNearLine(x, y, n, t1TopY, t1RightX, t1RightY) ||
-                                    isNearLine(x, y, t1LeftX, t1LeftY, t1RightX, t1RightY) ||
-                                    isNearLine(x, y, n, t2BottomY, t2LeftX, t2LeftY) ||
-                                    isNearLine(x, y, n, t2BottomY, t2RightX, t2RightY) ||
-                                    isNearLine(x, y, t2LeftX, t2LeftY, t2RightX, t2RightY);
-
-                                System.out.print(onStar ? "* " : "  ");
-                            }
-                            System.out.println();
-                        }
-
-                        System.out.println();
-                    }
+                    System.out.println("구현 예정입니다.\n");
                     break;
 
                 case "4":
@@ -394,6 +293,11 @@ public class Main {
                     }
                     break;
 
+                case "999":
+                    // 육망성
+                    drawHexagram();
+                    break;
+
                 default:
                     // 1~4 외의 입력은 종료 의사로 간주
                     isRunning = false;
@@ -425,6 +329,116 @@ public class Main {
         // false: 점이 직선에서 멀어서 제외
         int d = a * px + b * py + c;
         return 4 * d * d <= aabbSum;
+    }
+
+    /*
+     * 육망성 (Hexagram) 그리기
+     *
+     * 참고: 기하학적으로 별 다각형(star polygon)이 아닌 compound figure
+     * 두 개의 정삼각형을 반대 방향으로 겹쳐 만든 6각 별 모양 도형
+     *
+     * 1. 기준: n = 별의 반높이 (전체 캔버스 2n × 2n)
+     *
+     * 2. 아이디어: 위로 향하는 삼각형(△)과 아래로 향하는 삼각형(▽)을 겹쳐서 그림
+     *
+     * 3. 규칙
+     * △의 3개 변 + ▽의 3개 변 = 총 6개 변
+     * 각 변은 직선이고, 직선도 정수가 아닌 위치를 지나감
+     * => 원 그리기와 같은 문제: 딱 직선 위에 있는 정수 점이 별로 없음 => 끊어짐
+     * 직선에서 ±0.5 거리 이내인 점도 포함해서 해결
+     * 6개 변 중 하나라도 가까우면 * 출력하는 방식
+     *
+     * 4. 구현
+     * [입력] 사용자로부터 n 입력
+     * [처리]
+     * 두 삼각형의 꼭짓점 좌표 계산
+     * 2중 for문으로 (x,y) 좌표 전체 순회 (0~2n)
+     * 각 점에서 6개 변까지의 거리 계산
+     * [출력] 6개의 변 중 하나라도 범위라고 판단되면 '*', 아니면 ' ' 출력
+     */
+    private static void drawHexagram() {
+        System.out.println("\n=== 육망성 그리기 ===");
+        System.out.println("0: 메인 메뉴로 돌아가기");
+        System.out.println("숫자 입력: 해당 크기의 육망성 출력\n");
+
+        while (true) {
+            System.out.print("육망성 크기 입력 (0=돌아가기): ");
+            String inputStr = scanner.nextLine();
+
+            // 0 입력시 메뉴로 복귀
+            if (inputStr.equals("0")) {
+                System.out.println();
+                return;
+            }
+
+            // 숫자 검증: 빈 문자열이거나 숫자가 아닌 문자가 있으면 무효
+            boolean isValid = !inputStr.isEmpty();
+            for (int i = 0; i < inputStr.length() && isValid; i++) {
+                if (!Character.isDigit(inputStr.charAt(i))) {
+                    isValid = false;
+                }
+            }
+            if (!isValid) {
+                System.out.println("올바른 숫자를 입력해주세요.\n");
+                continue;
+            }
+
+            int n = Integer.parseInt(inputStr);
+
+            // n=1: 별 하나만 출력
+            if (n == 1) {
+                System.out.println("\n*\n");
+                continue;
+            }
+
+            System.out.println();
+
+            /*
+             * 캔버스: 0~2n, 중심: (n, n)
+             *
+             * 꼭대기는 맨 위(y=0), 밑변은 중심보다 n/2 아래
+             * 꼭대기는 맨 아래(y=2n), 윗변은 중심보다 n/2 위
+             *
+             * n/2는 두 삼각형이 겹치는 정도 (위쪽 삼각형 밑변과 아래쪽 삼각형 윗변 사이 거리)
+             * 값이 작아질수록(n/3, n/4) 두 가로선이 가까워져서 가운데 빈 공간이 좁아짐 => 별 모양이 이상해짐
+             */
+
+            // 꼭짓점: 상단(n,0), 좌하단(0, n+n/2), 우하단(2n, n+n/2)
+            int t1TopY = 0;
+            int t1LeftX = 0;
+            int t1LeftY = n + n / 2;
+            int t1RightX = 2 * n;
+            int t1RightY = n + n / 2;
+
+            // 꼭짓점: 하단(n,2n), 좌상단(0, n-n/2), 우상단(2n, n-n/2)
+            int t2BottomY = 2 * n;
+            int t2LeftX = 0;
+            int t2LeftY = n - n / 2;
+            int t2RightX = 2 * n;
+            int t2RightY = n - n / 2;
+
+            // 캔버스 전체를 순회하며 각 점이 별 위에 있는지 판정
+            // 원 그리기와 같은 원리: 직선에서 0.5 이내인 점을 찍음 (함수 내부에서 처리)
+            for (int y = 0; y <= 2 * n; y++) {
+                for (int x = 0; x <= 2 * n; x++) {
+                    // 현재 점 (x,y)가 6개 변 중 하나라도 가까우면 별 위의 점
+                    // △: 꼭대기-좌하단, 꼭대기-우하단, 좌하단-우하단 (3개)
+                    // ▽: 꼭대기-좌상단, 꼭대기-우상단, 좌상단-우상단 (3개)
+                    boolean onStar =
+                        isNearLine(x, y, n, t1TopY, t1LeftX, t1LeftY) ||
+                        isNearLine(x, y, n, t1TopY, t1RightX, t1RightY) ||
+                        isNearLine(x, y, t1LeftX, t1LeftY, t1RightX, t1RightY) ||
+                        isNearLine(x, y, n, t2BottomY, t2LeftX, t2LeftY) ||
+                        isNearLine(x, y, n, t2BottomY, t2RightX, t2RightY) ||
+                        isNearLine(x, y, t2LeftX, t2LeftY, t2RightX, t2RightY);
+
+                    System.out.print(onStar ? "* " : "  ");
+                }
+                System.out.println();
+            }
+
+            System.out.println();
+        }
     }
 
 }

@@ -1,19 +1,26 @@
 import java.util.Scanner;
 
 public class Main {
-    // scanner를 클래스 레벨로 선언: 여러 메서드에서 공유해야 하므로
-    // static인 이유: main과 다른 static 메서드에서 접근해야 함
+    // 프로그램이 시작되는 main 메서드는 static
+    // static 메서드에서는 특정 클래스 인스턴스의 메서드를 호출하거나 static 메서드만 호출할 수 있는데
+    // 현재 과제 특성상 큰 복잡성은 필요 없다고 생각해서 다른 클래스를 추가 안하고 실제 과제 구현 내용이 담긴 메서드도 static으로 구현하였다
+    // 여기서 사용하려면 멤버가 static이어야 해서 Scanner 객체도 static으로 선언
+    // 여러개의 인스턴스를 사용하는 건 메모리 낭비이기 때문
     static Scanner scanner;
 
     public static void main(String[] args) {
-        // Scanner: 콘솔 입력을 받기 위한 표준 입력 스트림 래퍼
-        // System.in을 직접 쓰면 바이트 단위라 불편, Scanner는 토큰 단위로 파싱해줌
+        // Scanner는 Java에서 사용자의 입력을 받기 위한 클래스
+        // 스트림이란? 출발지에서 도착점 까지의 데이터 흐름. 단방향이다
+        // 자바에서 가장 기본이 되는 입력 스트림은 InputStream
+        // System.in은 InputStream 타입의 필드
         scanner = new Scanner(System.in);
 
         // isRunning: 프로그램 전체 실행 상태를 제어하는 플래그
         // while(true) + break 대신 명시적 플래그를 쓰면 의도가 더 명확함
         boolean isRunning = true;
 
+        // 이 프로그램은 사용자 입력을 받아 동작하는 대화형 프로그램
+        // 사용자가 언제 종료할지 모르므로 while로 메뉴를 계속 표시
         while (isRunning) {
             // 메뉴 출력: 사용자가 선택지를 알 수 있도록 안내
             System.out.println("=== 3주차 과제 ===");
@@ -25,7 +32,7 @@ public class Main {
             System.out.print("선택: ");
 
             // input: 사용자 입력값 저장
-            // String 타입인 이유: 숫자가 아닌 입력도 받아서 처리해야 하므로
+            // String 타입인 이유: 숫자가 아닌 입력도 받아서 처리해야 하므로 nextInt 이런 숫자를 사용하지 않음
             String input = scanner.nextLine();
 
             // switch문: 다중 분기에 적합, if-else 체인보다 가독성 좋음
@@ -54,84 +61,79 @@ public class Main {
         scanner.close();
     }
 
-    // drawDiamond: 마름모 그리기 과제 메서드
-    // static인 이유: main에서 직접 호출해야 하므로
-    // 반환값 없음: 콘솔 출력만 수행
+    /*
+     * 마름모 그리기
+     *
+     * 1. 기준: n = 마름모의 반높이 (n=3이면 총 5줄)
+     *
+     * 2. 아이디어: 상단부(넓어짐)와 하단부(좁아짐)로 나눠서 출력
+     *
+     * 3. 규칙
+     * 각 줄에서 공백 = n-i개, 별 = 2*i-1개
+     * 줄 번호가 커질수록 공백은 줄고, 별은 늘어남
+     * n=3일 때: i=1 → "  *", i=2 → " ***", i=3 → "*****"
+     *
+     * 4. 구현
+     * [입력] 사용자로부터 n 입력
+     * [처리]
+     * 상단부: i를 1부터 n까지 증가시키며 각 줄 출력
+     * 하단부: i를 n-1부터 1까지 감소시키며 각 줄 출력
+     * 각 줄: 공백 n-i개 출력 → 별 2*i-1개 출력 → 줄바꿈
+     * [출력] 완성된 마름모
+     */
     private static void drawDiamond() {
         System.out.println("\n=== 마름모 그리기 ===");
         System.out.println("0: 메인 메뉴로 돌아가기");
         System.out.println("숫자 입력: 해당 크기의 마름모 출력\n");
 
-        // 서브메뉴 루프: 0 입력 전까지 반복
         while (true) {
             System.out.print("마름모 크기 입력 (0=돌아가기): ");
             String input = scanner.nextLine();
 
-            // 0 입력시 메인 메뉴로 복귀
+            // main에서 이 함수를 호출했으므로 return하면 main으로 돌아감
+            // return으로 이 함수의 실행 흐름을 종료시킴
             if (input.equals("0")) {
                 System.out.println();
-                return;
+                return; // 함수 종료 → main의 while 루프로 복귀 → 메뉴 다시 표시
             }
 
-            // 숫자 검증: 모든 문자가 숫자인지 확인
-            // try-catch 대신 사전 검증 방식 사용
-            // 이유: 예외는 예측 불가능한 외부 요인에만 사용하는 것이 바람직
+            // 숫자 검증
             boolean isNumber = true;
             for (int i = 0; i < input.length(); i++) {
-                // Character.isDigit(): 해당 문자가 0~9인지 확인
                 if (!Character.isDigit(input.charAt(i))) {
                     isNumber = false;
                     break;
                 }
             }
 
-            // 빈 문자열이거나 숫자가 아닌 경우
             if (!isNumber || input.isEmpty()) {
                 System.out.println("올바른 숫자를 입력해주세요.\n");
                 continue;
             }
 
-            // 이제 안전하게 파싱 가능
             int n = Integer.parseInt(input);
 
-            // 유효성 검사: 1 이상이어야 마름모 출력 가능
-            if (n < 1) {
-                System.out.println("1 이상의 숫자를 입력해주세요.\n");
-                continue;
-            }
-
-            // 마름모 출력
-            // n = 반높이 (n=3이면 총 5줄)
-            //
-            // n=3일 때 구조 분석:
-            // i=1: 공백 2개(n-1), 별 1개(2*1-1)  →  "  *"
-            // i=2: 공백 1개(n-2), 별 3개(2*2-1)  →  " ***"
-            // i=3: 공백 0개(n-3), 별 5개(2*3-1)  →  "*****"
-            //
-            // 공백이 n-i인 이유:
-            // - 마름모는 가운데 정렬이 필요함
-            // - 가장 넓은 줄(i=n)은 공백 0개, 가장 좁은 줄(i=1)은 공백 n-1개
-            // - 줄 번호 i가 증가할수록 공백은 감소해야 함 → n-i
             System.out.println();
 
-            // 상단부 (1줄 ~ n줄): 별이 1개에서 2n-1개로 증가
+            // 상단부: i가 1부터 n까지 증가 → 별이 점점 늘어남
+            // n=3일 때: i=1 → "  *", i=2 → " ***", i=3 → "*****"
             for (int i = 1; i <= n; i++) {
-                // 공백 출력: n-i개 (가운데 정렬용)
-                // j는 반복 횟수를 세는 카운터 변수
+                // 공백 출력: n-i개
+                // i가 커질수록 공백이 줄어듦 (가운데 정렬 효과)
                 for (int j = 0; j < n - i; j++) {
                     System.out.print(" ");
                 }
-                // 별 출력: 2*i-1개 (1, 3, 5, ... 홀수 증가)
-                // 2*i-1인 이유: i=1→1개, i=2→3개, i=3→5개 (홀수 수열)
+                // 별 출력: 2*i-1개
+                // i=1→1개, i=2→3개, i=3→5개 (홀수로 증가)
                 for (int j = 0; j < 2 * i - 1; j++) {
                     System.out.print("*");
                 }
-                // 줄바꿈: 한 줄 출력 완료 후 다음 줄로
                 System.out.println();
             }
 
-            // 하단부 (n-1줄 ~ 1줄): 별이 2n-3개에서 1개로 감소
-            // i를 n-1부터 시작: 가운데 줄은 상단부에서 이미 출력했으므로 제외
+            // 하단부: i가 n-1부터 1까지 감소 → 별이 점점 줄어듦
+            // n=3일 때: i=2 → " ***", i=1 → "  *"
+            // 가운데 줄(i=n)은 상단부에서 이미 출력했으므로 n-1부터 시작
             for (int i = n - 1; i >= 1; i--) {
                 for (int j = 0; j < n - i; j++) {
                     System.out.print(" ");
@@ -146,13 +148,44 @@ public class Main {
         }
     }
 
-    // drawCircle: 원 그리기 과제 메서드
-    // static인 이유: main에서 직접 호출해야 하므로
+    /*
+     * 원 그리기
+     *
+     * 1. 기준: r = 원의 반지름
+     * r을 입력하면 중심은 (r, r)이 됨
+     * 예: r=3 입력 → 중심 (3,3), 캔버스 크기 0~6 (2r)
+     *
+     * 2. 아이디어: 중심에서 r만큼 떨어진 점들을 찍으면 원이 된다
+     *
+     * 3. 규칙
+     * 중심에서 각 점까지의 거리 공식 (피타고라스 정리)
+     * https://m.blog.naver.com/jamogenius/221134715541
+     * 거리² = (x-rx)² + (y-ry)² 공식을 완성시키는 x, y 좌표에 점을 찍어 원을 완성하기
+     *
+     * 4. 구현
+     * [입력] 사용자로부터 r 입력
+     * [처리]
+     * 2중 for문으로 (x,y) 좌표 전체 순회 (0~2r)
+     * 각 점에서 중심(r,r)까지의 거리² 계산
+     * 거리²가 r²-r ~ r²+r 범위 내인지 판정
+     * - 정확히 r²인 점만 찍으면 정수 좌표 특성상 원이 끊어짐
+     * - 왜 ±0.5 허용이 필요한가:
+     *
+     *       정수 좌표만 점을 찍을 수 있음 (0, 1, 2, 3...)
+     *       하지만 원은 2.5 같은 위치를 지나갈 수 있음
+     *
+     *       0   1   2   ○   3   4   ← 원이 2.5 위치를 지남
+     *               ⬆      ⬆ ️
+     *              2와 3 중 뭘 찍어야 하나?
+     *              둘 다 원에서 0.5 떨어져 있음
+     *
+     *       허용치 < 0.5 → 둘 다 탈락 → 구멍
+     *       허용치 >= 0.5 → 최소 하나 포함 → 연결됨
+     *
+     * - 허용 거리 ±0.5 → 제곱하면 r²-r ~ r²+r (이보다 작으면 끊어지고, 크면 두꺼워짐)
+     * [출력] 범위 내면 '*', 아니면 ' ' 출력
+     */
     private static void drawCircle() {
-        // =====================================================
-        // 설계 1단계: 출발점
-        // 사용자 입력 숫자 = 원의 반지름 r
-        // =====================================================
         System.out.println("\n=== 원 그리기 ===");
         System.out.println("0: 메인 메뉴로 돌아가기");
         System.out.println("숫자 입력: 해당 반지름의 원 출력\n");
@@ -166,96 +199,55 @@ public class Main {
                 return;
             }
 
-            // 숫자 검증: 모든 문자가 숫자인지 확인
-            // try-catch 대신 사전 검증 방식 사용
-            // 이유: 예외는 예측 불가능한 외부 요인에만 사용하는 것이 바람직
+            // 숫자 검증
             boolean isNumber = true;
             for (int i = 0; i < input.length(); i++) {
-                // Character.isDigit(): 해당 문자가 0~9인지 확인
                 if (!Character.isDigit(input.charAt(i))) {
                     isNumber = false;
                     break;
                 }
             }
 
-            // 빈 문자열이거나 숫자가 아닌 경우
             if (!isNumber || input.isEmpty()) {
                 System.out.println("올바른 숫자를 입력해주세요.\n");
                 continue;
             }
 
-            // 이제 안전하게 파싱 가능
             int r = Integer.parseInt(input);
 
-            if (r < 1) {
-                System.out.println("1 이상의 숫자를 입력해주세요.\n");
+            // r=1: 일반 공식으로는 제대로 안 그려지는 엣지케이스
+            if (r == 1) {
+                System.out.println();
+                System.out.println(" * ");
+                System.out.println("* *");
+                System.out.println(" * ");
+                System.out.println();
                 continue;
             }
 
-            // =====================================================
-            // 설계 2단계: 문제 정의
-            // 콘솔에 r 크기의 원을 그리려면?
-            // → 어떤 위치에 '*'를 찍어야 할지 판단해야 함
-            // =====================================================
-
-            // =====================================================
-            // 설계 3단계: 아이디어
-            // 콘솔 = 2차원 좌표 격자
-            // 각 (x, y) 위치에서 "이 점이 원 위에 있나?" 판단
-            // → 있으면 '*', 없으면 ' '
-            // =====================================================
-
-            // =====================================================
-            // 설계 4단계: 판단 기준
-            // "원 위에 있다" = "중심에서의 거리가 반지름과 같다"
-            // 거리 공식: √[(x-cx)² + (y-cy)²]
-            // 이 거리 ≈ r 이면 '*' 출력
-            // =====================================================
-
-            // =====================================================
-            // 설계 5단계: 구현
-            // - 중심: (r, r) - 출력 영역의 가운데
-            // - 좌표 순회: 2중 for문으로 (x, y) 전체 탐색
-            // - 판정: 거리 ≈ r 이면 '*', 아니면 공백
-            // =====================================================
             System.out.println();
 
-            // 중심 좌표: (cx, cy)
-            // r로 설정하는 이유: 0~2r 범위의 가운데에 원을 배치하기 위해
-            int cx = r;
-            int cy = r;
-
-            // 제곱 비교를 위한 범위 계산 (Math.sqrt 대신 사용)
-            // 원래: r - 0.5 <= distance <= r + 0.5
-            // 양변 제곱: (r-0.5)² <= distance² <= (r+0.5)²
-            //
-            // (r - 0.5)² = r² - r + 0.25 ≈ r² - r
-            // (r + 0.5)² = r² + r + 0.25 ≈ r² + r
-            //
-            // int 연산으로 근사하여 Math 없이 처리
+            // 허용 범위 계산
+            // 예: r=5 → rSquared=25, 범위는 20~30
             int rSquared = r * r;
-            int rSquaredMin = rSquared - r;  // (r - 0.5)²의 근사값
-            int rSquaredMax = rSquared + r;  // (r + 0.5)²의 근사값
+            int rSquaredMin = rSquared - r;  // r²-r (±0.5 허용의 하한)
+            int rSquaredMax = rSquared + r;  // r²+r (±0.5 허용의 상한)
 
-            // y좌표 순회: 0부터 2r까지 (원의 지름만큼)
+            // 캔버스 전체를 순회하며 각 점이 원 위에 있는지 판정
+            // 캔버스 크기: 0~2r (중심이 (r,r)이므로 양쪽으로 r씩 필요)
             for (int y = 0; y <= 2 * r; y++) {
-                // x좌표 순회: 0부터 2r까지
                 for (int x = 0; x <= 2 * r; x++) {
-                    // 중심에서의 x, y 방향 거리
-                    int dx = x - cx;
-                    int dy = y - cy;
-
-                    // 거리의 제곱 계산 (Math.pow 대신 직접 곱셈)
-                    // dx * dx: (x - cx)²
-                    // dy * dy: (y - cy)²
+                    // 현재 점 (x,y)에서 중심 (r,r)까지의 거리² 계산
+                    // 피타고라스: 거리² = dx² + dy²
+                    int dx = x - r;  // x방향 거리
+                    int dy = y - r;  // y방향 거리
                     int distanceSquared = dx * dx + dy * dy;
 
-                    // 거리² 가 r² 범위 내에 있으면 원 위의 점
-                    // Math.sqrt 불필요: 제곱 상태로 비교
+                    // 거리²가 허용 범위 내에 있으면 원 위의 점
                     if (distanceSquared >= rSquaredMin && distanceSquared <= rSquaredMax) {
-                        System.out.print("* ");
+                        System.out.print("*");
                     } else {
-                        System.out.print("  ");
+                        System.out.print(" ");
                     }
                 }
                 System.out.println();
@@ -265,13 +257,27 @@ public class Main {
         }
     }
 
-    // drawStar: 6각 별(다윗의 별) 그리기 과제 메서드
-    // 두 개의 정삼각형이 겹쳐진 형태
+    /*
+     * 육망성 별 그리기
+     *
+     * 1. 기준: n = 별의 반높이 (전체 캔버스 2n × 2n)
+     *
+     * 2. 아이디어: 위로 향하는 삼각형(△)과 아래로 향하는 삼각형(▽)을 겹쳐서 그림
+     *
+     * 3. 규칙
+     * △의 3개 변 + ▽의 3개 변 = 총 6개 변
+     * 점에서 직선(변)까지의 거리가 0.5 이하면 그 변 위에 있다고 판정
+     * 6개 변 중 하나라도 가까우면 '*' 출력
+     *
+     * 4. 구현
+     * [입력] 사용자로부터 n 입력
+     * [처리]
+     * 두 삼각형의 꼭짓점 좌표 계산
+     * 2중 for문으로 (x,y) 좌표 전체 순회 (0~2n)
+     * 각 점에서 6개 변까지의 거리 계산
+     * [출력] 어느 변이든 가까우면 '*', 아니면 ' ' 출력
+     */
     private static void drawStar() {
-        // =====================================================
-        // 설계 1단계: 출발점
-        // 사용자 입력 숫자 = 별의 크기 n (반높이)
-        // =====================================================
         System.out.println("\n=== 별 그리기 ===");
         System.out.println("0: 메인 메뉴로 돌아가기");
         System.out.println("숫자 입력: 해당 크기의 6각 별 출력\n");
@@ -285,7 +291,7 @@ public class Main {
                 return;
             }
 
-            // 숫자 검증: 모든 문자가 숫자인지 확인
+            // 숫자 검증
             boolean isNumber = true;
             for (int i = 0; i < input.length(); i++) {
                 if (!Character.isDigit(input.charAt(i))) {
@@ -306,105 +312,42 @@ public class Main {
                 continue;
             }
 
-            // n=1인 경우: 별 하나만 출력
-            // 6각 별의 최소 단위 = 점 하나
+            // n=1: 별 하나만 출력
             if (n == 1) {
                 System.out.println("\n*\n");
                 continue;
             }
 
-            // =====================================================
-            // 설계 2단계: 6각 별 = 두 삼각형의 합성
-            // 삼각형1 (△): 꼭짓점이 위, 밑변이 아래
-            // 삼각형2 (▽): 꼭짓점이 아래, 밑변이 위
-            // =====================================================
-
-            // =====================================================
-            // 설계 3단계: 좌표계 정의
-            // - 전체 높이: 2n (0 ~ 2n)
-            // - 전체 너비: 2n (0 ~ 2n)
-            // - 중심: (n, n)
-            // =====================================================
-
-            // =====================================================
-            // 설계 4단계: 삼각형 꼭짓점 정의
-            //
-            // 삼각형1 (△ 위를 향함):
-            //   - 상단 꼭짓점: (n, 0)
-            //   - 좌하단: (0, n + n/2)
-            //   - 우하단: (2n, n + n/2)
-            //
-            // 삼각형2 (▽ 아래를 향함):
-            //   - 하단 꼭짓점: (n, 2n)
-            //   - 좌상단: (0, n - n/2)
-            //   - 우상단: (2n, n - n/2)
-            // =====================================================
             System.out.println();
 
-            // 삼각형1 (△) 꼭짓점 좌표
-            int t1TopX = n;
+            // 삼각형1 (△) 꼭짓점: 상단(n,0), 좌하단(0,n+n/2), 우하단(2n,n+n/2)
             int t1TopY = 0;
             int t1LeftX = 0;
             int t1LeftY = n + n / 2;
             int t1RightX = 2 * n;
             int t1RightY = n + n / 2;
 
-            // 삼각형2 (▽) 꼭짓점 좌표
-            int t2BottomX = n;
+            // 삼각형2 (▽) 꼭짓점: 하단(n,2n), 좌상단(0,n-n/2), 우상단(2n,n-n/2)
             int t2BottomY = 2 * n;
             int t2LeftX = 0;
             int t2LeftY = n - n / 2;
             int t2RightX = 2 * n;
             int t2RightY = n - n / 2;
 
-            // =====================================================
-            // 설계 5단계: 각 점이 6개의 변 중 하나 위에 있는지 판정
-            // 직선 위 판정: 두 점을 지나는 직선에서의 거리 계산
-            // =====================================================
-
-            // 임계값: 직선에서 얼마나 떨어져도 '*'로 출력할지
-            // n에 비례하게 설정하여 크기에 따라 선 두께 조절
             double threshold = 0.5;
 
-            // y좌표 순회: 0부터 2n까지
             for (int y = 0; y <= 2 * n; y++) {
-                // x좌표 순회: 0부터 2n까지
                 for (int x = 0; x <= 2 * n; x++) {
-                    boolean onStar = false;
+                    // 6개 변 중 하나라도 위에 있으면 '*'
+                    boolean onStar =
+                        isOnLineSegment(x, y, n, t1TopY, t1LeftX, t1LeftY, threshold) ||
+                        isOnLineSegment(x, y, n, t1TopY, t1RightX, t1RightY, threshold) ||
+                        isOnLineSegment(x, y, t1LeftX, t1LeftY, t1RightX, t1RightY, threshold) ||
+                        isOnLineSegment(x, y, n, t2BottomY, t2LeftX, t2LeftY, threshold) ||
+                        isOnLineSegment(x, y, n, t2BottomY, t2RightX, t2RightY, threshold) ||
+                        isOnLineSegment(x, y, t2LeftX, t2LeftY, t2RightX, t2RightY, threshold);
 
-                    // 삼각형1 (△)의 3개 변 체크
-                    // 변1: 상단 꼭짓점 → 좌하단 (왼쪽 변)
-                    if (isOnLineSegment(x, y, t1TopX, t1TopY, t1LeftX, t1LeftY, threshold)) {
-                        onStar = true;
-                    }
-                    // 변2: 상단 꼭짓점 → 우하단 (오른쪽 변)
-                    if (isOnLineSegment(x, y, t1TopX, t1TopY, t1RightX, t1RightY, threshold)) {
-                        onStar = true;
-                    }
-                    // 변3: 좌하단 → 우하단 (밑변)
-                    if (isOnLineSegment(x, y, t1LeftX, t1LeftY, t1RightX, t1RightY, threshold)) {
-                        onStar = true;
-                    }
-
-                    // 삼각형2 (▽)의 3개 변 체크
-                    // 변4: 하단 꼭짓점 → 좌상단 (왼쪽 변)
-                    if (isOnLineSegment(x, y, t2BottomX, t2BottomY, t2LeftX, t2LeftY, threshold)) {
-                        onStar = true;
-                    }
-                    // 변5: 하단 꼭짓점 → 우상단 (오른쪽 변)
-                    if (isOnLineSegment(x, y, t2BottomX, t2BottomY, t2RightX, t2RightY, threshold)) {
-                        onStar = true;
-                    }
-                    // 변6: 좌상단 → 우상단 (윗변)
-                    if (isOnLineSegment(x, y, t2LeftX, t2LeftY, t2RightX, t2RightY, threshold)) {
-                        onStar = true;
-                    }
-
-                    if (onStar) {
-                        System.out.print("* ");
-                    } else {
-                        System.out.print("  ");
-                    }
+                    System.out.print(onStar ? "* " : "  ");
                 }
                 System.out.println();
             }
@@ -413,68 +356,50 @@ public class Main {
         }
     }
 
-    // isOnLineSegment: 점 (px, py)가 선분 (x1,y1)-(x2,y2) 위에 있는지 판정
-    // threshold: 직선에서의 허용 거리 (선 두께)
-    // 반환값: true면 선분 위에 있음
+    /// 점 (px, py)가 선분 (x1,y1)-(x2,y2) 위에 있는지 판정 (허용 거리: threshold)
     private static boolean isOnLineSegment(int px, int py, int x1, int y1, int x2, int y2, double threshold) {
-        // =====================================================
-        // 직선의 방정식: ax + by + c = 0
-        // 두 점 (x1,y1), (x2,y2)를 지나는 직선:
-        // (y2-y1)*x - (x2-x1)*y + (x2-x1)*y1 - (y2-y1)*x1 = 0
-        //
-        // 점 (px, py)에서 직선까지의 거리:
-        // |a*px + b*py + c| / sqrt(a² + b²)
-        // =====================================================
-
-        // 직선 계수 계산
         int a = y2 - y1;
         int b = -(x2 - x1);
         int c = (x2 - x1) * y1 - (y2 - y1) * x1;
 
-        // 분자: |a*px + b*py + c|
         double numerator = Math.abs(a * px + b * py + c);
-
-        // 분모: sqrt(a² + b²)
         double denominator = Math.sqrt(a * a + b * b);
 
-        // 분모가 0이면 두 점이 같은 점 (선분이 아님)
-        if (denominator == 0) {
-            return false;
-        }
+        if (denominator == 0) return false;
 
-        // 점에서 직선까지의 거리
         double distance = numerator / denominator;
+        if (distance > threshold) return false;
 
-        // 거리가 임계값 이하인지 확인
-        if (distance > threshold) {
-            return false;
-        }
-
-        // =====================================================
-        // 선분 범위 체크: 점이 선분의 경계 내에 있는지
-        // x, y 각각 min~max 범위 내에 있어야 함
-        // 약간의 여유(1)를 두어 경계 포함
-        // =====================================================
+        // 선분 범위 체크
         int minX = Math.min(x1, x2);
         int maxX = Math.max(x1, x2);
         int minY = Math.min(y1, y2);
         int maxY = Math.max(y1, y2);
 
-        // 점이 선분의 x, y 범위 내에 있는지 확인
-        boolean inXRange = (px >= minX - 1) && (px <= maxX + 1);
-        boolean inYRange = (py >= minY - 1) && (py <= maxY + 1);
-
-        return inXRange && inYRange;
+        return (px >= minX - 1) && (px <= maxX + 1) && (py >= minY - 1) && (py <= maxY + 1);
     }
 
-    // drawSudoku: 유사 스도쿠(라틴 방진) 출력 메서드
-    // n×n 격자에 0~n-1 숫자를 행/열 중복 없이 배치
+    /*
+     * 유사 스도쿠
+     *
+     * 1. 기준: n = 격자 크기 (n×n에 0~n-1 배치)
+     *
+     * 2. 아이디어: 각 행의 시작 숫자를 1씩 늘리면 자연스럽게 중복이 사라짐
+     *
+     * 3. 규칙
+     * value = (row + col) % n
+     * row + col: 행 번호만큼 시작점이 밀림
+     * % n: 끝에 도달하면 다시 0으로 돌아감
+     * n=3일 때: 0행 → "0 1 2", 1행 → "1 2 0", 2행 → "2 0 1"
+     *
+     * 4. 구현
+     * [입력] 사용자로부터 n 입력
+     * [처리]
+     * 2중 for문으로 row, col 순회 (0~n-1)
+     * 각 칸의 값 = (row + col) % n 계산
+     * [출력] 각 칸의 값 출력
+     */
     private static void drawSudoku() {
-        // =====================================================
-        // 설계 1단계: 출발점
-        // 사용자 입력 숫자 n = 격자의 크기
-        // 1 → 1×1, 2 → 2×2, 3 → 3×3, ...
-        // =====================================================
         System.out.println("\n=== 유사 스도쿠 ===");
         System.out.println("0: 메인 메뉴로 돌아가기");
         System.out.println("숫자 입력: 해당 크기의 스도쿠 출력\n");
@@ -488,7 +413,7 @@ public class Main {
                 return;
             }
 
-            // 숫자 검증: 모든 문자가 숫자인지 확인
+            // 숫자 검증
             boolean isNumber = true;
             for (int i = 0; i < input.length(); i++) {
                 if (!Character.isDigit(input.charAt(i))) {
@@ -509,24 +434,13 @@ public class Main {
                 continue;
             }
 
-            // =====================================================
-            // 설계 2단계: 라틴 방진 알고리즘
-            // 핵심 공식: value = (row + col) % n
-            //
-            // 이 공식이 중복을 방지하는 이유:
-            // - 행 고정: col이 0~n-1일 때 (row+col)%n은 0~n-1을 한 번씩 생성
-            // - 열 고정: row가 0~n-1일 때 (row+col)%n은 0~n-1을 한 번씩 생성
-            // =====================================================
             System.out.println();
 
-            // 2중 for문으로 n×n 격자 순회
             for (int row = 0; row < n; row++) {
                 for (int col = 0; col < n; col++) {
-                    // 라틴 방진 공식: 행과 열의 합을 n으로 나눈 나머지
                     int value = (row + col) % n;
                     System.out.print(value + " ");
                 }
-                // 한 행 출력 완료 후 줄바꿈
                 System.out.println();
             }
 

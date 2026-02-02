@@ -40,7 +40,10 @@ public class Main {
                     /*
                      * 마름모 그리기
                      *
-                     * 1. 기준: n = 마름모의 반높이 (n=3이면 총 5줄)
+                     * 정의: 네 변의 길이가 모두 같은 등변 사각형
+                     *
+                     * 1. 기준: 이걸 콘솔에 그리려면?
+                     * => n = 마름모의 반높이 (n=3이면 총 2n-1 = 5줄)
                      *
                      * 2. 아이디어: 상단부(넓어짐)와 하단부(좁아짐)로 나눠서 출력
                      *
@@ -63,12 +66,28 @@ public class Main {
                     System.out.println("숫자 입력: 해당 크기의 마름모 출력\n");
 
                     while (true) {
-                        int n = getValidNumber("마름모 크기 입력 (0=돌아가기): ");
-                        if (n == 0) {
+                        System.out.print("마름모 크기 입력 (0=돌아가기): ");
+                        String inputStr = scanner.nextLine();
+
+                        // 0 입력시 메뉴로 복귀
+                        if (inputStr.equals("0")) {
                             System.out.println();
                             break;
                         }
 
+                        // 숫자 검증: 빈 문자열이거나 숫자가 아닌 문자가 있으면 무효
+                        boolean isValid = !inputStr.isEmpty();
+                        for (int i = 0; i < inputStr.length() && isValid; i++) {
+                            if (!Character.isDigit(inputStr.charAt(i))) {
+                                isValid = false;
+                            }
+                        }
+                        if (!isValid) {
+                            System.out.println("올바른 숫자를 입력해주세요.\n");
+                            continue;
+                        }
+
+                        int n = Integer.parseInt(inputStr);
                         System.out.println();
 
                         // 상단부 (i: 1 => n)
@@ -101,18 +120,19 @@ public class Main {
                     /*
                      * 원 그리기
                      *
-                     * 1. 기준: r = 원의 반지름
-                     * r을 입력하면 중심은 (r, r)이 됨
+                     * 정의: 주어진 점에 이르는 거리가 일정한 점들로 이루어진 평면 도형
+                     * => 중심(주어진 점)에서 r(일정한 거리)만큼 떨어진 점들을 찍으면 원이 된다
+                     *
+                     * 1. 기준: 이걸 콘솔에 그리려면?
+                     * => r = 원의 반지름, 중심은 (r, r)로 설정
                      * 예: r=3 입력 => 중심 (3,3), 캔버스 크기 0~6 (2r)
                      *
-                     * 2. 아이디어: 중심에서 r만큼 떨어진 점들을 찍으면 원이 된다
-                     *
-                     * 3. 규칙
+                     * 2. 규칙
                      * 중심에서 각 점까지의 거리 공식 (피타고라스 정리)
                      * https://m.blog.naver.com/jamogenius/221134715541
                      * 거리² = (x-rx)² + (y-ry)² 공식을 완성시키는 x, y 좌표에 점을 찍어 원을 완성하기
                      *
-                     * 4. 구현
+                     * 3. 구현
                      * [입력] 사용자로부터 r 입력
                      * [처리]
                      * 좌표 전체를 순회하며 각 점에서 중심(r,r)까지의 거리² 계산
@@ -137,11 +157,28 @@ public class Main {
                     System.out.println("숫자 입력: 해당 반지름의 원 출력\n");
 
                     while (true) {
-                        int r = getValidNumber("원 반지름 입력 (0=돌아가기): ");
-                        if (r == 0) {
+                        System.out.print("원 반지름 입력 (0=돌아가기): ");
+                        String inputStr = scanner.nextLine();
+
+                        // 0 입력시 메뉴로 복귀
+                        if (inputStr.equals("0")) {
                             System.out.println();
                             break;
                         }
+
+                        // 숫자 검증: 빈 문자열이거나 숫자가 아닌 문자가 있으면 무효
+                        boolean isValid = !inputStr.isEmpty();
+                        for (int i = 0; i < inputStr.length() && isValid; i++) {
+                            if (!Character.isDigit(inputStr.charAt(i))) {
+                                isValid = false;
+                            }
+                        }
+                        if (!isValid) {
+                            System.out.println("올바른 숫자를 입력해주세요.\n");
+                            continue;
+                        }
+
+                        int r = Integer.parseInt(inputStr);
 
                         // r=1: 일반 공식으로는 제대로 안 그려지는 엣지케이스
                         if (r == 1) {
@@ -214,11 +251,28 @@ public class Main {
                     System.out.println("숫자 입력: 해당 크기의 6각 별 출력\n");
 
                     while (true) {
-                        int n = getValidNumber("별 크기 입력 (0=돌아가기): ");
-                        if (n == 0) {
+                        System.out.print("별 크기 입력 (0=돌아가기): ");
+                        String inputStr = scanner.nextLine();
+
+                        // 0 입력시 메뉴로 복귀
+                        if (inputStr.equals("0")) {
                             System.out.println();
                             break;
                         }
+
+                        // 숫자 검증: 빈 문자열이거나 숫자가 아닌 문자가 있으면 무효
+                        boolean isValid = !inputStr.isEmpty();
+                        for (int i = 0; i < inputStr.length() && isValid; i++) {
+                            if (!Character.isDigit(inputStr.charAt(i))) {
+                                isValid = false;
+                            }
+                        }
+                        if (!isValid) {
+                            System.out.println("올바른 숫자를 입력해주세요.\n");
+                            continue;
+                        }
+
+                        int n = Integer.parseInt(inputStr);
 
                         // n=1: 별 하나만 출력
                         if (n == 1) {
@@ -303,12 +357,28 @@ public class Main {
                     System.out.println("숫자 입력: 해당 크기의 스도쿠 출력\n");
 
                     while (true) {
-                        int n = getValidNumber("스도쿠 크기 입력 (0=돌아가기): ");
-                        if (n == 0) {
+                        System.out.print("스도쿠 크기 입력 (0=돌아가기): ");
+                        String inputStr = scanner.nextLine();
+
+                        // 0 입력시 메뉴로 복귀
+                        if (inputStr.equals("0")) {
                             System.out.println();
                             break;
                         }
 
+                        // 숫자 검증: 빈 문자열이거나 숫자가 아닌 문자가 있으면 무효
+                        boolean isValid = !inputStr.isEmpty();
+                        for (int i = 0; i < inputStr.length() && isValid; i++) {
+                            if (!Character.isDigit(inputStr.charAt(i))) {
+                                isValid = false;
+                            }
+                        }
+                        if (!isValid) {
+                            System.out.println("올바른 숫자를 입력해주세요.\n");
+                            continue;
+                        }
+
+                        int n = Integer.parseInt(inputStr);
                         System.out.println();
 
                         for (int row = 0; row < n; row++) {
@@ -357,29 +427,4 @@ public class Main {
         return 4 * d * d <= aabbSum;
     }
 
-    /// <summary>
-    /// 숫자 입력 받기 (입력 검증 포함)
-    /// return 0: 메뉴로 돌아가기, -1: 잘못된 입력, 양수: 유효한 숫자
-    /// </summary>
-    private static int getValidNumber(String prompt) {
-        System.out.print(prompt);
-        String input = scanner.nextLine();
-
-        if (input.equals("0")) return 0;
-
-        // 숫자 검증
-        for (int i = 0; i < input.length(); i++) {
-            if (!Character.isDigit(input.charAt(i))) {
-                System.out.println("올바른 숫자를 입력해주세요.\n");
-                return -1;
-            }
-        }
-
-        if (input.isEmpty()) {
-            System.out.println("올바른 숫자를 입력해주세요.\n");
-            return -1;
-        }
-
-        return Integer.parseInt(input);
-    }
 }

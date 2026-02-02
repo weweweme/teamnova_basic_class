@@ -19,10 +19,9 @@ public class Main {
         // while(true) + break 대신 명시적 플래그를 쓰면 의도가 더 명확함
         boolean isRunning = true;
 
-        // 이 프로그램은 사용자 입력을 받아 동작하는 대화형 프로그램
-        // 사용자가 언제 종료할지 모르므로 while로 메뉴를 계속 표시
+        // 메뉴 선택 => 기능 실행 => 메뉴 복귀를 반복
+        // 사용자가 종료를 선택할 때까지 while로 루프
         while (isRunning) {
-            // 메뉴 출력: 사용자가 선택지를 알 수 있도록 안내
             System.out.println("=== 3주차 과제 ===");
             System.out.println("1. 마름모 그리기");
             System.out.println("2. 원 그리기");
@@ -31,11 +30,11 @@ public class Main {
             System.out.println("그 외: 종료");
             System.out.print("선택: ");
 
-            // input: 사용자 입력값 저장
-            // String 타입인 이유: 숫자가 아닌 입력도 받아서 처리해야 하므로 nextInt 이런 숫자를 사용하지 않음
+            // 숫자가 아닌 입력도 받아서 처리해야 하므로 String으로 받음
             String input = scanner.nextLine();
 
-            // switch문: 다중 분기에 적합, if-else 체인보다 가독성 좋음
+            // switch문은 하나의 변수를 여러 고정값과 비교할 때 적합하다
+            // if-else는 특정 조건이나 여러 조건을 &&, ||로 조합할 때 적합하다
             switch (input) {
                 case "1":
                     drawDiamond();

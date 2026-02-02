@@ -27,7 +27,7 @@ public class Main {
             System.out.println("1. 마름모 그리기");
             System.out.println("2. 원 그리기");
             System.out.println("3. 별 그리기");
-            System.out.println("4. 보너스 (유사 스도쿠)");
+            System.out.println("4. 유사 스도쿠");
             System.out.println("그 외: 종료");
             System.out.print("선택: ");
 
@@ -440,6 +440,7 @@ public class Main {
 
             for (int row = 0; row < n; row++) {
                 for (int col = 0; col < n; col++) {
+                    // row만큼 시작점이 밀리고, n을 넘으면 0으로 돌아감
                     int value = (row + col) % n;
                     System.out.print(value + " ");
                 }

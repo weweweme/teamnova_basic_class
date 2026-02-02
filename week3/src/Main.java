@@ -71,14 +71,14 @@ public class Main {
      * 3. 규칙
      * 각 줄에서 공백 = n-i개, 별 = 2*i-1개
      * 줄 번호가 커질수록 공백은 줄고, 별은 늘어남
-     * n=3일 때: i=1 → "  *", i=2 → " ***", i=3 → "*****"
+     * n=3일 때: i=1 => "  *", i=2 => " ***", i=3 => "*****"
      *
      * 4. 구현
      * [입력] 사용자로부터 n 입력
      * [처리]
      * 상단부: i를 1부터 n까지 증가시키며 각 줄 출력
      * 하단부: i를 n-1부터 1까지 감소시키며 각 줄 출력
-     * 각 줄: 공백 n-i개 출력 → 별 2*i-1개 출력 → 줄바꿈
+     * 각 줄: 공백 n-i개 출력 => 별 2*i-1개 출력 => 줄바꿈
      * [출력] 완성된 마름모
      */
     private static void drawDiamond() {
@@ -87,36 +87,17 @@ public class Main {
         System.out.println("숫자 입력: 해당 크기의 마름모 출력\n");
 
         while (true) {
-            System.out.print("마름모 크기 입력 (0=돌아가기): ");
-            String input = scanner.nextLine();
-
-            // main에서 이 함수를 호출했으므로 return하면 main으로 돌아감
-            // return으로 이 함수의 실행 흐름을 종료시킴
-            if (input.equals("0")) {
+            // 0 입력 시 return으로 함수 종료 => main의 while 루프로 복귀 => 메뉴 다시 표시
+            int n = getValidNumber("마름모 크기 입력 (0=돌아가기): ");
+            if (n == 0) {
                 System.out.println();
-                return; // 함수 종료 → main의 while 루프로 복귀 → 메뉴 다시 표시
+                return;
             }
-
-            // 숫자 검증
-            boolean isNumber = true;
-            for (int i = 0; i < input.length(); i++) {
-                if (!Character.isDigit(input.charAt(i))) {
-                    isNumber = false;
-                    break;
-                }
-            }
-
-            if (!isNumber || input.isEmpty()) {
-                System.out.println("올바른 숫자를 입력해주세요.\n");
-                continue;
-            }
-
-            int n = Integer.parseInt(input);
 
             System.out.println();
 
-            // 상단부: i가 1부터 n까지 증가 → 별이 점점 늘어남
-            // n=3일 때: i=1 → "  *", i=2 → " ***", i=3 → "*****"
+            // 상단부: i가 1부터 n까지 증가 => 별이 점점 늘어남
+            // n=3일 때: i=1 => "  *", i=2 => " ***", i=3 => "*****"
             for (int i = 1; i <= n; i++) {
                 // 공백 출력: n-i개
                 // i가 커질수록 공백이 줄어듦 (가운데 정렬 효과)
@@ -124,15 +105,15 @@ public class Main {
                     System.out.print(" ");
                 }
                 // 별 출력: 2*i-1개
-                // i=1→1개, i=2→3개, i=3→5개 (홀수로 증가)
+                // i=1=>1개, i=2=>3개, i=3=>5개 (홀수로 증가)
                 for (int j = 0; j < 2 * i - 1; j++) {
                     System.out.print("*");
                 }
                 System.out.println();
             }
 
-            // 하단부: i가 n-1부터 1까지 감소 → 별이 점점 줄어듦
-            // n=3일 때: i=2 → " ***", i=1 → "  *"
+            // 하단부: i가 n-1부터 1까지 감소 => 별이 점점 줄어듦
+            // n=3일 때: i=2 => " ***", i=1 => "  *"
             // 가운데 줄(i=n)은 상단부에서 이미 출력했으므로 n-1부터 시작
             for (int i = n - 1; i >= 1; i--) {
                 for (int j = 0; j < n - i; j++) {
@@ -153,7 +134,7 @@ public class Main {
      *
      * 1. 기준: r = 원의 반지름
      * r을 입력하면 중심은 (r, r)이 됨
-     * 예: r=3 입력 → 중심 (3,3), 캔버스 크기 0~6 (2r)
+     * 예: r=3 입력 => 중심 (3,3), 캔버스 크기 0~6 (2r)
      *
      * 2. 아이디어: 중심에서 r만큼 떨어진 점들을 찍으면 원이 된다
      *
@@ -165,24 +146,22 @@ public class Main {
      * 4. 구현
      * [입력] 사용자로부터 r 입력
      * [처리]
-     * 2중 for문으로 (x,y) 좌표 전체 순회 (0~2r)
-     * 각 점에서 중심(r,r)까지의 거리² 계산
+     * 좌표 전체를 순회하며 각 점에서 중심(r,r)까지의 거리² 계산
      * 거리²가 r²-r ~ r²+r 범위 내인지 판정
      * - 정확히 r²인 점만 찍으면 정수 좌표 특성상 원이 끊어짐
      * - 왜 ±0.5 허용이 필요한가:
+     *   정수 좌표만 점을 찍을 수 있음 (0, 1, 2, 3...)
+     *   하지만 원은 2.5 같은 위치를 지나갈 수 있음
      *
-     *       정수 좌표만 점을 찍을 수 있음 (0, 1, 2, 3...)
-     *       하지만 원은 2.5 같은 위치를 지나갈 수 있음
+     *   0   1   2   ○   3   4   <= 원이 2.5 위치를 지남
+     *           ⬆      ⬆ ️
+     *          2와 3 중 뭘 찍어야 하나?
+     *          둘 다 원에서 0.5 떨어져 있음
      *
-     *       0   1   2   ○   3   4   ← 원이 2.5 위치를 지남
-     *               ⬆      ⬆ ️
-     *              2와 3 중 뭘 찍어야 하나?
-     *              둘 다 원에서 0.5 떨어져 있음
+     *   허용치 < 0.5 => 둘 다 탈락 => 구멍
+     *   허용치 >= 0.5 => 최소 하나 포함 => 연결됨
      *
-     *       허용치 < 0.5 → 둘 다 탈락 → 구멍
-     *       허용치 >= 0.5 → 최소 하나 포함 → 연결됨
-     *
-     * - 허용 거리 ±0.5 → 제곱하면 r²-r ~ r²+r (이보다 작으면 끊어지고, 크면 두꺼워짐)
+     * - 허용 거리 ±0.5 => 제곱하면 r²-r ~ r²+r (이보다 작으면 끊어지고, 크면 두꺼워짐)
      * [출력] 범위 내면 '*', 아니면 ' ' 출력
      */
     private static void drawCircle() {
@@ -191,29 +170,11 @@ public class Main {
         System.out.println("숫자 입력: 해당 반지름의 원 출력\n");
 
         while (true) {
-            System.out.print("원 반지름 입력 (0=돌아가기): ");
-            String input = scanner.nextLine();
-
-            if (input.equals("0")) {
+            int r = getValidNumber("원 반지름 입력 (0=돌아가기): ");
+            if (r == 0) {
                 System.out.println();
                 return;
             }
-
-            // 숫자 검증
-            boolean isNumber = true;
-            for (int i = 0; i < input.length(); i++) {
-                if (!Character.isDigit(input.charAt(i))) {
-                    isNumber = false;
-                    break;
-                }
-            }
-
-            if (!isNumber || input.isEmpty()) {
-                System.out.println("올바른 숫자를 입력해주세요.\n");
-                continue;
-            }
-
-            int r = Integer.parseInt(input);
 
             // r=1: 일반 공식으로는 제대로 안 그려지는 엣지케이스
             if (r == 1) {
@@ -228,7 +189,7 @@ public class Main {
             System.out.println();
 
             // 허용 범위 계산
-            // 예: r=5 → rSquared=25, 범위는 20~30
+            // 예: r=5 => rSquared=25, 범위는 20~30
             int rSquared = r * r;
             int rSquaredMin = rSquared - r;  // r²-r (±0.5 허용의 하한)
             int rSquaredMax = rSquared + r;  // r²+r (±0.5 허용의 상한)
@@ -267,7 +228,7 @@ public class Main {
      * 3. 규칙
      * △의 3개 변 + ▽의 3개 변 = 총 6개 변
      * 각 변은 직선이고, 직선도 정수가 아닌 위치를 지나감
-     * → 원 그리기와 같은 문제: 딱 직선 위에 있는 정수 점이 별로 없음 → 끊어짐
+     * => 원 그리기와 같은 문제: 딱 직선 위에 있는 정수 점이 별로 없음 => 끊어짐
      * 직선에서 ±0.5 거리 이내인 점도 포함해서 해결
      * 6개 변 중 하나라도 가까우면 * 출력하는 방식
      *
@@ -285,29 +246,11 @@ public class Main {
         System.out.println("숫자 입력: 해당 크기의 6각 별 출력\n");
 
         while (true) {
-            System.out.print("별 크기 입력 (0=돌아가기): ");
-            String input = scanner.nextLine();
-
-            if (input.equals("0")) {
+            int n = getValidNumber("별 크기 입력 (0=돌아가기): ");
+            if (n == 0) {
                 System.out.println();
                 return;
             }
-
-            // 숫자 검증
-            boolean isNumber = true;
-            for (int i = 0; i < input.length(); i++) {
-                if (!Character.isDigit(input.charAt(i))) {
-                    isNumber = false;
-                    break;
-                }
-            }
-
-            if (!isNumber || input.isEmpty()) {
-                System.out.println("올바른 숫자를 입력해주세요.\n");
-                continue;
-            }
-
-            int n = Integer.parseInt(input);
 
             // n=1: 별 하나만 출력
             if (n == 1) {
@@ -397,7 +340,7 @@ public class Main {
      * value = (row + col) % n
      * row + col: 행 번호만큼 시작점이 밀림
      * % n: 끝에 도달하면 다시 0으로 돌아감
-     * n=3일 때: 0행 → "0 1 2", 1행 → "1 2 0", 2행 → "2 0 1"
+     * n=3일 때: 0행 => "0 1 2", 1행 => "1 2 0", 2행 => "2 0 1"
      *
      * 4. 구현
      * [입력] 사용자로부터 n 입력
@@ -412,29 +355,11 @@ public class Main {
         System.out.println("숫자 입력: 해당 크기의 스도쿠 출력\n");
 
         while (true) {
-            System.out.print("스도쿠 크기 입력 (0=돌아가기): ");
-            String input = scanner.nextLine();
-
-            if (input.equals("0")) {
+            int n = getValidNumber("스도쿠 크기 입력 (0=돌아가기): ");
+            if (n == 0) {
                 System.out.println();
                 return;
             }
-
-            // 숫자 검증
-            boolean isNumber = true;
-            for (int i = 0; i < input.length(); i++) {
-                if (!Character.isDigit(input.charAt(i))) {
-                    isNumber = false;
-                    break;
-                }
-            }
-
-            if (!isNumber || input.isEmpty()) {
-                System.out.println("올바른 숫자를 입력해주세요.\n");
-                continue;
-            }
-
-            int n = Integer.parseInt(input);
 
             System.out.println();
 
@@ -449,5 +374,31 @@ public class Main {
 
             System.out.println();
         }
+    }
+
+    /// <summary>
+    /// 숫자 입력 받기 (입력 검증 포함)
+    /// return 0: 메뉴로 돌아가기, -1: 잘못된 입력, 양수: 유효한 숫자
+    /// </summary>
+    private static int getValidNumber(String prompt) {
+        System.out.print(prompt);
+        String input = scanner.nextLine();
+
+        if (input.equals("0")) return 0;
+
+        // 숫자 검증
+        for (int i = 0; i < input.length(); i++) {
+            if (!Character.isDigit(input.charAt(i))) {
+                System.out.println("올바른 숫자를 입력해주세요.\n");
+                return -1;
+            }
+        }
+
+        if (input.isEmpty()) {
+            System.out.println("올바른 숫자를 입력해주세요.\n");
+            return -1;
+        }
+
+        return Integer.parseInt(input);
     }
 }

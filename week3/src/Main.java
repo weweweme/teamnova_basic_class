@@ -155,19 +155,23 @@ public class Main {
 
                         System.out.println();
 
-                        // 허용 범위: r²-r ~ r²+r
+                        // 허용 범위 계산
+                        // 예: r=5 => rSquared=25, 범위는 20~30
                         int rSquared = r * r;
-                        int rSquaredMin = rSquared - r;
-                        int rSquaredMax = rSquared + r;
+                        int rSquaredMin = rSquared - r;  // r²-r (±0.5 허용의 하한)
+                        int rSquaredMax = rSquared + r;  // r²+r (±0.5 허용의 상한)
 
-                        // 캔버스(0~2r) 전체 순회
+                        // 캔버스 전체를 순회하며 각 점이 원 위에 있는지 판정
+                        // 캔버스 크기: 0~2r (중심이 (r,r)이므로 양쪽으로 r씩 필요)
                         for (int y = 0; y <= 2 * r; y++) {
                             for (int x = 0; x <= 2 * r; x++) {
-                                // 중심 (r,r)까지의 거리²
-                                int dx = x - r;
-                                int dy = y - r;
+                                // 현재 점 (x,y)에서 중심 (r,r)까지의 거리² 계산
+                                // 피타고라스: 거리² = dx² + dy²
+                                int dx = x - r;  // x방향 거리
+                                int dy = y - r;  // y방향 거리
                                 int distanceSquared = dx * dx + dy * dy;
 
+                                // 거리²가 허용 범위 내에 있으면 원 위의 점
                                 if (distanceSquared >= rSquaredMin && distanceSquared <= rSquaredMax) {
                                     System.out.print("*");
                                 } else {
@@ -180,7 +184,7 @@ public class Main {
                         System.out.println();
                     }
                     break;
-                    
+
                 case "3":
                     drawStar();
                     break;

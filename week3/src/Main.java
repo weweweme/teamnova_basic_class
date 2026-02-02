@@ -266,8 +266,10 @@ public class Main {
      *
      * 3. 규칙
      * △의 3개 변 + ▽의 3개 변 = 총 6개 변
-     * 점에서 직선(변)까지의 거리가 0.5 이하면 그 변 위에 있다고 판정
-     * 6개 변 중 하나라도 가까우면 '*' 출력
+     * 각 변은 직선이고, 직선도 정수가 아닌 위치를 지나감
+     * → 원 그리기와 같은 문제: 딱 직선 위에 있는 정수 점이 별로 없음 → 끊어짐
+     * 직선에서 ±0.5 거리 이내인 점도 포함해서 해결
+     * 6개 변 중 하나라도 가까우면 * 출력하는 방식
      *
      * 4. 구현
      * [입력] 사용자로부터 n 입력
@@ -275,7 +277,7 @@ public class Main {
      * 두 삼각형의 꼭짓점 좌표 계산
      * 2중 for문으로 (x,y) 좌표 전체 순회 (0~2n)
      * 각 점에서 6개 변까지의 거리 계산
-     * [출력] 어느 변이든 가까우면 '*', 아니면 ' ' 출력
+     * [출력] 6개의 변 중 하나라도 범위라고 판단되면 '*', 아니면 ' ' 출력
      */
     private static void drawStar() {
         System.out.println("\n=== 별 그리기 ===");
@@ -307,11 +309,6 @@ public class Main {
 
             int n = Integer.parseInt(input);
 
-            if (n < 1) {
-                System.out.println("1 이상의 숫자를 입력해주세요.\n");
-                continue;
-            }
-
             // n=1: 별 하나만 출력
             if (n == 1) {
                 System.out.println("\n*\n");
@@ -320,32 +317,44 @@ public class Main {
 
             System.out.println();
 
-            // 삼각형1 (△) 꼭짓점: 상단(n,0), 좌하단(0,n+n/2), 우하단(2n,n+n/2)
+            /*
+             * 캔버스: 0~2n, 중심: (n, n)
+             *
+             * 꼭대기는 맨 위(y=0), 밑변은 중심보다 n/2 아래
+             * 꼭대기는 맨 아래(y=2n), 윗변은 중심보다 n/2 위
+             *
+             * n/2는 두 삼각형이 겹치는 정도 (위쪽 삼각형 밑변과 아래쪽 삼각형 윗변 사이 거리)
+             * 값이 작아질수록(n/3, n/4) 두 가로선이 가까워져서 가운데 빈 공간이 좁아짐 => 별 모양이 이상해짐
+             */
+
+            // 꼭짓점: 상단(n,0), 좌하단(0, n+n/2), 우하단(2n, n+n/2)
             int t1TopY = 0;
             int t1LeftX = 0;
             int t1LeftY = n + n / 2;
             int t1RightX = 2 * n;
             int t1RightY = n + n / 2;
 
-            // 삼각형2 (▽) 꼭짓점: 하단(n,2n), 좌상단(0,n-n/2), 우상단(2n,n-n/2)
+            // 꼭짓점: 하단(n,2n), 좌상단(0, n-n/2), 우상단(2n, n-n/2)
             int t2BottomY = 2 * n;
             int t2LeftX = 0;
             int t2LeftY = n - n / 2;
             int t2RightX = 2 * n;
             int t2RightY = n - n / 2;
 
-            double threshold = 0.5;
-
+            // 캔버스 전체를 순회하며 각 점이 별 위에 있는지 판정
+            // 원 그리기와 같은 원리: 직선에서 0.5 이내인 점을 찍음 (함수 내부에서 처리)
             for (int y = 0; y <= 2 * n; y++) {
                 for (int x = 0; x <= 2 * n; x++) {
-                    // 6개 변 중 하나라도 위에 있으면 '*'
+                    // 현재 점 (x,y)가 6개 변 중 하나라도 가까우면 별 위의 점
+                    // △: 꼭대기-좌하단, 꼭대기-우하단, 좌하단-우하단 (3개)
+                    // ▽: 꼭대기-좌상단, 꼭대기-우상단, 좌상단-우상단 (3개)
                     boolean onStar =
-                        isOnLineSegment(x, y, n, t1TopY, t1LeftX, t1LeftY, threshold) ||
-                        isOnLineSegment(x, y, n, t1TopY, t1RightX, t1RightY, threshold) ||
-                        isOnLineSegment(x, y, t1LeftX, t1LeftY, t1RightX, t1RightY, threshold) ||
-                        isOnLineSegment(x, y, n, t2BottomY, t2LeftX, t2LeftY, threshold) ||
-                        isOnLineSegment(x, y, n, t2BottomY, t2RightX, t2RightY, threshold) ||
-                        isOnLineSegment(x, y, t2LeftX, t2LeftY, t2RightX, t2RightY, threshold);
+                        isNearLine(x, y, n, t1TopY, t1LeftX, t1LeftY) ||
+                        isNearLine(x, y, n, t1TopY, t1RightX, t1RightY) ||
+                        isNearLine(x, y, t1LeftX, t1LeftY, t1RightX, t1RightY) ||
+                        isNearLine(x, y, n, t2BottomY, t2LeftX, t2LeftY) ||
+                        isNearLine(x, y, n, t2BottomY, t2RightX, t2RightY) ||
+                        isNearLine(x, y, t2LeftX, t2LeftY, t2RightX, t2RightY);
 
                     System.out.print(onStar ? "* " : "  ");
                 }
@@ -356,27 +365,25 @@ public class Main {
         }
     }
 
-    /// 점 (px, py)가 선분 (x1,y1)-(x2,y2) 위에 있는지 판정 (허용 거리: threshold)
-    private static boolean isOnLineSegment(int px, int py, int x1, int y1, int x2, int y2, double threshold) {
+    /// <summary>
+    /// 점 (px, py)가 선분 (x1,y1)-(x2,y2) 위에 있는지 판정
+    /// </summary>
+    private static boolean isNearLine(int px, int py, int x1, int y1, int x2, int y2) {
+        // 직선의 방정식 계수 (두 점 (x1,y1), (x2,y2)를 지나는 직선)
+        // 두 점을 지나는 직선: a = y2-y1, b = -(x2-x1), c = 나머지
         int a = y2 - y1;
         int b = -(x2 - x1);
         int c = (x2 - x1) * y1 - (y2 - y1) * x1;
 
-        double numerator = Math.abs(a * px + b * py + c);
-        double denominator = Math.sqrt(a * a + b * b);
+        // 두 점이 같으면 직선이 아님
+        int aabbSum = a * a + b * b;
+        if (aabbSum == 0) return false;
 
-        if (denominator == 0) return false;
-
-        double distance = numerator / denominator;
-        if (distance > threshold) return false;
-
-        // 선분 범위 체크
-        int minX = Math.min(x1, x2);
-        int maxX = Math.max(x1, x2);
-        int minY = Math.min(y1, y2);
-        int maxY = Math.max(y1, y2);
-
-        return (px >= minX - 1) && (px <= maxX + 1) && (py >= minY - 1) && (py <= maxY + 1);
+        // 4 * (ax + by + c)² <= (a² + b²) 비교
+        // true: 점이 직선에 충분히 가까움
+        // false: 점이 직선에서 멀어서 제외
+        int d = a * px + b * py + c;
+        return 4 * d * d <= aabbSum;
     }
 
     /*
@@ -428,11 +435,6 @@ public class Main {
             }
 
             int n = Integer.parseInt(input);
-
-            if (n < 1) {
-                System.out.println("1 이상의 숫자를 입력해주세요.\n");
-                continue;
-            }
 
             System.out.println();
 

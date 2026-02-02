@@ -37,8 +37,66 @@ public class Main {
             // if-else는 특정 조건이나 여러 조건을 &&, ||로 조합할 때 적합하다
             switch (input) {
                 case "1":
-                    drawDiamond();
+                    /*
+                     * 마름모 그리기
+                     *
+                     * 1. 기준: n = 마름모의 반높이 (n=3이면 총 5줄)
+                     *
+                     * 2. 아이디어: 상단부(넓어짐)와 하단부(좁아짐)로 나눠서 출력
+                     *
+                     * 3. 규칙
+                     * 각 줄에서 공백 = n-i개, 별 = 2*i-1개
+                     * 줄 번호가 커질수록 공백은 줄고, 별은 늘어남
+                     * n=3일 때: i=1 => "  *", i=2 => " ***", i=3 => "*****"
+                     *
+                     * 4. 구현
+                     * [입력] 사용자로부터 n 입력
+                     * [처리]
+                     * 상단부: i를 1부터 n까지 증가시키며 각 줄 출력
+                     * 하단부: i를 n-1부터 1까지 감소시키며 각 줄 출력
+                     * 각 줄: 공백 n-i개 출력 => 별 2*i-1개 출력 => 줄바꿈
+                     * [출력] 완성된 마름모
+                     */
+
+                    System.out.println("\n=== 마름모 그리기 ===");
+                    System.out.println("0: 메인 메뉴로 돌아가기");
+                    System.out.println("숫자 입력: 해당 크기의 마름모 출력\n");
+
+                    while (true) {
+                        int n = getValidNumber("마름모 크기 입력 (0=돌아가기): ");
+                        if (n == 0) {
+                            System.out.println();
+                            break;
+                        }
+
+                        System.out.println();
+
+                        // 상단부 (i: 1 => n)
+                        for (int i = 1; i <= n; i++) {
+                            for (int j = 0; j < n - i; j++) {      // 공백 n-i개
+                                System.out.print(" ");
+                            }
+                            for (int j = 0; j < 2 * i - 1; j++) {  // 별 2*i-1개
+                                System.out.print("*");
+                            }
+                            System.out.println();
+                        }
+
+                        // 하단부 (i: n-1 => 1), 가운데 줄은 상단부에서 출력했으므로 n-1부터
+                        for (int i = n - 1; i >= 1; i--) {
+                            for (int j = 0; j < n - i; j++) {      // 공백 n-i개
+                                System.out.print(" ");
+                            }
+                            for (int j = 0; j < 2 * i - 1; j++) {  // 별 2*i-1개
+                                System.out.print("*");
+                            }
+                            System.out.println();
+                        }
+
+                        System.out.println();
+                    }
                     break;
+
                 case "2":
                     drawCircle();
                     break;
@@ -58,74 +116,6 @@ public class Main {
 
         // 자원 해제: Scanner는 내부적으로 System.in을 잡고 있으므로 닫아줌
         scanner.close();
-    }
-
-    /*
-     * 마름모 그리기
-     *
-     * 1. 기준: n = 마름모의 반높이 (n=3이면 총 5줄)
-     *
-     * 2. 아이디어: 상단부(넓어짐)와 하단부(좁아짐)로 나눠서 출력
-     *
-     * 3. 규칙
-     * 각 줄에서 공백 = n-i개, 별 = 2*i-1개
-     * 줄 번호가 커질수록 공백은 줄고, 별은 늘어남
-     * n=3일 때: i=1 => "  *", i=2 => " ***", i=3 => "*****"
-     *
-     * 4. 구현
-     * [입력] 사용자로부터 n 입력
-     * [처리]
-     * 상단부: i를 1부터 n까지 증가시키며 각 줄 출력
-     * 하단부: i를 n-1부터 1까지 감소시키며 각 줄 출력
-     * 각 줄: 공백 n-i개 출력 => 별 2*i-1개 출력 => 줄바꿈
-     * [출력] 완성된 마름모
-     */
-    private static void drawDiamond() {
-        System.out.println("\n=== 마름모 그리기 ===");
-        System.out.println("0: 메인 메뉴로 돌아가기");
-        System.out.println("숫자 입력: 해당 크기의 마름모 출력\n");
-
-        while (true) {
-            // 0 입력 시 return으로 함수 종료 => main의 while 루프로 복귀 => 메뉴 다시 표시
-            int n = getValidNumber("마름모 크기 입력 (0=돌아가기): ");
-            if (n == 0) {
-                System.out.println();
-                return;
-            }
-
-            System.out.println();
-
-            // 상단부: i가 1부터 n까지 증가 => 별이 점점 늘어남
-            // n=3일 때: i=1 => "  *", i=2 => " ***", i=3 => "*****"
-            for (int i = 1; i <= n; i++) {
-                // 공백 출력: n-i개
-                // i가 커질수록 공백이 줄어듦 (가운데 정렬 효과)
-                for (int j = 0; j < n - i; j++) {
-                    System.out.print(" ");
-                }
-                // 별 출력: 2*i-1개
-                // i=1=>1개, i=2=>3개, i=3=>5개 (홀수로 증가)
-                for (int j = 0; j < 2 * i - 1; j++) {
-                    System.out.print("*");
-                }
-                System.out.println();
-            }
-
-            // 하단부: i가 n-1부터 1까지 감소 => 별이 점점 줄어듦
-            // n=3일 때: i=2 => " ***", i=1 => "  *"
-            // 가운데 줄(i=n)은 상단부에서 이미 출력했으므로 n-1부터 시작
-            for (int i = n - 1; i >= 1; i--) {
-                for (int j = 0; j < n - i; j++) {
-                    System.out.print(" ");
-                }
-                for (int j = 0; j < 2 * i - 1; j++) {
-                    System.out.print("*");
-                }
-                System.out.println();
-            }
-
-            System.out.println();
-        }
     }
 
     /*

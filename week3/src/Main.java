@@ -224,9 +224,238 @@ public class Main {
                     break;
 
                 case "3":
-                    // TODO: 오각별 구현 예정
+                    /*
+                     * 별 그리기
+                     *
+                     * 정의: 정 p각형의 꼭짓점들을 매 q번째 점끼리 연결하여 만든 자기 교차 다각형
+                     * (단, p와 q는 서로소, q ≥ 2, q < p/2)
+                     * - 서로소: 최대공약수가 1 (공통 약수가 1뿐)
+                     * - q < p/2: 없으면 같은 도형이 반대 방향으로 중복됨
+                     *
+                     * 왜 오각별 {5/2}인가?
+                     * - {3/q}: q=2일 때, q < 3/2=1.5 불만족 => 불가
+                     * - {4/q}: q=2일 때, 4와 2는 서로소 아님 => 불가
+                     * - {5/2}: 5와 2는 서로소, q=2 < 5/2=2.5 만족 => 가장 작은 별 다각형
+                     *
+                     * 1. 기준: 이걸 콘솔에 그리려면?
+                     * => n = 별의 반지름 (중심에서 꼭짓점까지 거리)
+                     * => 중심 (n, n), 캔버스 0~2n (원과 동일한 패턴)
+                     *
+                     * 2. 규칙
+                     * 정오각형의 5개 꼭짓점을 구한 뒤, 매 2번째 점끼리 연결
+                     * 연결 순서: 0=>2=>4=>1=>3=>0 (총 5개 선분)
+                     *
+                     * 3. 구현
+                     * [입력] 사용자로부터 n 입력
+                     * [처리]
+                     * 5개 꼭짓점 좌표 계산 (삼각함수 값을 정수 비율로 근사)
+                     * 각 좌표에서 5개 선분까지의 거리 판정
+                     * [출력] 선분에 가까우면 '*', 아니면 ' ' 출력
+                     */
+
                     System.out.println("\n=== 별 그리기 ===");
-                    System.out.println("구현 예정입니다.\n");
+                    System.out.println("0: 메인 메뉴로 돌아가기");
+                    System.out.println("숫자 입력: 해당 크기의 오각별 출력\n");
+
+                    while (true) {
+                        System.out.print("별 크기 입력 (0=돌아가기): ");
+                        String inputStr = scanner.nextLine();
+
+                        // 0 입력시 메뉴로 복귀
+                        if (inputStr.equals("0")) {
+                            System.out.println();
+                            break;
+                        }
+
+                        // 숫자 검증: 빈 문자열이거나 숫자가 아닌 문자가 있으면 무효
+                        boolean isValid = !inputStr.isEmpty();
+                        for (int i = 0; i < inputStr.length() && isValid; i++) {
+                            if (!Character.isDigit(inputStr.charAt(i))) {
+                                isValid = false;
+                            }
+                        }
+                        if (!isValid) {
+                            System.out.println("올바른 숫자를 입력해주세요.\n");
+                            continue;
+                        }
+
+                        int n = Integer.parseInt(inputStr);
+                        if (n < 1) {
+                            System.out.println("1 이상의 숫자를 입력해주세요.\n");
+                            continue;
+                        }
+
+                        System.out.println();
+
+                        /*
+                         * 정오각형의 5개 꼭짓점 좌표 계산
+                         *
+                         * Q1. 왜 72°?
+                         * => 정오각형은 5개 꼭짓점이 균등 배치
+                         * => 360° ÷ 5 = 72° 간격
+                         * => 0°, 72°, 144°, 216°, 288° 위치에 꼭짓점
+                         *
+                         * Q2. 왜 sin/cos?
+                         * => 정다각형 꼭짓점은 원 위에 있음 (중심에서 거리가 모두 같으니까)
+                         * => 원 위의 점 좌표 공식:
+                         *    x = 중심x + 반지름 × sin(각도)
+                         *    y = 중심y - 반지름 × cos(각도)
+                         *
+                         * Q3. 왜 10000을 곱하나?
+                         * => sin(72°) = 0.9511 같은 소수를 정수로 다루기 위해
+                         * => 0.9511 × 10000 = 9511로 저장 후, 나중에 ÷ 10000
+                         *
+                         *        v0 (0°)
+                         *       /  \
+                         *    v4      v1 (72°)
+                         * (288°)\  /
+                         *      v3--v2 (144°)
+                         *    (216°)
+                         */
+                        // 5개 꼭짓점 좌표 (삼각함수 값 × 10000)
+                        int S = 10000;
+                        int v0x = n;
+                        int v0y = 0; // 0° (위)
+                        int v1x = n + n * 9511 / S,   v1y = n - n * 3090 / S;   // 72° (오른쪽 위)
+                        int v2x = n + n * 5878 / S,   v2y = n + n * 8090 / S;   // 144° (오른쪽 아래)
+                        int v3x = n - n * 5878 / S,   v3y = n + n * 8090 / S;   // 216° (왼쪽 아래)
+                        int v4x = n - n * 9511 / S,   v4y = n - n * 3090 / S;   // 288° (왼쪽 위)
+
+                        /*
+                         * 오각별 {5/2}: 매 2번째 꼭짓점 연결
+                         * 5개 선분: v0-v2, v2-v4, v4-v1, v1-v3, v3-v0
+                         *
+                         * 각 점(x,y)에서 5개 선분까지의 거리를 계산하여
+                         * 하나라도 가까우면(≤0.5) 별 위의 점으로 판정 => 외적을 사용하여 선분 위에 있는지 확인
+                         */
+                        for (int y = 0; y <= 2 * n; y++) {
+                            for (int x = 0; x <= 2 * n; x++) {
+                                boolean onStar = false;
+
+                                // 선분 1: v0 => v2
+                                {
+                                    int dx = v2x - v0x;
+                                    int dy = v2y - v0y;
+
+                                    /*
+                                     * nearLine: 점(x,y)이 선분에 가까운가?
+                                     *
+                                     * cross = 외적 (점이 직선에서 벗어난 정도)
+                                     *       = 0이면 직선 위, 클수록 멀리 있음
+                                     *
+                                     * 거리 공식: 거리 = |cross| / sqrt(lenSq)
+                                     * 거리 ≤ 0.5 확인: 4 * cross² ≤ lenSq
+                                     *
+                                     * 무한 직선 기준이라 연장선 위의 점도 통과함
+                                     */
+                                    int cross = dx * (y - v0y) - dy * (x - v0x);
+                                    int lenSq = dx * dx + dy * dy;
+                                    boolean nearLine = lenSq > 0 && 4 * cross * cross <= lenSq;
+
+                                    /*
+                                     * inBox: 점(x,y)이 "선분 범위" 안에 있는가?
+                                     * 선분을 감싸는 사각형 안에 있는지 확인 ±1은 두께 보정
+                                     */
+                                    int boxLeft = Math.min(v0x, v2x);
+                                    int boxRight = Math.max(v0x, v2x);
+                                    int boxTop = Math.min(v0y, v2y);
+                                    int boxBottom = Math.max(v0y, v2y);
+                                    boolean inBox = x >= boxLeft - 1 && x <= boxRight + 1
+                                                 && y >= boxTop - 1 && y <= boxBottom + 1;
+
+                                    // 둘 다 만족해야 선분 위의 점
+                                    if (nearLine && inBox) {
+                                        onStar = true;
+                                    }
+                                }
+
+                                // 선분 2: v2 => v4
+                                if (!onStar) {
+                                    int dx = v4x - v2x;
+                                    int dy = v4y - v2y;
+                                    int cross = dx * (y - v2y) - dy * (x - v2x);
+                                    int lenSq = dx * dx + dy * dy;
+                                    boolean nearLine = lenSq > 0 && 4 * cross * cross <= lenSq;
+
+                                    int boxLeft = Math.min(v2x, v4x);
+                                    int boxRight = Math.max(v2x, v4x);
+                                    int boxTop = Math.min(v2y, v4y);
+                                    int boxBottom = Math.max(v2y, v4y);
+                                    boolean inBox = x >= boxLeft - 1 && x <= boxRight + 1
+                                                 && y >= boxTop - 1 && y <= boxBottom + 1;
+
+                                    if (nearLine && inBox) {
+                                        onStar = true;
+                                    }
+                                }
+
+                                // 선분 3: v4 => v1
+                                if (!onStar) {
+                                    int dx = v1x - v4x;
+                                    int dy = v1y - v4y;
+                                    int cross = dx * (y - v4y) - dy * (x - v4x);
+                                    int lenSq = dx * dx + dy * dy;
+                                    boolean nearLine = lenSq > 0 && 4 * cross * cross <= lenSq;
+
+                                    int boxLeft = Math.min(v4x, v1x);
+                                    int boxRight = Math.max(v4x, v1x);
+                                    int boxTop = Math.min(v4y, v1y);
+                                    int boxBottom = Math.max(v4y, v1y);
+                                    boolean inBox = x >= boxLeft - 1 && x <= boxRight + 1
+                                                 && y >= boxTop - 1 && y <= boxBottom + 1;
+
+                                    if (nearLine && inBox) {
+                                        onStar = true;
+                                    }
+                                }
+
+                                // 선분 4: v1 => v3
+                                if (!onStar) {
+                                    int dx = v3x - v1x;
+                                    int dy = v3y - v1y;
+                                    int cross = dx * (y - v1y) - dy * (x - v1x);
+                                    int lenSq = dx * dx + dy * dy;
+                                    boolean nearLine = lenSq > 0 && 4 * cross * cross <= lenSq;
+
+                                    int boxLeft = Math.min(v1x, v3x);
+                                    int boxRight = Math.max(v1x, v3x);
+                                    int boxTop = Math.min(v1y, v3y);
+                                    int boxBottom = Math.max(v1y, v3y);
+                                    boolean inBox = x >= boxLeft - 1 && x <= boxRight + 1
+                                                 && y >= boxTop - 1 && y <= boxBottom + 1;
+
+                                    if (nearLine && inBox) {
+                                        onStar = true;
+                                    }
+                                }
+
+                                // 선분 5: v3 => v0
+                                if (!onStar) {
+                                    int dx = v0x - v3x;
+                                    int dy = v0y - v3y;
+                                    int cross = dx * (y - v3y) - dy * (x - v3x);
+                                    int lenSq = dx * dx + dy * dy;
+                                    boolean nearLine = lenSq > 0 && 4 * cross * cross <= lenSq;
+
+                                    int boxLeft = Math.min(v3x, v0x);
+                                    int boxRight = Math.max(v3x, v0x);
+                                    int boxTop = Math.min(v3y, v0y);
+                                    int boxBottom = Math.max(v3y, v0y);
+                                    boolean inBox = x >= boxLeft - 1 && x <= boxRight + 1
+                                                 && y >= boxTop - 1 && y <= boxBottom + 1;
+
+                                    if (nearLine && inBox) {
+                                        onStar = true;
+                                    }
+                                }
+
+                                System.out.print(onStar ? "* " : "  ");
+                            }
+                            System.out.println();
+                        }
+
+                        System.out.println();
+                    }
                     break;
 
                 case "4":
@@ -314,6 +543,16 @@ public class Main {
     /// 점 (px, py)가 선분 (x1,y1)-(x2,y2) 위에 있는지 판정
     /// </summary>
     private static boolean isNearLine(int px, int py, int x1, int y1, int x2, int y2) {
+        // 선분 범위 체크: 점이 선분의 바운딩 박스 밖에 있으면 제외
+        // ±1 여유를 두어 끝점 근처도 포함
+        int minX = (x1 < x2) ? x1 : x2;
+        int maxX = (x1 > x2) ? x1 : x2;
+        int minY = (y1 < y2) ? y1 : y2;
+        int maxY = (y1 > y2) ? y1 : y2;
+        if (px < minX - 1 || px > maxX + 1 || py < minY - 1 || py > maxY + 1) {
+            return false;
+        }
+
         // 직선의 방정식 계수 (두 점 (x1,y1), (x2,y2)를 지나는 직선)
         // 두 점을 지나는 직선: a = y2-y1, b = -(x2-x1), c = 나머지
         int a = y2 - y1;

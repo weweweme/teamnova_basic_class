@@ -3,7 +3,8 @@
     "allow": [
       "Bash(javac:*)",
       "Bash(java:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []

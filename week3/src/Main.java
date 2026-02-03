@@ -27,6 +27,7 @@ public class Main {
             System.out.println("2. 원 그리기");
             System.out.println("3. 별 그리기");
             System.out.println("4. 유사 스도쿠");
+            System.out.println("998. 구버전 원 그리기");
             System.out.println("999. 비운의 실패작 육망성");
             System.out.println("그 외: 종료");
             System.out.print("선택: ");
@@ -179,36 +180,65 @@ public class Main {
                             continue;
                         }
 
-                        // +2 오프셋: 최소 반지름 3부터 원 모양이 보이기 시작함
-                        // 1, 2는 너무 작아서 점이나 사각형처럼 보임
-                        int r = Integer.parseInt(inputStr) + 2;
+                        // +6 오프셋: 입력 1이 반지름 7이 되어 원 모양이 잘 보임
+                        int r = Integer.parseInt(inputStr) + 6;
 
                         System.out.println();
 
-                        // 허용 범위 계산
-                        // 예: r=5 => rSquared=25, 범위는 20~30
+                        // 허용 범위 계산 (3r로 넓혀서 대각선도 자연스럽게 채움)
                         int rSquared = r * r;
-                        int rSquaredMin = rSquared - r;  // r²-r (±0.5 허용의 하한)
-                        int rSquaredMax = rSquared + r;  // r²+r (±0.5 허용의 상한)
+                        int rSquaredMin = rSquared - 3 * r;
+                        int rSquaredMax = rSquared + 3 * r;
 
                         // 캔버스 전체를 순회하며 각 점이 원 위에 있는지 판정
-                        // 캔버스 크기: 0~2r (중심이 (r,r)이므로 양쪽으로 r씩 필요)
                         for (int y = 0; y <= 2 * r; y++) {
                             for (int x = 0; x <= 2 * r; x++) {
-                                // 현재 점 (x,y)에서 중심 (r,r)까지의 거리² 계산
-                                // 피타고라스: 거리² = dx² + dy²
-                                int dx = x - r;  // x방향 거리
-                                int dy = y - r;  // y방향 거리
-                                int distanceSquared = dx * dx + dy * dy;
+                                int dx = x - r;
+                                int dy = y - r;
+                                int distSq = dx * dx + dy * dy;
+                                boolean onCircle = distSq >= rSquaredMin && distSq <= rSquaredMax;
 
-                                // 거리²가 허용 범위 내에 있으면 원 위의 점
-                                if (distanceSquared >= rSquaredMin && distanceSquared <= rSquaredMax) {
-                                    System.out.print("* ");
+                                // 가로 연결: 바로 오른쪽(x+1,y)이 원 위인 경우만
+                                int nextDx = (x + 1) - r;
+                                int rightDistSq = nextDx * nextDx + dy * dy;
+                                boolean rightOn = rightDistSq >= rSquaredMin && rightDistSq <= rSquaredMax;
+
+                                if (onCircle) {
+                                    if (rightOn && x < 2 * r) {
+                                        System.out.print("*****");  // 가로 연결
+                                    } else {
+                                        System.out.print("*    ");
+                                    }
                                 } else {
-                                    System.out.print("  ");
+                                    System.out.print("     ");
                                 }
                             }
                             System.out.println();
+
+                            // 세로 연결: 현재 행과 다음 행 사이의 빈 줄 채우기 (마지막 행 제외)
+                            if (y < 2 * r) {
+                                for (int x = 0; x <= 2 * r; x++) {
+                                    int dx = x - r;
+                                    int dy = y - r;
+                                    int nextDy = (y + 1) - r;
+
+                                    // 현재 (x,y)가 원 위인지
+                                    int distSq = dx * dx + dy * dy;
+                                    boolean currOn = distSq >= rSquaredMin && distSq <= rSquaredMax;
+
+                                    // 아래 (x,y+1)가 원 위인지
+                                    int belowDistSq = dx * dx + nextDy * nextDy;
+                                    boolean belowOn = belowDistSq >= rSquaredMin && belowDistSq <= rSquaredMax;
+
+                                    // 세로 연결
+                                    if (currOn && belowOn) {
+                                        System.out.print("*    ");
+                                    } else {
+                                        System.out.print("     ");
+                                    }
+                                }
+                                System.out.println();
+                            }
                         }
 
                         System.out.println();
@@ -491,6 +521,73 @@ public class Main {
                                 // row만큼 시작점이 밀리고, n을 넘으면 0으로 돌아감
                                 int value = (row + col) % n;
                                 System.out.print(value + " ");
+                            }
+                            System.out.println();
+                        }
+
+                        System.out.println();
+                    }
+                    break;
+
+                case "998":
+                    /*
+                     * 구버전 원 그리기
+                     * 단순 "* " 출력, 비율 보정 없음
+                     */
+                    System.out.println("\n=== 구버전 원 그리기 ===");
+                    System.out.println("0: 메인 메뉴로 돌아가기");
+                    System.out.println("숫자 입력: 해당 반지름의 원 출력\n");
+
+                    while (true) {
+                        System.out.print("원 반지름 입력 (0=돌아가기): ");
+                        String inputStr = scanner.nextLine();
+
+                        // 0 입력시 메뉴로 복귀
+                        if (inputStr.equals("0")) {
+                            System.out.println();
+                            break;
+                        }
+
+                        // 숫자 검증: 빈 문자열이거나 숫자가 아닌 문자가 있으면 무효
+                        boolean isValid = !inputStr.isEmpty();
+                        for (int i = 0; i < inputStr.length() && isValid; i++) {
+                            if (!Character.isDigit(inputStr.charAt(i))) {
+                                isValid = false;
+                            }
+                        }
+                        if (!isValid) {
+                            System.out.println("올바른 숫자를 입력해주세요.\n");
+                            continue;
+                        }
+
+                        // +2 오프셋: 최소 반지름 3부터 원 모양이 보이기 시작함
+                        // 1, 2는 너무 작아서 점이나 사각형처럼 보임
+                        int r = Integer.parseInt(inputStr) + 2;
+
+                        System.out.println();
+
+                        // 허용 범위 계산
+                        // 예: r=5 => rSquared=25, 범위는 20~30
+                        int rSquared = r * r;
+                        int rSquaredMin = rSquared - r;  // r²-r (±0.5 허용의 하한)
+                        int rSquaredMax = rSquared + r;  // r²+r (±0.5 허용의 상한)
+
+                        // 캔버스 전체를 순회하며 각 점이 원 위에 있는지 판정
+                        // 캔버스 크기: 0~2r (중심이 (r,r)이므로 양쪽으로 r씩 필요)
+                        for (int y = 0; y <= 2 * r; y++) {
+                            for (int x = 0; x <= 2 * r; x++) {
+                                // 현재 점 (x,y)에서 중심 (r,r)까지의 거리² 계산
+                                // 피타고라스: 거리² = dx² + dy²
+                                int dx = x - r;  // x방향 거리
+                                int dy = y - r;  // y방향 거리
+                                int distanceSquared = dx * dx + dy * dy;
+
+                                // 거리²가 허용 범위 내에 있으면 원 위의 점
+                                if (distanceSquared >= rSquaredMin && distanceSquared <= rSquaredMax) {
+                                    System.out.print("* ");
+                                } else {
+                                    System.out.print("  ");
+                                }
                             }
                             System.out.println();
                         }

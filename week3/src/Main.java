@@ -179,17 +179,9 @@ public class Main {
                             continue;
                         }
 
-                        int r = Integer.parseInt(inputStr);
-
-                        // r=1: 현재 코드로는 제대로 안 그려지는 엣지케이스
-                        if (r == 1) {
-                            System.out.println();
-                            System.out.println(" * ");
-                            System.out.println("* *");
-                            System.out.println(" * ");
-                            System.out.println();
-                            continue;
-                        }
+                        // +2 오프셋: 최소 반지름 3부터 원 모양이 보이기 시작함
+                        // 1, 2는 너무 작아서 점이나 사각형처럼 보임
+                        int r = Integer.parseInt(inputStr) + 2;
 
                         System.out.println();
 
@@ -211,9 +203,9 @@ public class Main {
 
                                 // 거리²가 허용 범위 내에 있으면 원 위의 점
                                 if (distanceSquared >= rSquaredMin && distanceSquared <= rSquaredMax) {
-                                    System.out.print("*");
+                                    System.out.print("* ");
                                 } else {
-                                    System.out.print(" ");
+                                    System.out.print("  ");
                                 }
                             }
                             System.out.println();

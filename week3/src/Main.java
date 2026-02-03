@@ -271,11 +271,9 @@ public class Main {
                             continue;
                         }
 
-                        int n = Integer.parseInt(inputStr);
-                        if (n < 1) {
-                            System.out.println("1 이상의 숫자를 입력해주세요.\n");
-                            continue;
-                        }
+                        // +6 오프셋: 최소 크기 7부터 별 모양이 보이기 시작함
+                        // 1~6은 너무 작아서 별 형태가 제대로 보이지 않음
+                        int n = Integer.parseInt(inputStr) + 6;
 
                         System.out.println();
 
@@ -345,18 +343,16 @@ public class Main {
                                     boolean nearLine = lenSq > 0 && 4 * cross * cross <= lenSq;
 
                                     /*
-                                     * inBox: 점(x,y)이 "선분 범위" 안에 있는가?
-                                     * 선분을 감싸는 사각형 안에 있는지 확인 ±1은 두께 보정
+                                     * onSegment: 점의 투영이 선분 위에 있는가?
+                                     * dot = 점과 시작점 벡터를 선분 방향에 투영한 값
+                                     * dot이 0~lenSq 범위면 투영이 선분 위에 있음
+                                     * 0보다 작으면 시작점 바깥, lenSq보다 크면 끝점 바깥
                                      */
-                                    int boxLeft = Math.min(v0x, v2x);
-                                    int boxRight = Math.max(v0x, v2x);
-                                    int boxTop = Math.min(v0y, v2y);
-                                    int boxBottom = Math.max(v0y, v2y);
-                                    boolean inBox = x >= boxLeft - 1 && x <= boxRight + 1
-                                                 && y >= boxTop - 1 && y <= boxBottom + 1;
+                                    int dot = dx * (x - v0x) + dy * (y - v0y);
+                                    boolean onSegment = dot >= 0 && dot <= lenSq;
 
                                     // 둘 다 만족해야 선분 위의 점
-                                    if (nearLine && inBox) {
+                                    if (nearLine && onSegment) {
                                         onStar = true;
                                     }
                                 }
@@ -369,14 +365,10 @@ public class Main {
                                     int lenSq = dx * dx + dy * dy;
                                     boolean nearLine = lenSq > 0 && 4 * cross * cross <= lenSq;
 
-                                    int boxLeft = Math.min(v2x, v4x);
-                                    int boxRight = Math.max(v2x, v4x);
-                                    int boxTop = Math.min(v2y, v4y);
-                                    int boxBottom = Math.max(v2y, v4y);
-                                    boolean inBox = x >= boxLeft - 1 && x <= boxRight + 1
-                                                 && y >= boxTop - 1 && y <= boxBottom + 1;
+                                    int dot = dx * (x - v2x) + dy * (y - v2y);
+                                    boolean onSegment = dot >= 0 && dot <= lenSq;
 
-                                    if (nearLine && inBox) {
+                                    if (nearLine && onSegment) {
                                         onStar = true;
                                     }
                                 }
@@ -389,14 +381,10 @@ public class Main {
                                     int lenSq = dx * dx + dy * dy;
                                     boolean nearLine = lenSq > 0 && 4 * cross * cross <= lenSq;
 
-                                    int boxLeft = Math.min(v4x, v1x);
-                                    int boxRight = Math.max(v4x, v1x);
-                                    int boxTop = Math.min(v4y, v1y);
-                                    int boxBottom = Math.max(v4y, v1y);
-                                    boolean inBox = x >= boxLeft - 1 && x <= boxRight + 1
-                                                 && y >= boxTop - 1 && y <= boxBottom + 1;
+                                    int dot = dx * (x - v4x) + dy * (y - v4y);
+                                    boolean onSegment = dot >= 0 && dot <= lenSq;
 
-                                    if (nearLine && inBox) {
+                                    if (nearLine && onSegment) {
                                         onStar = true;
                                     }
                                 }
@@ -409,14 +397,10 @@ public class Main {
                                     int lenSq = dx * dx + dy * dy;
                                     boolean nearLine = lenSq > 0 && 4 * cross * cross <= lenSq;
 
-                                    int boxLeft = Math.min(v1x, v3x);
-                                    int boxRight = Math.max(v1x, v3x);
-                                    int boxTop = Math.min(v1y, v3y);
-                                    int boxBottom = Math.max(v1y, v3y);
-                                    boolean inBox = x >= boxLeft - 1 && x <= boxRight + 1
-                                                 && y >= boxTop - 1 && y <= boxBottom + 1;
+                                    int dot = dx * (x - v1x) + dy * (y - v1y);
+                                    boolean onSegment = dot >= 0 && dot <= lenSq;
 
-                                    if (nearLine && inBox) {
+                                    if (nearLine && onSegment) {
                                         onStar = true;
                                     }
                                 }
@@ -429,14 +413,10 @@ public class Main {
                                     int lenSq = dx * dx + dy * dy;
                                     boolean nearLine = lenSq > 0 && 4 * cross * cross <= lenSq;
 
-                                    int boxLeft = Math.min(v3x, v0x);
-                                    int boxRight = Math.max(v3x, v0x);
-                                    int boxTop = Math.min(v3y, v0y);
-                                    int boxBottom = Math.max(v3y, v0y);
-                                    boolean inBox = x >= boxLeft - 1 && x <= boxRight + 1
-                                                 && y >= boxTop - 1 && y <= boxBottom + 1;
+                                    int dot = dx * (x - v3x) + dy * (y - v3y);
+                                    boolean onSegment = dot >= 0 && dot <= lenSq;
 
-                                    if (nearLine && inBox) {
+                                    if (nearLine && onSegment) {
                                         onStar = true;
                                     }
                                 }

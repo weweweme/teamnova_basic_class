@@ -230,9 +230,24 @@ public class Main {
                                     int belowDistSq = dx * dx + nextDy * nextDy;
                                     boolean belowOn = belowDistSq >= rSquaredMin && belowDistSq <= rSquaredMax;
 
-                                    // 세로 연결
-                                    if (currOn && belowOn) {
-                                        System.out.print("*    ");
+                                    // 이 위치에서 세로 연결이 필요한지
+                                    boolean fillHere = currOn && belowOn;
+
+                                    // 다음 위치(x+1)에서도 세로 연결이 필요한지 (가로 연결용)
+                                    int nextDx = (x + 1) - r;
+                                    int nextDistSq = nextDx * nextDx + dy * dy;
+                                    int nextBelowDistSq = nextDx * nextDx + nextDy * nextDy;
+                                    boolean nextCurrOn = nextDistSq >= rSquaredMin && nextDistSq <= rSquaredMax;
+                                    boolean nextBelowOn = nextBelowDistSq >= rSquaredMin && nextBelowDistSq <= rSquaredMax;
+                                    boolean fillNext = nextCurrOn && nextBelowOn;
+
+                                    // 세로 연결 + 가로 연결
+                                    if (fillHere) {
+                                        if (fillNext && x < 2 * r) {
+                                            System.out.print("*****");  // 가로도 연결
+                                        } else {
+                                            System.out.print("*    ");
+                                        }
                                     } else {
                                         System.out.print("     ");
                                     }
@@ -359,34 +374,26 @@ public class Main {
 
                                 // 선분 1: v0 => v2
                                 {
-                                    int dx = v2x - v0x;
-                                    int dy = v2y - v0y;
+                                    long dx = v2x - v0x;
+                                    long dy = v2y - v0y;
 
                                     /*
                                      * nearLine: 점(x,y)이 선분에 가까운가?
-                                     *
-                                     * cross = 외적 (점이 직선에서 벗어난 정도)
-                                     *       = 0이면 직선 위, 클수록 멀리 있음
-                                     *
-                                     * 거리 공식: 거리 = |cross| / sqrt(lenSq)
+                                     * cross = 외적, lenSq = 선분 길이²
                                      * 거리 ≤ 0.5 확인: 4 * cross² ≤ lenSq
-                                     *
-                                     * 무한 직선 기준이라 연장선 위의 점도 통과함
+                                     * long 사용: 큰 n에서 int 오버플로우 방지
                                      */
-                                    int cross = dx * (y - v0y) - dy * (x - v0x);
-                                    int lenSq = dx * dx + dy * dy;
+                                    long cross = dx * (y - v0y) - dy * (x - v0x);
+                                    long lenSq = dx * dx + dy * dy;
                                     boolean nearLine = lenSq > 0 && 4 * cross * cross <= lenSq;
 
                                     /*
                                      * onSegment: 점의 투영이 선분 위에 있는가?
-                                     * dot = 점과 시작점 벡터를 선분 방향에 투영한 값
-                                     * dot이 0~lenSq 범위면 투영이 선분 위에 있음
-                                     * 0보다 작으면 시작점 바깥, lenSq보다 크면 끝점 바깥
+                                     * dot이 0~lenSq 범위면 선분 위
                                      */
-                                    int dot = dx * (x - v0x) + dy * (y - v0y);
+                                    long dot = dx * (x - v0x) + dy * (y - v0y);
                                     boolean onSegment = dot >= 0 && dot <= lenSq;
 
-                                    // 둘 다 만족해야 선분 위의 점
                                     if (nearLine && onSegment) {
                                         onStar = true;
                                     }
@@ -394,13 +401,13 @@ public class Main {
 
                                 // 선분 2: v2 => v4
                                 if (!onStar) {
-                                    int dx = v4x - v2x;
-                                    int dy = v4y - v2y;
-                                    int cross = dx * (y - v2y) - dy * (x - v2x);
-                                    int lenSq = dx * dx + dy * dy;
+                                    long dx = v4x - v2x;
+                                    long dy = v4y - v2y;
+                                    long cross = dx * (y - v2y) - dy * (x - v2x);
+                                    long lenSq = dx * dx + dy * dy;
                                     boolean nearLine = lenSq > 0 && 4 * cross * cross <= lenSq;
 
-                                    int dot = dx * (x - v2x) + dy * (y - v2y);
+                                    long dot = dx * (x - v2x) + dy * (y - v2y);
                                     boolean onSegment = dot >= 0 && dot <= lenSq;
 
                                     if (nearLine && onSegment) {
@@ -410,13 +417,13 @@ public class Main {
 
                                 // 선분 3: v4 => v1
                                 if (!onStar) {
-                                    int dx = v1x - v4x;
-                                    int dy = v1y - v4y;
-                                    int cross = dx * (y - v4y) - dy * (x - v4x);
-                                    int lenSq = dx * dx + dy * dy;
+                                    long dx = v1x - v4x;
+                                    long dy = v1y - v4y;
+                                    long cross = dx * (y - v4y) - dy * (x - v4x);
+                                    long lenSq = dx * dx + dy * dy;
                                     boolean nearLine = lenSq > 0 && 4 * cross * cross <= lenSq;
 
-                                    int dot = dx * (x - v4x) + dy * (y - v4y);
+                                    long dot = dx * (x - v4x) + dy * (y - v4y);
                                     boolean onSegment = dot >= 0 && dot <= lenSq;
 
                                     if (nearLine && onSegment) {
@@ -426,13 +433,13 @@ public class Main {
 
                                 // 선분 4: v1 => v3
                                 if (!onStar) {
-                                    int dx = v3x - v1x;
-                                    int dy = v3y - v1y;
-                                    int cross = dx * (y - v1y) - dy * (x - v1x);
-                                    int lenSq = dx * dx + dy * dy;
+                                    long dx = v3x - v1x;
+                                    long dy = v3y - v1y;
+                                    long cross = dx * (y - v1y) - dy * (x - v1x);
+                                    long lenSq = dx * dx + dy * dy;
                                     boolean nearLine = lenSq > 0 && 4 * cross * cross <= lenSq;
 
-                                    int dot = dx * (x - v1x) + dy * (y - v1y);
+                                    long dot = dx * (x - v1x) + dy * (y - v1y);
                                     boolean onSegment = dot >= 0 && dot <= lenSq;
 
                                     if (nearLine && onSegment) {
@@ -442,13 +449,13 @@ public class Main {
 
                                 // 선분 5: v3 => v0
                                 if (!onStar) {
-                                    int dx = v0x - v3x;
-                                    int dy = v0y - v3y;
-                                    int cross = dx * (y - v3y) - dy * (x - v3x);
-                                    int lenSq = dx * dx + dy * dy;
+                                    long dx = v0x - v3x;
+                                    long dy = v0y - v3y;
+                                    long cross = dx * (y - v3y) - dy * (x - v3x);
+                                    long lenSq = dx * dx + dy * dy;
                                     boolean nearLine = lenSq > 0 && 4 * cross * cross <= lenSq;
 
-                                    int dot = dx * (x - v3x) + dy * (y - v3y);
+                                    long dot = dx * (x - v3x) + dy * (y - v3y);
                                     boolean onSegment = dot >= 0 && dot <= lenSq;
 
                                     if (nearLine && onSegment) {

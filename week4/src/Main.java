@@ -189,69 +189,69 @@ public class Main {
                     System.out.println("========================================");
                     System.out.println("            [ 도매상 ]");
                     System.out.println("========================================");
-                    System.out.println("현재 자본: " + String.format("%,d", money) + "원");
-                    System.out.println("매대: " + usedSlot + " / " + MAX_SLOT + "칸");
+                    System.out.printf("현재 자본: %,d원%n", money);
+                    System.out.printf("매대: %d / %d칸%n", usedSlot, MAX_SLOT);
                     System.out.println();
 
                     // 상품 목록 출력
                     System.out.println("--- 음료 ---");
-                    System.out.println("1. " + cola.name + " | 매입 " + String.format("%,d", cola.buyPrice) + "원 | 판매 " + String.format("%,d", cola.sellPrice) + "원");
-                    System.out.println("2. " + cider.name + " | 매입 " + String.format("%,d", cider.buyPrice) + "원 | 판매 " + String.format("%,d", cider.sellPrice) + "원");
-                    System.out.println("3. " + water.name + " | 매입 " + String.format("%,d", water.buyPrice) + "원 | 판매 " + String.format("%,d", water.sellPrice) + "원");
-                    System.out.println("4. " + pocari.name + " | 매입 " + String.format("%,d", pocari.buyPrice) + "원 | 판매 " + String.format("%,d", pocari.sellPrice) + "원");
-                    System.out.println("5. " + ipro.name + " | 매입 " + String.format("%,d", ipro.buyPrice) + "원 | 판매 " + String.format("%,d", ipro.sellPrice) + "원");
+                    System.out.printf("1. %s | 매입 %,d원 | 판매 %,d원%n", cola.name, cola.buyPrice, cola.sellPrice);
+                    System.out.printf("2. %s | 매입 %,d원 | 판매 %,d원%n", cider.name, cider.buyPrice, cider.sellPrice);
+                    System.out.printf("3. %s | 매입 %,d원 | 판매 %,d원%n", water.name, water.buyPrice, water.sellPrice);
+                    System.out.printf("4. %s | 매입 %,d원 | 판매 %,d원%n", pocari.name, pocari.buyPrice, pocari.sellPrice);
+                    System.out.printf("5. %s | 매입 %,d원 | 판매 %,d원%n", ipro.name, ipro.buyPrice, ipro.sellPrice);
                     System.out.println();
 
                     System.out.println("--- 맥주 ---");
-                    System.out.println("6. " + cass.name + " | 매입 " + String.format("%,d", cass.buyPrice) + "원 | 판매 " + String.format("%,d", cass.sellPrice) + "원");
-                    System.out.println("7. " + terra.name + " | 매입 " + String.format("%,d", terra.buyPrice) + "원 | 판매 " + String.format("%,d", terra.sellPrice) + "원");
-                    System.out.println("8. " + hite.name + " | 매입 " + String.format("%,d", hite.buyPrice) + "원 | 판매 " + String.format("%,d", hite.sellPrice) + "원");
+                    System.out.printf("6. %s | 매입 %,d원 | 판매 %,d원%n", cass.name, cass.buyPrice, cass.sellPrice);
+                    System.out.printf("7. %s | 매입 %,d원 | 판매 %,d원%n", terra.name, terra.buyPrice, terra.sellPrice);
+                    System.out.printf("8. %s | 매입 %,d원 | 판매 %,d원%n", hite.name, hite.buyPrice, hite.sellPrice);
                     System.out.println();
 
                     System.out.println("--- 소주 ---");
-                    System.out.println("9. " + chamisul.name + " | 매입 " + String.format("%,d", chamisul.buyPrice) + "원 | 판매 " + String.format("%,d", chamisul.sellPrice) + "원");
-                    System.out.println("10. " + cheumcherum.name + " | 매입 " + String.format("%,d", cheumcherum.buyPrice) + "원 | 판매 " + String.format("%,d", cheumcherum.sellPrice) + "원");
-                    System.out.println("11. " + jinro.name + " | 매입 " + String.format("%,d", jinro.buyPrice) + "원 | 판매 " + String.format("%,d", jinro.sellPrice) + "원");
+                    System.out.printf("9. %s | 매입 %,d원 | 판매 %,d원%n", chamisul.name, chamisul.buyPrice, chamisul.sellPrice);
+                    System.out.printf("10. %s | 매입 %,d원 | 판매 %,d원%n", cheumcherum.name, cheumcherum.buyPrice, cheumcherum.sellPrice);
+                    System.out.printf("11. %s | 매입 %,d원 | 판매 %,d원%n", jinro.name, jinro.buyPrice, jinro.sellPrice);
                     System.out.println();
 
                     System.out.println("--- 간식/안주 ---");
-                    System.out.println("12. " + driedSquid.name + " | 매입 " + String.format("%,d", driedSquid.buyPrice) + "원 | 판매 " + String.format("%,d", driedSquid.sellPrice) + "원");
-                    System.out.println("13. " + peanut.name + " | 매입 " + String.format("%,d", peanut.buyPrice) + "원 | 판매 " + String.format("%,d", peanut.sellPrice) + "원");
-                    System.out.println("14. " + chip.name + " | 매입 " + String.format("%,d", chip.buyPrice) + "원 | 판매 " + String.format("%,d", chip.sellPrice) + "원");
+                    System.out.printf("12. %s | 매입 %,d원 | 판매 %,d원%n", driedSquid.name, driedSquid.buyPrice, driedSquid.sellPrice);
+                    System.out.printf("13. %s | 매입 %,d원 | 판매 %,d원%n", peanut.name, peanut.buyPrice, peanut.sellPrice);
+                    System.out.printf("14. %s | 매입 %,d원 | 판매 %,d원%n", chip.name, chip.buyPrice, chip.sellPrice);
                     System.out.println();
 
                     System.out.println("--- 고기 ---");
-                    System.out.println("15. " + samgyupsal.name + " | 매입 " + String.format("%,d", samgyupsal.buyPrice) + "원 | 판매 " + String.format("%,d", samgyupsal.sellPrice) + "원");
-                    System.out.println("16. " + moksal.name + " | 매입 " + String.format("%,d", moksal.buyPrice) + "원 | 판매 " + String.format("%,d", moksal.sellPrice) + "원");
-                    System.out.println("17. " + sausage.name + " | 매입 " + String.format("%,d", sausage.buyPrice) + "원 | 판매 " + String.format("%,d", sausage.sellPrice) + "원");
+                    System.out.printf("15. %s | 매입 %,d원 | 판매 %,d원%n", samgyupsal.name, samgyupsal.buyPrice, samgyupsal.sellPrice);
+                    System.out.printf("16. %s | 매입 %,d원 | 판매 %,d원%n", moksal.name, moksal.buyPrice, moksal.sellPrice);
+                    System.out.printf("17. %s | 매입 %,d원 | 판매 %,d원%n", sausage.name, sausage.buyPrice, sausage.sellPrice);
                     System.out.println();
 
                     System.out.println("--- 해수욕 용품 ---");
-                    System.out.println("18. " + tube.name + " | 매입 " + String.format("%,d", tube.buyPrice) + "원 | 판매 " + String.format("%,d", tube.sellPrice) + "원");
-                    System.out.println("19. " + sunscreen.name + " | 매입 " + String.format("%,d", sunscreen.buyPrice) + "원 | 판매 " + String.format("%,d", sunscreen.sellPrice) + "원");
-                    System.out.println("20. " + beachBall.name + " | 매입 " + String.format("%,d", beachBall.buyPrice) + "원 | 판매 " + String.format("%,d", beachBall.sellPrice) + "원");
+                    System.out.printf("18. %s | 매입 %,d원 | 판매 %,d원%n", tube.name, tube.buyPrice, tube.sellPrice);
+                    System.out.printf("19. %s | 매입 %,d원 | 판매 %,d원%n", sunscreen.name, sunscreen.buyPrice, sunscreen.sellPrice);
+                    System.out.printf("20. %s | 매입 %,d원 | 판매 %,d원%n", beachBall.name, beachBall.buyPrice, beachBall.sellPrice);
                     System.out.println();
 
                     System.out.println("--- 식재료 ---");
-                    System.out.println("21. " + ssamjang.name + " | 매입 " + String.format("%,d", ssamjang.buyPrice) + "원 | 판매 " + String.format("%,d", ssamjang.sellPrice) + "원");
-                    System.out.println("22. " + lettuce.name + " | 매입 " + String.format("%,d", lettuce.buyPrice) + "원 | 판매 " + String.format("%,d", lettuce.sellPrice) + "원");
-                    System.out.println("23. " + kimchi.name + " | 매입 " + String.format("%,d", kimchi.buyPrice) + "원 | 판매 " + String.format("%,d", kimchi.sellPrice) + "원");
+                    System.out.printf("21. %s | 매입 %,d원 | 판매 %,d원%n", ssamjang.name, ssamjang.buyPrice, ssamjang.sellPrice);
+                    System.out.printf("22. %s | 매입 %,d원 | 판매 %,d원%n", lettuce.name, lettuce.buyPrice, lettuce.sellPrice);
+                    System.out.printf("23. %s | 매입 %,d원 | 판매 %,d원%n", kimchi.name, kimchi.buyPrice, kimchi.sellPrice);
                     System.out.println();
 
                     System.out.println("--- 라면 ---");
-                    System.out.println("24. " + shinRamen.name + " | 매입 " + String.format("%,d", shinRamen.buyPrice) + "원 | 판매 " + String.format("%,d", shinRamen.sellPrice) + "원");
-                    System.out.println("25. " + jinRamen.name + " | 매입 " + String.format("%,d", jinRamen.buyPrice) + "원 | 판매 " + String.format("%,d", jinRamen.sellPrice) + "원");
-                    System.out.println("26. " + neoguri.name + " | 매입 " + String.format("%,d", neoguri.buyPrice) + "원 | 판매 " + String.format("%,d", neoguri.sellPrice) + "원");
+                    System.out.printf("24. %s | 매입 %,d원 | 판매 %,d원%n", shinRamen.name, shinRamen.buyPrice, shinRamen.sellPrice);
+                    System.out.printf("25. %s | 매입 %,d원 | 판매 %,d원%n", jinRamen.name, jinRamen.buyPrice, jinRamen.sellPrice);
+                    System.out.printf("26. %s | 매입 %,d원 | 판매 %,d원%n", neoguri.name, neoguri.buyPrice, neoguri.sellPrice);
                     System.out.println();
 
                     System.out.println("--- 아이스크림 ---");
-                    System.out.println("27. " + melona.name + " | 매입 " + String.format("%,d", melona.buyPrice) + "원 | 판매 " + String.format("%,d", melona.sellPrice) + "원");
-                    System.out.println("28. " + screwBar.name + " | 매입 " + String.format("%,d", screwBar.buyPrice) + "원 | 판매 " + String.format("%,d", screwBar.sellPrice) + "원");
-                    System.out.println("29. " + fishBread.name + " | 매입 " + String.format("%,d", fishBread.buyPrice) + "원 | 판매 " + String.format("%,d", fishBread.sellPrice) + "원");
+                    System.out.printf("27. %s | 매입 %,d원 | 판매 %,d원%n", melona.name, melona.buyPrice, melona.sellPrice);
+                    System.out.printf("28. %s | 매입 %,d원 | 판매 %,d원%n", screwBar.name, screwBar.buyPrice, screwBar.sellPrice);
+                    System.out.printf("29. %s | 매입 %,d원 | 판매 %,d원%n", fishBread.name, fishBread.buyPrice, fishBread.sellPrice);
                     System.out.println();
 
                     System.out.println("--- 기타 ---");
-                    System.out.println("30. " + firework.name + " | 매입 " + String.format("%,d", firework.buyPrice) + "원 | 판매 " + String.format("%,d", firework.sellPrice) + "원");
+                    System.out.printf("30. %s | 매입 %,d원 | 판매 %,d원%n", firework.name, firework.buyPrice, firework.sellPrice);
                     System.out.println();
 
                     System.out.println("구매할 상품 번호 (0: 돌아가기)");

@@ -465,7 +465,189 @@ public class Main {
                 System.out.println("========================================");
                 System.out.println("           [ 현재 재고 ]");
                 System.out.println("========================================");
-                // TODO: 재고 확인 구현
+                System.out.printf("매대: %d / %d칸%n", usedSlot, MAX_SLOT);
+                System.out.println();
+
+                // 재고가 있는 상품만 출력
+                int totalStock = 0;
+
+                // 음료
+                if (cola.stock > 0 || cider.stock > 0 || water.stock > 0 || pocari.stock > 0 || ipro.stock > 0) {
+                    System.out.println("--- 음료 ---");
+                    if (cola.stock > 0) {
+                        System.out.printf("  %s: %d개%n", cola.name, cola.stock);
+                        totalStock = totalStock + cola.stock;
+                    }
+                    if (cider.stock > 0) {
+                        System.out.printf("  %s: %d개%n", cider.name, cider.stock);
+                        totalStock = totalStock + cider.stock;
+                    }
+                    if (water.stock > 0) {
+                        System.out.printf("  %s: %d개%n", water.name, water.stock);
+                        totalStock = totalStock + water.stock;
+                    }
+                    if (pocari.stock > 0) {
+                        System.out.printf("  %s: %d개%n", pocari.name, pocari.stock);
+                        totalStock = totalStock + pocari.stock;
+                    }
+                    if (ipro.stock > 0) {
+                        System.out.printf("  %s: %d개%n", ipro.name, ipro.stock);
+                        totalStock = totalStock + ipro.stock;
+                    }
+                }
+
+                // 맥주
+                if (cass.stock > 0 || terra.stock > 0 || hite.stock > 0) {
+                    System.out.println("--- 맥주 ---");
+                    if (cass.stock > 0) {
+                        System.out.printf("  %s: %d개%n", cass.name, cass.stock);
+                        totalStock = totalStock + cass.stock;
+                    }
+                    if (terra.stock > 0) {
+                        System.out.printf("  %s: %d개%n", terra.name, terra.stock);
+                        totalStock = totalStock + terra.stock;
+                    }
+                    if (hite.stock > 0) {
+                        System.out.printf("  %s: %d개%n", hite.name, hite.stock);
+                        totalStock = totalStock + hite.stock;
+                    }
+                }
+
+                // 소주
+                if (chamisul.stock > 0 || cheumcherum.stock > 0 || jinro.stock > 0) {
+                    System.out.println("--- 소주 ---");
+                    if (chamisul.stock > 0) {
+                        System.out.printf("  %s: %d개%n", chamisul.name, chamisul.stock);
+                        totalStock = totalStock + chamisul.stock;
+                    }
+                    if (cheumcherum.stock > 0) {
+                        System.out.printf("  %s: %d개%n", cheumcherum.name, cheumcherum.stock);
+                        totalStock = totalStock + cheumcherum.stock;
+                    }
+                    if (jinro.stock > 0) {
+                        System.out.printf("  %s: %d개%n", jinro.name, jinro.stock);
+                        totalStock = totalStock + jinro.stock;
+                    }
+                }
+
+                // 간식/안주
+                if (driedSquid.stock > 0 || peanut.stock > 0 || chip.stock > 0) {
+                    System.out.println("--- 간식/안주 ---");
+                    if (driedSquid.stock > 0) {
+                        System.out.printf("  %s: %d개%n", driedSquid.name, driedSquid.stock);
+                        totalStock = totalStock + driedSquid.stock;
+                    }
+                    if (peanut.stock > 0) {
+                        System.out.printf("  %s: %d개%n", peanut.name, peanut.stock);
+                        totalStock = totalStock + peanut.stock;
+                    }
+                    if (chip.stock > 0) {
+                        System.out.printf("  %s: %d개%n", chip.name, chip.stock);
+                        totalStock = totalStock + chip.stock;
+                    }
+                }
+
+                // 고기
+                if (samgyupsal.stock > 0 || moksal.stock > 0 || sausage.stock > 0) {
+                    System.out.println("--- 고기 ---");
+                    if (samgyupsal.stock > 0) {
+                        System.out.printf("  %s: %d개%n", samgyupsal.name, samgyupsal.stock);
+                        totalStock = totalStock + samgyupsal.stock;
+                    }
+                    if (moksal.stock > 0) {
+                        System.out.printf("  %s: %d개%n", moksal.name, moksal.stock);
+                        totalStock = totalStock + moksal.stock;
+                    }
+                    if (sausage.stock > 0) {
+                        System.out.printf("  %s: %d개%n", sausage.name, sausage.stock);
+                        totalStock = totalStock + sausage.stock;
+                    }
+                }
+
+                // 해수욕 용품
+                if (tube.stock > 0 || sunscreen.stock > 0 || beachBall.stock > 0) {
+                    System.out.println("--- 해수욕 용품 ---");
+                    if (tube.stock > 0) {
+                        System.out.printf("  %s: %d개%n", tube.name, tube.stock);
+                        totalStock = totalStock + tube.stock;
+                    }
+                    if (sunscreen.stock > 0) {
+                        System.out.printf("  %s: %d개%n", sunscreen.name, sunscreen.stock);
+                        totalStock = totalStock + sunscreen.stock;
+                    }
+                    if (beachBall.stock > 0) {
+                        System.out.printf("  %s: %d개%n", beachBall.name, beachBall.stock);
+                        totalStock = totalStock + beachBall.stock;
+                    }
+                }
+
+                // 식재료
+                if (ssamjang.stock > 0 || lettuce.stock > 0 || kimchi.stock > 0) {
+                    System.out.println("--- 식재료 ---");
+                    if (ssamjang.stock > 0) {
+                        System.out.printf("  %s: %d개%n", ssamjang.name, ssamjang.stock);
+                        totalStock = totalStock + ssamjang.stock;
+                    }
+                    if (lettuce.stock > 0) {
+                        System.out.printf("  %s: %d개%n", lettuce.name, lettuce.stock);
+                        totalStock = totalStock + lettuce.stock;
+                    }
+                    if (kimchi.stock > 0) {
+                        System.out.printf("  %s: %d개%n", kimchi.name, kimchi.stock);
+                        totalStock = totalStock + kimchi.stock;
+                    }
+                }
+
+                // 라면
+                if (shinRamen.stock > 0 || jinRamen.stock > 0 || neoguri.stock > 0) {
+                    System.out.println("--- 라면 ---");
+                    if (shinRamen.stock > 0) {
+                        System.out.printf("  %s: %d개%n", shinRamen.name, shinRamen.stock);
+                        totalStock = totalStock + shinRamen.stock;
+                    }
+                    if (jinRamen.stock > 0) {
+                        System.out.printf("  %s: %d개%n", jinRamen.name, jinRamen.stock);
+                        totalStock = totalStock + jinRamen.stock;
+                    }
+                    if (neoguri.stock > 0) {
+                        System.out.printf("  %s: %d개%n", neoguri.name, neoguri.stock);
+                        totalStock = totalStock + neoguri.stock;
+                    }
+                }
+
+                // 아이스크림
+                if (melona.stock > 0 || screwBar.stock > 0 || fishBread.stock > 0) {
+                    System.out.println("--- 아이스크림 ---");
+                    if (melona.stock > 0) {
+                        System.out.printf("  %s: %d개%n", melona.name, melona.stock);
+                        totalStock = totalStock + melona.stock;
+                    }
+                    if (screwBar.stock > 0) {
+                        System.out.printf("  %s: %d개%n", screwBar.name, screwBar.stock);
+                        totalStock = totalStock + screwBar.stock;
+                    }
+                    if (fishBread.stock > 0) {
+                        System.out.printf("  %s: %d개%n", fishBread.name, fishBread.stock);
+                        totalStock = totalStock + fishBread.stock;
+                    }
+                }
+
+                // 기타
+                if (firework.stock > 0) {
+                    System.out.println("--- 기타 ---");
+                    System.out.printf("  %s: %d개%n", firework.name, firework.stock);
+                    totalStock = totalStock + firework.stock;
+                }
+
+                // 재고 없음 메시지
+                if (totalStock == 0) {
+                    System.out.println("재고가 없습니다. 도매상에서 상품을 입고하세요!");
+                }
+
+                System.out.println();
+                System.out.println("----------------------------------------");
+                System.out.printf("총 재고: %d개%n", totalStock);
+                System.out.println("----------------------------------------");
 
             } else if (choice == 0) {
                 playing = false;

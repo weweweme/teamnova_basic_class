@@ -88,7 +88,9 @@ java -cp out Main
 **메인**: `Main.java` - 게임 로직 전체 진행
 
 **상품 클래스 (개별 파일로):**
-- 음료: `Cola`, `Cider`, `Water`, `IonDrink`, `Beer`, `Soju`
+- 음료: `Cola`, `Cider`, `Water`, `Pocari`, `Ipro`
+- 맥주: `Cass`, `Terra`, `Hite`
+- 소주: `Chamisul`, `Cheumcherum`, `Jinro`
 - 간식/안주: `DriedSquid`, `Peanut`, `Chip`
 - 고기: `Samgyupsal`, `Moksal`, `Sausage`
 - 해수욕 용품: `Tube`, `Sunscreen`, `BeachBall`

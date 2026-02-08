@@ -1,8 +1,8 @@
 /// <summary>
-/// 너구리 상품 클래스
-/// 슈퍼마켓에서 판매하는 라면 상품
+/// 상품 클래스
+/// 슈퍼마켓에서 판매하는 모든 상품의 공통 클래스
 /// </summary>
-public class Neoguri {
+public class Product {
 
     // ========== 필드 ==========
 
@@ -14,7 +14,7 @@ public class Neoguri {
 
     // ========== 생성자 ==========
 
-    Neoguri(String name, int buyPrice, int sellPrice, int popularity) {
+    Product(String name, int buyPrice, int sellPrice, int popularity) {
         this.name = name;
         this.buyPrice = buyPrice;
         this.sellPrice = sellPrice;

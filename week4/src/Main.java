@@ -11,6 +11,12 @@ public class Main {
         final int MAX_SLOT = 30;                   // 매대 최대 슬롯
         final int DEFAULT_PRICE_MULTIPLIER = 3;   // 기본 가격 배율
 
+        // 손님 유형별 선호 상품 개수
+        final int FAMILY_ITEM_COUNT = 6;           // 가족: 고기, 음료, 식재료
+        final int COUPLE_ITEM_COUNT = 6;           // 커플: 술, 안주
+        final int FRIENDS_ITEM_COUNT = 8;          // 친구들: 다양하게
+        final int SOLO_ITEM_COUNT = 6;             // 혼자: 라면, 맥주, 아이스크림
+
         // ========== 게임 변수 ==========
 
         int money;
@@ -84,54 +90,54 @@ public class Main {
         // sellPrice에만 배율 적용 (매입가는 현실 가격, 판매가는 배율 적용)
 
         // 음료
-        Cola cola = new Cola("코카콜라", 800, 1500 * priceMultiplier, 7);
-        Cider cider = new Cider("칠성사이다", 800, 1500 * priceMultiplier, 6);
-        Water water = new Water("삼다수", 400, 1000 * priceMultiplier, 5);
-        Pocari pocari = new Pocari("포카리스웨트", 1200, 2000 * priceMultiplier, 6);
-        Ipro ipro = new Ipro("이프로", 1000, 1800 * priceMultiplier, 5);
+        Product cola = new Product("코카콜라", 800, 1500 * priceMultiplier, 7);
+        Product cider = new Product("칠성사이다", 800, 1500 * priceMultiplier, 6);
+        Product water = new Product("삼다수", 400, 1000 * priceMultiplier, 5);
+        Product pocari = new Product("포카리스웨트", 1200, 2000 * priceMultiplier, 6);
+        Product ipro = new Product("이프로", 1000, 1800 * priceMultiplier, 5);
 
         // 맥주
-        Cass cass = new Cass("카스", 1500, 3000 * priceMultiplier, 8);
-        Terra terra = new Terra("테라", 1600, 3200 * priceMultiplier, 8);
-        Hite hite = new Hite("하이트", 1400, 2800 * priceMultiplier, 7);
+        Product cass = new Product("카스", 1500, 3000 * priceMultiplier, 8);
+        Product terra = new Product("테라", 1600, 3200 * priceMultiplier, 8);
+        Product hite = new Product("하이트", 1400, 2800 * priceMultiplier, 7);
 
         // 소주
-        Chamisul chamisul = new Chamisul("참이슬", 1200, 2500 * priceMultiplier, 9);
-        Cheumcherum cheumcherum = new Cheumcherum("처음처럼", 1200, 2500 * priceMultiplier, 8);
-        Jinro jinro = new Jinro("진로", 1300, 2600 * priceMultiplier, 7);
+        Product chamisul = new Product("참이슬", 1200, 2500 * priceMultiplier, 9);
+        Product cheumcherum = new Product("처음처럼", 1200, 2500 * priceMultiplier, 8);
+        Product jinro = new Product("진로", 1300, 2600 * priceMultiplier, 7);
 
         // 간식/안주
-        DriedSquid driedSquid = new DriedSquid("마른오징어", 3000, 6000 * priceMultiplier, 6);
-        Peanut peanut = new Peanut("땅콩", 2000, 4000 * priceMultiplier, 5);
-        Chip chip = new Chip("감자칩", 1500, 3000 * priceMultiplier, 6);
+        Product driedSquid = new Product("마른오징어", 3000, 6000 * priceMultiplier, 6);
+        Product peanut = new Product("땅콩", 2000, 4000 * priceMultiplier, 5);
+        Product chip = new Product("감자칩", 1500, 3000 * priceMultiplier, 6);
 
         // 고기
-        Samgyupsal samgyupsal = new Samgyupsal("삼겹살", 8000, 15000 * priceMultiplier, 10);
-        Moksal moksal = new Moksal("목살", 9000, 16000 * priceMultiplier, 9);
-        Sausage sausage = new Sausage("소세지", 3000, 6000 * priceMultiplier, 7);
+        Product samgyupsal = new Product("삼겹살", 8000, 15000 * priceMultiplier, 10);
+        Product moksal = new Product("목살", 9000, 16000 * priceMultiplier, 9);
+        Product sausage = new Product("소세지", 3000, 6000 * priceMultiplier, 7);
 
         // 해수욕 용품
-        Tube tube = new Tube("튜브", 5000, 15000 * priceMultiplier, 7);
-        Sunscreen sunscreen = new Sunscreen("선크림", 8000, 20000 * priceMultiplier, 8);
-        BeachBall beachBall = new BeachBall("비치볼", 3000, 8000 * priceMultiplier, 5);
+        Product tube = new Product("튜브", 5000, 15000 * priceMultiplier, 7);
+        Product sunscreen = new Product("선크림", 8000, 20000 * priceMultiplier, 8);
+        Product beachBall = new Product("비치볼", 3000, 8000 * priceMultiplier, 5);
 
         // 식재료
-        Ssamjang ssamjang = new Ssamjang("쌈장", 2000, 4000 * priceMultiplier, 6);
-        Lettuce lettuce = new Lettuce("상추", 2000, 4000 * priceMultiplier, 7);
-        Kimchi kimchi = new Kimchi("김치", 3000, 6000 * priceMultiplier, 5);
+        Product ssamjang = new Product("쌈장", 2000, 4000 * priceMultiplier, 6);
+        Product lettuce = new Product("상추", 2000, 4000 * priceMultiplier, 7);
+        Product kimchi = new Product("김치", 3000, 6000 * priceMultiplier, 5);
 
         // 라면
-        ShinRamen shinRamen = new ShinRamen("신라면", 800, 1500 * priceMultiplier, 8);
-        JinRamen jinRamen = new JinRamen("진라면", 700, 1400 * priceMultiplier, 7);
-        Neoguri neoguri = new Neoguri("너구리", 800, 1500 * priceMultiplier, 6);
+        Product shinRamen = new Product("신라면", 800, 1500 * priceMultiplier, 8);
+        Product jinRamen = new Product("진라면", 700, 1400 * priceMultiplier, 7);
+        Product neoguri = new Product("너구리", 800, 1500 * priceMultiplier, 6);
 
         // 아이스크림
-        Melona melona = new Melona("메로나", 500, 1200 * priceMultiplier, 7);
-        ScrewBar screwBar = new ScrewBar("스크류바", 600, 1300 * priceMultiplier, 6);
-        FishBread fishBread = new FishBread("붕어싸만코", 800, 1500 * priceMultiplier, 6);
+        Product melona = new Product("메로나", 500, 1200 * priceMultiplier, 7);
+        Product screwBar = new Product("스크류바", 600, 1300 * priceMultiplier, 6);
+        Product fishBread = new Product("붕어싸만코", 800, 1500 * priceMultiplier, 6);
 
         // 기타
-        Firework firework = new Firework("폭죽", 5000, 15000 * priceMultiplier, 9);
+        Product firework = new Product("폭죽", 5000, 15000 * priceMultiplier, 9);
 
         // ========== 게임 루프 ==========
 
@@ -455,7 +461,383 @@ public class Main {
                 System.out.println("========================================");
                 System.out.println("           [ 영업 시작 ]");
                 System.out.println("========================================");
-                // TODO: 영업 구현
+
+                // 하루 영업 변수
+                int todayCustomers = 10 + (int)(Math.random() * 11);  // 10~20명
+                int todaySales = 0;      // 오늘 매출
+                int todayProfit = 0;     // 오늘 순이익
+                int successCount = 0;    // 판매 성공 횟수
+                int failCount = 0;       // 판매 실패 횟수
+
+                // 손님 응대 루프
+                for (int i = 1; i <= todayCustomers; i++) {
+
+                    // 랜덤 손님 유형 (0: 가족, 1: 커플, 2: 친구들, 3: 혼자)
+                    int customerType = (int)(Math.random() * 4);
+                    String customerName = "";
+                    String customerMessage = "";
+
+                    if (customerType == 0) {
+                        customerName = "가족 손님";
+                        customerMessage = "바베큐 하려고 왔어요~";
+                    } else if (customerType == 1) {
+                        customerName = "커플 손님";
+                        customerMessage = "술 한잔 하려고요~";
+                    } else if (customerType == 2) {
+                        customerName = "친구들";
+                        customerMessage = "놀러왔어요!";
+                    } else {
+                        customerName = "혼자 온 손님";
+                        customerMessage = "간단히 좀 살게요.";
+                    }
+
+                    System.out.println();
+                    System.out.println("----------------------------------------");
+                    System.out.printf("[ 손님 %d/%d - %s ]%n", i, todayCustomers, customerName);
+                    System.out.printf("\"%s\"%n", customerMessage);
+                    System.out.println();
+
+                    // 손님 유형별 원하는 상품 결정
+                    String wantItem = "";
+                    int wantAmount = 1 + (int)(Math.random() * 3);  // 1~3개
+                    int itemStock = 0;
+                    int itemSellPrice = 0;
+                    int itemBuyPrice = 0;
+
+                    if (customerType == 0) {
+                        // 가족: 고기, 음료, 식재료 선호
+                        int itemChoice = (int)(Math.random() * FAMILY_ITEM_COUNT);
+                        if (itemChoice == 0) {
+                            wantItem = samgyupsal.name;
+                            itemStock = samgyupsal.stock;
+                            itemSellPrice = samgyupsal.sellPrice;
+                            itemBuyPrice = samgyupsal.buyPrice;
+                        } else if (itemChoice == 1) {
+                            wantItem = moksal.name;
+                            itemStock = moksal.stock;
+                            itemSellPrice = moksal.sellPrice;
+                            itemBuyPrice = moksal.buyPrice;
+                        } else if (itemChoice == 2) {
+                            wantItem = cola.name;
+                            itemStock = cola.stock;
+                            itemSellPrice = cola.sellPrice;
+                            itemBuyPrice = cola.buyPrice;
+                        } else if (itemChoice == 3) {
+                            wantItem = cider.name;
+                            itemStock = cider.stock;
+                            itemSellPrice = cider.sellPrice;
+                            itemBuyPrice = cider.buyPrice;
+                        } else if (itemChoice == 4) {
+                            wantItem = ssamjang.name;
+                            itemStock = ssamjang.stock;
+                            itemSellPrice = ssamjang.sellPrice;
+                            itemBuyPrice = ssamjang.buyPrice;
+                        } else {
+                            wantItem = lettuce.name;
+                            itemStock = lettuce.stock;
+                            itemSellPrice = lettuce.sellPrice;
+                            itemBuyPrice = lettuce.buyPrice;
+                        }
+
+                    } else if (customerType == 1) {
+                        // 커플: 술, 안주 선호
+                        int itemChoice = (int)(Math.random() * COUPLE_ITEM_COUNT);
+                        if (itemChoice == 0) {
+                            wantItem = chamisul.name;
+                            itemStock = chamisul.stock;
+                            itemSellPrice = chamisul.sellPrice;
+                            itemBuyPrice = chamisul.buyPrice;
+                        } else if (itemChoice == 1) {
+                            wantItem = cheumcherum.name;
+                            itemStock = cheumcherum.stock;
+                            itemSellPrice = cheumcherum.sellPrice;
+                            itemBuyPrice = cheumcherum.buyPrice;
+                        } else if (itemChoice == 2) {
+                            wantItem = cass.name;
+                            itemStock = cass.stock;
+                            itemSellPrice = cass.sellPrice;
+                            itemBuyPrice = cass.buyPrice;
+                        } else if (itemChoice == 3) {
+                            wantItem = terra.name;
+                            itemStock = terra.stock;
+                            itemSellPrice = terra.sellPrice;
+                            itemBuyPrice = terra.buyPrice;
+                        } else if (itemChoice == 4) {
+                            wantItem = driedSquid.name;
+                            itemStock = driedSquid.stock;
+                            itemSellPrice = driedSquid.sellPrice;
+                            itemBuyPrice = driedSquid.buyPrice;
+                        } else {
+                            wantItem = peanut.name;
+                            itemStock = peanut.stock;
+                            itemSellPrice = peanut.sellPrice;
+                            itemBuyPrice = peanut.buyPrice;
+                        }
+
+                    } else if (customerType == 2) {
+                        // 친구들: 다양하게
+                        int itemChoice = (int)(Math.random() * FRIENDS_ITEM_COUNT);
+                        if (itemChoice == 0) {
+                            wantItem = chip.name;
+                            itemStock = chip.stock;
+                            itemSellPrice = chip.sellPrice;
+                            itemBuyPrice = chip.buyPrice;
+                        } else if (itemChoice == 1) {
+                            wantItem = firework.name;
+                            itemStock = firework.stock;
+                            itemSellPrice = firework.sellPrice;
+                            itemBuyPrice = firework.buyPrice;
+                        } else if (itemChoice == 2) {
+                            wantItem = tube.name;
+                            itemStock = tube.stock;
+                            itemSellPrice = tube.sellPrice;
+                            itemBuyPrice = tube.buyPrice;
+                        } else if (itemChoice == 3) {
+                            wantItem = beachBall.name;
+                            itemStock = beachBall.stock;
+                            itemSellPrice = beachBall.sellPrice;
+                            itemBuyPrice = beachBall.buyPrice;
+                        } else if (itemChoice == 4) {
+                            wantItem = sunscreen.name;
+                            itemStock = sunscreen.stock;
+                            itemSellPrice = sunscreen.sellPrice;
+                            itemBuyPrice = sunscreen.buyPrice;
+                        } else if (itemChoice == 5) {
+                            wantItem = cass.name;
+                            itemStock = cass.stock;
+                            itemSellPrice = cass.sellPrice;
+                            itemBuyPrice = cass.buyPrice;
+                        } else if (itemChoice == 6) {
+                            wantItem = melona.name;
+                            itemStock = melona.stock;
+                            itemSellPrice = melona.sellPrice;
+                            itemBuyPrice = melona.buyPrice;
+                        } else {
+                            wantItem = sausage.name;
+                            itemStock = sausage.stock;
+                            itemSellPrice = sausage.sellPrice;
+                            itemBuyPrice = sausage.buyPrice;
+                        }
+
+                    } else {
+                        // 혼자: 라면, 맥주, 아이스크림 선호
+                        int itemChoice = (int)(Math.random() * SOLO_ITEM_COUNT);
+                        if (itemChoice == 0) {
+                            wantItem = shinRamen.name;
+                            itemStock = shinRamen.stock;
+                            itemSellPrice = shinRamen.sellPrice;
+                            itemBuyPrice = shinRamen.buyPrice;
+                        } else if (itemChoice == 1) {
+                            wantItem = jinRamen.name;
+                            itemStock = jinRamen.stock;
+                            itemSellPrice = jinRamen.sellPrice;
+                            itemBuyPrice = jinRamen.buyPrice;
+                        } else if (itemChoice == 2) {
+                            wantItem = neoguri.name;
+                            itemStock = neoguri.stock;
+                            itemSellPrice = neoguri.sellPrice;
+                            itemBuyPrice = neoguri.buyPrice;
+                        } else if (itemChoice == 3) {
+                            wantItem = hite.name;
+                            itemStock = hite.stock;
+                            itemSellPrice = hite.sellPrice;
+                            itemBuyPrice = hite.buyPrice;
+                        } else if (itemChoice == 4) {
+                            wantItem = screwBar.name;
+                            itemStock = screwBar.stock;
+                            itemSellPrice = screwBar.sellPrice;
+                            itemBuyPrice = screwBar.buyPrice;
+                        } else {
+                            wantItem = fishBread.name;
+                            itemStock = fishBread.stock;
+                            itemSellPrice = fishBread.sellPrice;
+                            itemBuyPrice = fishBread.buyPrice;
+                        }
+                    }
+
+                    // 원하는 상품 출력
+                    System.out.printf("원하는 상품: %s %d개%n", wantItem, wantAmount);
+
+                    // 재고 확인 및 판매 처리
+                    if (itemStock >= wantAmount) {
+                        // 판매 성공
+                        int saleAmount = itemSellPrice * wantAmount;
+                        int profitAmount = (itemSellPrice - itemBuyPrice) * wantAmount;
+
+                        // 재고 차감 (상품별로 처리)
+                        if (wantItem.equals(cola.name)) {
+                            cola.removeStock(wantAmount);
+                        } else if (wantItem.equals(cider.name)) {
+                            cider.removeStock(wantAmount);
+                        } else if (wantItem.equals(water.name)) {
+                            water.removeStock(wantAmount);
+                        } else if (wantItem.equals(pocari.name)) {
+                            pocari.removeStock(wantAmount);
+                        } else if (wantItem.equals(ipro.name)) {
+                            ipro.removeStock(wantAmount);
+                        } else if (wantItem.equals(cass.name)) {
+                            cass.removeStock(wantAmount);
+                        } else if (wantItem.equals(terra.name)) {
+                            terra.removeStock(wantAmount);
+                        } else if (wantItem.equals(hite.name)) {
+                            hite.removeStock(wantAmount);
+                        } else if (wantItem.equals(chamisul.name)) {
+                            chamisul.removeStock(wantAmount);
+                        } else if (wantItem.equals(cheumcherum.name)) {
+                            cheumcherum.removeStock(wantAmount);
+                        } else if (wantItem.equals(jinro.name)) {
+                            jinro.removeStock(wantAmount);
+                        } else if (wantItem.equals(driedSquid.name)) {
+                            driedSquid.removeStock(wantAmount);
+                        } else if (wantItem.equals(peanut.name)) {
+                            peanut.removeStock(wantAmount);
+                        } else if (wantItem.equals(chip.name)) {
+                            chip.removeStock(wantAmount);
+                        } else if (wantItem.equals(samgyupsal.name)) {
+                            samgyupsal.removeStock(wantAmount);
+                        } else if (wantItem.equals(moksal.name)) {
+                            moksal.removeStock(wantAmount);
+                        } else if (wantItem.equals(sausage.name)) {
+                            sausage.removeStock(wantAmount);
+                        } else if (wantItem.equals(tube.name)) {
+                            tube.removeStock(wantAmount);
+                        } else if (wantItem.equals(sunscreen.name)) {
+                            sunscreen.removeStock(wantAmount);
+                        } else if (wantItem.equals(beachBall.name)) {
+                            beachBall.removeStock(wantAmount);
+                        } else if (wantItem.equals(ssamjang.name)) {
+                            ssamjang.removeStock(wantAmount);
+                        } else if (wantItem.equals(lettuce.name)) {
+                            lettuce.removeStock(wantAmount);
+                        } else if (wantItem.equals(kimchi.name)) {
+                            kimchi.removeStock(wantAmount);
+                        } else if (wantItem.equals(shinRamen.name)) {
+                            shinRamen.removeStock(wantAmount);
+                        } else if (wantItem.equals(jinRamen.name)) {
+                            jinRamen.removeStock(wantAmount);
+                        } else if (wantItem.equals(neoguri.name)) {
+                            neoguri.removeStock(wantAmount);
+                        } else if (wantItem.equals(melona.name)) {
+                            melona.removeStock(wantAmount);
+                        } else if (wantItem.equals(screwBar.name)) {
+                            screwBar.removeStock(wantAmount);
+                        } else if (wantItem.equals(fishBread.name)) {
+                            fishBread.removeStock(wantAmount);
+                        } else if (wantItem.equals(firework.name)) {
+                            firework.removeStock(wantAmount);
+                        }
+
+                        // 슬롯 감소
+                        usedSlot = usedSlot - wantAmount;
+
+                        // 매출/이익 누적
+                        money = money + saleAmount;
+                        todaySales = todaySales + saleAmount;
+                        todayProfit = todayProfit + profitAmount;
+                        successCount++;
+
+                        System.out.printf("[OK] 판매 완료! (+%,d원)%n", saleAmount);
+
+                    } else if (itemStock > 0) {
+                        // 일부만 판매 가능
+                        int actualAmount = itemStock;
+                        int saleAmount = itemSellPrice * actualAmount;
+                        int profitAmount = (itemSellPrice - itemBuyPrice) * actualAmount;
+
+                        // 재고 차감
+                        if (wantItem.equals(cola.name)) {
+                            cola.removeStock(actualAmount);
+                        } else if (wantItem.equals(cider.name)) {
+                            cider.removeStock(actualAmount);
+                        } else if (wantItem.equals(water.name)) {
+                            water.removeStock(actualAmount);
+                        } else if (wantItem.equals(pocari.name)) {
+                            pocari.removeStock(actualAmount);
+                        } else if (wantItem.equals(ipro.name)) {
+                            ipro.removeStock(actualAmount);
+                        } else if (wantItem.equals(cass.name)) {
+                            cass.removeStock(actualAmount);
+                        } else if (wantItem.equals(terra.name)) {
+                            terra.removeStock(actualAmount);
+                        } else if (wantItem.equals(hite.name)) {
+                            hite.removeStock(actualAmount);
+                        } else if (wantItem.equals(chamisul.name)) {
+                            chamisul.removeStock(actualAmount);
+                        } else if (wantItem.equals(cheumcherum.name)) {
+                            cheumcherum.removeStock(actualAmount);
+                        } else if (wantItem.equals(jinro.name)) {
+                            jinro.removeStock(actualAmount);
+                        } else if (wantItem.equals(driedSquid.name)) {
+                            driedSquid.removeStock(actualAmount);
+                        } else if (wantItem.equals(peanut.name)) {
+                            peanut.removeStock(actualAmount);
+                        } else if (wantItem.equals(chip.name)) {
+                            chip.removeStock(actualAmount);
+                        } else if (wantItem.equals(samgyupsal.name)) {
+                            samgyupsal.removeStock(actualAmount);
+                        } else if (wantItem.equals(moksal.name)) {
+                            moksal.removeStock(actualAmount);
+                        } else if (wantItem.equals(sausage.name)) {
+                            sausage.removeStock(actualAmount);
+                        } else if (wantItem.equals(tube.name)) {
+                            tube.removeStock(actualAmount);
+                        } else if (wantItem.equals(sunscreen.name)) {
+                            sunscreen.removeStock(actualAmount);
+                        } else if (wantItem.equals(beachBall.name)) {
+                            beachBall.removeStock(actualAmount);
+                        } else if (wantItem.equals(ssamjang.name)) {
+                            ssamjang.removeStock(actualAmount);
+                        } else if (wantItem.equals(lettuce.name)) {
+                            lettuce.removeStock(actualAmount);
+                        } else if (wantItem.equals(kimchi.name)) {
+                            kimchi.removeStock(actualAmount);
+                        } else if (wantItem.equals(shinRamen.name)) {
+                            shinRamen.removeStock(actualAmount);
+                        } else if (wantItem.equals(jinRamen.name)) {
+                            jinRamen.removeStock(actualAmount);
+                        } else if (wantItem.equals(neoguri.name)) {
+                            neoguri.removeStock(actualAmount);
+                        } else if (wantItem.equals(melona.name)) {
+                            melona.removeStock(actualAmount);
+                        } else if (wantItem.equals(screwBar.name)) {
+                            screwBar.removeStock(actualAmount);
+                        } else if (wantItem.equals(fishBread.name)) {
+                            fishBread.removeStock(actualAmount);
+                        } else if (wantItem.equals(firework.name)) {
+                            firework.removeStock(actualAmount);
+                        }
+
+                        usedSlot = usedSlot - actualAmount;
+                        money = money + saleAmount;
+                        todaySales = todaySales + saleAmount;
+                        todayProfit = todayProfit + profitAmount;
+                        successCount++;
+
+                        System.out.printf("[--] %d개만 판매... (+%,d원)%n", actualAmount, saleAmount);
+
+                    } else {
+                        // 재고 없음
+                        failCount++;
+                        System.out.println("[XX] 재고 없음... 손님이 그냥 갔습니다.");
+                    }
+                }
+
+                // 하루 정산
+                System.out.println();
+                System.out.println("========================================");
+                System.out.printf("          [ %d일차 정산 ]%n", day);
+                System.out.println("========================================");
+                System.out.printf("오늘 방문 손님: %d명%n", todayCustomers);
+                System.out.printf("판매 성공: %d건%n", successCount);
+                System.out.printf("판매 실패: %d건%n", failCount);
+                System.out.println();
+                System.out.println("----------------------------------------");
+                System.out.printf("  오늘 매출:    %,d원%n", todaySales);
+                System.out.printf("  순이익:      +%,d원%n", todayProfit);
+                System.out.println("----------------------------------------");
+                System.out.printf("  현재 총 자본: %,d원%n", money);
+                System.out.printf("  목표까지:     %,d원%n", goalMoney - money);
+                System.out.println("========================================");
 
                 day++;
 

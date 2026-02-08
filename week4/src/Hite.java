@@ -12,6 +12,16 @@ public class Hite {
     int stock;
     int popularity;
 
+    // ========== 생성자 ==========
+
+    Hite(String name, int buyPrice, int sellPrice, int popularity) {
+        this.name = name;
+        this.buyPrice = buyPrice;
+        this.sellPrice = sellPrice;
+        this.stock = 0;
+        this.popularity = popularity;
+    }
+
     // ========== 메서드 ==========
 
     /// <summary>

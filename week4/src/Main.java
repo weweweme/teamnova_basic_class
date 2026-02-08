@@ -1,83 +1,25 @@
 import java.util.Scanner;
 
-/// <summary>
-/// 강릉 펜션촌 슈퍼마켓 게임
-/// 목표: 3억원 모아서 펜션 주인 되기!
-/// </summary>
 public class Main {
 
     public static void main(String[] args) {
 
         // ========== 상수 ==========
 
-        final int INIT_MONEY = 50000000;   // 초기 자본 5000만원
-        final int GOAL_MONEY = 300000000;  // 목표 금액 3억원
-        final int MAX_SLOT = 30;           // 매대 최대 슬롯
+        final int INIT_MONEY = 50000000;           // 초기 자본 5000만원
+        final int GOAL_MONEY = 300000000;          // 목표 금액 3억원
+        final int MAX_SLOT = 30;                   // 매대 최대 슬롯
+        final int DEFAULT_PRICE_MULTIPLIER = 3;   // 기본 가격 배율
 
         // ========== 게임 변수 ==========
 
-        int money;       // 현재 보유 금액
-        int goalMoney;   // 목표 금액 (커스텀 가능)
-        int usedSlot = 0;             // 사용 중인 슬롯
-        int day = 1;                  // 현재 날짜
+        int money;
+        int goalMoney;
+        int priceMultiplier;
+        int usedSlot = 0;
+        int day = 1;
 
         Scanner scanner = new Scanner(System.in);
-
-        // ========== 상품 객체 생성 ==========
-
-        // 음료
-        Cola cola = new Cola();
-        Cider cider = new Cider();
-        Water water = new Water();
-        Pocari pocari = new Pocari();
-        Ipro ipro = new Ipro();
-
-        // 맥주
-        Cass cass = new Cass();
-        Terra terra = new Terra();
-        Hite hite = new Hite();
-
-        // 소주
-        Chamisul chamisul = new Chamisul();
-        Cheumcherum cheumcherum = new Cheumcherum();
-        Jinro jinro = new Jinro();
-
-        // 간식/안주
-        DriedSquid driedSquid = new DriedSquid();
-        Peanut peanut = new Peanut();
-        Chip chip = new Chip();
-
-        // 고기
-        Samgyupsal samgyupsal = new Samgyupsal();
-        Moksal moksal = new Moksal();
-        Sausage sausage = new Sausage();
-
-        // 해수욕 용품
-        Tube tube = new Tube();
-        Sunscreen sunscreen = new Sunscreen();
-        BeachBall beachBall = new BeachBall();
-
-        // 식재료
-        Ssamjang ssamjang = new Ssamjang();
-        Lettuce lettuce = new Lettuce();
-        Kimchi kimchi = new Kimchi();
-
-        // 라면
-        ShinRamen shinRamen = new ShinRamen();
-        JinRamen jinRamen = new JinRamen();
-        Neoguri neoguri = new Neoguri();
-
-        // 아이스크림
-        Melona melona = new Melona();
-        ScrewBar screwBar = new ScrewBar();
-        FishBread fishBread = new FishBread();
-
-        // 기타
-        Firework firework = new Firework();
-
-        // ========== 상품 초기화 ==========
-
-        // TODO: 각 상품의 name, buyPrice, sellPrice, popularity 설정
 
         // ========== 게임 시작 화면 ==========
 
@@ -93,8 +35,8 @@ public class Main {
         System.out.println("========================================");
         System.out.println("목표: 돈을 모아서 펜션 주인이 되자!");
         System.out.println();
-        System.out.println("[1] 게임 시작 (기본: 5000만원 -> 3억원)");
-        System.out.println("[2] 커스텀 게임 (자본/목표 직접 설정)");
+        System.out.println("[1] 게임 시작 (기본: 5000만원 -> 3억원, 배율 3배)");
+        System.out.println("[2] 커스텀 게임 (자본/목표/배율 직접 설정)");
         System.out.println("[그 외] 종료");
         System.out.print(">> ");
 
@@ -104,6 +46,7 @@ public class Main {
             // 기본 모드
             money = INIT_MONEY;
             goalMoney = GOAL_MONEY;
+            priceMultiplier = DEFAULT_PRICE_MULTIPLIER;
 
         } else if (startChoice == 2) {
             // 커스텀 모드
@@ -120,9 +63,15 @@ public class Main {
             int inputGoal = scanner.nextInt();
             goalMoney = inputGoal * 10000;
 
+            System.out.print("가격 배율 입력 (1~100, 판매가에만 적용): ");
+            priceMultiplier = scanner.nextInt();
+
             System.out.println();
+            System.out.println("----------------------------------------");
             System.out.println("시작 자본: " + String.format("%,d", money) + "원");
-            System.out.println("목표 금액: " + String.format("%,d", goalMoney) + "원으로 설정!");
+            System.out.println("목표 금액: " + String.format("%,d", goalMoney) + "원");
+            System.out.println("가격 배율: " + priceMultiplier + "배");
+            System.out.println("----------------------------------------");
 
         } else {
             // 종료
@@ -130,6 +79,59 @@ public class Main {
             scanner.close();
             return;
         }
+
+        // ========== 상품 객체 생성 (배율 적용) ==========
+        // sellPrice에만 배율 적용 (매입가는 현실 가격, 판매가는 배율 적용)
+
+        // 음료
+        Cola cola = new Cola("코카콜라", 800, 1500 * priceMultiplier, 7);
+        Cider cider = new Cider("칠성사이다", 800, 1500 * priceMultiplier, 6);
+        Water water = new Water("삼다수", 400, 1000 * priceMultiplier, 5);
+        Pocari pocari = new Pocari("포카리스웨트", 1200, 2000 * priceMultiplier, 6);
+        Ipro ipro = new Ipro("이프로", 1000, 1800 * priceMultiplier, 5);
+
+        // 맥주
+        Cass cass = new Cass("카스", 1500, 3000 * priceMultiplier, 8);
+        Terra terra = new Terra("테라", 1600, 3200 * priceMultiplier, 8);
+        Hite hite = new Hite("하이트", 1400, 2800 * priceMultiplier, 7);
+
+        // 소주
+        Chamisul chamisul = new Chamisul("참이슬", 1200, 2500 * priceMultiplier, 9);
+        Cheumcherum cheumcherum = new Cheumcherum("처음처럼", 1200, 2500 * priceMultiplier, 8);
+        Jinro jinro = new Jinro("진로", 1300, 2600 * priceMultiplier, 7);
+
+        // 간식/안주
+        DriedSquid driedSquid = new DriedSquid("마른오징어", 3000, 6000 * priceMultiplier, 6);
+        Peanut peanut = new Peanut("땅콩", 2000, 4000 * priceMultiplier, 5);
+        Chip chip = new Chip("감자칩", 1500, 3000 * priceMultiplier, 6);
+
+        // 고기
+        Samgyupsal samgyupsal = new Samgyupsal("삼겹살", 8000, 15000 * priceMultiplier, 10);
+        Moksal moksal = new Moksal("목살", 9000, 16000 * priceMultiplier, 9);
+        Sausage sausage = new Sausage("소세지", 3000, 6000 * priceMultiplier, 7);
+
+        // 해수욕 용품
+        Tube tube = new Tube("튜브", 5000, 15000 * priceMultiplier, 7);
+        Sunscreen sunscreen = new Sunscreen("선크림", 8000, 20000 * priceMultiplier, 8);
+        BeachBall beachBall = new BeachBall("비치볼", 3000, 8000 * priceMultiplier, 5);
+
+        // 식재료
+        Ssamjang ssamjang = new Ssamjang("쌈장", 2000, 4000 * priceMultiplier, 6);
+        Lettuce lettuce = new Lettuce("상추", 2000, 4000 * priceMultiplier, 7);
+        Kimchi kimchi = new Kimchi("김치", 3000, 6000 * priceMultiplier, 5);
+
+        // 라면
+        ShinRamen shinRamen = new ShinRamen("신라면", 800, 1500 * priceMultiplier, 8);
+        JinRamen jinRamen = new JinRamen("진라면", 700, 1400 * priceMultiplier, 7);
+        Neoguri neoguri = new Neoguri("너구리", 800, 1500 * priceMultiplier, 6);
+
+        // 아이스크림
+        Melona melona = new Melona("메로나", 500, 1200 * priceMultiplier, 7);
+        ScrewBar screwBar = new ScrewBar("스크류바", 600, 1300 * priceMultiplier, 6);
+        FishBread fishBread = new FishBread("붕어싸만코", 800, 1500 * priceMultiplier, 6);
+
+        // 기타
+        Firework firework = new Firework("폭죽", 5000, 15000 * priceMultiplier, 9);
 
         // ========== 게임 루프 ==========
 
@@ -143,7 +145,7 @@ public class Main {
                 System.out.println("========================================");
                 System.out.println("         *** 축하합니다! ***");
                 System.out.println("========================================");
-                System.out.println("목표 금액 3억원을 달성했습니다!");
+                System.out.println("목표 금액 " + String.format("%,d", goalMoney) + "원을 달성했습니다!");
                 System.out.println("이제 펜션 주인이 되셨습니다!");
                 System.out.println("총 " + day + "일 만에 달성!");
                 System.out.println("========================================");

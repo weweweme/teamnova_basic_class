@@ -51,6 +51,36 @@ java -cp out Main
   int b = 2;
   int c = 3;
   ```
+- **조건문 선택 기준 (if-else vs switch)**:
+  - `if-else`: 복합 조건 (범위 비교, AND/OR 조합, null 체크, 객체 비교)
+  - `switch`: 단일 값으로 여러 분기 처리 (메뉴 선택, 열거형 등)
+  ```java
+  // if-else 사용: 범위/복합 조건
+  if (score >= 90) {
+      grade = "A";
+  } else if (score >= 80) {
+      grade = "B";
+  }
+
+  // switch 사용: 단일 값 → 여러 분기
+  switch (choice) {
+      case 1:
+          goWholesaler();
+          break;
+      case 2:
+          startBusiness();
+          break;
+  }
+  ```
+- **메서드 주석 스타일**: 메서드 설명은 `/// <summary>` 형식 사용
+  ```java
+  /// <summary>
+  /// 메서드 설명
+  /// </summary>
+  void someMethod() {
+      // ...
+  }
+  ```
 
 ## 4주차 과제
 

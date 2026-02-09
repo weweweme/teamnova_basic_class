@@ -1492,7 +1492,11 @@ public class Main {
         System.out.println();
 
         // 카테고리 정책 출력
+        // 카테고리 정책: 음료, 맥주 등 카테고리 단위로 자동주문을 설정하는 것
         System.out.println("[ 카테고리 정책 ]");
+        // 등록된 카테고리 정책이 하나라도 있는지 추적
+        // - true: 정책 목록이 출력됨
+        // - false: "(없음)" 출력
         boolean hasCategoryPolicy = false;
 
         if (autoOrderDrink) {
@@ -1543,7 +1547,11 @@ public class Main {
         System.out.println();
 
         // 개별 상품 정책 출력
+        // 개별 상품 정책: 콜라, 사이다 등 개별 상품 단위로 자동주문을 설정하는 것
         System.out.println("[ 개별 상품 정책 ]");
+        // 등록된 개별 상품 정책이 하나라도 있는지 추적
+        // - true: 정책 목록이 출력됨
+        // - false: "(없음)" 출력
         boolean hasIndividualPolicy = false;
 
         // 모든 상품 체크
@@ -1696,7 +1704,6 @@ public class Main {
         System.out.println();
 
         int totalCost = 0;
-        int orderCount = 0;
 
         // 카테고리 정책 기반 주문 (음료)
         if (autoOrderDrink) {

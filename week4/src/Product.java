@@ -11,15 +11,34 @@ public class Product {
     int sellPrice;
     int stock;
     int popularity;
+    int boxSize;              // 박스당 수량 (자동주문 시 이 단위로 구매)
+    boolean autoOrderEnabled; // 개별 자동주문 활성화 여부
+    int autoOrderThreshold;   // 개별 자동주문 임계값 (재고가 이 값 이하면 주문)
 
     // ========== 생성자 ==========
 
+    // 기존 생성자 (박스 사이즈 기본값 10)
     Product(String name, int buyPrice, int sellPrice, int popularity) {
         this.name = name;
         this.buyPrice = buyPrice;
         this.sellPrice = sellPrice;
         this.stock = 0;
         this.popularity = popularity;
+        this.boxSize = 10;              // 기본 박스 사이즈
+        this.autoOrderEnabled = false;  // 기본 비활성화
+        this.autoOrderThreshold = 0;    // 기본 임계값 0
+    }
+
+    // 박스 사이즈 지정 생성자
+    Product(String name, int buyPrice, int sellPrice, int popularity, int boxSize) {
+        this.name = name;
+        this.buyPrice = buyPrice;
+        this.sellPrice = sellPrice;
+        this.stock = 0;
+        this.popularity = popularity;
+        this.boxSize = boxSize;
+        this.autoOrderEnabled = false;
+        this.autoOrderThreshold = 0;
     }
 
     // ========== 메서드 ==========

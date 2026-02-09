@@ -121,6 +121,9 @@ public class Main {
     static Product[] categoryIcecream;   // 아이스크림
     static Product[] categoryEtc;        // 폭죽
 
+    // 전체 카테고리 배열 (순회용)
+    static Product[][] allCategories;
+
     // ========== 상품 이름 → 상품 객체 맵 ==========
     // productMap.get(name)으로 O(1) 조회
     static Map<String, Product> productMap;
@@ -1154,8 +1157,11 @@ public class Main {
 
         // 모든 상품을 순회하며 매대에 있고 창고에 재고가 있는 경우 보충
         for (Product p : allProducts) {
-            // 매대에 있고(displayStock > 0), 창고에 재고가 있고, 최대치 미만인 경우
-            if (p.displayStock > 0 && p.displayStock < MAX_DISPLAY_PER_SLOT && p.warehouseStock > 0) {
+            boolean isOnDisplay = p.displayStock > 0;                          // 매대에 진열 중인가?
+            boolean hasRoomOnDisplay = p.displayStock < MAX_DISPLAY_PER_SLOT;  // 매대에 더 놓을 공간이 있는가?
+            boolean hasWarehouseStock = p.warehouseStock > 0;                  // 창고에 재고가 있는가?
+
+            if (isOnDisplay && hasRoomOnDisplay && hasWarehouseStock) {
                 int canAdd = MAX_DISPLAY_PER_SLOT - p.displayStock;
                 int toAdd = Math.min(canAdd, p.warehouseStock);
                 p.displayFromWarehouse(toAdd);
@@ -1178,67 +1184,14 @@ public class Main {
             System.out.println(" (매대가 꽉 찼습니다)");
 
         } else {
-            // 카테고리별 카운트 초기화 (재사용 배열)
+            // 매대에 진열할 상품 목록 준비
+            // 창고에는 있지만 아직 매대에 없는 상품들을 카테고리별로 모아둔다
+            // 예: 창고에 콜라 20개 있고 매대에 0개 → 진열 대기 목록에 추가
+            int totalAvailable = 0;
             for (int i = 0; i < 10; i++) {
                 arrangeCategoryCounts[i] = 0;
                 arrangeCategoryIndex[i] = 0;
-            }
-
-            // 카테고리 0: 음료
-            if (cola.warehouseStock > 0 && cola.displayStock == 0) arrangeCategoriesBuffer[0][arrangeCategoryCounts[0]++] = cola;
-            if (cider.warehouseStock > 0 && cider.displayStock == 0) arrangeCategoriesBuffer[0][arrangeCategoryCounts[0]++] = cider;
-            if (water.warehouseStock > 0 && water.displayStock == 0) arrangeCategoriesBuffer[0][arrangeCategoryCounts[0]++] = water;
-            if (pocari.warehouseStock > 0 && pocari.displayStock == 0) arrangeCategoriesBuffer[0][arrangeCategoryCounts[0]++] = pocari;
-            if (ipro.warehouseStock > 0 && ipro.displayStock == 0) arrangeCategoriesBuffer[0][arrangeCategoryCounts[0]++] = ipro;
-
-            // 카테고리 1: 맥주
-            if (cass.warehouseStock > 0 && cass.displayStock == 0) arrangeCategoriesBuffer[1][arrangeCategoryCounts[1]++] = cass;
-            if (terra.warehouseStock > 0 && terra.displayStock == 0) arrangeCategoriesBuffer[1][arrangeCategoryCounts[1]++] = terra;
-            if (hite.warehouseStock > 0 && hite.displayStock == 0) arrangeCategoriesBuffer[1][arrangeCategoryCounts[1]++] = hite;
-
-            // 카테고리 2: 소주
-            if (chamisul.warehouseStock > 0 && chamisul.displayStock == 0) arrangeCategoriesBuffer[2][arrangeCategoryCounts[2]++] = chamisul;
-            if (cheumcherum.warehouseStock > 0 && cheumcherum.displayStock == 0) arrangeCategoriesBuffer[2][arrangeCategoryCounts[2]++] = cheumcherum;
-            if (jinro.warehouseStock > 0 && jinro.displayStock == 0) arrangeCategoriesBuffer[2][arrangeCategoryCounts[2]++] = jinro;
-
-            // 카테고리 3: 간식/안주
-            if (driedSquid.warehouseStock > 0 && driedSquid.displayStock == 0) arrangeCategoriesBuffer[3][arrangeCategoryCounts[3]++] = driedSquid;
-            if (peanut.warehouseStock > 0 && peanut.displayStock == 0) arrangeCategoriesBuffer[3][arrangeCategoryCounts[3]++] = peanut;
-            if (chip.warehouseStock > 0 && chip.displayStock == 0) arrangeCategoriesBuffer[3][arrangeCategoryCounts[3]++] = chip;
-
-            // 카테고리 4: 고기
-            if (samgyupsal.warehouseStock > 0 && samgyupsal.displayStock == 0) arrangeCategoriesBuffer[4][arrangeCategoryCounts[4]++] = samgyupsal;
-            if (moksal.warehouseStock > 0 && moksal.displayStock == 0) arrangeCategoriesBuffer[4][arrangeCategoryCounts[4]++] = moksal;
-            if (sausage.warehouseStock > 0 && sausage.displayStock == 0) arrangeCategoriesBuffer[4][arrangeCategoryCounts[4]++] = sausage;
-
-            // 카테고리 5: 해수욕 용품
-            if (tube.warehouseStock > 0 && tube.displayStock == 0) arrangeCategoriesBuffer[5][arrangeCategoryCounts[5]++] = tube;
-            if (sunscreen.warehouseStock > 0 && sunscreen.displayStock == 0) arrangeCategoriesBuffer[5][arrangeCategoryCounts[5]++] = sunscreen;
-            if (beachBall.warehouseStock > 0 && beachBall.displayStock == 0) arrangeCategoriesBuffer[5][arrangeCategoryCounts[5]++] = beachBall;
-
-            // 카테고리 6: 식재료
-            if (ssamjang.warehouseStock > 0 && ssamjang.displayStock == 0) arrangeCategoriesBuffer[6][arrangeCategoryCounts[6]++] = ssamjang;
-            if (lettuce.warehouseStock > 0 && lettuce.displayStock == 0) arrangeCategoriesBuffer[6][arrangeCategoryCounts[6]++] = lettuce;
-            if (kimchi.warehouseStock > 0 && kimchi.displayStock == 0) arrangeCategoriesBuffer[6][arrangeCategoryCounts[6]++] = kimchi;
-
-            // 카테고리 7: 라면
-            if (shinRamen.warehouseStock > 0 && shinRamen.displayStock == 0) arrangeCategoriesBuffer[7][arrangeCategoryCounts[7]++] = shinRamen;
-            if (jinRamen.warehouseStock > 0 && jinRamen.displayStock == 0) arrangeCategoriesBuffer[7][arrangeCategoryCounts[7]++] = jinRamen;
-            if (neoguri.warehouseStock > 0 && neoguri.displayStock == 0) arrangeCategoriesBuffer[7][arrangeCategoryCounts[7]++] = neoguri;
-
-            // 카테고리 8: 아이스크림
-            if (melona.warehouseStock > 0 && melona.displayStock == 0) arrangeCategoriesBuffer[8][arrangeCategoryCounts[8]++] = melona;
-            if (screwBar.warehouseStock > 0 && screwBar.displayStock == 0) arrangeCategoriesBuffer[8][arrangeCategoryCounts[8]++] = screwBar;
-            if (fishBread.warehouseStock > 0 && fishBread.displayStock == 0) arrangeCategoriesBuffer[8][arrangeCategoryCounts[8]++] = fishBread;
-
-            // 카테고리 9: 폭죽
-            if (sparkler.warehouseStock > 0 && sparkler.displayStock == 0) arrangeCategoriesBuffer[9][arrangeCategoryCounts[9]++] = sparkler;
-            if (romanCandle.warehouseStock > 0 && romanCandle.displayStock == 0) arrangeCategoriesBuffer[9][arrangeCategoryCounts[9]++] = romanCandle;
-            if (fountain.warehouseStock > 0 && fountain.displayStock == 0) arrangeCategoriesBuffer[9][arrangeCategoryCounts[9]++] = fountain;
-
-            // 진열 가능한 상품 수 계산
-            int totalAvailable = 0;
-            for (int i = 0; i < 10; i++) {
+                fillArrangeBuffer(i, allCategories[i]);
                 totalAvailable = totalAvailable + arrangeCategoryCounts[i];
             }
 
@@ -2970,6 +2923,12 @@ public class Main {
         categoryIcecream = new Product[]{melona, screwBar, fishBread};
         categoryEtc = new Product[]{sparkler, romanCandle, fountain};
 
+        // 전체 카테고리 배열 초기화 (순회용)
+        allCategories = new Product[][]{
+            categoryDrink, categoryBeer, categorySoju, categorySnack, categoryMeat,
+            categoryBeach, categoryGrocery, categoryRamen, categoryIcecream, categoryEtc
+        };
+
         // 전체 상품 배열 초기화 (순회용)
         allProducts = new Product[]{
             cola, cider, water, pocari, ipro,
@@ -3062,6 +3021,24 @@ public class Main {
     static Product getRandomFromCategory(Product[] category) {
         int index = rand(category.length);
         return category[index];
+    }
+
+    /// <summary>
+    /// 자동 배정 시 진열 대기 목록 채우기
+    ///
+    /// 동작: 해당 카테고리의 상품들을 검사해서 "창고에는 있는데 매대에는 없는" 상품만 진열 대기 버퍼에 추가
+    ///
+    /// 예시: 음료 카테고리(categoryIndex=0) 검사
+    ///       - 콜라: 창고 20개, 매대 0개 → 버퍼에 추가 (새로 진열 가능)
+    ///       - 사이다: 창고 0개, 매대 5개 → 스킵 (창고에 없음)
+    ///       - 물: 창고 10개, 매대 3개 → 스킵 (이미 매대에 있음, 1단계에서 보충됨)
+    /// </summary>
+    static void fillArrangeBuffer(int categoryIndex, Product[] category) {
+        for (Product p : category) {
+            if (p.warehouseStock > 0 && p.displayStock == 0) {
+                arrangeCategoriesBuffer[categoryIndex][arrangeCategoryCounts[categoryIndex]++] = p;
+            }
+        }
     }
 
     /// <summary>

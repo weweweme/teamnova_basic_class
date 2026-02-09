@@ -1415,58 +1415,69 @@ public class Main {
     /// 정책 설정용 카테고리 상품 출력
     /// </summary>
     private static void printCategoryProductsForPolicy(int category) {
-        if (category == 1) {
-            System.out.println("[ 음료 ]");
-            System.out.printf("1. %s (재고: %d)%n", cola.name, getTotalStock(cola));
-            System.out.printf("2. %s (재고: %d)%n", cider.name, getTotalStock(cider));
-            System.out.printf("3. %s (재고: %d)%n", water.name, getTotalStock(water));
-            System.out.printf("4. %s (재고: %d)%n", pocari.name, getTotalStock(pocari));
-            System.out.printf("5. %s (재고: %d)%n", ipro.name, getTotalStock(ipro));
-        } else if (category == 2) {
-            System.out.println("[ 맥주 ]");
-            System.out.printf("1. %s (재고: %d)%n", cass.name, getTotalStock(cass));
-            System.out.printf("2. %s (재고: %d)%n", terra.name, getTotalStock(terra));
-            System.out.printf("3. %s (재고: %d)%n", hite.name, getTotalStock(hite));
-        } else if (category == 3) {
-            System.out.println("[ 소주 ]");
-            System.out.printf("1. %s (재고: %d)%n", chamisul.name, getTotalStock(chamisul));
-            System.out.printf("2. %s (재고: %d)%n", cheumcherum.name, getTotalStock(cheumcherum));
-            System.out.printf("3. %s (재고: %d)%n", jinro.name, getTotalStock(jinro));
-        } else if (category == 4) {
-            System.out.println("[ 간식/안주 ]");
-            System.out.printf("1. %s (재고: %d)%n", driedSquid.name, getTotalStock(driedSquid));
-            System.out.printf("2. %s (재고: %d)%n", peanut.name, getTotalStock(peanut));
-            System.out.printf("3. %s (재고: %d)%n", chip.name, getTotalStock(chip));
-        } else if (category == 5) {
-            System.out.println("[ 고기 ]");
-            System.out.printf("1. %s (재고: %d)%n", samgyupsal.name, getTotalStock(samgyupsal));
-            System.out.printf("2. %s (재고: %d)%n", moksal.name, getTotalStock(moksal));
-            System.out.printf("3. %s (재고: %d)%n", sausage.name, getTotalStock(sausage));
-        } else if (category == 6) {
-            System.out.println("[ 해수욕용품 ]");
-            System.out.printf("1. %s (재고: %d)%n", tube.name, getTotalStock(tube));
-            System.out.printf("2. %s (재고: %d)%n", sunscreen.name, getTotalStock(sunscreen));
-            System.out.printf("3. %s (재고: %d)%n", beachBall.name, getTotalStock(beachBall));
-        } else if (category == 7) {
-            System.out.println("[ 식재료 ]");
-            System.out.printf("1. %s (재고: %d)%n", ssamjang.name, getTotalStock(ssamjang));
-            System.out.printf("2. %s (재고: %d)%n", lettuce.name, getTotalStock(lettuce));
-            System.out.printf("3. %s (재고: %d)%n", kimchi.name, getTotalStock(kimchi));
-        } else if (category == 8) {
-            System.out.println("[ 라면 ]");
-            System.out.printf("1. %s (재고: %d)%n", shinRamen.name, getTotalStock(shinRamen));
-            System.out.printf("2. %s (재고: %d)%n", jinRamen.name, getTotalStock(jinRamen));
-            System.out.printf("3. %s (재고: %d)%n", neoguri.name, getTotalStock(neoguri));
-        } else if (category == 9) {
-            System.out.println("[ 아이스크림 ]");
-            System.out.printf("1. %s (재고: %d)%n", melona.name, getTotalStock(melona));
-            System.out.printf("2. %s (재고: %d)%n", screwBar.name, getTotalStock(screwBar));
-            System.out.printf("3. %s (재고: %d)%n", fishBread.name, getTotalStock(fishBread));
-        } else if (category == 10) {
-            System.out.println("[ 폭죽 ]");
-            System.out.printf("1. %s (재고: %d)%n", sparkler.name, getTotalStock(sparkler));
-            System.out.printf("2. %s (재고: %d)%n", romanCandle.name, getTotalStock(romanCandle));
-            System.out.printf("3. %s (재고: %d)%n", fountain.name, getTotalStock(fountain));
+        switch (category) {
+            case 1:
+                System.out.println("[ 음료 ]");
+                System.out.printf("1. %s (재고: %d)%n", cola.name, getTotalStock(cola));
+                System.out.printf("2. %s (재고: %d)%n", cider.name, getTotalStock(cider));
+                System.out.printf("3. %s (재고: %d)%n", water.name, getTotalStock(water));
+                System.out.printf("4. %s (재고: %d)%n", pocari.name, getTotalStock(pocari));
+                System.out.printf("5. %s (재고: %d)%n", ipro.name, getTotalStock(ipro));
+                break;
+            case 2:
+                System.out.println("[ 맥주 ]");
+                System.out.printf("1. %s (재고: %d)%n", cass.name, getTotalStock(cass));
+                System.out.printf("2. %s (재고: %d)%n", terra.name, getTotalStock(terra));
+                System.out.printf("3. %s (재고: %d)%n", hite.name, getTotalStock(hite));
+                break;
+            case 3:
+                System.out.println("[ 소주 ]");
+                System.out.printf("1. %s (재고: %d)%n", chamisul.name, getTotalStock(chamisul));
+                System.out.printf("2. %s (재고: %d)%n", cheumcherum.name, getTotalStock(cheumcherum));
+                System.out.printf("3. %s (재고: %d)%n", jinro.name, getTotalStock(jinro));
+                break;
+            case 4:
+                System.out.println("[ 간식/안주 ]");
+                System.out.printf("1. %s (재고: %d)%n", driedSquid.name, getTotalStock(driedSquid));
+                System.out.printf("2. %s (재고: %d)%n", peanut.name, getTotalStock(peanut));
+                System.out.printf("3. %s (재고: %d)%n", chip.name, getTotalStock(chip));
+                break;
+            case 5:
+                System.out.println("[ 고기 ]");
+                System.out.printf("1. %s (재고: %d)%n", samgyupsal.name, getTotalStock(samgyupsal));
+                System.out.printf("2. %s (재고: %d)%n", moksal.name, getTotalStock(moksal));
+                System.out.printf("3. %s (재고: %d)%n", sausage.name, getTotalStock(sausage));
+                break;
+            case 6:
+                System.out.println("[ 해수욕용품 ]");
+                System.out.printf("1. %s (재고: %d)%n", tube.name, getTotalStock(tube));
+                System.out.printf("2. %s (재고: %d)%n", sunscreen.name, getTotalStock(sunscreen));
+                System.out.printf("3. %s (재고: %d)%n", beachBall.name, getTotalStock(beachBall));
+                break;
+            case 7:
+                System.out.println("[ 식재료 ]");
+                System.out.printf("1. %s (재고: %d)%n", ssamjang.name, getTotalStock(ssamjang));
+                System.out.printf("2. %s (재고: %d)%n", lettuce.name, getTotalStock(lettuce));
+                System.out.printf("3. %s (재고: %d)%n", kimchi.name, getTotalStock(kimchi));
+                break;
+            case 8:
+                System.out.println("[ 라면 ]");
+                System.out.printf("1. %s (재고: %d)%n", shinRamen.name, getTotalStock(shinRamen));
+                System.out.printf("2. %s (재고: %d)%n", jinRamen.name, getTotalStock(jinRamen));
+                System.out.printf("3. %s (재고: %d)%n", neoguri.name, getTotalStock(neoguri));
+                break;
+            case 9:
+                System.out.println("[ 아이스크림 ]");
+                System.out.printf("1. %s (재고: %d)%n", melona.name, getTotalStock(melona));
+                System.out.printf("2. %s (재고: %d)%n", screwBar.name, getTotalStock(screwBar));
+                System.out.printf("3. %s (재고: %d)%n", fishBread.name, getTotalStock(fishBread));
+                break;
+            case 10:
+                System.out.println("[ 폭죽 ]");
+                System.out.printf("1. %s (재고: %d)%n", sparkler.name, getTotalStock(sparkler));
+                System.out.printf("2. %s (재고: %d)%n", romanCandle.name, getTotalStock(romanCandle));
+                System.out.printf("3. %s (재고: %d)%n", fountain.name, getTotalStock(fountain));
+                break;
         }
     }
 

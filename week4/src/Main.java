@@ -28,19 +28,19 @@ public class Main {
     // ========== 카테고리별 자동주문 정책 ==========
     // 각 카테고리의 자동주문 활성화 여부와 임계값
 
-    // 활성화 여부 (true면 자동주문 대상)
-    static boolean autoOrderDrink = false;      // 음료
-    static boolean autoOrderBeer = false;       // 맥주
-    static boolean autoOrderSoju = false;       // 소주
-    static boolean autoOrderSnack = false;      // 간식/안주
-    static boolean autoOrderMeat = false;       // 고기
-    static boolean autoOrderBeach = false;      // 해수욕 용품
-    static boolean autoOrderGrocery = false;    // 식재료
-    static boolean autoOrderRamen = false;      // 라면
-    static boolean autoOrderIcecream = false;   // 아이스크림
-    static boolean autoOrderEtc = false;        // 기타
+    // 활성화 여부 (기본 true - 모든 카테고리 자동주문 활성화)
+    static boolean autoOrderDrink = true;       // 음료
+    static boolean autoOrderBeer = true;        // 맥주
+    static boolean autoOrderSoju = true;        // 소주
+    static boolean autoOrderSnack = true;       // 간식/안주
+    static boolean autoOrderMeat = true;        // 고기
+    static boolean autoOrderBeach = true;       // 해수욕 용품
+    static boolean autoOrderGrocery = true;     // 식재료
+    static boolean autoOrderRamen = true;       // 라면
+    static boolean autoOrderIcecream = true;    // 아이스크림
+    static boolean autoOrderEtc = true;         // 기타
 
-    // 임계값 (재고가 이 값 이하면 자동주문)
+    // 임계값 (재고가 이 값 이하면 자동주문, 기본 10개)
     static int thresholdDrink = 10;
     static int thresholdBeer = 10;
     static int thresholdSoju = 10;

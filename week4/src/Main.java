@@ -215,6 +215,17 @@ public class Main {
         }
     }
 
+    // ========== 딜레이 (밀리초) ==========
+    // 게임 연출을 위한 대기 시간
+
+    static void delay(int ms) {
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException e) {
+            // 무시
+        }
+    }
+
     // ========== 게임 시작 화면 출력 ==========
 
     static void printStartScreen() {
@@ -1998,7 +2009,9 @@ public class Main {
             System.out.println();
             System.out.println("----------------------------------------");
             System.out.printf("[ 손님 %d/%d - %s ]%n", i, todayCustomers, customerName);
+            delay(500);  // 손님 등장 연출
             System.out.printf("\"%s\"%n", customerMessage);
+            delay(300);
             System.out.println();
 
             // 손님 유형별 원하는 상품 결정
@@ -2161,6 +2174,7 @@ public class Main {
 
             // 원하는 상품 출력
             System.out.printf("원하는 상품: %s %d개%n", wantItem, wantAmount);
+            delay(700);  // 재고 확인하는 척
 
             // 재고 확인 및 판매 처리
             if (itemStock >= wantAmount) {
@@ -2268,6 +2282,7 @@ public class Main {
                 successCount++;
 
                 System.out.printf("[OK] 판매 완료! (+%,d원)%n", saleAmount);
+                delay(400);  // 결과 확인 시간
 
             } else if (itemStock > 0) {
                 // 일부만 판매 가능
@@ -2347,15 +2362,18 @@ public class Main {
                 successCount++;
 
                 System.out.printf("[--] %d개만 판매... (+%,d원)%n", actualAmount, saleAmount);
+                delay(500);  // 아쉬움 연출
 
             } else {
                 // 재고 없음
                 failCount++;
                 System.out.println("[XX] 재고 없음... 손님이 그냥 갔습니다.");
+                delay(600);  // 실패 연출
             }
         }
 
         // 하루 정산
+        delay(800);  // 정산 준비 연출
         System.out.println();
         System.out.println("========================================");
         System.out.printf("          [ %d일차 정산 ]%n", day);

@@ -1328,17 +1328,19 @@ public class Main {
     /// 카테고리명 가져오기
     /// </summary>
     private static String getCategoryName(int category) {
-        if (category == 1) return "음료";
-        if (category == 2) return "맥주";
-        if (category == 3) return "소주";
-        if (category == 4) return "간식/안주";
-        if (category == 5) return "고기";
-        if (category == 6) return "해수욕용품";
-        if (category == 7) return "식재료";
-        if (category == 8) return "라면";
-        if (category == 9) return "아이스크림";
-        if (category == 10) return "폭죽";
-        return "";
+        return switch (category) {
+            case 1 -> "음료";
+            case 2 -> "맥주";
+            case 3 -> "소주";
+            case 4 -> "간식/안주";
+            case 5 -> "고기";
+            case 6 -> "해수욕용품";
+            case 7 -> "식재료";
+            case 8 -> "라면";
+            case 9 -> "아이스크림";
+            case 10 -> "폭죽";
+            default -> "";
+        };
     }
 
     /// <summary>

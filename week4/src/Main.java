@@ -363,7 +363,7 @@ public class Main {
 
         if (isMorning) {
             // 아침: 도매상, 영업, 재고/매대 모두 가능
-            System.out.println("[1] 도매상 가기 (상품 입고)");
+            System.out.println("[1] 도매상 가기 (오전 소비)");
             System.out.println("[2] 영업 시작");
             System.out.println("[3] 재고/매대 관리");
         } else {

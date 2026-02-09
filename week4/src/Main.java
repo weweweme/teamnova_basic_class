@@ -36,7 +36,7 @@ public class Main {
     static boolean autoOrderGrocery = true;     // 식재료
     static boolean autoOrderRamen = true;       // 라면
     static boolean autoOrderIcecream = true;    // 아이스크림
-    static boolean autoOrderEtc = true;         // 기타
+    static boolean autoOrderEtc = true;         // 폭죽
 
     // 임계값 (재고가 이 값 이하면 자동주문, 기본 10개)
     static int thresholdDrink = 10;
@@ -100,8 +100,10 @@ public class Main {
     static Product screwBar;
     static Product fishBread;
 
-    // 기타
-    static Product firework;
+    // 기타 (폭죽)
+    static Product sparkler;      // 불꽃막대
+    static Product romanCandle;   // 로만캔들
+    static Product fountain;      // 분수폭죽
 
     // ========== 카테고리별 상품 배열 ==========
     // initProducts() 이후에 초기화됨
@@ -115,7 +117,7 @@ public class Main {
     static Product[] categoryGrocery;    // 식재료
     static Product[] categoryRamen;      // 라면
     static Product[] categoryIcecream;   // 아이스크림
-    static Product[] categoryEtc;        // 기타
+    static Product[] categoryEtc;        // 폭죽
 
     // ========== 손님 멘트 배열 ==========
     // [손님유형][다양한 멘트] - 4종류 × 5개
@@ -643,8 +645,16 @@ public class Main {
             printStockBar(fishBread.name, fishBread.displayStock);
             hasStock = true;
         }
-        if (firework.displayStock > 0) {
-            printStockBar(firework.name, firework.displayStock);
+        if (sparkler.displayStock > 0) {
+            printStockBar(sparkler.name, sparkler.displayStock);
+            hasStock = true;
+        }
+        if (romanCandle.displayStock > 0) {
+            printStockBar(romanCandle.name, romanCandle.displayStock);
+            hasStock = true;
+        }
+        if (fountain.displayStock > 0) {
+            printStockBar(fountain.name, fountain.displayStock);
             hasStock = true;
         }
 
@@ -832,8 +842,16 @@ public class Main {
             System.out.printf("%-16s %d개%n", fishBread.name, fishBread.warehouseStock);
             hasStock = true;
         }
-        if (firework.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", firework.name, firework.warehouseStock);
+        if (sparkler.warehouseStock > 0) {
+            System.out.printf("%-16s %d개%n", sparkler.name, sparkler.warehouseStock);
+            hasStock = true;
+        }
+        if (romanCandle.warehouseStock > 0) {
+            System.out.printf("%-16s %d개%n", romanCandle.name, romanCandle.warehouseStock);
+            hasStock = true;
+        }
+        if (fountain.warehouseStock > 0) {
+            System.out.printf("%-16s %d개%n", fountain.name, fountain.warehouseStock);
             hasStock = true;
         }
 
@@ -890,7 +908,9 @@ public class Main {
         if (melona.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, melona.name, melona.warehouseStock);
         if (screwBar.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, screwBar.name, screwBar.warehouseStock);
         if (fishBread.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, fishBread.name, fishBread.warehouseStock);
-        if (firework.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, firework.name, firework.warehouseStock);
+        if (sparkler.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, sparkler.name, sparkler.warehouseStock);
+        if (romanCandle.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, romanCandle.name, romanCandle.warehouseStock);
+        if (fountain.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, fountain.name, fountain.warehouseStock);
 
         if (num == 1) {
             System.out.println("  창고가 비어있습니다.");
@@ -1014,7 +1034,9 @@ public class Main {
         if (melona.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, melona.name, melona.displayStock);
         if (screwBar.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, screwBar.name, screwBar.displayStock);
         if (fishBread.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, fishBread.name, fishBread.displayStock);
-        if (firework.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, firework.name, firework.displayStock);
+        if (sparkler.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, sparkler.name, sparkler.displayStock);
+        if (romanCandle.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, romanCandle.name, romanCandle.displayStock);
+        if (fountain.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, fountain.name, fountain.displayStock);
 
         if (num == 1) {
             System.out.println("  매대가 비어있습니다.");
@@ -1108,7 +1130,9 @@ public class Main {
         if (name.equals(melona.name) || name.equals("메로나")) return melona;
         if (name.equals(screwBar.name) || name.equals("스크류바")) return screwBar;
         if (name.equals(fishBread.name) || name.equals("붕어싸만코") || name.equals("붕어")) return fishBread;
-        if (name.equals(firework.name) || name.equals("폭죽")) return firework;
+        if (name.equals(sparkler.name) || name.equals("불꽃막대")) return sparkler;
+        if (name.equals(romanCandle.name) || name.equals("로만캔들")) return romanCandle;
+        if (name.equals(fountain.name) || name.equals("분수폭죽")) return fountain;
         return null;
     }
 
@@ -1141,7 +1165,7 @@ public class Main {
             ssamjang, lettuce, kimchi,
             shinRamen, jinRamen, neoguri,
             melona, screwBar, fishBread,
-            firework
+            sparkler, romanCandle, fountain
         };
 
         for (int i = 0; i < allProducts.length; i++) {
@@ -1172,7 +1196,7 @@ public class Main {
             // 카테고리별 상품 배열 (창고에 재고가 있고 매대에 없는 것만)
             Product[][] categories = new Product[10][5];
             int[] categoryCounts = new int[10];
-            String[] categoryNames = {"음료", "맥주", "소주", "간식", "고기", "해수욕", "식재료", "라면", "아이스크림", "기타"};
+            String[] categoryNames = {"음료", "맥주", "소주", "간식", "고기", "해수욕", "식재료", "라면", "아이스크림", "폭죽"};
 
             // 카테고리 0: 음료
             if (cola.warehouseStock > 0 && cola.displayStock == 0) categories[0][categoryCounts[0]++] = cola;
@@ -1221,8 +1245,10 @@ public class Main {
             if (screwBar.warehouseStock > 0 && screwBar.displayStock == 0) categories[8][categoryCounts[8]++] = screwBar;
             if (fishBread.warehouseStock > 0 && fishBread.displayStock == 0) categories[8][categoryCounts[8]++] = fishBread;
 
-            // 카테고리 9: 기타
-            if (firework.warehouseStock > 0 && firework.displayStock == 0) categories[9][categoryCounts[9]++] = firework;
+            // 카테고리 9: 폭죽
+            if (sparkler.warehouseStock > 0 && sparkler.displayStock == 0) categories[9][categoryCounts[9]++] = sparkler;
+            if (romanCandle.warehouseStock > 0 && romanCandle.displayStock == 0) categories[9][categoryCounts[9]++] = romanCandle;
+            if (fountain.warehouseStock > 0 && fountain.displayStock == 0) categories[9][categoryCounts[9]++] = fountain;
 
             // 진열 가능한 상품 수 계산
             int totalAvailable = 0;
@@ -1376,7 +1402,7 @@ public class Main {
             System.out.println("[1] 음료        [2] 맥주        [3] 소주");
             System.out.println("[4] 간식/안주   [5] 고기        [6] 해수욕용품");
             System.out.println("[7] 식재료      [8] 라면        [9] 아이스크림");
-            System.out.println("[10] 기타");
+            System.out.println("[10] 폭죽");
             System.out.println("[0] 돌아가기");
             System.out.print(">> ");
 
@@ -1478,11 +1504,13 @@ public class Main {
                 System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", screwBar.name, screwBar.buyPrice, screwBar.sellPrice, screwBar.displayStock);
                 System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", fishBread.name, fishBread.buyPrice, fishBread.sellPrice, fishBread.displayStock);
             } else if (category == 10) {
-                // 기타
+                // 폭죽
                 System.out.println("========================================");
-                System.out.println("            [ 기타 ] (1박스=10개)");
+                System.out.println("           [ 폭죽 ] (1박스=10개)");
                 System.out.println("========================================");
-                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", firework.name, firework.buyPrice, firework.sellPrice, firework.displayStock);
+                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", sparkler.name, sparkler.buyPrice, sparkler.sellPrice, sparkler.displayStock);
+                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", romanCandle.name, romanCandle.buyPrice, romanCandle.sellPrice, romanCandle.displayStock);
+                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", fountain.name, fountain.buyPrice, fountain.sellPrice, fountain.displayStock);
             }
 
             System.out.println();
@@ -1585,8 +1613,10 @@ public class Main {
             if (num == 2) return screwBar;
             if (num == 3) return fishBread;
         } else if (category == 10) {
-            // 기타
-            if (num == 1) return firework;
+            // 폭죽
+            if (num == 1) return sparkler;
+            if (num == 2) return romanCandle;
+            if (num == 3) return fountain;
         }
         return null;
     }
@@ -1645,7 +1675,7 @@ public class Main {
         System.out.println("[1] 음료        [2] 맥주        [3] 소주");
         System.out.println("[4] 간식/안주   [5] 고기        [6] 해수욕용품");
         System.out.println("[7] 식재료      [8] 라면        [9] 아이스크림");
-        System.out.println("[10] 기타");
+        System.out.println("[10] 폭죽");
         System.out.println("[0] 돌아가기");
         System.out.print(">> ");
 
@@ -1755,7 +1785,7 @@ public class Main {
         if (category == 7) return "식재료";
         if (category == 8) return "라면";
         if (category == 9) return "아이스크림";
-        if (category == 10) return "기타";
+        if (category == 10) return "폭죽";
         return "";
     }
 
@@ -1773,7 +1803,7 @@ public class Main {
         System.out.println("[1] 음료        [2] 맥주        [3] 소주");
         System.out.println("[4] 간식/안주   [5] 고기        [6] 해수욕용품");
         System.out.println("[7] 식재료      [8] 라면        [9] 아이스크림");
-        System.out.println("[10] 기타");
+        System.out.println("[10] 폭죽");
         System.out.println("[0] 돌아가기");
         System.out.print(">> ");
 
@@ -1881,8 +1911,10 @@ public class Main {
             System.out.printf("2. %s (재고: %d)%n", screwBar.name, screwBar.displayStock);
             System.out.printf("3. %s (재고: %d)%n", fishBread.name, fishBread.displayStock);
         } else if (category == 10) {
-            System.out.println("[ 기타 ]");
-            System.out.printf("1. %s (재고: %d)%n", firework.name, firework.displayStock);
+            System.out.println("[ 폭죽 ]");
+            System.out.printf("1. %s (재고: %d)%n", sparkler.name, sparkler.displayStock);
+            System.out.printf("2. %s (재고: %d)%n", romanCandle.name, romanCandle.displayStock);
+            System.out.printf("3. %s (재고: %d)%n", fountain.name, fountain.displayStock);
         }
     }
 
@@ -1938,7 +1970,7 @@ public class Main {
             hasCategoryPolicy = true;
         }
         if (autoOrderEtc) {
-            System.out.println(" - 기타: 임계값 " + thresholdEtc + "개");
+            System.out.println(" - 폭죽: 임계값 " + thresholdEtc + "개");
             hasCategoryPolicy = true;
         }
 
@@ -2069,8 +2101,16 @@ public class Main {
             System.out.println(" - " + fishBread.name + ": 임계값 " + fishBread.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
         }
-        if (firework.autoOrderEnabled) {
-            System.out.println(" - " + firework.name + ": 임계값 " + firework.autoOrderThreshold + "개");
+        if (sparkler.autoOrderEnabled) {
+            System.out.println(" - " + sparkler.name + ": 임계값 " + sparkler.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (romanCandle.autoOrderEnabled) {
+            System.out.println(" - " + romanCandle.name + ": 임계값 " + romanCandle.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (fountain.autoOrderEnabled) {
+            System.out.println(" - " + fountain.name + ": 임계값 " + fountain.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
         }
 
@@ -2162,9 +2202,11 @@ public class Main {
             totalCost = totalCost + autoOrderProduct(fishBread, thresholdIcecream);
         }
 
-        // 기타
+        // 폭죽
         if (autoOrderEtc) {
-            totalCost = totalCost + autoOrderProduct(firework, thresholdEtc);
+            totalCost = totalCost + autoOrderProduct(sparkler, thresholdEtc);
+            totalCost = totalCost + autoOrderProduct(romanCandle, thresholdEtc);
+            totalCost = totalCost + autoOrderProduct(fountain, thresholdEtc);
         }
 
         // 개별 상품 정책 기반 주문 (카테고리에 없는 것만)
@@ -2216,7 +2258,9 @@ public class Main {
             if (fishBread.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(fishBread, fishBread.autoOrderThreshold);
         }
         if (!autoOrderEtc) {
-            if (firework.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(firework, firework.autoOrderThreshold);
+            if (sparkler.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(sparkler, sparkler.autoOrderThreshold);
+            if (romanCandle.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(romanCandle, romanCandle.autoOrderThreshold);
+            if (fountain.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(fountain, fountain.autoOrderThreshold);
         }
 
         System.out.println();
@@ -2951,8 +2995,10 @@ public class Main {
         screwBar = new Product("스크류바", 600, 1300 * priceMultiplier, 6, 24);
         fishBread = new Product("붕어싸만코", 800, 1500 * priceMultiplier, 6, 24);
 
-        // 기타 (1박스 = 10개)
-        firework = new Product("폭죽", 5000, 15000 * priceMultiplier, 9, 10);
+        // 기타 - 폭죽 (1박스 = 10개)
+        sparkler = new Product("불꽃막대", 3000, 8000 * priceMultiplier, 8, 10);
+        romanCandle = new Product("로만캔들", 5000, 15000 * priceMultiplier, 9, 10);
+        fountain = new Product("분수폭죽", 7000, 20000 * priceMultiplier, 8, 10);
 
         // 카테고리별 상품 배열 초기화
         categoryDrink = new Product[]{cola, cider, water, pocari, ipro};
@@ -2964,7 +3010,7 @@ public class Main {
         categoryGrocery = new Product[]{ssamjang, lettuce, kimchi};
         categoryRamen = new Product[]{shinRamen, jinRamen, neoguri};
         categoryIcecream = new Product[]{melona, screwBar, fishBread};
-        categoryEtc = new Product[]{firework};
+        categoryEtc = new Product[]{sparkler, romanCandle, fountain};
     }
 
     /// <summary>

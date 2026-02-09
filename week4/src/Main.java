@@ -541,8 +541,7 @@ public class Main {
     /// 승리/패배 조건 체크
     /// 게임 종료 시 true 반환
     /// </summary>
-
-    static boolean checkWinOrLose() {
+    private static boolean checkWinOrLose() {
         // 승리 조건 체크
         if (money >= goalMoney) {
             System.out.println();
@@ -574,8 +573,7 @@ public class Main {
     /// <summary>
     /// 재고 확인
     /// </summary>
-
-    static void showInventory() {
+    private static void showInventory() {
         clearScreen();
         System.out.println("========================================");
         System.out.printf("       [ 매대 현황 ] %d / %d칸%n", display.getUsedSlots(), MAX_SLOT);
@@ -605,8 +603,7 @@ public class Main {
     /// <summary>
     /// 매대 관리
     /// </summary>
-
-    static void manageDisplay() {
+    private static void manageDisplay() {
         boolean managing = true;
 
         while (managing) {
@@ -648,8 +645,7 @@ public class Main {
     /// <summary>
     /// 창고 재고 확인
     /// </summary>
-
-    static void showWarehouse() {
+    private static void showWarehouse() {
         clearScreen();
         System.out.println("========================================");
         System.out.println("           [ 창고 재고 ]");
@@ -679,8 +675,7 @@ public class Main {
     /// <summary>
     /// 상품 진열 (창고 → 매대)
     /// </summary>
-
-    static void displayProduct() {
+    private static void displayProduct() {
         clearScreen();
         System.out.println("========================================");
         System.out.println("        [ 상품 진열 ] 창고 → 매대");
@@ -772,8 +767,7 @@ public class Main {
     /// <summary>
     /// 상품 회수 (매대 → 창고)
     /// </summary>
-
-    static void returnProduct() {
+    private static void returnProduct() {
         clearScreen();
         System.out.println("========================================");
         System.out.println("        [ 상품 회수 ] 매대 → 창고");
@@ -844,8 +838,7 @@ public class Main {
     /// <summary>
     /// 자동 배정 (카테고리 균형)
     /// </summary>
-
-    static void autoArrangeDisplay() {
+    private static void autoArrangeDisplay() {
         clearScreen();
         System.out.println("========================================");
         System.out.println("      [ 자동 배정 - 카테고리 균형 ]");
@@ -948,15 +941,10 @@ public class Main {
     }
 
     /// <summary>
-    /// 재고 막대그래프 출력
-    /// </summary>
-    // 상품명과 재고 수량을 막대그래프로 표시
-
-    /// <summary>
     /// 문자열의 화면 출력 폭 계산
     /// 한글은 2칸, 영문/숫자는 1칸
     /// </summary>
-    static int getDisplayWidth(String str) {
+    private static int getDisplayWidth(String str) {
         int width = 0;
         for (int i = 0; i < str.length(); i++) {
             char c = str.charAt(i);
@@ -970,7 +958,7 @@ public class Main {
         return width;
     }
 
-    static void printStockBar(String name, int stock) {
+    private static void printStockBar(String name, int stock) {
         // 상품명 출력 (한글 8글자 기준 = 화면 폭 16칸)
         int maxWidth = 16;
         int nameWidth = getDisplayWidth(name);
@@ -988,8 +976,7 @@ public class Main {
     /// <summary>
     /// 도매상 (메인 메뉴)
     /// </summary>
-
-    static void goWholesaler() {
+    private static void goWholesaler() {
         boolean shopping = true;
 
         while (shopping) {
@@ -1031,8 +1018,7 @@ public class Main {
     /// <summary>
     /// 카테고리별 구매
     /// </summary>
-
-    static void buyByCategory() {
+    private static void buyByCategory() {
         boolean browsing = true;
 
         while (browsing) {
@@ -1064,8 +1050,7 @@ public class Main {
     /// <summary>
     /// 카테고리 내 상품 구매
     /// </summary>
-
-    static void buyCategoryProducts(int category) {
+    private static void buyCategoryProducts(int category) {
         boolean buying = true;
 
         while (buying) {
@@ -1178,8 +1163,7 @@ public class Main {
     /// <summary>
     /// 상품 구매 처리
     /// </summary>
-
-    static void purchaseProduct(int category, int productNum, int quantity) {
+    private static void purchaseProduct(int category, int productNum, int quantity) {
         // 카테고리와 상품 번호로 상품 찾기
         Product product = getProductByCategoryAndNum(category, productNum);
 
@@ -1206,8 +1190,7 @@ public class Main {
     /// <summary>
     /// 카테고리와 번호로 상품 찾기
     /// </summary>
-
-    static Product getProductByCategoryAndNum(int category, int num) {
+    private static Product getProductByCategoryAndNum(int category, int num) {
         if (category == 1) {
             // 음료
             if (num == 1) return cola;
@@ -1267,8 +1250,7 @@ public class Main {
     /// <summary>
     /// 정책 설정
     /// </summary>
-
-    static void setPolicies() {
+    private static void setPolicies() {
         boolean setting = true;
 
         while (setting) {
@@ -1308,8 +1290,7 @@ public class Main {
     /// <summary>
     /// 카테고리 단위 정책 설정
     /// </summary>
-
-    static void setCategoryPolicy() {
+    private static void setCategoryPolicy() {
         clearScreen();
         System.out.println("========================================");
         System.out.println("      [ 카테고리 단위 설정 ]");
@@ -1417,8 +1398,7 @@ public class Main {
     /// <summary>
     /// 카테고리명 가져오기
     /// </summary>
-
-    static String getCategoryName(int category) {
+    private static String getCategoryName(int category) {
         if (category == 1) return "음료";
         if (category == 2) return "맥주";
         if (category == 3) return "소주";
@@ -1435,8 +1415,7 @@ public class Main {
     /// <summary>
     /// 개별 상품 정책 설정
     /// </summary>
-
-    static void setIndividualPolicy() {
+    private static void setIndividualPolicy() {
         clearScreen();
         System.out.println("========================================");
         System.out.println("       [ 개별 상품 설정 ]");
@@ -1504,8 +1483,7 @@ public class Main {
     /// <summary>
     /// 정책 설정용 카테고리 상품 출력
     /// </summary>
-
-    static void printCategoryProductsForPolicy(int category) {
+    private static void printCategoryProductsForPolicy(int category) {
         if (category == 1) {
             System.out.println("[ 음료 ]");
             System.out.printf("1. %s (재고: %d)%n", cola.name, getTotalStock(cola));
@@ -1564,8 +1542,7 @@ public class Main {
     /// <summary>
     /// 현재 정책 확인
     /// </summary>
-
-    static void showCurrentPolicies() {
+    private static void showCurrentPolicies() {
         clearScreen();
         System.out.println("========================================");
         System.out.println("         [ 현재 정책 확인 ]");
@@ -1769,8 +1746,7 @@ public class Main {
     /// <summary>
     /// 자동주문 실행
     /// </summary>
-
-    static void executeAutoOrder() {
+    private static void executeAutoOrder() {
         clearScreen();
         System.out.println("========================================");
         System.out.println("         [ 자동주문 실행 ]");
@@ -1921,8 +1897,7 @@ public class Main {
     /// 개별 상품 자동주문 처리
     /// 재고가 임계값 이하면 AUTO_ORDER_BOX_COUNT 박스 주문, 주문 금액 반환
     /// </summary>
-
-    static int autoOrderProduct(Product product, int threshold) {
+    private static int autoOrderProduct(Product product, int threshold) {
         // 총 재고(창고+매대)가 임계값보다 많으면 주문 안 함
         int totalStock = getTotalStock(product);
         if (totalStock > threshold) {
@@ -1951,8 +1926,7 @@ public class Main {
     /// <summary>
     /// 영업 시작 (손님 응대)
     /// </summary>
-
-    static void startBusiness() {
+    private static void startBusiness() {
         clearScreen();
         System.out.println("========================================");
         System.out.println("           [ 영업 시작 ]");
@@ -2274,7 +2248,7 @@ public class Main {
     /// 빠른 영업 (하루 요약)
     /// 손님 상세 없이 결과만 출력
     /// </summary>
-    static void startQuickBusiness() {
+    private static void startQuickBusiness() {
         clearScreen();
         System.out.println("========================================");
         System.out.println("         [ 빠른 영업 - " + day + "일차 ]");
@@ -2377,7 +2351,7 @@ public class Main {
     /// <summary>
     /// 1주일 스킵 (7일 자동 영업)
     /// </summary>
-    static void skipWeek() {
+    private static void skipWeek() {
         clearScreen();
         System.out.println("========================================");
         System.out.println("         [ 1주일 스킵 ]");
@@ -2487,7 +2461,7 @@ public class Main {
     /// 빅 이벤트 체크 및 처리 (10% 확률)
     /// 단체 주문, 펜션 배달, 축제 시즌 중 하나 발생
     /// </summary>
-    static boolean checkBigEvent(int chance) {
+    private static boolean checkBigEvent(int chance) {
         // chance% 확률로 이벤트 발생
         if (rand(100) >= chance) {
             return false;
@@ -2526,7 +2500,7 @@ public class Main {
     /// 카테고리에서 대량 판매 처리
     /// 판매된 금액 반환
     /// </summary>
-    static int sellBulk(Product[] category, int amount) {
+    private static int sellBulk(Product[] category, int amount) {
         int totalSale = 0;
         int sellAmount = amount / category.length;
 
@@ -2555,8 +2529,7 @@ public class Main {
     /// 상품 초기화 메서드
     /// 배율을 적용하여 상품 객체 생성
     /// </summary>
-
-    static void initProducts() {
+    private static void initProducts() {
         // 음료 (1박스 = 24개)
         cola = new Product("코카콜라", 800, 1500 * priceMultiplier, 7, 24);
         cider = new Product("칠성사이다", 800, 1500 * priceMultiplier, 6, 24);
@@ -2649,7 +2622,7 @@ public class Main {
     /// 상품 이름 맵 초기화
     /// 상품명과 별칭을 모두 등록하여 productMap.get()으로 O(1) 조회 가능
     /// </summary>
-    static void initProductMap() {
+    private static void initProductMap() {
         productMap = new HashMap<>();
 
         // 음료
@@ -2716,7 +2689,7 @@ public class Main {
     /// <summary>
     /// 카테고리에서 랜덤 상품 1개 선택
     /// </summary>
-    static Product getRandomFromCategory(Product[] category) {
+    private static Product getRandomFromCategory(Product[] category) {
         int index = rand(category.length);
         return category[index];
     }
@@ -2731,7 +2704,7 @@ public class Main {
     ///       - 사이다: 창고 0개, 매대 5개 → 스킵 (창고에 없음)
     ///       - 물: 창고 10개, 매대 3개 → 스킵 (이미 매대에 있음, 1단계에서 보충됨)
     /// </summary>
-    static void fillArrangeBuffer(int categoryIndex, Product[] category) {
+    private static void fillArrangeBuffer(int categoryIndex, Product[] category) {
         for (Product p : category) {
             // 창고에 재고가 있고 매대에 진열되지 않은 상품
             if (warehouse.getStock(p) > 0 && display.getDisplayed(p) == 0) {
@@ -2744,7 +2717,7 @@ public class Main {
     /// 카테고리에서 재고 있는 상품 우선 선택
     /// 재고 있는 상품이 없으면 랜덤 선택 (재고 없음 처리)
     /// </summary>
-    static Product getAvailableFromCategory(Product[] category) {
+    private static Product getAvailableFromCategory(Product[] category) {
         // 재고 있는 상품들 먼저 모음 (재사용 배열 사용)
         int count = 0;
 

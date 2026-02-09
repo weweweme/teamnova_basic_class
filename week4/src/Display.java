@@ -28,52 +28,24 @@ public class Display {
     // ========== 조회 메서드 ==========
 
     /// <summary>
-    /// 상품이 매대에 진열되어 있는지 확인
-    /// </summary>
-    boolean isOnDisplay(Product product) {
-        return getDisplayed(product) > 0;
-    }
-
-    /// <summary>
     /// 상품의 진열 수량 확인
     /// </summary>
-    int getDisplayed(Product product) {
+    public int getDisplayed(Product product) {
         return displayed.getOrDefault(product, 0);
-    }
-
-    /// <summary>
-    /// 매대에 더 놓을 공간이 있는지 확인 (해당 상품 슬롯)
-    /// </summary>
-    boolean hasRoom(Product product) {
-        return getDisplayed(product) < maxPerSlot;
     }
 
     /// <summary>
     /// 새 상품을 위한 빈 슬롯이 있는지 확인
     /// </summary>
-    boolean hasEmptySlot() {
+    public boolean hasEmptySlot() {
         return usedSlots < maxSlots;
     }
 
     /// <summary>
     /// 사용 중인 슬롯 수 확인
     /// </summary>
-    int getUsedSlots() {
+    public int getUsedSlots() {
         return usedSlots;
-    }
-
-    /// <summary>
-    /// 최대 슬롯 수 확인
-    /// </summary>
-    int getMaxSlots() {
-        return maxSlots;
-    }
-
-    /// <summary>
-    /// 슬롯당 최대 수량 확인
-    /// </summary>
-    int getMaxPerSlot() {
-        return maxPerSlot;
     }
 
     // ========== 변경 메서드 ==========
@@ -82,7 +54,7 @@ public class Display {
     /// 창고에서 매대로 상품 진열
     /// 실제 진열된 수량 반환
     /// </summary>
-    int displayFromWarehouse(Product product, Warehouse warehouse, int amount) {
+    public int displayFromWarehouse(Product product, Warehouse warehouse, int amount) {
         // 창고에서 가져올 수 있는 양 확인
         int warehouseStock = warehouse.getStock(product);
         int actualFromWarehouse = Math.min(amount, warehouseStock);
@@ -120,12 +92,12 @@ public class Display {
     /// 매대에서 상품 판매
     /// 실제 판매된 수량 반환
     /// </summary>
-    int sell(Product product, int amount) {
+    public void sell(Product product, int amount) {
         int current = getDisplayed(product);
         int actual = Math.min(current, amount);
 
         if (actual <= 0) {
-            return 0;
+            return;
         }
 
         int remaining = current - actual;
@@ -135,14 +107,12 @@ public class Display {
         if (remaining == 0) {
             usedSlots--;
         }
-
-        return actual;
     }
 
     /// <summary>
     /// 매대에서 창고로 상품 회수
     /// </summary>
-    int returnToWarehouse(Product product, Warehouse warehouse, int amount) {
+    public int returnToWarehouse(Product product, Warehouse warehouse, int amount) {
         int current = getDisplayed(product);
         int actual = Math.min(current, amount);
 
@@ -163,17 +133,5 @@ public class Display {
         warehouse.addStock(product, actual);
 
         return actual;
-    }
-
-    /// <summary>
-    /// 전체 진열 상태 출력 (디버그용)
-    /// </summary>
-    void printAll() {
-        System.out.printf("[매대 현황] %d/%d 슬롯 사용 중%n", usedSlots, maxSlots);
-        for (Map.Entry<Product, Integer> entry : displayed.entrySet()) {
-            if (entry.getValue() > 0) {
-                System.out.printf(" - %s: %d/%d개%n", entry.getKey().name, entry.getValue(), maxPerSlot);
-            }
-        }
     }
 }

@@ -300,6 +300,17 @@ public class Main {
     }
 
     /// <summary>
+    /// 50% 확률로 구매 (선택 카테고리용)
+    /// 50% 확률로 원래 수량 반환, 50% 확률로 0 반환
+    /// </summary>
+    static int maybeBuy(int amount) {
+        if (rand(2) == 0) {
+            return 0;       // 안 삼
+        }
+        return amount;      // 삼
+    }
+
+    /// <summary>
     /// 게임 시작 화면 출력
     /// </summary>
     static void printStartScreen() {
@@ -2140,10 +2151,10 @@ public class Main {
             int[] shoppingAmounts;
 
             if (customerType == 0) {
-                // 가족: 고기 + 식재료 + 음료 위주 (6~9종류)
+                // 가족: 고기 + 식재료 + 음료 (필수) / 안주, 아이스크림 (선택 50%)
                 customerName = "가족 손님";
 
-                // 카테고리별 랜덤 선택
+                // 필수 카테고리
                 Product meat1 = getRandomFromCategory(categoryMeat);
                 Product meat2 = getRandomFromCategory(categoryMeat);
                 Product grocery1 = getRandomFromCategory(categoryGrocery);
@@ -2151,31 +2162,56 @@ public class Main {
                 Product drink1 = getRandomFromCategory(categoryDrink);
                 Product drink2 = getRandomFromCategory(categoryDrink);
                 Product drink3 = getRandomFromCategory(categoryDrink);
+
+                // 선택 카테고리 (50% 확률)
                 Product snack = getRandomFromCategory(categorySnack);
                 Product icecream = getRandomFromCategory(categoryIcecream);
 
+                // 필수: 수량 1 이상 / 선택: 50% 확률로 0
                 shoppingList = new Product[]{meat1, meat2, grocery1, grocery2, drink1, drink2, drink3, snack, icecream};
-                shoppingAmounts = new int[]{2 + rand(3), 1 + rand(2), 1 + rand(2), 1, 2 + rand(3), 2 + rand(2), 1 + rand(2), rand(2), 1 + rand(3)};
+                shoppingAmounts = new int[]{
+                    2 + rand(3),           // 고기1 (필수)
+                    1 + rand(2),           // 고기2 (필수)
+                    1 + rand(2),           // 식재료1 (필수)
+                    1 + rand(2),           // 식재료2 (필수)
+                    2 + rand(3),           // 음료1 (필수)
+                    1 + rand(2),           // 음료2 (필수)
+                    1 + rand(2),           // 음료3 (필수)
+                    maybeBuy(1 + rand(2)), // 안주 (선택 50%)
+                    maybeBuy(1 + rand(3))  // 아이스크림 (선택 50%)
+                };
 
             } else if (customerType == 1) {
-                // 커플: 소주 + 맥주 + 안주 위주 (5~7종류)
+                // 커플: 소주 + 맥주 + 안주 (필수) / 음료, 아이스크림 (선택 50%)
                 customerName = "커플 손님";
 
+                // 필수 카테고리
                 Product soju1 = getRandomFromCategory(categorySoju);
                 Product soju2 = getRandomFromCategory(categorySoju);
                 Product beer1 = getRandomFromCategory(categoryBeer);
                 Product snack1 = getRandomFromCategory(categorySnack);
                 Product snack2 = getRandomFromCategory(categorySnack);
+
+                // 선택 카테고리 (50% 확률)
                 Product drink = getRandomFromCategory(categoryDrink);
                 Product icecream = getRandomFromCategory(categoryIcecream);
 
                 shoppingList = new Product[]{soju1, soju2, beer1, snack1, snack2, drink, icecream};
-                shoppingAmounts = new int[]{2 + rand(2), 1 + rand(2), 2 + rand(2), 1 + rand(2), rand(2), 1 + rand(2), rand(2)};
+                shoppingAmounts = new int[]{
+                    2 + rand(2),           // 소주1 (필수)
+                    1 + rand(2),           // 소주2 (필수)
+                    2 + rand(2),           // 맥주 (필수)
+                    1 + rand(2),           // 안주1 (필수)
+                    1 + rand(2),           // 안주2 (필수)
+                    maybeBuy(1 + rand(2)), // 음료 (선택 50%)
+                    maybeBuy(1 + rand(2))  // 아이스크림 (선택 50%)
+                };
 
             } else if (customerType == 2) {
-                // 친구들: 맥주 + 소주 + 안주 + 아이스크림 + 폭죽 (7~10종류)
+                // 친구들: 맥주 + 소주 + 안주 (필수) / 아이스크림, 폭죽 (선택 50%)
                 customerName = "친구들";
 
+                // 필수 카테고리
                 Product beer1 = getRandomFromCategory(categoryBeer);
                 Product beer2 = getRandomFromCategory(categoryBeer);
                 Product beer3 = getRandomFromCategory(categoryBeer);
@@ -2183,26 +2219,49 @@ public class Main {
                 Product soju2 = getRandomFromCategory(categorySoju);
                 Product snack1 = getRandomFromCategory(categorySnack);
                 Product snack2 = getRandomFromCategory(categorySnack);
+
+                // 선택 카테고리 (50% 확률)
                 Product icecream1 = getRandomFromCategory(categoryIcecream);
                 Product icecream2 = getRandomFromCategory(categoryIcecream);
                 Product etc = getRandomFromCategory(categoryEtc);
 
                 shoppingList = new Product[]{beer1, beer2, beer3, soju1, soju2, snack1, snack2, icecream1, icecream2, etc};
-                shoppingAmounts = new int[]{3 + rand(4), 2 + rand(3), 2 + rand(3), 2 + rand(2), 1 + rand(2), 2 + rand(2), 1 + rand(2), 2 + rand(3), 1 + rand(2), 2 + rand(3)};
+                shoppingAmounts = new int[]{
+                    3 + rand(4),           // 맥주1 (필수)
+                    2 + rand(3),           // 맥주2 (필수)
+                    2 + rand(3),           // 맥주3 (필수)
+                    2 + rand(2),           // 소주1 (필수)
+                    1 + rand(2),           // 소주2 (필수)
+                    2 + rand(2),           // 안주1 (필수)
+                    1 + rand(2),           // 안주2 (필수)
+                    maybeBuy(2 + rand(3)), // 아이스크림1 (선택 50%)
+                    maybeBuy(1 + rand(2)), // 아이스크림2 (선택 50%)
+                    maybeBuy(2 + rand(3))  // 폭죽 (선택 50%)
+                };
 
             } else {
-                // 혼자: 라면 + 맥주 + 아이스크림 위주 (4~6종류)
+                // 혼자: 라면 + 맥주 (필수) / 음료, 아이스크림, 안주 (선택 50%)
                 customerName = "혼자 온 손님";
 
+                // 필수 카테고리
                 Product ramen1 = getRandomFromCategory(categoryRamen);
                 Product ramen2 = getRandomFromCategory(categoryRamen);
                 Product beer = getRandomFromCategory(categoryBeer);
+
+                // 선택 카테고리 (50% 확률)
                 Product drink = getRandomFromCategory(categoryDrink);
                 Product icecream = getRandomFromCategory(categoryIcecream);
                 Product snack = getRandomFromCategory(categorySnack);
 
                 shoppingList = new Product[]{ramen1, ramen2, beer, drink, icecream, snack};
-                shoppingAmounts = new int[]{2 + rand(2), 1 + rand(2), 2 + rand(2), 1 + rand(2), 1 + rand(2), rand(2)};
+                shoppingAmounts = new int[]{
+                    2 + rand(2),           // 라면1 (필수)
+                    1 + rand(2),           // 라면2 (필수)
+                    2 + rand(2),           // 맥주 (필수)
+                    maybeBuy(1 + rand(2)), // 음료 (선택 50%)
+                    maybeBuy(1 + rand(2)), // 아이스크림 (선택 50%)
+                    maybeBuy(1 + rand(2))  // 안주 (선택 50%)
+                };
             }
 
             System.out.println();

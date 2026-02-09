@@ -125,6 +125,10 @@ public class Main {
     // productMap.get(name)으로 O(1) 조회
     static Map<String, Product> productMap;
 
+    // ========== 전체 상품 배열 ==========
+    // 모든 상품을 순회할 때 사용 (중복 없음)
+    static Product[] allProducts;
+
     // ========== 손님 멘트 배열 ==========
     // [손님유형][다양한 멘트] - 4종류 × 5개
 
@@ -1125,21 +1129,7 @@ public class Main {
         System.out.println("[ 1단계: 기존 상품 보충 ]");
 
         // 모든 상품을 순회하며 매대에 있고 창고에 재고가 있는 경우 보충
-        Product[] allProducts = {
-            cola, cider, water, pocari, ipro,
-            cass, terra, hite,
-            chamisul, cheumcherum, jinro,
-            driedSquid, peanut, chip,
-            samgyupsal, moksal, sausage,
-            tube, sunscreen, beachBall,
-            ssamjang, lettuce, kimchi,
-            shinRamen, jinRamen, neoguri,
-            melona, screwBar, fishBread,
-            sparkler, romanCandle, fountain
-        };
-
-        for (int i = 0; i < allProducts.length; i++) {
-            Product p = allProducts[i];
+        for (Product p : allProducts) {
             // 매대에 있고(displayStock > 0), 창고에 재고가 있고, 최대치 미만인 경우
             if (p.displayStock > 0 && p.displayStock < MAX_DISPLAY_PER_SLOT && p.warehouseStock > 0) {
                 int canAdd = MAX_DISPLAY_PER_SLOT - p.displayStock;
@@ -1162,6 +1152,7 @@ public class Main {
         int remainingSlots = MAX_SLOT - usedSlot;
         if (remainingSlots <= 0) {
             System.out.println(" (매대가 꽉 찼습니다)");
+            
         } else {
             // 카테고리별 상품 배열 (창고에 재고가 있고 매대에 없는 것만)
             Product[][] categories = new Product[10][5];
@@ -2666,8 +2657,7 @@ public class Main {
             }
 
             // 각 상품 판매 시도
-            for (int j = 0; j < targets.length; j++) {
-                Product p = targets[j];
+            for (Product p : targets) {
                 int want = 1 + rand(3);
 
                 if (p.displayStock >= want) {
@@ -2784,8 +2774,7 @@ public class Main {
                     };
                 }
 
-                for (int j = 0; j < targets.length; j++) {
-                    Product p = targets[j];
+                for (Product p : targets) {
                     int want = 1 + rand(3);
 
                     if (p.displayStock >= want) {
@@ -2886,11 +2875,9 @@ public class Main {
     /// </summary>
     static int sellBulk(Product[] category, int amount) {
         int totalSale = 0;
+        int sellAmount = amount / category.length;
 
-        for (int i = 0; i < category.length; i++) {
-            Product p = category[i];
-            int sellAmount = amount / category.length;
-
+        for (Product p : category) {
             if (p.displayStock >= sellAmount) {
                 int sale = p.sellPrice * sellAmount;
                 p.sell(sellAmount);
@@ -2982,6 +2969,20 @@ public class Main {
         categoryIcecream = new Product[]{melona, screwBar, fishBread};
         categoryEtc = new Product[]{sparkler, romanCandle, fountain};
 
+        // 전체 상품 배열 초기화 (순회용)
+        allProducts = new Product[]{
+            cola, cider, water, pocari, ipro,
+            cass, terra, hite,
+            chamisul, cheumcherum, jinro,
+            driedSquid, peanut, chip,
+            samgyupsal, moksal, sausage,
+            tube, sunscreen, beachBall,
+            ssamjang, lettuce, kimchi,
+            shinRamen, jinRamen, neoguri,
+            melona, screwBar, fishBread,
+            sparkler, romanCandle, fountain
+        };
+
         // 상품 이름 맵 초기화 (O(1) 조회용)
         initProductMap();
     }
@@ -3071,9 +3072,9 @@ public class Main {
         Product[] available = new Product[category.length];
         int count = 0;
 
-        for (int i = 0; i < category.length; i++) {
-            if (category[i].displayStock > 0) {
-                available[count] = category[i];
+        for (Product p : category) {
+            if (p.displayStock > 0) {
+                available[count] = p;
                 count++;
             }
         }

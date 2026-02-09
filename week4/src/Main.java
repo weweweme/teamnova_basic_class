@@ -100,6 +100,68 @@ public class Main {
     // 기타
     static Product firework;
 
+    // ========== 카테고리별 상품 배열 ==========
+    // initProducts() 이후에 초기화됨
+
+    static Product[] categoryDrink;      // 음료
+    static Product[] categoryBeer;       // 맥주
+    static Product[] categorySoju;       // 소주
+    static Product[] categorySnack;      // 안주
+    static Product[] categoryMeat;       // 고기
+    static Product[] categoryBeach;      // 해수욕용품
+    static Product[] categoryGrocery;    // 식재료
+    static Product[] categoryRamen;      // 라면
+    static Product[] categoryIcecream;   // 아이스크림
+    static Product[] categoryEtc;        // 기타
+
+    // ========== 손님 멘트 배열 ==========
+    // [손님유형][다양한 멘트] - 4종류 × 5개
+
+    static String[][] customerGreetings = {
+        // 가족 손님 (0)
+        {
+            "바베큐 하려고 왔어요~",
+            "애들이랑 고기 구워 먹으려고요!",
+            "가족 나들이 왔다가 들렀어요~",
+            "오늘 저녁은 삼겹살이에요!",
+            "아이들 간식도 좀 사려고요~"
+        },
+        // 커플 손님 (1)
+        {
+            "오늘 달 보면서 한잔 하려고요~",
+            "둘이서 조용히 마시려고요~",
+            "데이트하다가 들렀어요!",
+            "와인 대신 소주로 할래요~",
+            "안주 좀 추천해주세요~"
+        },
+        // 친구들 (2)
+        {
+            "우리 오늘 펜션에서 파티해요!!",
+            "MT 왔어요! 술 많이 주세요~",
+            "불꽃놀이 할 건데 폭죽 있어요?",
+            "다같이 모여서 놀려고요!",
+            "친구들이랑 바베큐 파티에요~"
+        },
+        // 혼자 온 손님 (3)
+        {
+            "라면이랑 맥주 좀 주세요.",
+            "혼자 조용히 먹으려고요...",
+            "야식 사러 왔어요~",
+            "간단하게 먹을 거 찾고 있어요.",
+            "편하게 혼술하려고요~"
+        }
+    };
+
+    // 시간대별 멘트 - 5개
+
+    static String[] timeGreetings = {
+        "아침부터 열일하시네요!",
+        "점심 준비하러 왔어요~",
+        "오후에 먹으려고요!",
+        "저녁에 다 같이 먹을 거예요~",
+        "밤에 야식으로 먹을 거예요!"
+    };
+
     public static void main(String[] args) {
 
         // 게임 시작 화면 출력
@@ -2067,36 +2129,80 @@ public class Main {
             // 랜덤 손님 유형 (0: 가족, 1: 커플, 2: 친구들, 3: 혼자)
             int customerType = (int)(Math.random() * 4);
             String customerName;
-            String customerMessage;
 
-            // 손님별 구매할 상품 목록
+            // 멘트 조합: [손님 인사] + [시간대 멘트]
+            String greeting = customerGreetings[customerType][rand(5)];
+            String timeMsg = timeGreetings[rand(5)];
+            String customerMessage = greeting + " " + timeMsg;
+
+            // 손님별 구매할 상품 목록 (카테고리에서 랜덤 선택)
             Product[] shoppingList;
             int[] shoppingAmounts;
 
             if (customerType == 0) {
-                // 가족: 바베큐 세트 (5~8종류)
+                // 가족: 고기 + 식재료 + 음료 위주 (6~9종류)
                 customerName = "가족 손님";
-                customerMessage = "바베큐 하려고 왔어요~ 많이 살게요!";
-                shoppingList = new Product[]{samgyupsal, moksal, sausage, lettuce, ssamjang, kimchi, cola, cider, water};
-                shoppingAmounts = new int[]{2 + rand(3), 1 + rand(2), rand(3), 2 + rand(2), 1, 1, 3 + rand(3), 2 + rand(2), 2 + rand(3)};
+
+                // 카테고리별 랜덤 선택
+                Product meat1 = getRandomFromCategory(categoryMeat);
+                Product meat2 = getRandomFromCategory(categoryMeat);
+                Product grocery1 = getRandomFromCategory(categoryGrocery);
+                Product grocery2 = getRandomFromCategory(categoryGrocery);
+                Product drink1 = getRandomFromCategory(categoryDrink);
+                Product drink2 = getRandomFromCategory(categoryDrink);
+                Product drink3 = getRandomFromCategory(categoryDrink);
+                Product snack = getRandomFromCategory(categorySnack);
+                Product icecream = getRandomFromCategory(categoryIcecream);
+
+                shoppingList = new Product[]{meat1, meat2, grocery1, grocery2, drink1, drink2, drink3, snack, icecream};
+                shoppingAmounts = new int[]{2 + rand(3), 1 + rand(2), 1 + rand(2), 1, 2 + rand(3), 2 + rand(2), 1 + rand(2), rand(2), 1 + rand(3)};
+
             } else if (customerType == 1) {
-                // 커플: 술 + 안주 (4~6종류)
+                // 커플: 소주 + 맥주 + 안주 위주 (5~7종류)
                 customerName = "커플 손님";
-                customerMessage = "오늘 달 보면서 한잔 하려고요~";
-                shoppingList = new Product[]{chamisul, cheumcherum, cass, terra, driedSquid, peanut, chip};
-                shoppingAmounts = new int[]{2 + rand(2), 1 + rand(2), 2 + rand(2), 1 + rand(2), 1 + rand(2), 1, 1 + rand(2)};
+
+                Product soju1 = getRandomFromCategory(categorySoju);
+                Product soju2 = getRandomFromCategory(categorySoju);
+                Product beer1 = getRandomFromCategory(categoryBeer);
+                Product snack1 = getRandomFromCategory(categorySnack);
+                Product snack2 = getRandomFromCategory(categorySnack);
+                Product drink = getRandomFromCategory(categoryDrink);
+                Product icecream = getRandomFromCategory(categoryIcecream);
+
+                shoppingList = new Product[]{soju1, soju2, beer1, snack1, snack2, drink, icecream};
+                shoppingAmounts = new int[]{2 + rand(2), 1 + rand(2), 2 + rand(2), 1 + rand(2), rand(2), 1 + rand(2), rand(2)};
+
             } else if (customerType == 2) {
-                // 친구들: 파티 세트 (5~9종류)
+                // 친구들: 맥주 + 소주 + 안주 + 아이스크림 + 폭죽 (7~10종류)
                 customerName = "친구들";
-                customerMessage = "우리 오늘 펜션에서 파티해요!!";
-                shoppingList = new Product[]{cass, terra, hite, chamisul, chip, peanut, firework, melona, screwBar, cola};
-                shoppingAmounts = new int[]{4 + rand(4), 3 + rand(3), 2 + rand(3), 2 + rand(2), 2 + rand(2), 1 + rand(2), 3 + rand(3), 2 + rand(3), 2 + rand(2), 2 + rand(3)};
+
+                Product beer1 = getRandomFromCategory(categoryBeer);
+                Product beer2 = getRandomFromCategory(categoryBeer);
+                Product beer3 = getRandomFromCategory(categoryBeer);
+                Product soju1 = getRandomFromCategory(categorySoju);
+                Product soju2 = getRandomFromCategory(categorySoju);
+                Product snack1 = getRandomFromCategory(categorySnack);
+                Product snack2 = getRandomFromCategory(categorySnack);
+                Product icecream1 = getRandomFromCategory(categoryIcecream);
+                Product icecream2 = getRandomFromCategory(categoryIcecream);
+                Product etc = getRandomFromCategory(categoryEtc);
+
+                shoppingList = new Product[]{beer1, beer2, beer3, soju1, soju2, snack1, snack2, icecream1, icecream2, etc};
+                shoppingAmounts = new int[]{3 + rand(4), 2 + rand(3), 2 + rand(3), 2 + rand(2), 1 + rand(2), 2 + rand(2), 1 + rand(2), 2 + rand(3), 1 + rand(2), 2 + rand(3)};
+
             } else {
-                // 혼자: 간단히 (3~5종류)
+                // 혼자: 라면 + 맥주 + 아이스크림 위주 (4~6종류)
                 customerName = "혼자 온 손님";
-                customerMessage = "라면이랑 맥주 좀 주세요.";
-                shoppingList = new Product[]{shinRamen, jinRamen, neoguri, cass, cola, melona};
-                shoppingAmounts = new int[]{2 + rand(2), 1 + rand(2), 1 + rand(2), 2 + rand(2), 1 + rand(2), 1 + rand(2)};
+
+                Product ramen1 = getRandomFromCategory(categoryRamen);
+                Product ramen2 = getRandomFromCategory(categoryRamen);
+                Product beer = getRandomFromCategory(categoryBeer);
+                Product drink = getRandomFromCategory(categoryDrink);
+                Product icecream = getRandomFromCategory(categoryIcecream);
+                Product snack = getRandomFromCategory(categorySnack);
+
+                shoppingList = new Product[]{ramen1, ramen2, beer, drink, icecream, snack};
+                shoppingAmounts = new int[]{2 + rand(2), 1 + rand(2), 2 + rand(2), 1 + rand(2), 1 + rand(2), rand(2)};
             }
 
             System.out.println();
@@ -2253,5 +2359,36 @@ public class Main {
 
         // 기타 (1박스 = 10개)
         firework = new Product("폭죽", 5000, 15000 * priceMultiplier, 9, 10);
+
+        // 카테고리별 상품 배열 초기화
+        categoryDrink = new Product[]{cola, cider, water, pocari, ipro};
+        categoryBeer = new Product[]{cass, terra, hite};
+        categorySoju = new Product[]{chamisul, cheumcherum, jinro};
+        categorySnack = new Product[]{driedSquid, peanut, chip};
+        categoryMeat = new Product[]{samgyupsal, moksal, sausage};
+        categoryBeach = new Product[]{tube, sunscreen, beachBall};
+        categoryGrocery = new Product[]{ssamjang, lettuce, kimchi};
+        categoryRamen = new Product[]{shinRamen, jinRamen, neoguri};
+        categoryIcecream = new Product[]{melona, screwBar, fishBread};
+        categoryEtc = new Product[]{firework};
+    }
+
+    /// <summary>
+    /// 카테고리에서 랜덤 상품 1개 선택
+    /// </summary>
+    static Product getRandomFromCategory(Product[] category) {
+        int index = rand(category.length);
+        return category[index];
+    }
+
+    /// <summary>
+    /// 카테고리에서 랜덤 상품 n개 선택 (중복 허용)
+    /// </summary>
+    static Product[] getRandomProducts(Product[] category, int count) {
+        Product[] result = new Product[count];
+        for (int i = 0; i < count; i++) {
+            result[i] = category[rand(category.length)];
+        }
+        return result;
     }
 }

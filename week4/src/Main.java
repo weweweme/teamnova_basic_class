@@ -2444,6 +2444,10 @@ public class Main {
         System.out.printf("  현재 총 자본: %,d원%n", money);
         System.out.printf("  목표까지:     %,d원%n", goalMoney - money);
         System.out.println("========================================");
+
+        System.out.println();
+        System.out.println("아무 키나 입력하면 계속...");
+        scanner.next();
     }
 
     /// <summary>
@@ -2553,6 +2557,10 @@ public class Main {
         System.out.printf("  현재 총 자본: %,d원%n", money);
         System.out.printf("  목표까지:     %,d원%n", goalMoney - money);
         System.out.println("========================================");
+
+        System.out.println();
+        System.out.println("아무 키나 입력하면 계속...");
+        scanner.next();
     }
 
     /// <summary>

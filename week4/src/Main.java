@@ -9,6 +9,7 @@ public class Main {
     static final int MAX_SLOT = 30;                   // 매대 최대 슬롯
     static final int MIN_SLOT_FOR_BUSINESS = 15;     // 영업 시작 최소 슬롯 (50%)
     static final int DEFAULT_PRICE_MULTIPLIER = 3;   // 기본 가격 배율
+    static final int AUTO_ORDER_BOX_COUNT = 3;       // 자동주문 시 박스 수 (약 1주일치)
 
     // ========== 게임 변수 ==========
 
@@ -2188,7 +2189,7 @@ public class Main {
 
     /// <summary>
     /// 개별 상품 자동주문 처리
-    /// 재고가 임계값 이하면 1박스 주문, 주문 금액 반환
+    /// 재고가 임계값 이하면 AUTO_ORDER_BOX_COUNT 박스 주문, 주문 금액 반환
     /// </summary>
 
     static int autoOrderProduct(Product product, int threshold) {
@@ -2199,7 +2200,8 @@ public class Main {
         }
 
         int boxSize = product.boxSize;
-        int cost = product.buyPrice * boxSize;
+        int orderAmount = boxSize * AUTO_ORDER_BOX_COUNT;  // 3박스
+        int cost = product.buyPrice * orderAmount;
 
         // 자본 체크
         if (cost > money) {
@@ -2209,9 +2211,9 @@ public class Main {
 
         // 주문 처리 (창고로 입고)
         money = money - cost;
-        product.addToWarehouse(boxSize);
+        product.addToWarehouse(orderAmount);
 
-        System.out.printf(" - %s 1박스(%d개) 창고 입고 (-%,d원)%n", product.name, boxSize, cost);
+        System.out.printf(" - %s %d박스(%d개) 창고 입고 (-%,d원)%n", product.name, AUTO_ORDER_BOX_COUNT, orderAmount, cost);
 
         return cost;
     }

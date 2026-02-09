@@ -1899,7 +1899,7 @@ public class Main {
         }
 
         // 손님 응대 루프
-        for (int i = 1; i <= todayCustomers; i++) {
+        for (int customerNum = 1; customerNum <= todayCustomers; customerNum++) {
 
             // 랜덤 손님 유형 (0: 가족, 1: 커플, 2: 친구들, 3: 혼자)
             int customerType = Util.rand(4);
@@ -1914,7 +1914,7 @@ public class Main {
 
             System.out.println();
             System.out.println("----------------------------------------");
-            System.out.printf("[ 손님 %d/%d - %s ]%n", i, todayCustomers, customer.typeName);
+            System.out.printf("[ 손님 %d/%d - %s ]%n", customerNum, todayCustomers, customer.typeName);
             Util.delay(500);
             customer.sayGreeting();
             System.out.println();
@@ -1930,9 +1930,9 @@ public class Main {
             int customerSales = 0;
             int customerProfit = 0;
 
-            for (int j = 0; j < customer.wantCount; j++) {
-                Product product = customer.wantProducts[j];
-                int wantAmount = customer.wantAmounts[j];
+            for (int itemIndex = 0; itemIndex < customer.wantCount; itemIndex++) {
+                Product product = customer.wantProducts[itemIndex];
+                int wantAmount = customer.wantAmounts[itemIndex];
 
                 // 수량 0이면 스킵
                 if (wantAmount <= 0) {
@@ -1988,7 +1988,7 @@ public class Main {
             }
 
             // 다음 손님 또는 스킵 선택 (마지막 손님이 아닌 경우)
-            if (i < todayCustomers) {
+            if (customerNum < todayCustomers) {
                 System.out.println("(아무 키나 누르면 일시정지)");
 
                 // 1.5초 동안 입력 감지 - 입력 있으면 메뉴 표시
@@ -2011,7 +2011,7 @@ public class Main {
                     System.out.println("남은 손님을 빠르게 처리합니다...");
                     Util.delay(500);
 
-                    for (int k = i + 1; k <= todayCustomers; k++) {
+                    for (int skipCustomerNum = customerNum + 1; skipCustomerNum <= todayCustomers; skipCustomerNum++) {
                         // 간단히 랜덤 손님 처리 (재사용 배열 사용)
                         int skipType = Util.rand(4);
 
@@ -2039,27 +2039,26 @@ public class Main {
                         }
 
                         // 판매 처리
-                        for (int m = 0; m < 2; m++) {
-                            Product p = skipList[m];
-                            int want = skipAmounts[m];
-                            int stock = display.getDisplayed(p);
+                        for (int skipItemIndex = 0; skipItemIndex < 2; skipItemIndex++) {
+                            Product skipProduct = skipList[skipItemIndex];
+                            int skipWantAmount = skipAmounts[skipItemIndex];
+                            int skipStock = display.getDisplayed(skipProduct);
 
-                            if (stock >= want) {
-                                int sale = p.sellPrice * want;
-                                int profit = (p.sellPrice - p.buyPrice) * want;
-                                display.sell(p, want);
-                                money += sale;
-                                todaySales += sale;
-                                todayProfit += profit;
+                            if (skipStock >= skipWantAmount) {
+                                int skipSaleAmount = skipProduct.sellPrice * skipWantAmount;
+                                int skipProfitAmount = (skipProduct.sellPrice - skipProduct.buyPrice) * skipWantAmount;
+                                display.sell(skipProduct, skipWantAmount);
+                                money += skipSaleAmount;
+                                todaySales += skipSaleAmount;
+                                todayProfit += skipProfitAmount;
                                 successCount++;
-                            } else if (stock > 0) {
-                                int actual = stock;
-                                int sale = p.sellPrice * actual;
-                                int profit = (p.sellPrice - p.buyPrice) * actual;
-                                display.sell(p, actual);
-                                money += sale;
-                                todaySales += sale;
-                                todayProfit += profit;
+                            } else if (skipStock > 0) {
+                                int skipSaleAmount = skipProduct.sellPrice * skipStock;
+                                int skipProfitAmount = (skipProduct.sellPrice - skipProduct.buyPrice) * skipStock;
+                                display.sell(skipProduct, skipStock);
+                                money += skipSaleAmount;
+                                todaySales += skipSaleAmount;
+                                todayProfit += skipProfitAmount;
                                 successCount++;
                                 failCount++;
                             } else {
@@ -2067,16 +2066,17 @@ public class Main {
                             }
                         }
                     }
-                    System.out.printf("손님 %d명 처리 완료!%n", todayCustomers - i);
+                    System.out.printf("손님 %d명 처리 완료!%n", todayCustomers - customerNum);
                     break;  // for 루프 종료
 
                 } else if (choice == 0) {
                     // 영업 중단
                     System.out.println();
                     System.out.println("영업을 중단합니다.");
-                    todayCustomers = i;  // 정산용 손님 수 조정
+                    todayCustomers = customerNum;  // 정산용 손님 수 조정
                     break;  // for 루프 종료
                 }
+
                 // choice == 1 또는 다른 값: 다음 손님 (루프 계속)
             }
         }
@@ -2170,10 +2170,9 @@ public class Main {
                     todayProfit = todayProfit + profit;
                     successCount++;
                 } else if (stock > 0) {
-                    int actual = stock;
-                    int sale = p.sellPrice * actual;
-                    int profit = (p.sellPrice - p.buyPrice) * actual;
-                    display.sell(p, actual);
+                    int sale = p.sellPrice * stock;
+                    int profit = (p.sellPrice - p.buyPrice) * stock;
+                    display.sell(p, stock);
 
                     money = money + sale;
                     todaySales = todaySales + sale;
@@ -2278,10 +2277,9 @@ public class Main {
                         todaySales = todaySales + sale;
                         todayProfit = todayProfit + profit;
                     } else if (stock > 0) {
-                        int actual = stock;
-                        int sale = p.sellPrice * actual;
-                        int profit = (p.sellPrice - p.buyPrice) * actual;
-                        display.sell(p, actual);
+                        int sale = p.sellPrice * stock;
+                        int profit = (p.sellPrice - p.buyPrice) * stock;
+                        display.sell(p, stock);
 
                         money = money + sale;
                         todaySales = todaySales + sale;
@@ -2336,27 +2334,19 @@ public class Main {
             // 단체 주문: 음료, 안주 대량 판매
             int bonus = sellBulk(categoryDrink, 10 + Util.rand(10));
             bonus = bonus + sellBulk(categorySnack, 5 + Util.rand(5));
-            if (bonus > 0) {
-                return true;
-            }
+            return bonus > 0;
         } else if (eventType == 1) {
             // 펜션 배달: 고기, 음료, 식재료 판매
             int bonus = sellBulk(categoryMeat, 5 + Util.rand(5));
             bonus = bonus + sellBulk(categoryDrink, 5 + Util.rand(5));
             bonus = bonus + sellBulk(categoryGrocery, 3 + Util.rand(3));
-            if (bonus > 0) {
-                return true;
-            }
+            return bonus > 0;
         } else {
             // 축제 시즌: 폭죽, 맥주 대량 판매
             int bonus = sellBulk(categoryFirework, 5 + Util.rand(10));
             bonus = bonus + sellBulk(categoryBeer, 10 + Util.rand(10));
-            if (bonus > 0) {
-                return true;
-            }
+            return bonus > 0;
         }
-
-        return false;
     }
 
     /// <summary>
@@ -2376,9 +2366,8 @@ public class Main {
                 money = money + sale;
                 totalSale = totalSale + sale;
             } else if (stock > 0) {
-                int actual = stock;
-                int sale = p.sellPrice * actual;
-                display.sell(p, actual);
+                int sale = p.sellPrice * stock;
+                display.sell(p, stock);
 
                 money = money + sale;
                 totalSale = totalSale + sale;

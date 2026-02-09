@@ -1246,21 +1246,8 @@ public class Main {
             System.out.print(" ");
         }
 
-        // 막대 출력 (재고 2개당 █ 1개, 최대 20개)
-        int barLength = stock / 2;
-        if (barLength > 20) {
-            barLength = 20;
-        }
-        if (barLength == 0 && stock > 0) {
-            barLength = 1;  // 최소 1개는 표시
-        }
-
-        for (int i = 0; i < barLength; i++) {
-            System.out.print("█");
-        }
-
         // 수량 표시
-        System.out.printf(" %d%n", stock);
+        System.out.printf("%d개%n", stock);
     }
 
     /// <summary>

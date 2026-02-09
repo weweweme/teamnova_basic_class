@@ -238,20 +238,33 @@ public class Main {
                     break;
 
                 case 2:
-                    // 영업 시작
-                    startBusiness();
-                    day++;              // 다음 날로
-                    isMorning = true;   // 아침으로 리셋
+                    // 영업 시작 (서브메뉴)
+                    int businessResult = showBusinessMenu();
+                    switch (businessResult) {
+                        case 1:
+                            // 직접 영업
+                            startBusiness();
+                            day++;
+                            isMorning = true;
+                            break;
+                        case 2:
+                            // 빠른 영업
+                            startQuickBusiness();
+                            day++;
+                            isMorning = true;
+                            break;
+                        case 3:
+                            // 1주일 스킵
+                            skipWeek();
+                            isMorning = true;
+                            break;
+                        // case 0: 돌아가기 (아무것도 안 함)
+                    }
                     break;
 
                 case 3:
-                    // 재고 확인
-                    showInventory();
-                    break;
-
-                case 4:
-                    // 매대 관리
-                    manageDisplay();
+                    // 재고/매대 관리 (서브메뉴)
+                    showInventoryMenu();
                     break;
 
                 case 0:
@@ -349,20 +362,71 @@ public class Main {
         System.out.println();
 
         if (isMorning) {
-            // 아침: 도매상, 영업, 재고 확인, 매대 관리 모두 가능
+            // 아침: 도매상, 영업, 재고/매대 모두 가능
             System.out.println("[1] 도매상 가기 (상품 입고)");
             System.out.println("[2] 영업 시작");
-            System.out.println("[3] 현재 재고 확인");
-            System.out.println("[4] 매대 관리");
+            System.out.println("[3] 재고/매대 관리");
         } else {
-            // 오후: 영업, 재고 확인, 매대 관리만 가능
+            // 오후: 영업, 재고/매대만 가능
             System.out.println("[1] (도매상 마감)");
             System.out.println("[2] 영업 시작");
-            System.out.println("[3] 현재 재고 확인");
-            System.out.println("[4] 매대 관리");
+            System.out.println("[3] 재고/매대 관리");
         }
         System.out.println("[0] 게임 종료");
         System.out.print(">> ");
+    }
+
+    /// <summary>
+    /// 영업 시작 서브메뉴
+    /// 선택한 영업 타입 반환 (1: 직접, 2: 빠른, 3: 1주일 스킵, 0: 취소)
+    /// </summary>
+    static int showBusinessMenu() {
+        clearScreen();
+        System.out.println("========================================");
+        System.out.println("           [ 영업 시작 ]");
+        System.out.println("========================================");
+        System.out.println();
+        System.out.println("[1] 직접 영업 (손님 한 명씩 응대)");
+        System.out.println("[2] 빠른 영업 (하루 결과만 요약)");
+        System.out.println("[3] 1주일 스킵 (7일 자동 영업)");
+        System.out.println("[0] 돌아가기");
+        System.out.print(">> ");
+
+        int choice = scanner.nextInt();
+        return choice;
+    }
+
+    /// <summary>
+    /// 재고/매대 관리 서브메뉴
+    /// </summary>
+    static void showInventoryMenu() {
+        boolean managing = true;
+
+        while (managing) {
+            clearScreen();
+            System.out.println("========================================");
+            System.out.println("         [ 재고/매대 관리 ]");
+            System.out.println("========================================");
+            System.out.println();
+            System.out.println("[1] 현재 재고 확인");
+            System.out.println("[2] 매대 관리 (진열/회수)");
+            System.out.println("[0] 돌아가기");
+            System.out.print(">> ");
+
+            int choice = scanner.nextInt();
+
+            switch (choice) {
+                case 1:
+                    showInventory();
+                    break;
+                case 2:
+                    manageDisplay();
+                    break;
+                case 0:
+                    managing = false;
+                    break;
+            }
+        }
     }
 
     /// <summary>
@@ -2361,6 +2425,304 @@ public class Main {
         System.out.printf("  현재 총 자본: %,d원%n", money);
         System.out.printf("  목표까지:     %,d원%n", goalMoney - money);
         System.out.println("========================================");
+    }
+
+    /// <summary>
+    /// 빠른 영업 (하루 요약)
+    /// 손님 상세 없이 결과만 출력
+    /// </summary>
+    static void startQuickBusiness() {
+        clearScreen();
+        System.out.println("========================================");
+        System.out.println("         [ 빠른 영업 - " + day + "일차 ]");
+        System.out.println("========================================");
+        System.out.println();
+        System.out.println("영업 중...");
+        delay(1000);
+
+        // 하루 영업 시뮬레이션 (손님 상세 생략)
+        int todayCustomers = 10 + rand(11);
+        int todaySales = 0;
+        int todayProfit = 0;
+        int successCount = 0;
+        int failCount = 0;
+
+        // 빅 이벤트 체크 (10% 확률)
+        boolean eventOccurred = checkBigEvent();
+
+        // 손님별 간략 처리
+        for (int i = 0; i < todayCustomers; i++) {
+            int customerType = rand(4);
+
+            // 카테고리별 랜덤 판매 시뮬레이션
+            Product[] targets;
+            if (customerType == 0) {
+                targets = new Product[]{
+                    getRandomFromCategory(categoryMeat),
+                    getRandomFromCategory(categoryGrocery),
+                    getRandomFromCategory(categoryDrink)
+                };
+            } else if (customerType == 1) {
+                targets = new Product[]{
+                    getRandomFromCategory(categorySoju),
+                    getRandomFromCategory(categoryBeer),
+                    getRandomFromCategory(categorySnack)
+                };
+            } else if (customerType == 2) {
+                targets = new Product[]{
+                    getRandomFromCategory(categoryBeer),
+                    getRandomFromCategory(categorySoju),
+                    getRandomFromCategory(categorySnack)
+                };
+            } else {
+                targets = new Product[]{
+                    getRandomFromCategory(categoryRamen),
+                    getRandomFromCategory(categoryBeer),
+                    getRandomFromCategory(categoryIcecream)
+                };
+            }
+
+            // 각 상품 판매 시도
+            for (int j = 0; j < targets.length; j++) {
+                Product p = targets[j];
+                int want = 1 + rand(3);
+
+                if (p.displayStock >= want) {
+                    int sale = p.sellPrice * want;
+                    int profit = (p.sellPrice - p.buyPrice) * want;
+                    p.sell(want);
+                    if (p.displayStock == 0) usedSlot--;
+
+                    money = money + sale;
+                    todaySales = todaySales + sale;
+                    todayProfit = todayProfit + profit;
+                    successCount++;
+                } else if (p.displayStock > 0) {
+                    int actual = p.displayStock;
+                    int sale = p.sellPrice * actual;
+                    int profit = (p.sellPrice - p.buyPrice) * actual;
+                    p.sell(actual);
+                    usedSlot--;
+
+                    money = money + sale;
+                    todaySales = todaySales + sale;
+                    todayProfit = todayProfit + profit;
+                    successCount++;
+                    failCount++;
+                } else {
+                    failCount++;
+                }
+            }
+        }
+
+        // 결과 출력
+        System.out.println();
+        System.out.println("========================================");
+        System.out.printf("          [ %d일차 정산 ]%n", day);
+        System.out.println("========================================");
+        System.out.printf("오늘 방문 손님: %d명%n", todayCustomers);
+        System.out.printf("판매 성공: %d건%n", successCount);
+        System.out.printf("판매 실패: %d건%n", failCount);
+        if (eventOccurred) {
+            System.out.println(">> 빅 이벤트 발생!");
+        }
+        System.out.println();
+        System.out.println("----------------------------------------");
+        System.out.printf("  오늘 매출:    %,d원%n", todaySales);
+        System.out.printf("  순이익:      +%,d원%n", todayProfit);
+        System.out.println("----------------------------------------");
+        System.out.printf("  현재 총 자본: %,d원%n", money);
+        System.out.printf("  목표까지:     %,d원%n", goalMoney - money);
+        System.out.println("========================================");
+    }
+
+    /// <summary>
+    /// 1주일 스킵 (7일 자동 영업)
+    /// </summary>
+    static void skipWeek() {
+        clearScreen();
+        System.out.println("========================================");
+        System.out.println("         [ 1주일 스킵 ]");
+        System.out.println("========================================");
+        System.out.printf("%d일차 ~ %d일차 자동 영업 시작...%n", day, day + 6);
+        System.out.println();
+
+        int weekSales = 0;
+        int weekProfit = 0;
+        int eventCount = 0;
+
+        // 7일 반복
+        for (int d = 0; d < 7; d++) {
+            System.out.printf("%d일차 영업 중...", day);
+            delay(300);
+
+            int todayCustomers = 10 + rand(11);
+            int todaySales = 0;
+            int todayProfit = 0;
+
+            // 빅 이벤트 체크
+            if (checkBigEvent()) {
+                eventCount++;
+                System.out.print(" [이벤트!]");
+            }
+
+            // 손님별 간략 처리
+            for (int i = 0; i < todayCustomers; i++) {
+                int customerType = rand(4);
+                Product[] targets;
+
+                if (customerType == 0) {
+                    targets = new Product[]{
+                        getRandomFromCategory(categoryMeat),
+                        getRandomFromCategory(categoryGrocery),
+                        getRandomFromCategory(categoryDrink)
+                    };
+                } else if (customerType == 1) {
+                    targets = new Product[]{
+                        getRandomFromCategory(categorySoju),
+                        getRandomFromCategory(categoryBeer),
+                        getRandomFromCategory(categorySnack)
+                    };
+                } else if (customerType == 2) {
+                    targets = new Product[]{
+                        getRandomFromCategory(categoryBeer),
+                        getRandomFromCategory(categorySoju),
+                        getRandomFromCategory(categorySnack)
+                    };
+                } else {
+                    targets = new Product[]{
+                        getRandomFromCategory(categoryRamen),
+                        getRandomFromCategory(categoryBeer),
+                        getRandomFromCategory(categoryIcecream)
+                    };
+                }
+
+                for (int j = 0; j < targets.length; j++) {
+                    Product p = targets[j];
+                    int want = 1 + rand(3);
+
+                    if (p.displayStock >= want) {
+                        int sale = p.sellPrice * want;
+                        int profit = (p.sellPrice - p.buyPrice) * want;
+                        p.sell(want);
+                        if (p.displayStock == 0) usedSlot--;
+
+                        money = money + sale;
+                        todaySales = todaySales + sale;
+                        todayProfit = todayProfit + profit;
+                    } else if (p.displayStock > 0) {
+                        int actual = p.displayStock;
+                        int sale = p.sellPrice * actual;
+                        int profit = (p.sellPrice - p.buyPrice) * actual;
+                        p.sell(actual);
+                        usedSlot--;
+
+                        money = money + sale;
+                        todaySales = todaySales + sale;
+                        todayProfit = todayProfit + profit;
+                    }
+                }
+            }
+
+            weekSales = weekSales + todaySales;
+            weekProfit = weekProfit + todayProfit;
+
+            System.out.printf(" 매출 %,d원%n", todaySales);
+            day++;
+        }
+
+        // 주간 요약
+        System.out.println();
+        System.out.println("========================================");
+        System.out.println("         [ 주간 요약 ]");
+        System.out.println("========================================");
+        System.out.printf("기간: %d일 영업%n", 7);
+        if (eventCount > 0) {
+            System.out.printf("빅 이벤트: %d회 발생%n", eventCount);
+        }
+        System.out.println();
+        System.out.println("----------------------------------------");
+        System.out.printf("  주간 매출:    %,d원%n", weekSales);
+        System.out.printf("  주간 순이익: +%,d원%n", weekProfit);
+        System.out.println("----------------------------------------");
+        System.out.printf("  현재 총 자본: %,d원%n", money);
+        System.out.printf("  목표까지:     %,d원%n", goalMoney - money);
+        System.out.println("========================================");
+
+        System.out.println();
+        System.out.println("아무 키나 입력하면 계속...");
+        scanner.next();
+    }
+
+    /// <summary>
+    /// 빅 이벤트 체크 및 처리 (10% 확률)
+    /// 단체 주문, 펜션 배달, 축제 시즌 중 하나 발생
+    /// </summary>
+    static boolean checkBigEvent() {
+        // 10% 확률로 이벤트 발생
+        if (rand(100) >= 10) {
+            return false;
+        }
+
+        int eventType = rand(3);
+
+        if (eventType == 0) {
+            // 단체 주문: 음료, 안주 대량 판매
+            int bonus = sellBulk(categoryDrink, 10 + rand(10));
+            bonus = bonus + sellBulk(categorySnack, 5 + rand(5));
+            if (bonus > 0) {
+                return true;
+            }
+        } else if (eventType == 1) {
+            // 펜션 배달: 고기, 음료, 식재료 판매
+            int bonus = sellBulk(categoryMeat, 5 + rand(5));
+            bonus = bonus + sellBulk(categoryDrink, 5 + rand(5));
+            bonus = bonus + sellBulk(categoryGrocery, 3 + rand(3));
+            if (bonus > 0) {
+                return true;
+            }
+        } else {
+            // 축제 시즌: 폭죽, 맥주 대량 판매
+            int bonus = sellBulk(categoryEtc, 5 + rand(10));
+            bonus = bonus + sellBulk(categoryBeer, 10 + rand(10));
+            if (bonus > 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 카테고리에서 대량 판매 처리
+    /// 판매된 금액 반환
+    /// </summary>
+    static int sellBulk(Product[] category, int amount) {
+        int totalSale = 0;
+
+        for (int i = 0; i < category.length; i++) {
+            Product p = category[i];
+            int sellAmount = amount / category.length;
+
+            if (p.displayStock >= sellAmount) {
+                int sale = p.sellPrice * sellAmount;
+                p.sell(sellAmount);
+                if (p.displayStock == 0) usedSlot--;
+
+                money = money + sale;
+                totalSale = totalSale + sale;
+            } else if (p.displayStock > 0) {
+                int actual = p.displayStock;
+                int sale = p.sellPrice * actual;
+                p.sell(actual);
+                usedSlot--;
+
+                money = money + sale;
+                totalSale = totalSale + sale;
+            }
+        }
+
+        return totalSale;
     }
 
     /// <summary>

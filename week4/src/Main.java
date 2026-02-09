@@ -350,6 +350,28 @@ public class Main {
     }
 
     /// <summary>
+    /// 일정 시간 동안 입력 대기 (입력 감지되면 true 반환)
+    /// </summary>
+    static boolean waitForInput(int millis) {
+        try {
+            long start = System.currentTimeMillis();
+            while (System.currentTimeMillis() - start < millis) {
+                if (System.in.available() > 0) {
+                    // 입력 버퍼 비우기
+                    while (System.in.available() > 0) {
+                        System.in.read();
+                    }
+                    return true;
+                }
+                Thread.sleep(50);
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 게임 시작 화면 출력
     /// </summary>
     static void printStartScreen() {
@@ -2419,11 +2441,98 @@ public class Main {
             }
 
             // 손님 총액 표시
-            delay(400);
             if (customerSales > 0) {
                 System.out.printf(">> 손님 결제: %,d원%n", customerSales);
             } else {
                 System.out.println(">> 아무것도 못 사고 갔습니다...");
+            }
+
+            // 다음 손님 또는 스킵 선택 (마지막 손님이 아닌 경우)
+            if (i < todayCustomers) {
+                System.out.println("(아무 키나 누르면 일시정지)");
+
+                // 1.5초 동안 입력 감지 - 입력 있으면 메뉴 표시
+                boolean interrupted = waitForInput(1500);
+
+                if (!interrupted) {
+                    // 입력 없음 -> 자동으로 다음 손님
+                    continue;
+                }
+
+                // 입력 감지됨 -> 메뉴 표시
+                System.out.println();
+                System.out.println("[1] 다음 손님  [2] 남은 손님 스킵  [0] 영업 중단");
+                System.out.print(">> ");
+                int choice = safeNextInt(1);  // 기본값 1 (다음 손님)
+
+                if (choice == 2) {
+                    // 남은 손님 자동 처리
+                    System.out.println();
+                    System.out.println("남은 손님을 빠르게 처리합니다...");
+                    delay(500);
+
+                    for (int k = i + 1; k <= todayCustomers; k++) {
+                        // 간단히 랜덤 손님 처리
+                        int skipType = rand(4);
+                        Product[] skipList;
+                        int[] skipAmounts;
+
+                        // 손님별 간단 쇼핑 리스트
+                        if (skipType == 0) {
+                            skipList = new Product[]{getRandomFromCategory(categoryMeat), getRandomFromCategory(categoryDrink)};
+                            skipAmounts = new int[]{2 + rand(2), 3 + rand(3)};
+                        } else if (skipType == 1) {
+                            skipList = new Product[]{getRandomFromCategory(categorySoju), getRandomFromCategory(categorySnack)};
+                            skipAmounts = new int[]{2 + rand(2), 2 + rand(2)};
+                        } else if (skipType == 2) {
+                            skipList = new Product[]{getRandomFromCategory(categoryBeer), getRandomFromCategory(categorySoju)};
+                            skipAmounts = new int[]{4 + rand(3), 2 + rand(2)};
+                        } else {
+                            skipList = new Product[]{getRandomFromCategory(categoryRamen), getRandomFromCategory(categoryBeer)};
+                            skipAmounts = new int[]{2 + rand(2), 2 + rand(2)};
+                        }
+
+                        // 판매 처리
+                        for (int m = 0; m < skipList.length; m++) {
+                            Product p = skipList[m];
+                            int want = skipAmounts[m];
+
+                            if (p.displayStock >= want) {
+                                int sale = p.sellPrice * want;
+                                int profit = (p.sellPrice - p.buyPrice) * want;
+                                p.sell(want);
+                                if (p.displayStock == 0) usedSlot--;
+                                money += sale;
+                                todaySales += sale;
+                                todayProfit += profit;
+                                successCount++;
+                            } else if (p.displayStock > 0) {
+                                int actual = p.displayStock;
+                                int sale = p.sellPrice * actual;
+                                int profit = (p.sellPrice - p.buyPrice) * actual;
+                                p.sell(actual);
+                                usedSlot--;
+                                money += sale;
+                                todaySales += sale;
+                                todayProfit += profit;
+                                successCount++;
+                                failCount++;
+                            } else {
+                                failCount++;
+                            }
+                        }
+                    }
+                    System.out.printf("손님 %d명 처리 완료!%n", todayCustomers - i);
+                    break;  // for 루프 종료
+
+                } else if (choice == 0) {
+                    // 영업 중단
+                    System.out.println();
+                    System.out.println("영업을 중단합니다.");
+                    todayCustomers = i;  // 정산용 손님 수 조정
+                    break;  // for 루프 종료
+                }
+                // choice == 1 또는 다른 값: 다음 손님 (루프 계속)
             }
         }
 

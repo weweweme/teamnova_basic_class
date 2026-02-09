@@ -6,6 +6,7 @@ public class Main {
 
     // ========== 상수 ==========
 
+    static final int INVALID_INPUT = -1;              // 잘못된 입력 (숫자가 아닌 경우)
     static final int INIT_MONEY = 50000000;           // 초기 자본 5000만원
     static final int GOAL_MONEY = 300000000;          // 목표 금액 3억원
     static final int MAX_SLOT = 20;                   // 매대 최대 슬롯 (상품 30개 중 20개만 진열 가능)
@@ -208,7 +209,7 @@ public class Main {
         // 게임 시작 화면 출력
         printStartScreen();
 
-        int startChoice = safeNextInt(-1);  // 잘못된 입력 시 종료
+        int startChoice = readInt();  // 잘못된 입력 시 종료
 
         if (startChoice == 1) {
             // 기본 모드
@@ -224,15 +225,15 @@ public class Main {
             System.out.println("========================================");
 
             System.out.print("시작 자본 입력 (만원 단위): ");
-            int inputMoney = safeNextInt(0);
+            int inputMoney = readInt();
             money = inputMoney * 10000;
 
             System.out.print("목표 금액 입력 (만원 단위): ");
-            int inputGoal = safeNextInt(0);
+            int inputGoal = readInt();
             goalMoney = inputGoal * 10000;
 
             System.out.print("가격 배율 입력 (1~100, 판매가에만 적용): ");
-            priceMultiplier = safeNextInt(0);
+            priceMultiplier = readInt();
 
             System.out.println();
             System.out.println("----------------------------------------");
@@ -269,7 +270,7 @@ public class Main {
             // 하루 시작 메뉴 출력
             printDailyMenu();
 
-            int choice = safeNextInt(0);  // 잘못된 입력 시 게임 종료
+            int choice = readInt();  // 잘못된 입력 시 게임 종료
 
             switch (choice) {
                 case 1:
@@ -341,7 +342,6 @@ public class Main {
     /// <summary>
     /// 콘솔 청소
     /// 빈 줄을 출력하여 이전 내용을 위로 밀어냄
-    /// IDE 콘솔에서도 작동하는 방식
     /// </summary>
     static void clearScreen() {
         for (int i = 0; i < 50; i++) {
@@ -378,6 +378,19 @@ public class Main {
     }
 
     /// <summary>
+    /// 정수 입력
+    /// 숫자로 변환 가능하면 해당 숫자, 아니면 INVALID_INPUT(-1) 반환
+    /// </summary>
+    static int readInt() {
+        String input = scanner.next();
+        try {
+            return Integer.parseInt(input);
+        } catch (NumberFormatException e) {
+            return INVALID_INPUT;
+        }
+    }
+
+    /// <summary>
     /// 50% 확률로 구매 (선택 카테고리용)
     /// 50% 확률로 원래 수량 반환, 50% 확률로 0 반환
     /// </summary>
@@ -386,19 +399,6 @@ public class Main {
             return 0;       // 안 삼
         }
         return amount;      // 삼
-    }
-
-    /// <summary>
-    /// 안전한 정수 입력
-    /// 숫자가 아니면 기본값 반환
-    /// </summary>
-    static int safeNextInt(int defaultValue) {
-        if (scanner.hasNextInt()) {
-            return scanner.nextInt();
-        }
-        // 숫자가 아닌 입력은 소비하고 기본값 반환
-        scanner.next();
-        return defaultValue;
     }
 
     /// <summary>
@@ -510,7 +510,7 @@ public class Main {
         System.out.print(">> ");
 
         // 잘못된 입력 시 돌아가기
-        return safeNextInt(0);
+        return readInt();
     }
 
     /// <summary>
@@ -530,7 +530,7 @@ public class Main {
             System.out.println("[0] 돌아가기");
             System.out.print(">> ");
 
-            int choice = safeNextInt(0);  // 잘못된 입력 시 돌아가기
+            int choice = readInt();  // 잘못된 입력 시 돌아가기
 
             switch (choice) {
                 case 1:
@@ -629,7 +629,7 @@ public class Main {
             System.out.println("[0] 돌아가기");
             System.out.print(">> ");
 
-            int choice = safeNextInt(0);
+            int choice = readInt();
 
             switch (choice) {
                 case 1:
@@ -1002,7 +1002,7 @@ public class Main {
             System.out.println("[0] 돌아가기");
             System.out.print(">> ");
 
-            int choice = safeNextInt(0);
+            int choice = readInt();
 
             switch (choice) {
                 case 1:
@@ -1044,7 +1044,7 @@ public class Main {
             System.out.println("[0] 돌아가기");
             System.out.print(">> ");
 
-            int categoryChoice = safeNextInt(0);
+            int categoryChoice = readInt();
 
             if (categoryChoice == 0) {
                 browsing = false;
@@ -1154,14 +1154,14 @@ public class Main {
             System.out.println("구매할 상품 번호 (0: 돌아가기)");
             System.out.print(">> ");
 
-            int productChoice = safeNextInt(0);
+            int productChoice = readInt();
 
             if (productChoice == 0) {
                 buying = false;
             } else {
                 // 수량 입력
                 System.out.print("수량 입력 >> ");
-                int quantity = safeNextInt(0);
+                int quantity = readInt();
 
                 // 상품 구매 처리
                 purchaseProduct(category, productChoice, quantity);
@@ -1274,7 +1274,7 @@ public class Main {
             System.out.println("[0] 돌아가기");
             System.out.print(">> ");
 
-            int choice = safeNextInt(0);
+            int choice = readInt();
 
             switch (choice) {
                 case 1:
@@ -1312,7 +1312,7 @@ public class Main {
         System.out.println("[0] 돌아가기");
         System.out.print(">> ");
 
-        int categoryChoice = safeNextInt(0);
+        int categoryChoice = readInt();
 
         if (categoryChoice == 0) {
             return;
@@ -1333,13 +1333,13 @@ public class Main {
         System.out.println("[0] 돌아가기");
         System.out.print(">> ");
 
-        int actionChoice = safeNextInt(0);
+        int actionChoice = readInt();
 
         if (actionChoice == 0) {
             return;
         } else if (actionChoice == 1) {
             System.out.print("임계값 입력 (재고 몇 개 이하면 주문?) >> ");
-            int threshold = safeNextInt(0);
+            int threshold = readInt();
 
             // 카테고리별 정책 설정
             if (categoryChoice == 1) {
@@ -1438,7 +1438,7 @@ public class Main {
         System.out.println("[0] 돌아가기");
         System.out.print(">> ");
 
-        int categoryChoice = safeNextInt(0);
+        int categoryChoice = readInt();
 
         if (categoryChoice == 0) {
             return;
@@ -1454,7 +1454,7 @@ public class Main {
         printCategoryProductsForPolicy(categoryChoice);
 
         System.out.print("상품 번호 선택 >> ");
-        int productNum = safeNextInt(0);
+        int productNum = readInt();
 
         Product product = getProductByCategoryAndNum(categoryChoice, productNum);
 
@@ -1470,13 +1470,13 @@ public class Main {
         System.out.println("[0] 돌아가기");
         System.out.print(">> ");
 
-        int actionChoice = safeNextInt(0);
+        int actionChoice = readInt();
 
         if (actionChoice == 0) {
             return;
         } else if (actionChoice == 1) {
             System.out.print("임계값 입력 (재고 몇 개 이하면 주문?) >> ");
-            int threshold = safeNextInt(0);
+            int threshold = readInt();
 
             product.autoOrderEnabled = true;
             product.autoOrderThreshold = threshold;
@@ -2063,7 +2063,7 @@ public class Main {
                 System.out.println();
                 System.out.println("[1] 다음 손님  [2] 남은 손님 스킵  [0] 영업 중단");
                 System.out.print(">> ");
-                int choice = safeNextInt(1);  // 기본값 1 (다음 손님)
+                int choice = readInt();  // 기본값 1 (다음 손님)
 
                 if (choice == 2) {
                     // 남은 손님 자동 처리

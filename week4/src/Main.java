@@ -2333,14 +2333,24 @@ public class Main {
             System.out.printf("[ 손님 %d/%d - %s ]%n", i, todayCustomers, customerName);
             delay(500);
             System.out.printf("\"%s\"%n", customerMessage);
-            delay(300);
             System.out.println();
+
+            // 쇼핑 리스트 먼저 한번에 출력
+            System.out.println("쇼핑 리스트:");
+            for (int j = 0; j < shoppingList.length; j++) {
+                if (shoppingAmounts[j] > 0) {
+                    System.out.printf(" - %s %d개%n", shoppingList[j].name, shoppingAmounts[j]);
+                }
+            }
+
+            delay(500);  // 리스트 확인 후 처리
+            System.out.println();
+            System.out.println("판매 결과:");
 
             // 손님의 쇼핑 리스트 처리
             int customerSales = 0;
             int customerProfit = 0;
 
-            System.out.println("쇼핑 리스트:");
             for (int j = 0; j < shoppingList.length; j++) {
                 Product product = shoppingList[j];
                 int wantAmount = shoppingAmounts[j];
@@ -2349,10 +2359,6 @@ public class Main {
                 if (wantAmount <= 0) {
                     continue;
                 }
-
-                delay(300);
-                System.out.printf(" - %s %d개: ", product.name, wantAmount);
-                delay(200);
 
                 if (product.displayStock >= wantAmount) {
                     // 전부 판매 가능
@@ -2371,7 +2377,7 @@ public class Main {
                     todayProfit = todayProfit + profitAmount;
                     successCount++;
 
-                    System.out.printf("OK (+%,d원)%n", saleAmount);
+                    System.out.printf(" - %s: OK (+%,d원)%n", product.name, saleAmount);
 
                 } else if (product.displayStock > 0) {
                     // 일부만 판매
@@ -2390,12 +2396,12 @@ public class Main {
                     successCount++;
                     failCount++;  // 일부 실패로 카운트
 
-                    System.out.printf("%d개만... (+%,d원)%n", actualAmount, saleAmount);
+                    System.out.printf(" - %s: %d개만 (+%,d원)%n", product.name, actualAmount, saleAmount);
 
                 } else {
                     // 재고 없음
                     failCount++;
-                    System.out.println("재고 없음!");
+                    System.out.printf(" - %s: 재고 없음!%n", product.name);
                 }
             }
 

@@ -164,34 +164,41 @@ public class Main {
 
             int choice = scanner.nextInt();
 
-            if (choice == 1) {
-                // 도매상
-                if (isMorning) {
-                    goWholesaler();
-                    isMorning = false;  // 도매상 갔다오면 오후로 전환
-                } else {
-                    System.out.println("[!!] 도매상은 오전에만 이용 가능합니다.");
-                }
+            switch (choice) {
+                case 1:
+                    // 도매상
+                    if (isMorning) {
+                        goWholesaler();
+                        isMorning = false;  // 도매상 갔다오면 오후로 전환
+                    } else {
+                        System.out.println("[!!] 도매상은 오전에만 이용 가능합니다.");
+                    }
+                    break;
 
-            } else if (choice == 2) {
-                // 영업 시작
-                startBusiness();
-                day++;              // 다음 날로
-                isMorning = true;   // 아침으로 리셋
+                case 2:
+                    // 영업 시작
+                    startBusiness();
+                    day++;              // 다음 날로
+                    isMorning = true;   // 아침으로 리셋
+                    break;
 
-            } else if (choice == 3) {
-                // 재고 확인
-                showInventory();
+                case 3:
+                    // 재고 확인
+                    showInventory();
+                    break;
 
-            } else if (choice == 4) {
-                // 매대 관리
-                manageDisplay();
+                case 4:
+                    // 매대 관리
+                    manageDisplay();
+                    break;
 
-            } else if (choice == 0) {
-                playing = false;
+                case 0:
+                    playing = false;
+                    break;
 
-            } else {
-                System.out.println("잘못된 입력입니다.");
+                default:
+                    System.out.println("잘못된 입력입니다.");
+                    break;
             }
         }
 
@@ -199,19 +206,21 @@ public class Main {
         scanner.close();
     }
 
-    // ========== 콘솔 청소 ==========
-    // 빈 줄을 출력하여 이전 내용을 위로 밀어냄
-    // IDE 콘솔에서도 작동하는 방식
-
+    /// <summary>
+    /// 콘솔 청소
+    /// 빈 줄을 출력하여 이전 내용을 위로 밀어냄
+    /// IDE 콘솔에서도 작동하는 방식
+    /// </summary>
     static void clearScreen() {
         for (int i = 0; i < 50; i++) {
             System.out.println();
         }
     }
 
-    // ========== 딜레이 (밀리초) ==========
-    // 게임 연출을 위한 대기 시간
-
+    /// <summary>
+    /// 딜레이 (밀리초)
+    /// 게임 연출을 위한 대기 시간
+    /// </summary>
     static void delay(int ms) {
         try {
             Thread.sleep(ms);
@@ -220,15 +229,17 @@ public class Main {
         }
     }
 
-    // ========== 랜덤 숫자 (0 ~ max-1) ==========
-    // 간편한 랜덤 생성용
-
+    /// <summary>
+    /// 랜덤 숫자 (0 ~ max-1)
+    /// 간편한 랜덤 생성용
+    /// </summary>
     static int rand(int max) {
         return (int)(Math.random() * max);
     }
 
-    // ========== 게임 시작 화면 출력 ==========
-
+    /// <summary>
+    /// 게임 시작 화면 출력
+    /// </summary>
     static void printStartScreen() {
         System.out.println("========================================");
         System.out.println("     _____                      ");
@@ -248,8 +259,9 @@ public class Main {
         System.out.print(">> ");
     }
 
-    // ========== 하루 시작 메뉴 출력 ==========
-
+    /// <summary>
+    /// 하루 시작 메뉴 출력
+    /// </summary>
     static void printDailyMenu() {
         clearScreen();
         System.out.println("========================================");
@@ -280,8 +292,10 @@ public class Main {
         System.out.print(">> ");
     }
 
-    // ========== 승리/패배 조건 체크 ==========
-    // 게임 종료 시 true 반환
+    /// <summary>
+    /// 승리/패배 조건 체크
+    /// 게임 종료 시 true 반환
+    /// </summary>
 
     static boolean checkWinOrLose() {
         // 승리 조건 체크
@@ -312,7 +326,9 @@ public class Main {
         return false;
     }
 
-    // ========== 재고 확인 ==========
+    /// <summary>
+    /// 재고 확인
+    /// </summary>
 
     static void showInventory() {
         clearScreen();
@@ -456,7 +472,9 @@ public class Main {
         scanner.next();
     }
 
-    // ========== 매대 관리 ==========
+    /// <summary>
+    /// 매대 관리
+    /// </summary>
 
     static void manageDisplay() {
         boolean managing = true;
@@ -477,21 +495,29 @@ public class Main {
 
             int choice = scanner.nextInt();
 
-            if (choice == 1) {
-                displayProduct();
-            } else if (choice == 2) {
-                returnProduct();
-            } else if (choice == 3) {
-                showWarehouse();
-            } else if (choice == 4) {
-                autoArrangeDisplay();
-            } else if (choice == 0) {
-                managing = false;
+            switch (choice) {
+                case 1:
+                    displayProduct();
+                    break;
+                case 2:
+                    returnProduct();
+                    break;
+                case 3:
+                    showWarehouse();
+                    break;
+                case 4:
+                    autoArrangeDisplay();
+                    break;
+                case 0:
+                    managing = false;
+                    break;
             }
         }
     }
 
-    // ========== 창고 재고 확인 ==========
+    /// <summary>
+    /// 창고 재고 확인
+    /// </summary>
 
     static void showWarehouse() {
         clearScreen();
@@ -633,7 +659,9 @@ public class Main {
         scanner.next();
     }
 
-    // ========== 상품 진열 (창고 → 매대) ==========
+    /// <summary>
+    /// 상품 진열 (창고 → 매대)
+    /// </summary>
 
     static void displayProduct() {
         clearScreen();
@@ -742,7 +770,9 @@ public class Main {
         System.out.printf("[OK] %s %d개 매대에 진열!%n", product.name, amount);
     }
 
-    // ========== 상품 회수 (매대 → 창고) ==========
+    /// <summary>
+    /// 상품 회수 (매대 → 창고)
+    /// </summary>
 
     static void returnProduct() {
         clearScreen();
@@ -844,7 +874,9 @@ public class Main {
         System.out.printf("[OK] %s %d개 창고로 회수!%n", product.name, amount);
     }
 
-    // ========== 상품명으로 상품 찾기 ==========
+    /// <summary>
+    /// 상품명으로 상품 찾기
+    /// </summary>
 
     static Product findProductByName(String name) {
         if (name.equals(cola.name) || name.equals("콜라")) return cola;
@@ -880,7 +912,9 @@ public class Main {
         return null;
     }
 
-    // ========== 자동 배정 (카테고리 균형) ==========
+    /// <summary>
+    /// 자동 배정 (카테고리 균형)
+    /// </summary>
 
     static void autoArrangeDisplay() {
         clearScreen();
@@ -1015,7 +1049,9 @@ public class Main {
         scanner.next();
     }
 
-    // ========== 재고 막대그래프 출력 ==========
+    /// <summary>
+    /// 재고 막대그래프 출력
+    /// </summary>
     // 상품명과 재고 수량을 막대그래프로 표시
 
     /// <summary>
@@ -1064,7 +1100,9 @@ public class Main {
         System.out.printf(" %d%n", stock);
     }
 
-    // ========== 도매상 (메인 메뉴) ==========
+    /// <summary>
+    /// 도매상 (메인 메뉴)
+    /// </summary>
 
     static void goWholesaler() {
         boolean shopping = true;
@@ -1085,21 +1123,29 @@ public class Main {
 
             int choice = scanner.nextInt();
 
-            if (choice == 1) {
-                buyByCategory();
-            } else if (choice == 2) {
-                setPolicies();
-            } else if (choice == 3) {
-                executeAutoOrder();
-            } else if (choice == 0) {
-                shopping = false;
-            } else {
-                System.out.println("잘못된 입력입니다.");
+            switch (choice) {
+                case 1:
+                    buyByCategory();
+                    break;
+                case 2:
+                    setPolicies();
+                    break;
+                case 3:
+                    executeAutoOrder();
+                    break;
+                case 0:
+                    shopping = false;
+                    break;
+                default:
+                    System.out.println("잘못된 입력입니다.");
+                    break;
             }
         }
     }
 
-    // ========== 카테고리별 구매 ==========
+    /// <summary>
+    /// 카테고리별 구매
+    /// </summary>
 
     static void buyByCategory() {
         boolean browsing = true;
@@ -1130,7 +1176,9 @@ public class Main {
         }
     }
 
-    // ========== 카테고리 내 상품 구매 ==========
+    /// <summary>
+    /// 카테고리 내 상품 구매
+    /// </summary>
 
     static void buyCategoryProducts(int category) {
         boolean buying = true;
@@ -1240,7 +1288,9 @@ public class Main {
         }
     }
 
-    // ========== 상품 구매 처리 ==========
+    /// <summary>
+    /// 상품 구매 처리
+    /// </summary>
 
     static void purchaseProduct(int category, int productNum, int quantity) {
         // 카테고리와 상품 번호로 상품 찾기
@@ -1266,7 +1316,9 @@ public class Main {
         System.out.println("[OK] " + product.name + " " + quantity + "개 창고로 입고! (-" + String.format("%,d", totalCost) + "원)");
     }
 
-    // ========== 카테고리와 번호로 상품 찾기 ==========
+    /// <summary>
+    /// 카테고리와 번호로 상품 찾기
+    /// </summary>
 
     static Product getProductByCategoryAndNum(int category, int num) {
         if (category == 1) {
@@ -1323,7 +1375,9 @@ public class Main {
         return null;
     }
 
-    // ========== 정책 설정 ==========
+    /// <summary>
+    /// 정책 설정
+    /// </summary>
 
     static void setPolicies() {
         boolean setting = true;
@@ -1342,21 +1396,29 @@ public class Main {
 
             int choice = scanner.nextInt();
 
-            if (choice == 1) {
-                setCategoryPolicy();
-            } else if (choice == 2) {
-                setIndividualPolicy();
-            } else if (choice == 3) {
-                showCurrentPolicies();
-            } else if (choice == 0) {
-                setting = false;
-            } else {
-                System.out.println("잘못된 입력입니다.");
+            switch (choice) {
+                case 1:
+                    setCategoryPolicy();
+                    break;
+                case 2:
+                    setIndividualPolicy();
+                    break;
+                case 3:
+                    showCurrentPolicies();
+                    break;
+                case 0:
+                    setting = false;
+                    break;
+                default:
+                    System.out.println("잘못된 입력입니다.");
+                    break;
             }
         }
     }
 
-    // ========== 카테고리 단위 정책 설정 ==========
+    /// <summary>
+    /// 카테고리 단위 정책 설정
+    /// </summary>
 
     static void setCategoryPolicy() {
         clearScreen();
@@ -1463,7 +1525,9 @@ public class Main {
         }
     }
 
-    // ========== 카테고리명 가져오기 ==========
+    /// <summary>
+    /// 카테고리명 가져오기
+    /// </summary>
 
     static String getCategoryName(int category) {
         if (category == 1) return "음료";
@@ -1479,7 +1543,9 @@ public class Main {
         return "";
     }
 
-    // ========== 개별 상품 정책 설정 ==========
+    /// <summary>
+    /// 개별 상품 정책 설정
+    /// </summary>
 
     static void setIndividualPolicy() {
         clearScreen();
@@ -1546,7 +1612,9 @@ public class Main {
         }
     }
 
-    // ========== 정책 설정용 카테고리 상품 출력 ==========
+    /// <summary>
+    /// 정책 설정용 카테고리 상품 출력
+    /// </summary>
 
     static void printCategoryProductsForPolicy(int category) {
         if (category == 1) {
@@ -1602,7 +1670,9 @@ public class Main {
         }
     }
 
-    // ========== 현재 정책 확인 ==========
+    /// <summary>
+    /// 현재 정책 확인
+    /// </summary>
 
     static void showCurrentPolicies() {
         clearScreen();
@@ -1797,7 +1867,9 @@ public class Main {
         scanner.next();
     }
 
-    // ========== 자동주문 실행 ==========
+    /// <summary>
+    /// 자동주문 실행
+    /// </summary>
 
     static void executeAutoOrder() {
         clearScreen();
@@ -1942,8 +2014,10 @@ public class Main {
         scanner.next();
     }
 
-    // ========== 개별 상품 자동주문 처리 ==========
-    // 재고가 임계값 이하면 1박스 주문, 주문 금액 반환
+    /// <summary>
+    /// 개별 상품 자동주문 처리
+    /// 재고가 임계값 이하면 1박스 주문, 주문 금액 반환
+    /// </summary>
 
     static int autoOrderProduct(Product product, int threshold) {
         // 총 재고(창고+매대)가 임계값보다 많으면 주문 안 함
@@ -1970,7 +2044,9 @@ public class Main {
         return cost;
     }
 
-    // ========== 영업 시작 (손님 응대) ==========
+    /// <summary>
+    /// 영업 시작 (손님 응대)
+    /// </summary>
 
     static void startBusiness() {
         clearScreen();
@@ -2122,8 +2198,10 @@ public class Main {
         System.out.println("========================================");
     }
 
-    // ========== 상품 초기화 메서드 ==========
-    // 배율을 적용하여 상품 객체 생성
+    /// <summary>
+    /// 상품 초기화 메서드
+    /// 배율을 적용하여 상품 객체 생성
+    /// </summary>
 
     static void initProducts() {
         // 음료 (1박스 = 24개)

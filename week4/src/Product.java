@@ -18,7 +18,9 @@ public class Product {
 
     // ========== 생성자 ==========
 
-    // 기존 생성자 (박스 사이즈 기본값 10)
+    /// <summary>
+    /// 기존 생성자 (박스 사이즈 기본값 10)
+    /// </summary>
     Product(String name, int buyPrice, int sellPrice, int popularity) {
         this.name = name;
         this.buyPrice = buyPrice;
@@ -31,7 +33,9 @@ public class Product {
         this.autoOrderThreshold = 0;    // 기본 임계값 0
     }
 
-    // 박스 사이즈 지정 생성자
+    /// <summary>
+    /// 박스 사이즈 지정 생성자
+    /// </summary>
     Product(String name, int buyPrice, int sellPrice, int popularity, int boxSize) {
         this.name = name;
         this.buyPrice = buyPrice;

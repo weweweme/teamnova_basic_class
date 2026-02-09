@@ -81,6 +81,34 @@ java -cp out Main
       // ...
   }
   ```
+- **try-catch 사용 원칙**: 실제 예외가 발생할 수 있는 상황에서만 사용
+  - **사용하지 말 것**: 단순 입력 검증 (숫자 파싱 등) → `hasNextInt()` 같은 검증 메서드 활용
+  - **불가피한 경우**: Java checked exception (Thread.sleep, System.in 등)
+    - 컴파일러 요구사항임을 주석으로 명시
+  ```java
+  // 나쁜 예: 입력 검증에 try-catch 사용
+  try {
+      int num = Integer.parseInt(input);
+  } catch (NumberFormatException e) {
+      num = 0;
+  }
+
+  // 좋은 예: 검증 메서드 사용
+  if (scanner.hasNextInt()) {
+      int num = scanner.nextInt();
+  } else {
+      scanner.next();  // 잘못된 입력 소비
+      int num = 0;
+  }
+
+  // 불가피한 경우: checked exception (주석 필수)
+  // 주의: Thread.sleep()은 checked exception이라 try-catch 필수 (컴파일러 요구)
+  try {
+      Thread.sleep(ms);
+  } catch (InterruptedException e) {
+      // 단일 스레드 앱에서는 발생하지 않음 (컴파일러 요구사항)
+  }
+  ```
 
 ## 4주차 과제
 

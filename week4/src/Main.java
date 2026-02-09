@@ -1,4 +1,6 @@
 import java.util.Scanner;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Main {
 
@@ -118,6 +120,10 @@ public class Main {
     static Product[] categoryRamen;      // 라면
     static Product[] categoryIcecream;   // 아이스크림
     static Product[] categoryEtc;        // 폭죽
+
+    // ========== 상품 이름 → 상품 객체 맵 ==========
+    // productMap.get(name)으로 O(1) 조회
+    static Map<String, Product> productMap;
 
     // ========== 손님 멘트 배열 ==========
     // [손님유형][다양한 멘트] - 4종류 × 5개
@@ -312,12 +318,13 @@ public class Main {
     /// <summary>
     /// 딜레이 (밀리초)
     /// 게임 연출을 위한 대기 시간
+    /// 주의: Thread.sleep()은 checked exception이라 try-catch 필수 (컴파일러 요구)
     /// </summary>
     static void delay(int ms) {
         try {
             Thread.sleep(ms);
         } catch (InterruptedException e) {
-            // 무시
+            // 단일 스레드 앱에서는 발생하지 않음 (컴파일러 요구사항)
         }
     }
 
@@ -345,16 +352,18 @@ public class Main {
     /// 숫자가 아니면 기본값 반환
     /// </summary>
     static int safeNextInt(int defaultValue) {
-        try {
-            String input = scanner.next();
-            return Integer.parseInt(input);
-        } catch (NumberFormatException e) {
-            return defaultValue;
+        if (scanner.hasNextInt()) {
+            return scanner.nextInt();
         }
+        // 숫자가 아닌 입력은 소비하고 기본값 반환
+        scanner.next();
+        return defaultValue;
     }
 
     /// <summary>
     /// 일정 시간 동안 입력 대기 (입력 감지되면 true 반환)
+    /// 주의: System.in.available()은 IOException, Thread.sleep()은 InterruptedException
+    ///       둘 다 checked exception이라 try-catch 필수 (컴파일러 요구)
     /// </summary>
     static boolean waitForInput(int millis) {
         try {
@@ -371,6 +380,7 @@ public class Main {
             }
             return false;
         } catch (Exception e) {
+            // 단일 스레드 콘솔 앱에서는 발생하지 않음 (컴파일러 요구사항)
             return false;
         }
     }
@@ -929,7 +939,7 @@ public class Main {
         }
 
         // 상품 찾기
-        Product product = findProductByName(productName);
+        Product product = productMap.get(productName);
 
         if (product == null) {
             System.out.println("[!!] 상품을 찾을 수 없습니다.");
@@ -1055,7 +1065,7 @@ public class Main {
         }
 
         // 상품 찾기
-        Product product = findProductByName(productName);
+        Product product = productMap.get(productName);
 
         if (product == null) {
             System.out.println("[!!] 상품을 찾을 수 없습니다.");
@@ -1094,46 +1104,6 @@ public class Main {
         }
 
         System.out.printf("[OK] %s %d개 창고로 회수!%n", product.name, amount);
-    }
-
-    /// <summary>
-    /// 상품명으로 상품 찾기
-    /// </summary>
-
-    static Product findProductByName(String name) {
-        if (name.equals(cola.name) || name.equals("콜라")) return cola;
-        if (name.equals(cider.name) || name.equals("사이다")) return cider;
-        if (name.equals(water.name) || name.equals("물") || name.equals("삼다수")) return water;
-        if (name.equals(pocari.name) || name.equals("포카리")) return pocari;
-        if (name.equals(ipro.name) || name.equals("이프로")) return ipro;
-        if (name.equals(cass.name) || name.equals("카스")) return cass;
-        if (name.equals(terra.name) || name.equals("테라")) return terra;
-        if (name.equals(hite.name) || name.equals("하이트")) return hite;
-        if (name.equals(chamisul.name) || name.equals("참이슬")) return chamisul;
-        if (name.equals(cheumcherum.name) || name.equals("처음처럼")) return cheumcherum;
-        if (name.equals(jinro.name) || name.equals("진로")) return jinro;
-        if (name.equals(driedSquid.name) || name.equals("오징어")) return driedSquid;
-        if (name.equals(peanut.name) || name.equals("땅콩")) return peanut;
-        if (name.equals(chip.name) || name.equals("과자") || name.equals("칩")) return chip;
-        if (name.equals(samgyupsal.name) || name.equals("삼겹살")) return samgyupsal;
-        if (name.equals(moksal.name) || name.equals("목살")) return moksal;
-        if (name.equals(sausage.name) || name.equals("소세지")) return sausage;
-        if (name.equals(tube.name) || name.equals("튜브")) return tube;
-        if (name.equals(sunscreen.name) || name.equals("선크림")) return sunscreen;
-        if (name.equals(beachBall.name) || name.equals("비치볼")) return beachBall;
-        if (name.equals(ssamjang.name) || name.equals("쌈장")) return ssamjang;
-        if (name.equals(lettuce.name) || name.equals("상추")) return lettuce;
-        if (name.equals(kimchi.name) || name.equals("김치")) return kimchi;
-        if (name.equals(shinRamen.name) || name.equals("신라면")) return shinRamen;
-        if (name.equals(jinRamen.name) || name.equals("진라면")) return jinRamen;
-        if (name.equals(neoguri.name) || name.equals("너구리")) return neoguri;
-        if (name.equals(melona.name) || name.equals("메로나")) return melona;
-        if (name.equals(screwBar.name) || name.equals("스크류바")) return screwBar;
-        if (name.equals(fishBread.name) || name.equals("붕어싸만코") || name.equals("붕어")) return fishBread;
-        if (name.equals(sparkler.name) || name.equals("불꽃막대")) return sparkler;
-        if (name.equals(romanCandle.name) || name.equals("로만캔들")) return romanCandle;
-        if (name.equals(fountain.name) || name.equals("분수폭죽")) return fountain;
-        return null;
     }
 
     /// <summary>
@@ -3011,6 +2981,77 @@ public class Main {
         categoryRamen = new Product[]{shinRamen, jinRamen, neoguri};
         categoryIcecream = new Product[]{melona, screwBar, fishBread};
         categoryEtc = new Product[]{sparkler, romanCandle, fountain};
+
+        // 상품 이름 맵 초기화 (O(1) 조회용)
+        initProductMap();
+    }
+
+    /// <summary>
+    /// 상품 이름 맵 초기화
+    /// 상품명과 별칭을 모두 등록하여 productMap.get()으로 O(1) 조회 가능
+    /// </summary>
+    static void initProductMap() {
+        productMap = new HashMap<>();
+
+        // 음료
+        productMap.put("코카콜라", cola);
+        productMap.put("콜라", cola);
+        productMap.put("칠성사이다", cider);
+        productMap.put("사이다", cider);
+        productMap.put("삼다수", water);
+        productMap.put("물", water);
+        productMap.put("포카리스웨트", pocari);
+        productMap.put("포카리", pocari);
+        productMap.put("이프로", ipro);
+
+        // 맥주
+        productMap.put("카스", cass);
+        productMap.put("테라", terra);
+        productMap.put("하이트", hite);
+
+        // 소주
+        productMap.put("참이슬", chamisul);
+        productMap.put("처음처럼", cheumcherum);
+        productMap.put("진로", jinro);
+
+        // 간식/안주
+        productMap.put("마른오징어", driedSquid);
+        productMap.put("오징어", driedSquid);
+        productMap.put("땅콩", peanut);
+        productMap.put("감자칩", chip);
+        productMap.put("과자", chip);
+        productMap.put("칩", chip);
+
+        // 고기
+        productMap.put("삼겹살", samgyupsal);
+        productMap.put("목살", moksal);
+        productMap.put("소세지", sausage);
+
+        // 해수욕 용품
+        productMap.put("튜브", tube);
+        productMap.put("선크림", sunscreen);
+        productMap.put("비치볼", beachBall);
+
+        // 식재료
+        productMap.put("쌈장", ssamjang);
+        productMap.put("상추", lettuce);
+        productMap.put("김치", kimchi);
+
+        // 라면
+        productMap.put("신라면", shinRamen);
+        productMap.put("진라면", jinRamen);
+        productMap.put("너구리", neoguri);
+
+        // 아이스크림
+        productMap.put("메로나", melona);
+        productMap.put("스크류바", screwBar);
+        productMap.put("붕어싸만코", fishBread);
+        productMap.put("붕어", fishBread);
+
+        // 폭죽
+        productMap.put("불꽃막대", sparkler);
+        productMap.put("로만캔들", romanCandle);
+        productMap.put("분수폭죽", fountain);
     }
 
     /// <summary>

@@ -5,7 +5,8 @@
       "Bash(rm:*)",
       "Bash(javac:*)",
       "Bash(ls:*)",
-      "Bash(java:*)"
+      "Bash(java:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

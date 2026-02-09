@@ -123,7 +123,7 @@ public class Main {
     static Product[] categoryGrocery;    // 식재료
     static Product[] categoryRamen;      // 라면
     static Product[] categoryIcecream;   // 아이스크림
-    static Product[] categoryEtc;        // 폭죽
+    static Product[] categoryFirework;   // 폭죽
 
     // 전체 카테고리 배열 (순회용)
     static Product[][] allCategories;
@@ -402,24 +402,38 @@ public class Main {
     }
 
     /// <summary>
-    /// 일정 시간 동안 입력 대기 (입력 감지되면 true 반환)
-    /// 주의: System.in.available()은 IOException, Thread.sleep()은 InterruptedException
-    ///       둘 다 checked exception이라 try-catch 필수 (컴파일러 요구)
+    /// 일정 시간(1.5초) 동안 입력 대기 (입력 감지되면 true 반환)
+    ///
+    /// [@SuppressWarnings("BusyWait") 사용 이유]
+    /// - IDE가 "루프 안에서 Thread.sleep() 호출은 busy-wait 패턴이라 비효율적"이라고 경고함
+    /// - busy-wait: 조건이 만족될 때까지 반복문으로 계속 확인하는 방식 (CPU 자원 낭비 가능)
+    /// - 의도된 동작이므로 경고를 억제함
     /// </summary>
-    static boolean waitForInput(int millis) {
+    @SuppressWarnings("BusyWait")
+    private static boolean waitForInput() {
         try {
+            // 시작 시간 기록
             long start = System.currentTimeMillis();
-            while (System.currentTimeMillis() - start < millis) {
+
+            // 1.5초 동안 반복
+            while (System.currentTimeMillis() - start < 1500) {
+
+                // 입력 버퍼에 데이터가 있으면
                 if (System.in.available() > 0) {
-                    // 입력 버퍼 비우기
+
+                    // 버퍼 비우기 (입력된 문자들 제거, 반환값은 의도적으로 무시)
                     while (System.in.available() > 0) {
-                        System.in.read();
+                        int ignored = System.in.read();
                     }
-                    return true;
+                    return true;  // 입력 감지됨
                 }
+
+                // 50ms 대기 (CPU 부하 줄이기)
                 Thread.sleep(50);
             }
-            return false;
+
+            return false;  // 1.5초 지남, 입력 없음
+
         } catch (Exception e) {
             // 단일 스레드 콘솔 앱에서는 발생하지 않음 (컴파일러 요구사항)
             return false;
@@ -429,7 +443,7 @@ public class Main {
     /// <summary>
     /// 게임 시작 화면 출력
     /// </summary>
-    static void printStartScreen() {
+    private static void printStartScreen() {
         System.out.println("========================================");
         System.out.println("     _____                      ");
         System.out.println("    / ____|                     ");
@@ -451,7 +465,7 @@ public class Main {
     /// <summary>
     /// 하루 시작 메뉴 출력
     /// </summary>
-    static void printDailyMenu() {
+    private static void printDailyMenu() {
         clearScreen();
         System.out.println("========================================");
         if (isMorning) {
@@ -483,7 +497,7 @@ public class Main {
     /// 영업 시작 서브메뉴
     /// 선택한 영업 타입 반환 (1: 직접, 2: 빠른, 3: 1주일 스킵, 0: 취소)
     /// </summary>
-    static int showBusinessMenu() {
+    private static int showBusinessMenu() {
         clearScreen();
         System.out.println("========================================");
         System.out.println("           [ 영업 시작 ]");
@@ -495,14 +509,14 @@ public class Main {
         System.out.println("[0] 돌아가기");
         System.out.print(">> ");
 
-        int choice = safeNextInt(0);  // 잘못된 입력 시 돌아가기
-        return choice;
+        // 잘못된 입력 시 돌아가기
+        return safeNextInt(0);
     }
 
     /// <summary>
     /// 재고/매대 관리 서브메뉴
     /// </summary>
-    static void showInventoryMenu() {
+    private static void showInventoryMenu() {
         boolean managing = true;
 
         while (managing) {
@@ -2004,11 +2018,10 @@ public class Main {
 
                 } else if (currentStock > 0) {
                     // 일부만 판매
-                    int actualAmount = currentStock;
-                    int saleAmount = product.sellPrice * actualAmount;
-                    int profitAmount = (product.sellPrice - product.buyPrice) * actualAmount;
+                    int saleAmount = product.sellPrice * currentStock;
+                    int profitAmount = (product.sellPrice - product.buyPrice) * currentStock;
 
-                    display.sell(product, actualAmount);
+                    display.sell(product, currentStock);
 
                     money = money + saleAmount;
                     customerSales = customerSales + saleAmount;
@@ -2018,7 +2031,7 @@ public class Main {
                     successCount++;
                     failCount++;  // 일부 실패로 카운트
 
-                    System.out.printf(" - %s: %d개만 (+%,d원)%n", product.name, actualAmount, saleAmount);
+                    System.out.printf(" - %s: %d개만 (+%,d원)%n", product.name, currentStock, saleAmount);
 
                 } else {
                     // 재고 없음
@@ -2039,7 +2052,7 @@ public class Main {
                 System.out.println("(아무 키나 누르면 일시정지)");
 
                 // 1.5초 동안 입력 감지 - 입력 있으면 메뉴 표시
-                boolean interrupted = waitForInput(1500);
+                boolean interrupted = waitForInput();
 
                 if (!interrupted) {
                     // 입력 없음 -> 자동으로 다음 손님
@@ -2396,7 +2409,7 @@ public class Main {
             }
         } else {
             // 축제 시즌: 폭죽, 맥주 대량 판매
-            int bonus = sellBulk(categoryEtc, 5 + rand(10));
+            int bonus = sellBulk(categoryFirework, 5 + rand(10));
             bonus = bonus + sellBulk(categoryBeer, 10 + rand(10));
             if (bonus > 0) {
                 return true;
@@ -2502,12 +2515,12 @@ public class Main {
         categoryGrocery = new Product[]{ssamjang, lettuce, kimchi};
         categoryRamen = new Product[]{shinRamen, jinRamen, neoguri};
         categoryIcecream = new Product[]{melona, screwBar, fishBread};
-        categoryEtc = new Product[]{sparkler, romanCandle, fountain};
+        categoryFirework = new Product[]{sparkler, romanCandle, fountain};
 
         // 전체 카테고리 배열 초기화 (순회용)
         allCategories = new Product[][]{
             categoryDrink, categoryBeer, categorySoju, categorySnack, categoryMeat,
-            categoryBeach, categoryGrocery, categoryRamen, categoryIcecream, categoryEtc
+            categoryBeach, categoryGrocery, categoryRamen, categoryIcecream, categoryFirework
         };
 
         // 전체 상품 배열 초기화 (순회용)
@@ -2679,7 +2692,7 @@ public class Main {
             c.wantProducts[3] = getAvailableFromCategory(categorySnack);
             c.wantProducts[4] = getAvailableFromCategory(categoryIcecream);
             c.wantProducts[5] = getAvailableFromCategory(categoryIcecream);
-            c.wantProducts[6] = getAvailableFromCategory(categoryEtc);
+            c.wantProducts[6] = getAvailableFromCategory(categoryFirework);
 
             c.wantAmounts[0] = 6 + rand(5);           // 맥주 (필수) - 많이
             c.wantAmounts[1] = 3 + rand(3);           // 소주 (필수)

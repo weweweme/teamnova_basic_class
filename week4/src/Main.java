@@ -645,18 +645,18 @@ public class Main {
     // ========== 상품 구매 처리 ==========
 
     static void purchaseProduct(int category, int productNum, int quantity) {
-        // 슬롯 체크
-        int remainingSlot = MAX_SLOT - usedSlot;
-        if (quantity > remainingSlot) {
-            System.out.println("[!!] 매대 공간이 부족합니다. (남은 칸: " + remainingSlot + ")");
-            return;
-        }
-
         // 카테고리와 상품 번호로 상품 찾기
         Product product = getProductByCategoryAndNum(category, productNum);
 
         if (product == null) {
             System.out.println("[!!] 잘못된 상품 번호입니다.");
+            return;
+        }
+
+        // 새 상품이면 (재고가 0이면) 슬롯 체크
+        boolean isNewProduct = (product.stock == 0);
+        if (isNewProduct && usedSlot >= MAX_SLOT) {
+            System.out.println("[!!] 매대 공간이 부족합니다. (사용: " + usedSlot + "/" + MAX_SLOT + "칸)");
             return;
         }
 
@@ -670,8 +670,12 @@ public class Main {
 
         // 구매 처리
         money = money - totalCost;
-        usedSlot = usedSlot + quantity;
         product.addStock(quantity);
+
+        // 새 상품이면 슬롯 1칸 사용
+        if (isNewProduct) {
+            usedSlot = usedSlot + 1;
+        }
 
         System.out.println("[OK] " + product.name + " " + quantity + "개 구매 완료! (-" + String.format("%,d", totalCost) + "원)");
     }
@@ -1364,17 +1368,21 @@ public class Main {
             return 0;
         }
 
-        // 슬롯 체크
-        int remainingSlot = MAX_SLOT - usedSlot;
-        if (boxSize > remainingSlot) {
-            System.out.printf(" - %s: 매대 공간 부족 (필요: %d칸)%n", product.name, boxSize);
+        // 새 상품이면 (재고가 0이면) 슬롯 체크
+        boolean isNewProduct = (product.stock == 0);
+        if (isNewProduct && usedSlot >= MAX_SLOT) {
+            System.out.printf(" - %s: 매대 공간 부족 (사용: %d/%d칸)%n", product.name, usedSlot, MAX_SLOT);
             return 0;
         }
 
         // 주문 처리
         money = money - cost;
-        usedSlot = usedSlot + boxSize;
         product.addStock(boxSize);
+
+        // 새 상품이면 슬롯 1칸 사용
+        if (isNewProduct) {
+            usedSlot = usedSlot + 1;
+        }
 
         System.out.printf(" - %s 1박스(%d개) 구매 (-%,d원)%n", product.name, boxSize, cost);
 
@@ -1591,71 +1599,98 @@ public class Main {
                 int saleAmount = itemSellPrice * wantAmount;
                 int profitAmount = (itemSellPrice - itemBuyPrice) * wantAmount;
 
-                // 재고 차감 (상품별로 처리)
+                // 재고 차감 (상품별로 처리) + 재고가 0이 되면 슬롯 반환
                 if (wantItem.equals(cola.name)) {
                     cola.removeStock(wantAmount);
+                    if (cola.stock == 0) usedSlot--;
                 } else if (wantItem.equals(cider.name)) {
                     cider.removeStock(wantAmount);
+                    if (cider.stock == 0) usedSlot--;
                 } else if (wantItem.equals(water.name)) {
                     water.removeStock(wantAmount);
+                    if (water.stock == 0) usedSlot--;
                 } else if (wantItem.equals(pocari.name)) {
                     pocari.removeStock(wantAmount);
+                    if (pocari.stock == 0) usedSlot--;
                 } else if (wantItem.equals(ipro.name)) {
                     ipro.removeStock(wantAmount);
+                    if (ipro.stock == 0) usedSlot--;
                 } else if (wantItem.equals(cass.name)) {
                     cass.removeStock(wantAmount);
+                    if (cass.stock == 0) usedSlot--;
                 } else if (wantItem.equals(terra.name)) {
                     terra.removeStock(wantAmount);
+                    if (terra.stock == 0) usedSlot--;
                 } else if (wantItem.equals(hite.name)) {
                     hite.removeStock(wantAmount);
+                    if (hite.stock == 0) usedSlot--;
                 } else if (wantItem.equals(chamisul.name)) {
                     chamisul.removeStock(wantAmount);
+                    if (chamisul.stock == 0) usedSlot--;
                 } else if (wantItem.equals(cheumcherum.name)) {
                     cheumcherum.removeStock(wantAmount);
+                    if (cheumcherum.stock == 0) usedSlot--;
                 } else if (wantItem.equals(jinro.name)) {
                     jinro.removeStock(wantAmount);
+                    if (jinro.stock == 0) usedSlot--;
                 } else if (wantItem.equals(driedSquid.name)) {
                     driedSquid.removeStock(wantAmount);
+                    if (driedSquid.stock == 0) usedSlot--;
                 } else if (wantItem.equals(peanut.name)) {
                     peanut.removeStock(wantAmount);
+                    if (peanut.stock == 0) usedSlot--;
                 } else if (wantItem.equals(chip.name)) {
                     chip.removeStock(wantAmount);
+                    if (chip.stock == 0) usedSlot--;
                 } else if (wantItem.equals(samgyupsal.name)) {
                     samgyupsal.removeStock(wantAmount);
+                    if (samgyupsal.stock == 0) usedSlot--;
                 } else if (wantItem.equals(moksal.name)) {
                     moksal.removeStock(wantAmount);
+                    if (moksal.stock == 0) usedSlot--;
                 } else if (wantItem.equals(sausage.name)) {
                     sausage.removeStock(wantAmount);
+                    if (sausage.stock == 0) usedSlot--;
                 } else if (wantItem.equals(tube.name)) {
                     tube.removeStock(wantAmount);
+                    if (tube.stock == 0) usedSlot--;
                 } else if (wantItem.equals(sunscreen.name)) {
                     sunscreen.removeStock(wantAmount);
+                    if (sunscreen.stock == 0) usedSlot--;
                 } else if (wantItem.equals(beachBall.name)) {
                     beachBall.removeStock(wantAmount);
+                    if (beachBall.stock == 0) usedSlot--;
                 } else if (wantItem.equals(ssamjang.name)) {
                     ssamjang.removeStock(wantAmount);
+                    if (ssamjang.stock == 0) usedSlot--;
                 } else if (wantItem.equals(lettuce.name)) {
                     lettuce.removeStock(wantAmount);
+                    if (lettuce.stock == 0) usedSlot--;
                 } else if (wantItem.equals(kimchi.name)) {
                     kimchi.removeStock(wantAmount);
+                    if (kimchi.stock == 0) usedSlot--;
                 } else if (wantItem.equals(shinRamen.name)) {
                     shinRamen.removeStock(wantAmount);
+                    if (shinRamen.stock == 0) usedSlot--;
                 } else if (wantItem.equals(jinRamen.name)) {
                     jinRamen.removeStock(wantAmount);
+                    if (jinRamen.stock == 0) usedSlot--;
                 } else if (wantItem.equals(neoguri.name)) {
                     neoguri.removeStock(wantAmount);
+                    if (neoguri.stock == 0) usedSlot--;
                 } else if (wantItem.equals(melona.name)) {
                     melona.removeStock(wantAmount);
+                    if (melona.stock == 0) usedSlot--;
                 } else if (wantItem.equals(screwBar.name)) {
                     screwBar.removeStock(wantAmount);
+                    if (screwBar.stock == 0) usedSlot--;
                 } else if (wantItem.equals(fishBread.name)) {
                     fishBread.removeStock(wantAmount);
+                    if (fishBread.stock == 0) usedSlot--;
                 } else if (wantItem.equals(firework.name)) {
                     firework.removeStock(wantAmount);
+                    if (firework.stock == 0) usedSlot--;
                 }
-
-                // 슬롯 감소
-                usedSlot = usedSlot - wantAmount;
 
                 // 매출/이익 누적
                 money = money + saleAmount;
@@ -1734,7 +1769,9 @@ public class Main {
                     firework.removeStock(actualAmount);
                 }
 
-                usedSlot = usedSlot - actualAmount;
+                // 재고가 0이 되었으므로 슬롯 1칸 반환
+                usedSlot = usedSlot - 1;
+
                 money = money + saleAmount;
                 todaySales = todaySales + saleAmount;
                 todayProfit = todayProfit + profitAmount;

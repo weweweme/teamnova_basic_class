@@ -19,11 +19,15 @@ public class Main {
     static int money;
     static int goalMoney;
     static int priceMultiplier;
-    static int usedSlot = 0;
     static int day = 1;
     static boolean isMorning = true;  // true: 아침, false: 오후
 
     static Scanner scanner = new Scanner(System.in);
+
+    // ========== 창고와 매대 ==========
+
+    static Warehouse warehouse;  // 창고 (상품 재고 관리)
+    static Display display;      // 매대 (상품 진열 관리)
 
     // ========== 카테고리별 자동주문 정책 ==========
     // 각 카테고리의 자동주문 활성화 여부와 임계값
@@ -252,6 +256,10 @@ public class Main {
         // 상품 초기화 (배율 적용)
         initProducts();
 
+        // 창고와 매대 초기화
+        warehouse = new Warehouse();
+        display = new Display(MAX_SLOT, MAX_DISPLAY_PER_SLOT);
+
         // ========== 게임 루프 ==========
 
         boolean playing = true;
@@ -281,10 +289,10 @@ public class Main {
 
                 case 2:
                     // 영업 시작 전 매대 체크
-                    if (usedSlot < MIN_SLOT_FOR_BUSINESS) {
+                    if (display.getUsedSlots() < MIN_SLOT_FOR_BUSINESS) {
                         System.out.println();
                         System.out.println("[!!] 매대가 부족합니다!");
-                        System.out.printf("    현재: %d칸 / 최소: %d칸 (50%%)%n", usedSlot, MIN_SLOT_FOR_BUSINESS);
+                        System.out.printf("    현재: %d칸 / 최소: %d칸 (50%%)%n", display.getUsedSlots(), MIN_SLOT_FOR_BUSINESS);
                         System.out.println("    도매상에서 상품을 구매하고 매대에 진열하세요.");
                         System.out.println();
                         System.out.println("아무 키나 입력하면 돌아갑니다...");
@@ -365,6 +373,13 @@ public class Main {
     /// </summary>
     static int rand(int max) {
         return (int)(Math.random() * max);
+    }
+
+    /// <summary>
+    /// 총 재고 조회 (창고 + 매대)
+    /// </summary>
+    static int getTotalStock(Product p) {
+        return warehouse.getStock(p) + display.getDisplayed(p);
     }
 
     /// <summary>
@@ -451,7 +466,7 @@ public class Main {
         }
         System.out.println("========================================");
         System.out.println("현재 자본: " + String.format("%,d", money) + "원");
-        System.out.println("매대 현황: " + usedSlot + " / " + MAX_SLOT + "칸");
+        System.out.println("매대 현황: " + display.getUsedSlots() + " / " + MAX_SLOT + "칸");
         System.out.println();
 
         if (isMorning) {
@@ -563,140 +578,17 @@ public class Main {
     static void showInventory() {
         clearScreen();
         System.out.println("========================================");
-        System.out.printf("       [ 매대 현황 ] %d / %d칸%n", usedSlot, MAX_SLOT);
+        System.out.printf("       [ 매대 현황 ] %d / %d칸%n", display.getUsedSlots(), MAX_SLOT);
         System.out.println("========================================");
         System.out.println();
 
-        // 재고가 있는 상품만 막대그래프로 출력
         boolean hasStock = false;
-
-        if (cola.displayStock > 0) {
-            printStockBar(cola.name, cola.displayStock);
-            hasStock = true;
-        }
-        if (cider.displayStock > 0) {
-            printStockBar(cider.name, cider.displayStock);
-            hasStock = true;
-        }
-        if (water.displayStock > 0) {
-            printStockBar(water.name, water.displayStock);
-            hasStock = true;
-        }
-        if (pocari.displayStock > 0) {
-            printStockBar(pocari.name, pocari.displayStock);
-            hasStock = true;
-        }
-        if (ipro.displayStock > 0) {
-            printStockBar(ipro.name, ipro.displayStock);
-            hasStock = true;
-        }
-        if (cass.displayStock > 0) {
-            printStockBar(cass.name, cass.displayStock);
-            hasStock = true;
-        }
-        if (terra.displayStock > 0) {
-            printStockBar(terra.name, terra.displayStock);
-            hasStock = true;
-        }
-        if (hite.displayStock > 0) {
-            printStockBar(hite.name, hite.displayStock);
-            hasStock = true;
-        }
-        if (chamisul.displayStock > 0) {
-            printStockBar(chamisul.name, chamisul.displayStock);
-            hasStock = true;
-        }
-        if (cheumcherum.displayStock > 0) {
-            printStockBar(cheumcherum.name, cheumcherum.displayStock);
-            hasStock = true;
-        }
-        if (jinro.displayStock > 0) {
-            printStockBar(jinro.name, jinro.displayStock);
-            hasStock = true;
-        }
-        if (driedSquid.displayStock > 0) {
-            printStockBar(driedSquid.name, driedSquid.displayStock);
-            hasStock = true;
-        }
-        if (peanut.displayStock > 0) {
-            printStockBar(peanut.name, peanut.displayStock);
-            hasStock = true;
-        }
-        if (chip.displayStock > 0) {
-            printStockBar(chip.name, chip.displayStock);
-            hasStock = true;
-        }
-        if (samgyupsal.displayStock > 0) {
-            printStockBar(samgyupsal.name, samgyupsal.displayStock);
-            hasStock = true;
-        }
-        if (moksal.displayStock > 0) {
-            printStockBar(moksal.name, moksal.displayStock);
-            hasStock = true;
-        }
-        if (sausage.displayStock > 0) {
-            printStockBar(sausage.name, sausage.displayStock);
-            hasStock = true;
-        }
-        if (tube.displayStock > 0) {
-            printStockBar(tube.name, tube.displayStock);
-            hasStock = true;
-        }
-        if (sunscreen.displayStock > 0) {
-            printStockBar(sunscreen.name, sunscreen.displayStock);
-            hasStock = true;
-        }
-        if (beachBall.displayStock > 0) {
-            printStockBar(beachBall.name, beachBall.displayStock);
-            hasStock = true;
-        }
-        if (ssamjang.displayStock > 0) {
-            printStockBar(ssamjang.name, ssamjang.displayStock);
-            hasStock = true;
-        }
-        if (lettuce.displayStock > 0) {
-            printStockBar(lettuce.name, lettuce.displayStock);
-            hasStock = true;
-        }
-        if (kimchi.displayStock > 0) {
-            printStockBar(kimchi.name, kimchi.displayStock);
-            hasStock = true;
-        }
-        if (shinRamen.displayStock > 0) {
-            printStockBar(shinRamen.name, shinRamen.displayStock);
-            hasStock = true;
-        }
-        if (jinRamen.displayStock > 0) {
-            printStockBar(jinRamen.name, jinRamen.displayStock);
-            hasStock = true;
-        }
-        if (neoguri.displayStock > 0) {
-            printStockBar(neoguri.name, neoguri.displayStock);
-            hasStock = true;
-        }
-        if (melona.displayStock > 0) {
-            printStockBar(melona.name, melona.displayStock);
-            hasStock = true;
-        }
-        if (screwBar.displayStock > 0) {
-            printStockBar(screwBar.name, screwBar.displayStock);
-            hasStock = true;
-        }
-        if (fishBread.displayStock > 0) {
-            printStockBar(fishBread.name, fishBread.displayStock);
-            hasStock = true;
-        }
-        if (sparkler.displayStock > 0) {
-            printStockBar(sparkler.name, sparkler.displayStock);
-            hasStock = true;
-        }
-        if (romanCandle.displayStock > 0) {
-            printStockBar(romanCandle.name, romanCandle.displayStock);
-            hasStock = true;
-        }
-        if (fountain.displayStock > 0) {
-            printStockBar(fountain.name, fountain.displayStock);
-            hasStock = true;
+        for (Product p : allProducts) {
+            int stock = display.getDisplayed(p);
+            if (stock > 0) {
+                printStockBar(p.name, stock);
+                hasStock = true;
+            }
         }
 
         // 매대가 비어있으면
@@ -722,7 +614,7 @@ public class Main {
             System.out.println("========================================");
             System.out.println("            [ 매대 관리 ]");
             System.out.println("========================================");
-            System.out.printf("매대: %d / %d칸%n", usedSlot, MAX_SLOT);
+            System.out.printf("매대: %d / %d칸%n", display.getUsedSlots(), MAX_SLOT);
             System.out.println();
             System.out.println("[1] 상품 진열 (창고 → 매대)");
             System.out.println("[2] 상품 회수 (매대 → 창고)");
@@ -767,133 +659,12 @@ public class Main {
         boolean hasStock = false;
 
         // 창고에 재고가 있는 상품만 출력
-        if (cola.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", cola.name, cola.warehouseStock);
-            hasStock = true;
-        }
-        if (cider.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", cider.name, cider.warehouseStock);
-            hasStock = true;
-        }
-        if (water.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", water.name, water.warehouseStock);
-            hasStock = true;
-        }
-        if (pocari.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", pocari.name, pocari.warehouseStock);
-            hasStock = true;
-        }
-        if (ipro.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", ipro.name, ipro.warehouseStock);
-            hasStock = true;
-        }
-        if (cass.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", cass.name, cass.warehouseStock);
-            hasStock = true;
-        }
-        if (terra.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", terra.name, terra.warehouseStock);
-            hasStock = true;
-        }
-        if (hite.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", hite.name, hite.warehouseStock);
-            hasStock = true;
-        }
-        if (chamisul.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", chamisul.name, chamisul.warehouseStock);
-            hasStock = true;
-        }
-        if (cheumcherum.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", cheumcherum.name, cheumcherum.warehouseStock);
-            hasStock = true;
-        }
-        if (jinro.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", jinro.name, jinro.warehouseStock);
-            hasStock = true;
-        }
-        if (driedSquid.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", driedSquid.name, driedSquid.warehouseStock);
-            hasStock = true;
-        }
-        if (peanut.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", peanut.name, peanut.warehouseStock);
-            hasStock = true;
-        }
-        if (chip.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", chip.name, chip.warehouseStock);
-            hasStock = true;
-        }
-        if (samgyupsal.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", samgyupsal.name, samgyupsal.warehouseStock);
-            hasStock = true;
-        }
-        if (moksal.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", moksal.name, moksal.warehouseStock);
-            hasStock = true;
-        }
-        if (sausage.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", sausage.name, sausage.warehouseStock);
-            hasStock = true;
-        }
-        if (tube.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", tube.name, tube.warehouseStock);
-            hasStock = true;
-        }
-        if (sunscreen.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", sunscreen.name, sunscreen.warehouseStock);
-            hasStock = true;
-        }
-        if (beachBall.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", beachBall.name, beachBall.warehouseStock);
-            hasStock = true;
-        }
-        if (ssamjang.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", ssamjang.name, ssamjang.warehouseStock);
-            hasStock = true;
-        }
-        if (lettuce.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", lettuce.name, lettuce.warehouseStock);
-            hasStock = true;
-        }
-        if (kimchi.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", kimchi.name, kimchi.warehouseStock);
-            hasStock = true;
-        }
-        if (shinRamen.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", shinRamen.name, shinRamen.warehouseStock);
-            hasStock = true;
-        }
-        if (jinRamen.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", jinRamen.name, jinRamen.warehouseStock);
-            hasStock = true;
-        }
-        if (neoguri.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", neoguri.name, neoguri.warehouseStock);
-            hasStock = true;
-        }
-        if (melona.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", melona.name, melona.warehouseStock);
-            hasStock = true;
-        }
-        if (screwBar.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", screwBar.name, screwBar.warehouseStock);
-            hasStock = true;
-        }
-        if (fishBread.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", fishBread.name, fishBread.warehouseStock);
-            hasStock = true;
-        }
-        if (sparkler.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", sparkler.name, sparkler.warehouseStock);
-            hasStock = true;
-        }
-        if (romanCandle.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", romanCandle.name, romanCandle.warehouseStock);
-            hasStock = true;
-        }
-        if (fountain.warehouseStock > 0) {
-            System.out.printf("%-16s %d개%n", fountain.name, fountain.warehouseStock);
-            hasStock = true;
+        for (Product p : allProducts) {
+            int stock = warehouse.getStock(p);
+            if (stock > 0) {
+                System.out.printf("%-16s %d개%n", p.name, stock);
+                hasStock = true;
+            }
         }
 
         if (!hasStock) {
@@ -914,44 +685,18 @@ public class Main {
         System.out.println("========================================");
         System.out.println("        [ 상품 진열 ] 창고 → 매대");
         System.out.println("========================================");
-        System.out.printf("매대: %d / %d칸%n", usedSlot, MAX_SLOT);
+        System.out.printf("매대: %d / %d칸%n", display.getUsedSlots(), MAX_SLOT);
         System.out.println();
 
         // 창고에 재고가 있는 상품 목록 출력
         System.out.println("--- 창고 재고 ---");
         int num = 1;
-        if (cola.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, cola.name, cola.warehouseStock);
-        if (cider.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, cider.name, cider.warehouseStock);
-        if (water.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, water.name, water.warehouseStock);
-        if (pocari.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, pocari.name, pocari.warehouseStock);
-        if (ipro.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, ipro.name, ipro.warehouseStock);
-        if (cass.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, cass.name, cass.warehouseStock);
-        if (terra.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, terra.name, terra.warehouseStock);
-        if (hite.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, hite.name, hite.warehouseStock);
-        if (chamisul.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, chamisul.name, chamisul.warehouseStock);
-        if (cheumcherum.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, cheumcherum.name, cheumcherum.warehouseStock);
-        if (jinro.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, jinro.name, jinro.warehouseStock);
-        if (driedSquid.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, driedSquid.name, driedSquid.warehouseStock);
-        if (peanut.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, peanut.name, peanut.warehouseStock);
-        if (chip.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, chip.name, chip.warehouseStock);
-        if (samgyupsal.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, samgyupsal.name, samgyupsal.warehouseStock);
-        if (moksal.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, moksal.name, moksal.warehouseStock);
-        if (sausage.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, sausage.name, sausage.warehouseStock);
-        if (tube.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, tube.name, tube.warehouseStock);
-        if (sunscreen.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, sunscreen.name, sunscreen.warehouseStock);
-        if (beachBall.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, beachBall.name, beachBall.warehouseStock);
-        if (ssamjang.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, ssamjang.name, ssamjang.warehouseStock);
-        if (lettuce.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, lettuce.name, lettuce.warehouseStock);
-        if (kimchi.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, kimchi.name, kimchi.warehouseStock);
-        if (shinRamen.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, shinRamen.name, shinRamen.warehouseStock);
-        if (jinRamen.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, jinRamen.name, jinRamen.warehouseStock);
-        if (neoguri.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, neoguri.name, neoguri.warehouseStock);
-        if (melona.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, melona.name, melona.warehouseStock);
-        if (screwBar.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, screwBar.name, screwBar.warehouseStock);
-        if (fishBread.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, fishBread.name, fishBread.warehouseStock);
-        if (sparkler.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, sparkler.name, sparkler.warehouseStock);
-        if (romanCandle.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, romanCandle.name, romanCandle.warehouseStock);
-        if (fountain.warehouseStock > 0) System.out.printf("%d. %s (%d개)%n", num++, fountain.name, fountain.warehouseStock);
+        for (Product p : allProducts) {
+            int stock = warehouse.getStock(p);
+            if (stock > 0) {
+                System.out.printf("%d. %s (%d개)%n", num++, p.name, stock);
+            }
+        }
 
         if (num == 1) {
             System.out.println("  창고가 비어있습니다.");
@@ -977,31 +722,33 @@ public class Main {
             return;
         }
 
-        if (product.warehouseStock == 0) {
+        int warehouseStock = warehouse.getStock(product);
+        if (warehouseStock == 0) {
             System.out.println("[!!] 창고에 재고가 없습니다.");
             return;
         }
 
         // 새 상품이면 슬롯 체크
-        boolean isNewOnDisplay = (product.displayStock == 0);
-        if (isNewOnDisplay && usedSlot >= MAX_SLOT) {
-            System.out.println("[!!] 매대 공간이 부족합니다. (" + usedSlot + "/" + MAX_SLOT + "칸)");
+        int currentDisplay = display.getDisplayed(product);
+        boolean isNewOnDisplay = (currentDisplay == 0);
+        if (isNewOnDisplay && !display.hasEmptySlot()) {
+            System.out.println("[!!] 매대 공간이 부족합니다. (" + display.getUsedSlots() + "/" + MAX_SLOT + "칸)");
             return;
         }
 
         // 매대에 진열 가능한 최대 수량 계산
-        int maxCanDisplay = MAX_DISPLAY_PER_SLOT - product.displayStock;
+        int maxCanDisplay = MAX_DISPLAY_PER_SLOT - currentDisplay;
         if (maxCanDisplay <= 0) {
             System.out.printf("[!!] 매대가 가득 찼습니다. (최대 %d개)%n", MAX_DISPLAY_PER_SLOT);
             return;
         }
 
-        System.out.printf("수량 입력 (창고: %d개, 진열가능: %d개, 전체: a): ", product.warehouseStock, maxCanDisplay);
+        System.out.printf("수량 입력 (창고: %d개, 진열가능: %d개, 전체: a): ", warehouseStock, maxCanDisplay);
         String amountStr = scanner.next();
 
         int amount;
         if (amountStr.equals("a") || amountStr.equals("A")) {
-            amount = Math.min(product.warehouseStock, maxCanDisplay);
+            amount = Math.min(warehouseStock, maxCanDisplay);
         } else {
             amount = Integer.parseInt(amountStr);
         }
@@ -1010,25 +757,16 @@ public class Main {
             return;
         }
 
-        if (amount > product.warehouseStock) {
-            amount = product.warehouseStock;
-        }
-
         // 슬롯당 최대 수량 제한 적용
         if (amount > maxCanDisplay) {
             System.out.printf("[!!] 매대 공간 제한으로 %d개만 진열합니다. (최대 %d개)%n", maxCanDisplay, MAX_DISPLAY_PER_SLOT);
             amount = maxCanDisplay;
         }
 
-        // 진열 처리
-        product.displayFromWarehouse(amount);
+        // 진열 처리 (Display 클래스가 슬롯과 재고를 자동 관리)
+        int displayed = display.displayFromWarehouse(product, warehouse, amount);
 
-        // 새 상품이면 슬롯 1칸 사용
-        if (isNewOnDisplay) {
-            usedSlot = usedSlot + 1;
-        }
-
-        System.out.printf("[OK] %s %d개 매대에 진열! (매대: %d/%d개)%n", product.name, amount, product.displayStock, MAX_DISPLAY_PER_SLOT);
+        System.out.printf("[OK] %s %d개 매대에 진열! (매대: %d/%d개)%n", product.name, displayed, display.getDisplayed(product), MAX_DISPLAY_PER_SLOT);
     }
 
     /// <summary>
@@ -1040,44 +778,18 @@ public class Main {
         System.out.println("========================================");
         System.out.println("        [ 상품 회수 ] 매대 → 창고");
         System.out.println("========================================");
-        System.out.printf("매대: %d / %d칸%n", usedSlot, MAX_SLOT);
+        System.out.printf("매대: %d / %d칸%n", display.getUsedSlots(), MAX_SLOT);
         System.out.println();
 
         // 매대에 진열된 상품 목록 출력
         System.out.println("--- 매대 재고 ---");
         int num = 1;
-        if (cola.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, cola.name, cola.displayStock);
-        if (cider.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, cider.name, cider.displayStock);
-        if (water.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, water.name, water.displayStock);
-        if (pocari.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, pocari.name, pocari.displayStock);
-        if (ipro.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, ipro.name, ipro.displayStock);
-        if (cass.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, cass.name, cass.displayStock);
-        if (terra.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, terra.name, terra.displayStock);
-        if (hite.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, hite.name, hite.displayStock);
-        if (chamisul.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, chamisul.name, chamisul.displayStock);
-        if (cheumcherum.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, cheumcherum.name, cheumcherum.displayStock);
-        if (jinro.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, jinro.name, jinro.displayStock);
-        if (driedSquid.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, driedSquid.name, driedSquid.displayStock);
-        if (peanut.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, peanut.name, peanut.displayStock);
-        if (chip.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, chip.name, chip.displayStock);
-        if (samgyupsal.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, samgyupsal.name, samgyupsal.displayStock);
-        if (moksal.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, moksal.name, moksal.displayStock);
-        if (sausage.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, sausage.name, sausage.displayStock);
-        if (tube.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, tube.name, tube.displayStock);
-        if (sunscreen.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, sunscreen.name, sunscreen.displayStock);
-        if (beachBall.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, beachBall.name, beachBall.displayStock);
-        if (ssamjang.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, ssamjang.name, ssamjang.displayStock);
-        if (lettuce.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, lettuce.name, lettuce.displayStock);
-        if (kimchi.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, kimchi.name, kimchi.displayStock);
-        if (shinRamen.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, shinRamen.name, shinRamen.displayStock);
-        if (jinRamen.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, jinRamen.name, jinRamen.displayStock);
-        if (neoguri.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, neoguri.name, neoguri.displayStock);
-        if (melona.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, melona.name, melona.displayStock);
-        if (screwBar.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, screwBar.name, screwBar.displayStock);
-        if (fishBread.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, fishBread.name, fishBread.displayStock);
-        if (sparkler.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, sparkler.name, sparkler.displayStock);
-        if (romanCandle.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, romanCandle.name, romanCandle.displayStock);
-        if (fountain.displayStock > 0) System.out.printf("%d. %s (%d개)%n", num++, fountain.name, fountain.displayStock);
+        for (Product p : allProducts) {
+            int stock = display.getDisplayed(p);
+            if (stock > 0) {
+                System.out.printf("%d. %s (%d개)%n", num++, p.name, stock);
+            }
+        }
 
         if (num == 1) {
             System.out.println("  매대가 비어있습니다.");
@@ -1103,17 +815,18 @@ public class Main {
             return;
         }
 
-        if (product.displayStock == 0) {
+        int currentDisplay = display.getDisplayed(product);
+        if (currentDisplay == 0) {
             System.out.println("[!!] 매대에 재고가 없습니다.");
             return;
         }
 
-        System.out.printf("수량 입력 (매대: %d개, 전체: a): ", product.displayStock);
+        System.out.printf("수량 입력 (매대: %d개, 전체: a): ", currentDisplay);
         String amountStr = scanner.next();
 
         int amount;
         if (amountStr.equals("a") || amountStr.equals("A")) {
-            amount = product.displayStock;
+            amount = currentDisplay;
         } else {
             amount = Integer.parseInt(amountStr);
         }
@@ -1122,19 +835,10 @@ public class Main {
             return;
         }
 
-        if (amount > product.displayStock) {
-            amount = product.displayStock;
-        }
+        // 회수 처리 (Display 클래스가 슬롯과 재고를 자동 관리)
+        int returned = display.returnToWarehouse(product, warehouse, amount);
 
-        // 회수 처리
-        product.returnToWarehouse(amount);
-
-        // 매대가 비워지면 슬롯 반환
-        if (product.displayStock == 0) {
-            usedSlot = usedSlot - 1;
-        }
-
-        System.out.printf("[OK] %s %d개 창고로 회수!%n", product.name, amount);
+        System.out.printf("[OK] %s %d개 창고로 회수!%n", product.name, returned);
     }
 
     /// <summary>
@@ -1146,7 +850,7 @@ public class Main {
         System.out.println("========================================");
         System.out.println("      [ 자동 배정 - 카테고리 균형 ]");
         System.out.println("========================================");
-        System.out.printf("현재 매대: %d / %d칸%n", usedSlot, MAX_SLOT);
+        System.out.printf("현재 매대: %d / %d칸%n", display.getUsedSlots(), MAX_SLOT);
         System.out.println();
 
         int refilledCount = 0;   // 보충한 상품 수
@@ -1157,15 +861,16 @@ public class Main {
 
         // 모든 상품을 순회하며 매대에 있고 창고에 재고가 있는 경우 보충
         for (Product p : allProducts) {
-            boolean isOnDisplay = p.displayStock > 0;                          // 매대에 진열 중인가?
-            boolean hasRoomOnDisplay = p.displayStock < MAX_DISPLAY_PER_SLOT;  // 매대에 더 놓을 공간이 있는가?
-            boolean hasWarehouseStock = p.warehouseStock > 0;                  // 창고에 재고가 있는가?
+            int displayStock = display.getDisplayed(p);
+            int warehouseStock = warehouse.getStock(p);
+
+            boolean isOnDisplay = displayStock > 0;                          // 매대에 진열 중인가?
+            boolean hasRoomOnDisplay = displayStock < MAX_DISPLAY_PER_SLOT;  // 매대에 더 놓을 공간이 있는가?
+            boolean hasWarehouseStock = warehouseStock > 0;                  // 창고에 재고가 있는가?
 
             if (isOnDisplay && hasRoomOnDisplay && hasWarehouseStock) {
-                int canAdd = MAX_DISPLAY_PER_SLOT - p.displayStock;
-                int toAdd = Math.min(canAdd, p.warehouseStock);
-                p.displayFromWarehouse(toAdd);
-                System.out.printf(" - %s +%d개 보충 (매대: %d/%d)%n", p.name, toAdd, p.displayStock, MAX_DISPLAY_PER_SLOT);
+                int displayed = display.displayFromWarehouse(p, warehouse, MAX_DISPLAY_PER_SLOT);
+                System.out.printf(" - %s +%d개 보충 (매대: %d/%d)%n", p.name, displayed, display.getDisplayed(p), MAX_DISPLAY_PER_SLOT);
                 refilledCount++;
             }
         }
@@ -1179,7 +884,7 @@ public class Main {
         // ========== 2단계: 빈 슬롯에 새 상품 배정 ==========
         System.out.println("[ 2단계: 새 상품 배정 ]");
 
-        int remainingSlots = MAX_SLOT - usedSlot;
+        int remainingSlots = MAX_SLOT - display.getUsedSlots();
         if (remainingSlots <= 0) {
             System.out.println(" (매대가 꽉 찼습니다)");
 
@@ -1201,27 +906,27 @@ public class Main {
                 // 라운드 로빈 방식으로 진열
                 boolean hasMore = true;
 
-                while (hasMore && usedSlot < MAX_SLOT) {
+                while (hasMore && display.hasEmptySlot()) {
                     hasMore = false;
 
                     for (int cat = 0; cat < 10; cat++) {
                         if (arrangeCategoryIndex[cat] < arrangeCategoryCounts[cat]) {
-                            if (usedSlot >= MAX_SLOT) {
+                            if (!display.hasEmptySlot()) {
                                 break;
                             }
 
                             Product product = arrangeCategoriesBuffer[cat][arrangeCategoryIndex[cat]];
-                            int amount = Math.min(product.warehouseStock, MAX_DISPLAY_PER_SLOT);
+                            int displayed = display.displayFromWarehouse(product, warehouse, MAX_DISPLAY_PER_SLOT);
 
-                            product.displayFromWarehouse(amount);
-                            usedSlot = usedSlot + 1;
-                            newDisplayCount++;
+                            if (displayed > 0) {
+                                newDisplayCount++;
 
-                            int remainInWarehouse = product.warehouseStock;
-                            if (remainInWarehouse > 0) {
-                                System.out.printf(" - [%s] %s %d개 진열 (창고: %d개)%n", categoryNames[cat], product.name, amount, remainInWarehouse);
-                            } else {
-                                System.out.printf(" - [%s] %s %d개 진열%n", categoryNames[cat], product.name, amount);
+                                int remainInWarehouse = warehouse.getStock(product);
+                                if (remainInWarehouse > 0) {
+                                    System.out.printf(" - [%s] %s %d개 진열 (창고: %d개)%n", categoryNames[cat], product.name, displayed, remainInWarehouse);
+                                } else {
+                                    System.out.printf(" - [%s] %s %d개 진열%n", categoryNames[cat], product.name, displayed);
+                                }
                             }
 
                             arrangeCategoryIndex[cat]++;
@@ -1235,7 +940,7 @@ public class Main {
         System.out.println();
         System.out.println("========================================");
         System.out.printf("보충: %d개 상품 / 신규: %d개 상품%n", refilledCount, newDisplayCount);
-        System.out.printf("매대: %d / %d칸%n", usedSlot, MAX_SLOT);
+        System.out.printf("매대: %d / %d칸%n", display.getUsedSlots(), MAX_SLOT);
         System.out.println("========================================");
         System.out.println();
         System.out.println("아무 키나 입력하면 돌아갑니다...");
@@ -1293,7 +998,7 @@ public class Main {
             System.out.println("            [ 도매상 ]");
             System.out.println("========================================");
             System.out.printf("현재 자본: %,d원%n", money);
-            System.out.printf("매대: %d / %d칸%n", usedSlot, MAX_SLOT);
+            System.out.printf("매대: %d / %d칸%n", display.getUsedSlots(), MAX_SLOT);
             System.out.println();
             System.out.println("[1] 카테고리별 구매");
             System.out.println("[2] 정책 설정");
@@ -1335,7 +1040,7 @@ public class Main {
             System.out.println("========================================");
             System.out.println("        [ 카테고리 선택 ]");
             System.out.println("========================================");
-            System.out.printf("현재 자본: %,d원 | 매대: %d / %d칸%n", money, usedSlot, MAX_SLOT);
+            System.out.printf("현재 자본: %,d원 | 매대: %d / %d칸%n", money, display.getUsedSlots(), MAX_SLOT);
             System.out.println();
             System.out.println("[1] 음료        [2] 맥주        [3] 소주");
             System.out.println("[4] 간식/안주   [5] 고기        [6] 해수욕용품");
@@ -1372,83 +1077,83 @@ public class Main {
                 System.out.println("========================================");
                 System.out.println("            [ 음료 ] (1박스=24개)");
                 System.out.println("========================================");
-                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", cola.name, cola.buyPrice, cola.sellPrice, cola.displayStock);
-                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", cider.name, cider.buyPrice, cider.sellPrice, cider.displayStock);
-                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", water.name, water.buyPrice, water.sellPrice, water.displayStock);
-                System.out.printf("4. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", pocari.name, pocari.buyPrice, pocari.sellPrice, pocari.displayStock);
-                System.out.printf("5. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", ipro.name, ipro.buyPrice, ipro.sellPrice, ipro.displayStock);
+                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", cola.name, cola.buyPrice, cola.sellPrice, getTotalStock(cola));
+                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", cider.name, cider.buyPrice, cider.sellPrice, getTotalStock(cider));
+                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", water.name, water.buyPrice, water.sellPrice, getTotalStock(water));
+                System.out.printf("4. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", pocari.name, pocari.buyPrice, pocari.sellPrice, getTotalStock(pocari));
+                System.out.printf("5. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", ipro.name, ipro.buyPrice, ipro.sellPrice, getTotalStock(ipro));
             } else if (category == 2) {
                 // 맥주
                 System.out.println("========================================");
                 System.out.println("            [ 맥주 ] (1박스=24개)");
                 System.out.println("========================================");
-                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", cass.name, cass.buyPrice, cass.sellPrice, cass.displayStock);
-                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", terra.name, terra.buyPrice, terra.sellPrice, terra.displayStock);
-                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", hite.name, hite.buyPrice, hite.sellPrice, hite.displayStock);
+                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", cass.name, cass.buyPrice, cass.sellPrice, getTotalStock(cass));
+                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", terra.name, terra.buyPrice, terra.sellPrice, getTotalStock(terra));
+                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", hite.name, hite.buyPrice, hite.sellPrice, getTotalStock(hite));
             } else if (category == 3) {
                 // 소주
                 System.out.println("========================================");
                 System.out.println("            [ 소주 ] (1박스=20병)");
                 System.out.println("========================================");
-                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", chamisul.name, chamisul.buyPrice, chamisul.sellPrice, chamisul.displayStock);
-                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", cheumcherum.name, cheumcherum.buyPrice, cheumcherum.sellPrice, cheumcherum.displayStock);
-                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", jinro.name, jinro.buyPrice, jinro.sellPrice, jinro.displayStock);
+                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", chamisul.name, chamisul.buyPrice, chamisul.sellPrice, getTotalStock(chamisul));
+                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", cheumcherum.name, cheumcherum.buyPrice, cheumcherum.sellPrice, getTotalStock(cheumcherum));
+                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", jinro.name, jinro.buyPrice, jinro.sellPrice, getTotalStock(jinro));
             } else if (category == 4) {
                 // 간식/안주
                 System.out.println("========================================");
                 System.out.println("         [ 간식/안주 ] (1박스=20개)");
                 System.out.println("========================================");
-                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", driedSquid.name, driedSquid.buyPrice, driedSquid.sellPrice, driedSquid.displayStock);
-                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", peanut.name, peanut.buyPrice, peanut.sellPrice, peanut.displayStock);
-                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", chip.name, chip.buyPrice, chip.sellPrice, chip.displayStock);
+                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", driedSquid.name, driedSquid.buyPrice, driedSquid.sellPrice, getTotalStock(driedSquid));
+                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", peanut.name, peanut.buyPrice, peanut.sellPrice, getTotalStock(peanut));
+                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", chip.name, chip.buyPrice, chip.sellPrice, getTotalStock(chip));
             } else if (category == 5) {
                 // 고기
                 System.out.println("========================================");
                 System.out.println("            [ 고기 ] (1판=10팩)");
                 System.out.println("========================================");
-                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", samgyupsal.name, samgyupsal.buyPrice, samgyupsal.sellPrice, samgyupsal.displayStock);
-                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", moksal.name, moksal.buyPrice, moksal.sellPrice, moksal.displayStock);
-                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", sausage.name, sausage.buyPrice, sausage.sellPrice, sausage.displayStock);
+                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", samgyupsal.name, samgyupsal.buyPrice, samgyupsal.sellPrice, getTotalStock(samgyupsal));
+                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", moksal.name, moksal.buyPrice, moksal.sellPrice, getTotalStock(moksal));
+                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", sausage.name, sausage.buyPrice, sausage.sellPrice, getTotalStock(sausage));
             } else if (category == 6) {
                 // 해수욕 용품
                 System.out.println("========================================");
                 System.out.println("        [ 해수욕용품 ] (1묶음=5개)");
                 System.out.println("========================================");
-                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", tube.name, tube.buyPrice, tube.sellPrice, tube.displayStock);
-                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", sunscreen.name, sunscreen.buyPrice, sunscreen.sellPrice, sunscreen.displayStock);
-                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", beachBall.name, beachBall.buyPrice, beachBall.sellPrice, beachBall.displayStock);
+                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", tube.name, tube.buyPrice, tube.sellPrice, getTotalStock(tube));
+                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", sunscreen.name, sunscreen.buyPrice, sunscreen.sellPrice, getTotalStock(sunscreen));
+                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", beachBall.name, beachBall.buyPrice, beachBall.sellPrice, getTotalStock(beachBall));
             } else if (category == 7) {
                 // 식재료
                 System.out.println("========================================");
                 System.out.println("          [ 식재료 ] (1박스=10개)");
                 System.out.println("========================================");
-                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", ssamjang.name, ssamjang.buyPrice, ssamjang.sellPrice, ssamjang.displayStock);
-                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", lettuce.name, lettuce.buyPrice, lettuce.sellPrice, lettuce.displayStock);
-                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", kimchi.name, kimchi.buyPrice, kimchi.sellPrice, kimchi.displayStock);
+                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", ssamjang.name, ssamjang.buyPrice, ssamjang.sellPrice, getTotalStock(ssamjang));
+                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", lettuce.name, lettuce.buyPrice, lettuce.sellPrice, getTotalStock(lettuce));
+                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", kimchi.name, kimchi.buyPrice, kimchi.sellPrice, getTotalStock(kimchi));
             } else if (category == 8) {
                 // 라면
                 System.out.println("========================================");
                 System.out.println("            [ 라면 ] (1박스=40개)");
                 System.out.println("========================================");
-                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", shinRamen.name, shinRamen.buyPrice, shinRamen.sellPrice, shinRamen.displayStock);
-                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", jinRamen.name, jinRamen.buyPrice, jinRamen.sellPrice, jinRamen.displayStock);
-                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", neoguri.name, neoguri.buyPrice, neoguri.sellPrice, neoguri.displayStock);
+                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", shinRamen.name, shinRamen.buyPrice, shinRamen.sellPrice, getTotalStock(shinRamen));
+                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", jinRamen.name, jinRamen.buyPrice, jinRamen.sellPrice, getTotalStock(jinRamen));
+                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", neoguri.name, neoguri.buyPrice, neoguri.sellPrice, getTotalStock(neoguri));
             } else if (category == 9) {
                 // 아이스크림
                 System.out.println("========================================");
                 System.out.println("        [ 아이스크림 ] (1박스=24개)");
                 System.out.println("========================================");
-                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", melona.name, melona.buyPrice, melona.sellPrice, melona.displayStock);
-                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", screwBar.name, screwBar.buyPrice, screwBar.sellPrice, screwBar.displayStock);
-                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", fishBread.name, fishBread.buyPrice, fishBread.sellPrice, fishBread.displayStock);
+                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", melona.name, melona.buyPrice, melona.sellPrice, getTotalStock(melona));
+                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", screwBar.name, screwBar.buyPrice, screwBar.sellPrice, getTotalStock(screwBar));
+                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", fishBread.name, fishBread.buyPrice, fishBread.sellPrice, getTotalStock(fishBread));
             } else if (category == 10) {
                 // 폭죽
                 System.out.println("========================================");
                 System.out.println("           [ 폭죽 ] (1박스=10개)");
                 System.out.println("========================================");
-                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", sparkler.name, sparkler.buyPrice, sparkler.sellPrice, sparkler.displayStock);
-                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", romanCandle.name, romanCandle.buyPrice, romanCandle.sellPrice, romanCandle.displayStock);
-                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", fountain.name, fountain.buyPrice, fountain.sellPrice, fountain.displayStock);
+                System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", sparkler.name, sparkler.buyPrice, sparkler.sellPrice, getTotalStock(sparkler));
+                System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", romanCandle.name, romanCandle.buyPrice, romanCandle.sellPrice, getTotalStock(romanCandle));
+                System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", fountain.name, fountain.buyPrice, fountain.sellPrice, getTotalStock(fountain));
             }
 
             System.out.println();
@@ -1493,7 +1198,7 @@ public class Main {
 
         // 구매 처리 (창고로 입고)
         money = money - totalCost;
-        product.addToWarehouse(quantity);
+        warehouse.addStock(product, quantity);
 
         System.out.println("[OK] " + product.name + " " + quantity + "개 창고로 입고! (-" + String.format("%,d", totalCost) + "원)");
     }
@@ -1803,56 +1508,56 @@ public class Main {
     static void printCategoryProductsForPolicy(int category) {
         if (category == 1) {
             System.out.println("[ 음료 ]");
-            System.out.printf("1. %s (재고: %d)%n", cola.name, cola.displayStock);
-            System.out.printf("2. %s (재고: %d)%n", cider.name, cider.displayStock);
-            System.out.printf("3. %s (재고: %d)%n", water.name, water.displayStock);
-            System.out.printf("4. %s (재고: %d)%n", pocari.name, pocari.displayStock);
-            System.out.printf("5. %s (재고: %d)%n", ipro.name, ipro.displayStock);
+            System.out.printf("1. %s (재고: %d)%n", cola.name, getTotalStock(cola));
+            System.out.printf("2. %s (재고: %d)%n", cider.name, getTotalStock(cider));
+            System.out.printf("3. %s (재고: %d)%n", water.name, getTotalStock(water));
+            System.out.printf("4. %s (재고: %d)%n", pocari.name, getTotalStock(pocari));
+            System.out.printf("5. %s (재고: %d)%n", ipro.name, getTotalStock(ipro));
         } else if (category == 2) {
             System.out.println("[ 맥주 ]");
-            System.out.printf("1. %s (재고: %d)%n", cass.name, cass.displayStock);
-            System.out.printf("2. %s (재고: %d)%n", terra.name, terra.displayStock);
-            System.out.printf("3. %s (재고: %d)%n", hite.name, hite.displayStock);
+            System.out.printf("1. %s (재고: %d)%n", cass.name, getTotalStock(cass));
+            System.out.printf("2. %s (재고: %d)%n", terra.name, getTotalStock(terra));
+            System.out.printf("3. %s (재고: %d)%n", hite.name, getTotalStock(hite));
         } else if (category == 3) {
             System.out.println("[ 소주 ]");
-            System.out.printf("1. %s (재고: %d)%n", chamisul.name, chamisul.displayStock);
-            System.out.printf("2. %s (재고: %d)%n", cheumcherum.name, cheumcherum.displayStock);
-            System.out.printf("3. %s (재고: %d)%n", jinro.name, jinro.displayStock);
+            System.out.printf("1. %s (재고: %d)%n", chamisul.name, getTotalStock(chamisul));
+            System.out.printf("2. %s (재고: %d)%n", cheumcherum.name, getTotalStock(cheumcherum));
+            System.out.printf("3. %s (재고: %d)%n", jinro.name, getTotalStock(jinro));
         } else if (category == 4) {
             System.out.println("[ 간식/안주 ]");
-            System.out.printf("1. %s (재고: %d)%n", driedSquid.name, driedSquid.displayStock);
-            System.out.printf("2. %s (재고: %d)%n", peanut.name, peanut.displayStock);
-            System.out.printf("3. %s (재고: %d)%n", chip.name, chip.displayStock);
+            System.out.printf("1. %s (재고: %d)%n", driedSquid.name, getTotalStock(driedSquid));
+            System.out.printf("2. %s (재고: %d)%n", peanut.name, getTotalStock(peanut));
+            System.out.printf("3. %s (재고: %d)%n", chip.name, getTotalStock(chip));
         } else if (category == 5) {
             System.out.println("[ 고기 ]");
-            System.out.printf("1. %s (재고: %d)%n", samgyupsal.name, samgyupsal.displayStock);
-            System.out.printf("2. %s (재고: %d)%n", moksal.name, moksal.displayStock);
-            System.out.printf("3. %s (재고: %d)%n", sausage.name, sausage.displayStock);
+            System.out.printf("1. %s (재고: %d)%n", samgyupsal.name, getTotalStock(samgyupsal));
+            System.out.printf("2. %s (재고: %d)%n", moksal.name, getTotalStock(moksal));
+            System.out.printf("3. %s (재고: %d)%n", sausage.name, getTotalStock(sausage));
         } else if (category == 6) {
             System.out.println("[ 해수욕용품 ]");
-            System.out.printf("1. %s (재고: %d)%n", tube.name, tube.displayStock);
-            System.out.printf("2. %s (재고: %d)%n", sunscreen.name, sunscreen.displayStock);
-            System.out.printf("3. %s (재고: %d)%n", beachBall.name, beachBall.displayStock);
+            System.out.printf("1. %s (재고: %d)%n", tube.name, getTotalStock(tube));
+            System.out.printf("2. %s (재고: %d)%n", sunscreen.name, getTotalStock(sunscreen));
+            System.out.printf("3. %s (재고: %d)%n", beachBall.name, getTotalStock(beachBall));
         } else if (category == 7) {
             System.out.println("[ 식재료 ]");
-            System.out.printf("1. %s (재고: %d)%n", ssamjang.name, ssamjang.displayStock);
-            System.out.printf("2. %s (재고: %d)%n", lettuce.name, lettuce.displayStock);
-            System.out.printf("3. %s (재고: %d)%n", kimchi.name, kimchi.displayStock);
+            System.out.printf("1. %s (재고: %d)%n", ssamjang.name, getTotalStock(ssamjang));
+            System.out.printf("2. %s (재고: %d)%n", lettuce.name, getTotalStock(lettuce));
+            System.out.printf("3. %s (재고: %d)%n", kimchi.name, getTotalStock(kimchi));
         } else if (category == 8) {
             System.out.println("[ 라면 ]");
-            System.out.printf("1. %s (재고: %d)%n", shinRamen.name, shinRamen.displayStock);
-            System.out.printf("2. %s (재고: %d)%n", jinRamen.name, jinRamen.displayStock);
-            System.out.printf("3. %s (재고: %d)%n", neoguri.name, neoguri.displayStock);
+            System.out.printf("1. %s (재고: %d)%n", shinRamen.name, getTotalStock(shinRamen));
+            System.out.printf("2. %s (재고: %d)%n", jinRamen.name, getTotalStock(jinRamen));
+            System.out.printf("3. %s (재고: %d)%n", neoguri.name, getTotalStock(neoguri));
         } else if (category == 9) {
             System.out.println("[ 아이스크림 ]");
-            System.out.printf("1. %s (재고: %d)%n", melona.name, melona.displayStock);
-            System.out.printf("2. %s (재고: %d)%n", screwBar.name, screwBar.displayStock);
-            System.out.printf("3. %s (재고: %d)%n", fishBread.name, fishBread.displayStock);
+            System.out.printf("1. %s (재고: %d)%n", melona.name, getTotalStock(melona));
+            System.out.printf("2. %s (재고: %d)%n", screwBar.name, getTotalStock(screwBar));
+            System.out.printf("3. %s (재고: %d)%n", fishBread.name, getTotalStock(fishBread));
         } else if (category == 10) {
             System.out.println("[ 폭죽 ]");
-            System.out.printf("1. %s (재고: %d)%n", sparkler.name, sparkler.displayStock);
-            System.out.printf("2. %s (재고: %d)%n", romanCandle.name, romanCandle.displayStock);
-            System.out.printf("3. %s (재고: %d)%n", fountain.name, fountain.displayStock);
+            System.out.printf("1. %s (재고: %d)%n", sparkler.name, getTotalStock(sparkler));
+            System.out.printf("2. %s (재고: %d)%n", romanCandle.name, getTotalStock(romanCandle));
+            System.out.printf("3. %s (재고: %d)%n", fountain.name, getTotalStock(fountain));
         }
     }
 
@@ -2219,7 +1924,7 @@ public class Main {
 
     static int autoOrderProduct(Product product, int threshold) {
         // 총 재고(창고+매대)가 임계값보다 많으면 주문 안 함
-        int totalStock = product.warehouseStock + product.displayStock;
+        int totalStock = getTotalStock(product);
         if (totalStock > threshold) {
             return 0;
         }
@@ -2236,7 +1941,7 @@ public class Main {
 
         // 주문 처리 (창고로 입고)
         money = money - cost;
-        product.addToWarehouse(orderAmount);
+        warehouse.addStock(product, orderAmount);
 
         System.out.printf(" - %s %d박스(%d개) 창고 입고 (-%,d원)%n", product.name, AUTO_ORDER_BOX_COUNT, orderAmount, cost);
 
@@ -2396,15 +2101,13 @@ public class Main {
                     continue;
                 }
 
-                if (product.displayStock >= wantAmount) {
+                int currentStock = display.getDisplayed(product);
+                if (currentStock >= wantAmount) {
                     // 전부 판매 가능
                     int saleAmount = product.sellPrice * wantAmount;
                     int profitAmount = (product.sellPrice - product.buyPrice) * wantAmount;
 
-                    product.sell(wantAmount);
-                    if (product.displayStock == 0) {
-                        usedSlot--;
-                    }
+                    display.sell(product, wantAmount);
 
                     money = money + saleAmount;
                     customerSales = customerSales + saleAmount;
@@ -2415,14 +2118,13 @@ public class Main {
 
                     System.out.printf(" - %s: OK (+%,d원)%n", product.name, saleAmount);
 
-                } else if (product.displayStock > 0) {
+                } else if (currentStock > 0) {
                     // 일부만 판매
-                    int actualAmount = product.displayStock;
+                    int actualAmount = currentStock;
                     int saleAmount = product.sellPrice * actualAmount;
                     int profitAmount = (product.sellPrice - product.buyPrice) * actualAmount;
 
-                    product.sell(actualAmount);
-                    usedSlot--;  // 재고 0이 됨
+                    display.sell(product, actualAmount);
 
                     money = money + saleAmount;
                     customerSales = customerSales + saleAmount;
@@ -2503,22 +2205,21 @@ public class Main {
                         for (int m = 0; m < 2; m++) {
                             Product p = skipList[m];
                             int want = skipAmounts[m];
+                            int stock = display.getDisplayed(p);
 
-                            if (p.displayStock >= want) {
+                            if (stock >= want) {
                                 int sale = p.sellPrice * want;
                                 int profit = (p.sellPrice - p.buyPrice) * want;
-                                p.sell(want);
-                                if (p.displayStock == 0) usedSlot--;
+                                display.sell(p, want);
                                 money += sale;
                                 todaySales += sale;
                                 todayProfit += profit;
                                 successCount++;
-                            } else if (p.displayStock > 0) {
-                                int actual = p.displayStock;
+                            } else if (stock > 0) {
+                                int actual = stock;
                                 int sale = p.sellPrice * actual;
                                 int profit = (p.sellPrice - p.buyPrice) * actual;
-                                p.sell(actual);
-                                usedSlot--;
+                                display.sell(p, actual);
                                 money += sale;
                                 todaySales += sale;
                                 todayProfit += profit;
@@ -2620,23 +2321,22 @@ public class Main {
             for (int j = 0; j < targetsCount; j++) {
                 Product p = targets[j];
                 int want = 1 + rand(3);
+                int stock = display.getDisplayed(p);
 
-                if (p.displayStock >= want) {
+                if (stock >= want) {
                     int sale = p.sellPrice * want;
                     int profit = (p.sellPrice - p.buyPrice) * want;
-                    p.sell(want);
-                    if (p.displayStock == 0) usedSlot--;
+                    display.sell(p, want);
 
                     money = money + sale;
                     todaySales = todaySales + sale;
                     todayProfit = todayProfit + profit;
                     successCount++;
-                } else if (p.displayStock > 0) {
-                    int actual = p.displayStock;
+                } else if (stock > 0) {
+                    int actual = stock;
                     int sale = p.sellPrice * actual;
                     int profit = (p.sellPrice - p.buyPrice) * actual;
-                    p.sell(actual);
-                    usedSlot--;
+                    display.sell(p, actual);
 
                     money = money + sale;
                     todaySales = todaySales + sale;
@@ -2730,22 +2430,21 @@ public class Main {
                 for (int j = 0; j < targetsCount; j++) {
                     Product p = targets[j];
                     int want = 1 + rand(3);
+                    int stock = display.getDisplayed(p);
 
-                    if (p.displayStock >= want) {
+                    if (stock >= want) {
                         int sale = p.sellPrice * want;
                         int profit = (p.sellPrice - p.buyPrice) * want;
-                        p.sell(want);
-                        if (p.displayStock == 0) usedSlot--;
+                        display.sell(p, want);
 
                         money = money + sale;
                         todaySales = todaySales + sale;
                         todayProfit = todayProfit + profit;
-                    } else if (p.displayStock > 0) {
-                        int actual = p.displayStock;
+                    } else if (stock > 0) {
+                        int actual = stock;
                         int sale = p.sellPrice * actual;
                         int profit = (p.sellPrice - p.buyPrice) * actual;
-                        p.sell(actual);
-                        usedSlot--;
+                        display.sell(p, actual);
 
                         money = money + sale;
                         todaySales = todaySales + sale;
@@ -2832,18 +2531,17 @@ public class Main {
         int sellAmount = amount / category.length;
 
         for (Product p : category) {
-            if (p.displayStock >= sellAmount) {
+            int stock = display.getDisplayed(p);
+            if (stock >= sellAmount) {
                 int sale = p.sellPrice * sellAmount;
-                p.sell(sellAmount);
-                if (p.displayStock == 0) usedSlot--;
+                display.sell(p, sellAmount);
 
                 money = money + sale;
                 totalSale = totalSale + sale;
-            } else if (p.displayStock > 0) {
-                int actual = p.displayStock;
+            } else if (stock > 0) {
+                int actual = stock;
                 int sale = p.sellPrice * actual;
-                p.sell(actual);
-                usedSlot--;
+                display.sell(p, actual);
 
                 money = money + sale;
                 totalSale = totalSale + sale;
@@ -3035,7 +2733,8 @@ public class Main {
     /// </summary>
     static void fillArrangeBuffer(int categoryIndex, Product[] category) {
         for (Product p : category) {
-            if (p.warehouseStock > 0 && p.displayStock == 0) {
+            // 창고에 재고가 있고 매대에 진열되지 않은 상품
+            if (warehouse.getStock(p) > 0 && display.getDisplayed(p) == 0) {
                 arrangeCategoriesBuffer[categoryIndex][arrangeCategoryCounts[categoryIndex]++] = p;
             }
         }
@@ -3050,7 +2749,7 @@ public class Main {
         int count = 0;
 
         for (Product p : category) {
-            if (p.displayStock > 0) {
+            if (display.getDisplayed(p) > 0) {
                 availableProducts[count] = p;
                 count++;
             }

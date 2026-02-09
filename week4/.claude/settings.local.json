@@ -4,7 +4,8 @@
       "WebSearch",
       "Bash(rm:*)",
       "Bash(javac:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(java:*)"
     ],
     "deny": [],
     "ask": []

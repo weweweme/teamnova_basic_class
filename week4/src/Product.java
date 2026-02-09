@@ -1,20 +1,20 @@
 /// <summary>
 /// 상품 클래스
-/// 슈퍼마켓에서 판매하는 모든 상품의 공통 클래스
+/// 상품의 기본 정보만 담당 (재고는 Warehouse/Display가 관리)
 /// </summary>
 public class Product {
 
     // ========== 필드 ==========
 
-    String name;
-    int buyPrice;
-    int sellPrice;
-    int warehouseStock;           // 창고 재고
-    int displayStock;             // 매대 재고 (진열된 수량)
-    int popularity;
-    int boxSize;                  // 박스당 수량 (자동주문 시 이 단위로 구매)
-    boolean autoOrderEnabled;     // 개별 자동주문 활성화 여부
-    int autoOrderThreshold;       // 개별 자동주문 임계값 (재고가 이 값 이하면 주문)
+    String name;          // 상품명
+    int buyPrice;         // 매입가
+    int sellPrice;        // 판매가
+    int popularity;       // 인기도 (높을수록 손님이 많이 찾음)
+    int boxSize;          // 박스당 수량 (도매상에서 이 단위로 구매)
+
+    // 자동주문 설정 (상품별 개별 설정)
+    boolean autoOrderEnabled;   // 자동주문 활성화 여부
+    int autoOrderThreshold;     // 자동주문 임계값 (총 재고가 이 값 이하면 주문)
 
     // ========== 생성자 ==========
 
@@ -25,12 +25,8 @@ public class Product {
         this.name = name;
         this.buyPrice = buyPrice;
         this.sellPrice = sellPrice;
-        this.warehouseStock = 0;
-        this.displayStock = 0;
         this.popularity = popularity;
-        this.boxSize = 10;              // 기본 박스 사이즈
-        this.autoOrderEnabled = false;  // 기본 비활성화
-        this.autoOrderThreshold = 0;    // 기본 임계값 0
+        this.boxSize = 10;
     }
 
     /// <summary>
@@ -40,96 +36,40 @@ public class Product {
         this.name = name;
         this.buyPrice = buyPrice;
         this.sellPrice = sellPrice;
-        this.warehouseStock = 0;
-        this.displayStock = 0;
         this.popularity = popularity;
         this.boxSize = boxSize;
-        this.autoOrderEnabled = false;
-        this.autoOrderThreshold = 0;
     }
 
     // ========== 메서드 ==========
 
     /// <summary>
-    /// 상품 정보 출력
+    /// 상품 기본 정보 출력
     /// </summary>
     void printInfo() {
         System.out.println("상품명: " + name);
         System.out.println("매입가: " + buyPrice + "원");
         System.out.println("판매가: " + sellPrice + "원");
-        System.out.println("창고 재고: " + warehouseStock + "개");
-        System.out.println("매대 재고: " + displayStock + "개");
+        System.out.println("인기도: " + popularity);
+        System.out.println("박스 단위: " + boxSize + "개");
+    }
+
+    /// <summary>
+    /// 상품 정보 출력 (재고 포함)
+    /// Warehouse와 Display에서 재고 정보를 받아서 출력
+    /// </summary>
+    void printInfoWithStock(Warehouse warehouse, Display display) {
+        System.out.println("상품명: " + name);
+        System.out.println("매입가: " + buyPrice + "원");
+        System.out.println("판매가: " + sellPrice + "원");
+        System.out.println("창고 재고: " + warehouse.getStock(this) + "개");
+        System.out.println("매대 재고: " + display.getDisplayed(this) + "개");
         System.out.println("인기도: " + popularity);
     }
 
     /// <summary>
-    /// 창고에 입고 (도매상에서 구매)
+    /// 마진 계산 (판매가 - 매입가)
     /// </summary>
-    void addToWarehouse(int amount) {
-        warehouseStock = warehouseStock + amount;
-    }
-
-    /// <summary>
-    /// 창고에서 매대로 진열
-    /// </summary>
-    void displayFromWarehouse(int amount) {
-        if (amount > warehouseStock) {
-            amount = warehouseStock;  // 창고 재고보다 많이 진열 불가
-        }
-        warehouseStock = warehouseStock - amount;
-        displayStock = displayStock + amount;
-    }
-
-    /// <summary>
-    /// 매대에서 창고로 회수
-    /// </summary>
-    void returnToWarehouse(int amount) {
-        if (amount > displayStock) {
-            amount = displayStock;  // 매대 재고보다 많이 회수 불가
-        }
-        displayStock = displayStock - amount;
-        warehouseStock = warehouseStock + amount;
-    }
-
-    /// <summary>
-    /// 매대에서 판매 (재고 감소)
-    /// </summary>
-    void sell(int amount) {
-        displayStock = displayStock - amount;
-    }
-
-    /// <summary>
-    /// 창고 재고 확인
-    /// </summary>
-    int getWarehouseStock() {
-        return warehouseStock;
-    }
-
-    /// <summary>
-    /// 매대 재고 확인
-    /// </summary>
-    int getDisplayStock() {
-        return displayStock;
-    }
-
-    /// <summary>
-    /// 총 재고 확인 (창고 + 매대)
-    /// </summary>
-    int getTotalStock() {
-        return warehouseStock + displayStock;
-    }
-
-    /// <summary>
-    /// 판매 가능 여부 확인 (매대에 재고가 있어야 판매 가능)
-    /// </summary>
-    boolean isAvailable() {
-        return displayStock > 0;
-    }
-
-    /// <summary>
-    /// 매대에 진열 중인지 확인 (슬롯 사용 여부)
-    /// </summary>
-    boolean isOnDisplay() {
-        return displayStock > 0;
+    int getMargin() {
+        return sellPrice - buyPrice;
     }
 }

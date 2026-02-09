@@ -22,6 +22,7 @@ public class Main {
     static int priceMultiplier;
     static int usedSlot = 0;
     static int day = 1;
+    static boolean isMorning = true;  // true: 아침, false: 오후
 
     static Scanner scanner = new Scanner(System.in);
 
@@ -171,12 +172,18 @@ public class Main {
 
             if (choice == 1) {
                 // 도매상
-                goWholesaler();
+                if (isMorning) {
+                    goWholesaler();
+                    isMorning = false;  // 도매상 갔다오면 오후로 전환
+                } else {
+                    System.out.println("[!!] 도매상은 오전에만 이용 가능합니다.");
+                }
 
             } else if (choice == 2) {
                 // 영업 시작
                 startBusiness();
-                day++;
+                day++;              // 다음 날로
+                isMorning = true;   // 아침으로 리셋
 
             } else if (choice == 3) {
                 // 재고 확인
@@ -230,14 +237,27 @@ public class Main {
     static void printDailyMenu() {
         clearScreen();
         System.out.println("========================================");
-        System.out.println("          [  " + day + "일차 - 아침  ]");
+        if (isMorning) {
+            System.out.println("          [  " + day + "일차 - 아침  ]");
+        } else {
+            System.out.println("          [  " + day + "일차 - 오후  ]");
+        }
         System.out.println("========================================");
         System.out.println("현재 자본: " + String.format("%,d", money) + "원");
         System.out.println("매대 현황: " + usedSlot + " / " + MAX_SLOT + "칸");
         System.out.println();
-        System.out.println("[1] 도매상 가기 (상품 입고)");
-        System.out.println("[2] 영업 시작");
-        System.out.println("[3] 현재 재고 확인");
+
+        if (isMorning) {
+            // 아침: 도매상, 영업, 재고 확인 모두 가능
+            System.out.println("[1] 도매상 가기 (상품 입고)");
+            System.out.println("[2] 영업 시작");
+            System.out.println("[3] 현재 재고 확인");
+        } else {
+            // 오후: 영업, 재고 확인만 가능
+            System.out.println("[1] (도매상 마감)");
+            System.out.println("[2] 영업 시작");
+            System.out.println("[3] 현재 재고 확인");
+        }
         System.out.println("[0] 게임 종료");
         System.out.print(">> ");
     }
@@ -464,6 +484,10 @@ public class Main {
         System.out.println("----------------------------------------");
         System.out.printf("총 재고: %d개%n", totalStock);
         System.out.println("----------------------------------------");
+
+        System.out.println();
+        System.out.println("아무 키나 입력하면 돌아갑니다...");
+        scanner.next();
     }
 
     // ========== 도매상 (메인 메뉴) ==========
@@ -803,11 +827,14 @@ public class Main {
         System.out.println("[ " + categoryName + " 카테고리 설정 ]");
         System.out.println("[1] 자동주문 등록 (임계값 입력)");
         System.out.println("[2] 자동주문 해제");
+        System.out.println("[0] 돌아가기");
         System.out.print(">> ");
 
         int actionChoice = scanner.nextInt();
 
-        if (actionChoice == 1) {
+        if (actionChoice == 0) {
+            return;
+        } else if (actionChoice == 1) {
             System.out.print("임계값 입력 (재고 몇 개 이하면 주문?) >> ");
             int threshold = scanner.nextInt();
 
@@ -935,11 +962,14 @@ public class Main {
         System.out.println("[ " + product.name + " 설정 ]");
         System.out.println("[1] 자동주문 등록 (임계값 입력)");
         System.out.println("[2] 자동주문 해제");
+        System.out.println("[0] 돌아가기");
         System.out.print(">> ");
 
         int actionChoice = scanner.nextInt();
 
-        if (actionChoice == 1) {
+        if (actionChoice == 0) {
+            return;
+        } else if (actionChoice == 1) {
             System.out.print("임계값 입력 (재고 몇 개 이하면 주문?) >> ");
             int threshold = scanner.nextInt();
 

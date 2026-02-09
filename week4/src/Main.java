@@ -6,7 +6,6 @@ public class Main {
 
     // ========== 상수 ==========
 
-    static final int INVALID_INPUT = -1;              // 잘못된 입력 (숫자가 아닌 경우)
     static final int INIT_MONEY = 50000000;           // 초기 자본 5000만원
     static final int GOAL_MONEY = 300000000;          // 목표 금액 3억원
     static final int MAX_SLOT = 20;                   // 매대 최대 슬롯 (상품 30개 중 20개만 진열 가능)
@@ -209,7 +208,7 @@ public class Main {
         // 게임 시작 화면 출력
         printStartScreen();
 
-        int startChoice = readInt();  // 잘못된 입력 시 종료
+        int startChoice = Util.readInt(scanner);  // 잘못된 입력 시 종료
 
         if (startChoice == 1) {
             // 기본 모드
@@ -225,15 +224,15 @@ public class Main {
             System.out.println("========================================");
 
             System.out.print("시작 자본 입력 (만원 단위): ");
-            int inputMoney = readInt();
+            int inputMoney = Util.readInt(scanner);
             money = inputMoney * 10000;
 
             System.out.print("목표 금액 입력 (만원 단위): ");
-            int inputGoal = readInt();
+            int inputGoal = Util.readInt(scanner);
             goalMoney = inputGoal * 10000;
 
             System.out.print("가격 배율 입력 (1~100, 판매가에만 적용): ");
-            priceMultiplier = readInt();
+            priceMultiplier = Util.readInt(scanner);
 
             System.out.println();
             System.out.println("----------------------------------------");
@@ -270,7 +269,7 @@ public class Main {
             // 하루 시작 메뉴 출력
             printDailyMenu();
 
-            int choice = readInt();  // 잘못된 입력 시 게임 종료
+            int choice = Util.readInt(scanner);  // 잘못된 입력 시 게임 종료
 
             switch (choice) {
                 case 1:
@@ -340,37 +339,6 @@ public class Main {
     }
 
     /// <summary>
-    /// 콘솔 청소
-    /// 빈 줄을 출력하여 이전 내용을 위로 밀어냄
-    /// </summary>
-    static void clearScreen() {
-        for (int i = 0; i < 50; i++) {
-            System.out.println();
-        }
-    }
-
-    /// <summary>
-    /// 딜레이 (밀리초)
-    /// 게임 연출을 위한 대기 시간
-    /// 주의: Thread.sleep()은 checked exception이라 try-catch 필수 (컴파일러 요구)
-    /// </summary>
-    static void delay(int ms) {
-        try {
-            Thread.sleep(ms);
-        } catch (InterruptedException e) {
-            // 단일 스레드 앱에서는 발생하지 않음 (컴파일러 요구사항)
-        }
-    }
-
-    /// <summary>
-    /// 랜덤 숫자 (0 ~ max-1)
-    /// 간편한 랜덤 생성용
-    /// </summary>
-    static int rand(int max) {
-        return (int)(Math.random() * max);
-    }
-
-    /// <summary>
     /// 총 재고 조회 (창고 + 매대)
     /// </summary>
     static int getTotalStock(Product p) {
@@ -378,66 +346,14 @@ public class Main {
     }
 
     /// <summary>
-    /// 정수 입력
-    /// 숫자로 변환 가능하면 해당 숫자, 아니면 INVALID_INPUT(-1) 반환
-    /// </summary>
-    static int readInt() {
-        String input = scanner.next();
-        try {
-            return Integer.parseInt(input);
-        } catch (NumberFormatException e) {
-            return INVALID_INPUT;
-        }
-    }
-
-    /// <summary>
     /// 50% 확률로 구매 (선택 카테고리용)
     /// 50% 확률로 원래 수량 반환, 50% 확률로 0 반환
     /// </summary>
     static int maybeBuy(int amount) {
-        if (rand(2) == 0) {
+        if (Util.rand(2) == 0) {
             return 0;       // 안 삼
         }
         return amount;      // 삼
-    }
-
-    /// <summary>
-    /// 일정 시간(1.5초) 동안 입력 대기 (입력 감지되면 true 반환)
-    ///
-    /// [@SuppressWarnings("BusyWait") 사용 이유]
-    /// - IDE가 "루프 안에서 Thread.sleep() 호출은 busy-wait 패턴이라 비효율적"이라고 경고함
-    /// - busy-wait: 조건이 만족될 때까지 반복문으로 계속 확인하는 방식 (CPU 자원 낭비 가능)
-    /// - 의도된 동작이므로 경고를 억제함
-    /// </summary>
-    @SuppressWarnings("BusyWait")
-    private static boolean waitForInput() {
-        try {
-            // 시작 시간 기록
-            long start = System.currentTimeMillis();
-
-            // 1.5초 동안 반복
-            while (System.currentTimeMillis() - start < 1500) {
-
-                // 입력 버퍼에 데이터가 있으면
-                if (System.in.available() > 0) {
-
-                    // 버퍼 비우기 (입력된 문자들 제거, 반환값은 의도적으로 무시)
-                    while (System.in.available() > 0) {
-                        int ignored = System.in.read();
-                    }
-                    return true;  // 입력 감지됨
-                }
-
-                // 50ms 대기 (CPU 부하 줄이기)
-                Thread.sleep(50);
-            }
-
-            return false;  // 1.5초 지남, 입력 없음
-
-        } catch (Exception e) {
-            // 단일 스레드 콘솔 앱에서는 발생하지 않음 (컴파일러 요구사항)
-            return false;
-        }
     }
 
     /// <summary>
@@ -466,7 +382,7 @@ public class Main {
     /// 하루 시작 메뉴 출력
     /// </summary>
     private static void printDailyMenu() {
-        clearScreen();
+        Util.clearScreen();
         System.out.println("========================================");
         if (isMorning) {
             System.out.println("          [  " + day + "일차 - 아침  ]");
@@ -498,7 +414,7 @@ public class Main {
     /// 선택한 영업 타입 반환 (1: 직접, 2: 빠른, 3: 1주일 스킵, 0: 취소)
     /// </summary>
     private static int showBusinessMenu() {
-        clearScreen();
+        Util.clearScreen();
         System.out.println("========================================");
         System.out.println("           [ 영업 시작 ]");
         System.out.println("========================================");
@@ -510,7 +426,7 @@ public class Main {
         System.out.print(">> ");
 
         // 잘못된 입력 시 돌아가기
-        return readInt();
+        return Util.readInt(scanner);
     }
 
     /// <summary>
@@ -520,7 +436,7 @@ public class Main {
         boolean managing = true;
 
         while (managing) {
-            clearScreen();
+            Util.clearScreen();
             System.out.println("========================================");
             System.out.println("         [ 재고/매대 관리 ]");
             System.out.println("========================================");
@@ -530,7 +446,7 @@ public class Main {
             System.out.println("[0] 돌아가기");
             System.out.print(">> ");
 
-            int choice = readInt();  // 잘못된 입력 시 돌아가기
+            int choice = Util.readInt(scanner);  // 잘못된 입력 시 돌아가기
 
             switch (choice) {
                 case 1:
@@ -583,7 +499,7 @@ public class Main {
     /// 재고 확인
     /// </summary>
     private static void showInventory() {
-        clearScreen();
+        Util.clearScreen();
         System.out.println("========================================");
         System.out.printf("       [ 매대 현황 ] %d / %d칸%n", display.getUsedSlots(), MAX_SLOT);
         System.out.println("========================================");
@@ -616,7 +532,7 @@ public class Main {
         boolean managing = true;
 
         while (managing) {
-            clearScreen();
+            Util.clearScreen();
             System.out.println("========================================");
             System.out.println("            [ 매대 관리 ]");
             System.out.println("========================================");
@@ -629,7 +545,7 @@ public class Main {
             System.out.println("[0] 돌아가기");
             System.out.print(">> ");
 
-            int choice = readInt();
+            int choice = Util.readInt(scanner);
 
             switch (choice) {
                 case 1:
@@ -655,7 +571,7 @@ public class Main {
     /// 창고 재고 확인
     /// </summary>
     private static void showWarehouse() {
-        clearScreen();
+        Util.clearScreen();
         System.out.println("========================================");
         System.out.println("           [ 창고 재고 ]");
         System.out.println("========================================");
@@ -685,7 +601,7 @@ public class Main {
     /// 상품 진열 (창고 → 매대)
     /// </summary>
     private static void displayProduct() {
-        clearScreen();
+        Util.clearScreen();
         System.out.println("========================================");
         System.out.println("        [ 상품 진열 ] 창고 → 매대");
         System.out.println("========================================");
@@ -777,7 +693,7 @@ public class Main {
     /// 상품 회수 (매대 → 창고)
     /// </summary>
     private static void returnProduct() {
-        clearScreen();
+        Util.clearScreen();
         System.out.println("========================================");
         System.out.println("        [ 상품 회수 ] 매대 → 창고");
         System.out.println("========================================");
@@ -848,7 +764,7 @@ public class Main {
     /// 자동 배정 (카테고리 균형)
     /// </summary>
     private static void autoArrangeDisplay() {
-        clearScreen();
+        Util.clearScreen();
         System.out.println("========================================");
         System.out.println("      [ 자동 배정 - 카테고리 균형 ]");
         System.out.println("========================================");
@@ -949,28 +865,10 @@ public class Main {
         scanner.next();
     }
 
-    /// <summary>
-    /// 문자열의 화면 출력 폭 계산
-    /// 한글은 2칸, 영문/숫자는 1칸
-    /// </summary>
-    private static int getDisplayWidth(String str) {
-        int width = 0;
-        for (int i = 0; i < str.length(); i++) {
-            char c = str.charAt(i);
-            // 한글 범위: 가(0xAC00) ~ 힣(0xD7A3)
-            if (c >= 0xAC00 && c <= 0xD7A3) {
-                width += 2;
-            } else {
-                width += 1;
-            }
-        }
-        return width;
-    }
-
     private static void printStockBar(String name, int stock) {
         // 상품명 출력 (한글 8글자 기준 = 화면 폭 16칸)
         int maxWidth = 16;
-        int nameWidth = getDisplayWidth(name);
+        int nameWidth = Util.getDisplayWidth(name);
         int padding = maxWidth - nameWidth;
 
         System.out.print(name);
@@ -989,7 +887,7 @@ public class Main {
         boolean shopping = true;
 
         while (shopping) {
-            clearScreen();
+            Util.clearScreen();
             System.out.println("========================================");
             System.out.println("            [ 도매상 ]");
             System.out.println("========================================");
@@ -1002,7 +900,7 @@ public class Main {
             System.out.println("[0] 돌아가기");
             System.out.print(">> ");
 
-            int choice = readInt();
+            int choice = Util.readInt(scanner);
 
             switch (choice) {
                 case 1:
@@ -1031,7 +929,7 @@ public class Main {
         boolean browsing = true;
 
         while (browsing) {
-            clearScreen();
+            Util.clearScreen();
             System.out.println("========================================");
             System.out.println("        [ 카테고리 선택 ]");
             System.out.println("========================================");
@@ -1044,7 +942,7 @@ public class Main {
             System.out.println("[0] 돌아가기");
             System.out.print(">> ");
 
-            int categoryChoice = readInt();
+            int categoryChoice = Util.readInt(scanner);
 
             if (categoryChoice == 0) {
                 browsing = false;
@@ -1063,7 +961,7 @@ public class Main {
         boolean buying = true;
 
         while (buying) {
-            clearScreen();
+            Util.clearScreen();
 
             // 카테고리별 상품 목록 출력
             if (category == 1) {
@@ -1154,14 +1052,14 @@ public class Main {
             System.out.println("구매할 상품 번호 (0: 돌아가기)");
             System.out.print(">> ");
 
-            int productChoice = readInt();
+            int productChoice = Util.readInt(scanner);
 
             if (productChoice == 0) {
                 buying = false;
             } else {
                 // 수량 입력
                 System.out.print("수량 입력 >> ");
-                int quantity = readInt();
+                int quantity = Util.readInt(scanner);
 
                 // 상품 구매 처리
                 purchaseProduct(category, productChoice, quantity);
@@ -1263,7 +1161,7 @@ public class Main {
         boolean setting = true;
 
         while (setting) {
-            clearScreen();
+            Util.clearScreen();
             System.out.println("========================================");
             System.out.println("          [ 정책 설정 ]");
             System.out.println("========================================");
@@ -1274,7 +1172,7 @@ public class Main {
             System.out.println("[0] 돌아가기");
             System.out.print(">> ");
 
-            int choice = readInt();
+            int choice = Util.readInt(scanner);
 
             switch (choice) {
                 case 1:
@@ -1300,7 +1198,7 @@ public class Main {
     /// 카테고리 단위 정책 설정
     /// </summary>
     private static void setCategoryPolicy() {
-        clearScreen();
+        Util.clearScreen();
         System.out.println("========================================");
         System.out.println("      [ 카테고리 단위 설정 ]");
         System.out.println("========================================");
@@ -1312,7 +1210,7 @@ public class Main {
         System.out.println("[0] 돌아가기");
         System.out.print(">> ");
 
-        int categoryChoice = readInt();
+        int categoryChoice = Util.readInt(scanner);
 
         if (categoryChoice == 0) {
             return;
@@ -1333,13 +1231,13 @@ public class Main {
         System.out.println("[0] 돌아가기");
         System.out.print(">> ");
 
-        int actionChoice = readInt();
+        int actionChoice = Util.readInt(scanner);
 
         if (actionChoice == 0) {
             return;
         } else if (actionChoice == 1) {
             System.out.print("임계값 입력 (재고 몇 개 이하면 주문?) >> ");
-            int threshold = readInt();
+            int threshold = Util.readInt(scanner);
 
             // 카테고리별 정책 설정
             if (categoryChoice == 1) {
@@ -1425,7 +1323,7 @@ public class Main {
     /// 개별 상품 정책 설정
     /// </summary>
     private static void setIndividualPolicy() {
-        clearScreen();
+        Util.clearScreen();
         System.out.println("========================================");
         System.out.println("       [ 개별 상품 설정 ]");
         System.out.println("========================================");
@@ -1438,7 +1336,7 @@ public class Main {
         System.out.println("[0] 돌아가기");
         System.out.print(">> ");
 
-        int categoryChoice = readInt();
+        int categoryChoice = Util.readInt(scanner);
 
         if (categoryChoice == 0) {
             return;
@@ -1454,7 +1352,7 @@ public class Main {
         printCategoryProductsForPolicy(categoryChoice);
 
         System.out.print("상품 번호 선택 >> ");
-        int productNum = readInt();
+        int productNum = Util.readInt(scanner);
 
         Product product = getProductByCategoryAndNum(categoryChoice, productNum);
 
@@ -1470,13 +1368,13 @@ public class Main {
         System.out.println("[0] 돌아가기");
         System.out.print(">> ");
 
-        int actionChoice = readInt();
+        int actionChoice = Util.readInt(scanner);
 
         if (actionChoice == 0) {
             return;
         } else if (actionChoice == 1) {
             System.out.print("임계값 입력 (재고 몇 개 이하면 주문?) >> ");
-            int threshold = readInt();
+            int threshold = Util.readInt(scanner);
 
             product.autoOrderEnabled = true;
             product.autoOrderThreshold = threshold;
@@ -1552,7 +1450,7 @@ public class Main {
     /// 현재 정책 확인
     /// </summary>
     private static void showCurrentPolicies() {
-        clearScreen();
+        Util.clearScreen();
         System.out.println("========================================");
         System.out.println("         [ 현재 정책 확인 ]");
         System.out.println("========================================");
@@ -1756,7 +1654,7 @@ public class Main {
     /// 자동주문 실행
     /// </summary>
     private static void executeAutoOrder() {
-        clearScreen();
+        Util.clearScreen();
         System.out.println("========================================");
         System.out.println("         [ 자동주문 실행 ]");
         System.out.println("========================================");
@@ -1936,7 +1834,7 @@ public class Main {
     /// 영업 시작 (손님 응대)
     /// </summary>
     private static void startBusiness() {
-        clearScreen();
+        Util.clearScreen();
         System.out.println("========================================");
         System.out.println("           [ 영업 시작 ]");
         System.out.println("========================================");
@@ -1955,34 +1853,34 @@ public class Main {
             System.out.println();
             System.out.println("★★★ 빅 이벤트 발생! ★★★");
             System.out.println("대량 주문이 들어왔습니다!");
-            delay(1000);
+            Util.delay(1000);
         }
 
         // 손님 응대 루프
         for (int i = 1; i <= todayCustomers; i++) {
 
             // 랜덤 손님 유형 (0: 가족, 1: 커플, 2: 친구들, 3: 혼자)
-            int customerType = rand(4);
+            int customerType = Util.rand(4);
 
             // 손님 객체 생성
             Customer customer = createCustomer(customerType);
 
             // 멘트 조합: [손님 인사] + [시간대 멘트]
-            String greeting = customerGreetings[customerType][rand(5)];
-            String timeMsg = timeGreetings[rand(5)];
+            String greeting = customerGreetings[customerType][Util.rand(5)];
+            String timeMsg = timeGreetings[Util.rand(5)];
             customer.greeting = greeting + " " + timeMsg;
 
             System.out.println();
             System.out.println("----------------------------------------");
             System.out.printf("[ 손님 %d/%d - %s ]%n", i, todayCustomers, customer.typeName);
-            delay(500);
+            Util.delay(500);
             customer.sayGreeting();
             System.out.println();
 
             // 쇼핑 리스트 먼저 한번에 출력
             customer.sayWant();
 
-            delay(500);  // 리스트 확인 후 처리
+            Util.delay(500);  // 리스트 확인 후 처리
             System.out.println();
             System.out.println("판매 결과:");
 
@@ -2052,7 +1950,7 @@ public class Main {
                 System.out.println("(아무 키나 누르면 일시정지)");
 
                 // 1.5초 동안 입력 감지 - 입력 있으면 메뉴 표시
-                boolean interrupted = waitForInput();
+                boolean interrupted = Util.waitForInput();
 
                 if (!interrupted) {
                     // 입력 없음 -> 자동으로 다음 손님
@@ -2063,39 +1961,39 @@ public class Main {
                 System.out.println();
                 System.out.println("[1] 다음 손님  [2] 남은 손님 스킵  [0] 영업 중단");
                 System.out.print(">> ");
-                int choice = readInt();  // 기본값 1 (다음 손님)
+                int choice = Util.readInt(scanner);  // 기본값 1 (다음 손님)
 
                 if (choice == 2) {
                     // 남은 손님 자동 처리
                     System.out.println();
                     System.out.println("남은 손님을 빠르게 처리합니다...");
-                    delay(500);
+                    Util.delay(500);
 
                     for (int k = i + 1; k <= todayCustomers; k++) {
                         // 간단히 랜덤 손님 처리 (재사용 배열 사용)
-                        int skipType = rand(4);
+                        int skipType = Util.rand(4);
 
                         // 손님별 간단 쇼핑 리스트
                         if (skipType == 0) {
                             skipList[0] = getRandomFromCategory(categoryMeat);
                             skipList[1] = getRandomFromCategory(categoryDrink);
-                            skipAmounts[0] = 2 + rand(2);
-                            skipAmounts[1] = 3 + rand(3);
+                            skipAmounts[0] = 2 + Util.rand(2);
+                            skipAmounts[1] = 3 + Util.rand(3);
                         } else if (skipType == 1) {
                             skipList[0] = getRandomFromCategory(categorySoju);
                             skipList[1] = getRandomFromCategory(categorySnack);
-                            skipAmounts[0] = 2 + rand(2);
-                            skipAmounts[1] = 2 + rand(2);
+                            skipAmounts[0] = 2 + Util.rand(2);
+                            skipAmounts[1] = 2 + Util.rand(2);
                         } else if (skipType == 2) {
                             skipList[0] = getRandomFromCategory(categoryBeer);
                             skipList[1] = getRandomFromCategory(categorySoju);
-                            skipAmounts[0] = 4 + rand(3);
-                            skipAmounts[1] = 2 + rand(2);
+                            skipAmounts[0] = 4 + Util.rand(3);
+                            skipAmounts[1] = 2 + Util.rand(2);
                         } else {
                             skipList[0] = getRandomFromCategory(categoryRamen);
                             skipList[1] = getRandomFromCategory(categoryBeer);
-                            skipAmounts[0] = 2 + rand(2);
-                            skipAmounts[1] = 2 + rand(2);
+                            skipAmounts[0] = 2 + Util.rand(2);
+                            skipAmounts[1] = 2 + Util.rand(2);
                         }
 
                         // 판매 처리
@@ -2142,7 +2040,7 @@ public class Main {
         }
 
         // 하루 정산
-        delay(800);  // 정산 준비 연출
+        Util.delay(800);  // 정산 준비 연출
         System.out.println();
         System.out.println("========================================");
         System.out.printf("          [ %d일차 정산 ]%n", day);
@@ -2172,16 +2070,16 @@ public class Main {
     /// 손님 상세 없이 결과만 출력
     /// </summary>
     private static void startQuickBusiness() {
-        clearScreen();
+        Util.clearScreen();
         System.out.println("========================================");
         System.out.println("         [ 빠른 영업 - " + day + "일차 ]");
         System.out.println("========================================");
         System.out.println();
         System.out.println("영업 중...");
-        delay(1000);
+        Util.delay(1000);
 
         // 하루 영업 시뮬레이션 (손님 상세 생략)
-        int todayCustomers = 10 + rand(11);
+        int todayCustomers = 10 + Util.rand(11);
         int todaySales = 0;
         int todayProfit = 0;
         int successCount = 0;
@@ -2192,7 +2090,7 @@ public class Main {
 
         // 손님별 간략 처리 (재사용 배열 사용)
         for (int i = 0; i < todayCustomers; i++) {
-            int customerType = rand(4);
+            int customerType = Util.rand(4);
 
             // 카테고리별 랜덤 판매 시뮬레이션
             targetsCount = 3;
@@ -2217,7 +2115,7 @@ public class Main {
             // 각 상품 판매 시도
             for (int j = 0; j < targetsCount; j++) {
                 Product p = targets[j];
-                int want = 1 + rand(3);
+                int want = 1 + Util.rand(3);
                 int stock = display.getDisplayed(p);
 
                 if (stock >= want) {
@@ -2275,7 +2173,7 @@ public class Main {
     /// 1주일 스킵 (7일 자동 영업)
     /// </summary>
     private static void skipWeek() {
-        clearScreen();
+        Util.clearScreen();
         System.out.println("========================================");
         System.out.println("         [ 1주일 스킵 ]");
         System.out.println("========================================");
@@ -2289,9 +2187,9 @@ public class Main {
         // 7일 반복
         for (int d = 0; d < 7; d++) {
             System.out.printf("%d일차 영업 중...", day);
-            delay(300);
+            Util.delay(300);
 
-            int todayCustomers = 10 + rand(11);
+            int todayCustomers = 10 + Util.rand(11);
             int todaySales = 0;
             int todayProfit = 0;
 
@@ -2303,7 +2201,7 @@ public class Main {
 
             // 손님별 간략 처리 (재사용 배열 사용)
             for (int i = 0; i < todayCustomers; i++) {
-                int customerType = rand(4);
+                int customerType = Util.rand(4);
                 targetsCount = 3;
 
                 if (customerType == 0) {
@@ -2326,7 +2224,7 @@ public class Main {
 
                 for (int j = 0; j < targetsCount; j++) {
                     Product p = targets[j];
-                    int want = 1 + rand(3);
+                    int want = 1 + Util.rand(3);
                     int stock = display.getDisplayed(p);
 
                     if (stock >= want) {
@@ -2386,31 +2284,31 @@ public class Main {
     /// </summary>
     private static boolean checkBigEvent(int chance) {
         // chance% 확률로 이벤트 발생
-        if (rand(100) >= chance) {
+        if (Util.rand(100) >= chance) {
             return false;
         }
 
-        int eventType = rand(3);
+        int eventType = Util.rand(3);
 
         if (eventType == 0) {
             // 단체 주문: 음료, 안주 대량 판매
-            int bonus = sellBulk(categoryDrink, 10 + rand(10));
-            bonus = bonus + sellBulk(categorySnack, 5 + rand(5));
+            int bonus = sellBulk(categoryDrink, 10 + Util.rand(10));
+            bonus = bonus + sellBulk(categorySnack, 5 + Util.rand(5));
             if (bonus > 0) {
                 return true;
             }
         } else if (eventType == 1) {
             // 펜션 배달: 고기, 음료, 식재료 판매
-            int bonus = sellBulk(categoryMeat, 5 + rand(5));
-            bonus = bonus + sellBulk(categoryDrink, 5 + rand(5));
-            bonus = bonus + sellBulk(categoryGrocery, 3 + rand(3));
+            int bonus = sellBulk(categoryMeat, 5 + Util.rand(5));
+            bonus = bonus + sellBulk(categoryDrink, 5 + Util.rand(5));
+            bonus = bonus + sellBulk(categoryGrocery, 3 + Util.rand(3));
             if (bonus > 0) {
                 return true;
             }
         } else {
             // 축제 시즌: 폭죽, 맥주 대량 판매
-            int bonus = sellBulk(categoryFirework, 5 + rand(10));
-            bonus = bonus + sellBulk(categoryBeer, 10 + rand(10));
+            int bonus = sellBulk(categoryFirework, 5 + Util.rand(10));
+            bonus = bonus + sellBulk(categoryBeer, 10 + Util.rand(10));
             if (bonus > 0) {
                 return true;
             }
@@ -2613,7 +2511,7 @@ public class Main {
     /// 카테고리에서 랜덤 상품 1개 선택
     /// </summary>
     private static Product getRandomFromCategory(Product[] category) {
-        int index = rand(category.length);
+        int index = Util.rand(category.length);
         return category[index];
     }
 
@@ -2655,14 +2553,14 @@ public class Main {
             c.wantProducts[6] = getAvailableFromCategory(categorySnack);
             c.wantProducts[7] = getAvailableFromCategory(categoryIcecream);
 
-            c.wantAmounts[0] = 2 + rand(2);           // 고기1 (필수)
-            c.wantAmounts[1] = 1 + rand(2);           // 고기2 (필수)
-            c.wantAmounts[2] = 1 + rand(2);           // 식재료1 (필수)
-            c.wantAmounts[3] = 1 + rand(2);           // 식재료2 (필수)
-            c.wantAmounts[4] = 2 + rand(3);           // 음료1 (필수)
-            c.wantAmounts[5] = 1 + rand(2);           // 음료2 (필수)
-            c.wantAmounts[6] = maybeBuy(2 + rand(2)); // 안주 (선택 50%)
-            c.wantAmounts[7] = maybeBuy(2 + rand(3)); // 아이스크림 (선택 50%)
+            c.wantAmounts[0] = 2 + Util.rand(2);           // 고기1 (필수)
+            c.wantAmounts[1] = 1 + Util.rand(2);           // 고기2 (필수)
+            c.wantAmounts[2] = 1 + Util.rand(2);           // 식재료1 (필수)
+            c.wantAmounts[3] = 1 + Util.rand(2);           // 식재료2 (필수)
+            c.wantAmounts[4] = 2 + Util.rand(3);           // 음료1 (필수)
+            c.wantAmounts[5] = 1 + Util.rand(2);           // 음료2 (필수)
+            c.wantAmounts[6] = maybeBuy(2 + Util.rand(2)); // 안주 (선택 50%)
+            c.wantAmounts[7] = maybeBuy(2 + Util.rand(3)); // 아이스크림 (선택 50%)
 
         } else if (type == Customer.TYPE_COUPLE) {
             // 커플: 소주 + 맥주 + 안주 (필수) / 음료, 아이스크림 (선택 50%)
@@ -2675,12 +2573,12 @@ public class Main {
             c.wantProducts[4] = getAvailableFromCategory(categoryDrink);
             c.wantProducts[5] = getAvailableFromCategory(categoryIcecream);
 
-            c.wantAmounts[0] = 2 + rand(2);           // 소주 (필수)
-            c.wantAmounts[1] = 2 + rand(3);           // 맥주 (필수)
-            c.wantAmounts[2] = 1 + rand(2);           // 안주1 (필수)
-            c.wantAmounts[3] = 1 + rand(2);           // 안주2 (필수)
-            c.wantAmounts[4] = maybeBuy(1 + rand(2)); // 음료 (선택 50%)
-            c.wantAmounts[5] = maybeBuy(1 + rand(2)); // 아이스크림 (선택 50%)
+            c.wantAmounts[0] = 2 + Util.rand(2);           // 소주 (필수)
+            c.wantAmounts[1] = 2 + Util.rand(3);           // 맥주 (필수)
+            c.wantAmounts[2] = 1 + Util.rand(2);           // 안주1 (필수)
+            c.wantAmounts[3] = 1 + Util.rand(2);           // 안주2 (필수)
+            c.wantAmounts[4] = maybeBuy(1 + Util.rand(2)); // 음료 (선택 50%)
+            c.wantAmounts[5] = maybeBuy(1 + Util.rand(2)); // 아이스크림 (선택 50%)
 
         } else if (type == Customer.TYPE_FRIENDS) {
             // 친구들: 맥주 + 소주 + 안주 (필수) / 아이스크림, 폭죽 (선택 50%)
@@ -2694,13 +2592,13 @@ public class Main {
             c.wantProducts[5] = getAvailableFromCategory(categoryIcecream);
             c.wantProducts[6] = getAvailableFromCategory(categoryFirework);
 
-            c.wantAmounts[0] = 6 + rand(5);           // 맥주 (필수) - 많이
-            c.wantAmounts[1] = 3 + rand(3);           // 소주 (필수)
-            c.wantAmounts[2] = 2 + rand(2);           // 안주1 (필수)
-            c.wantAmounts[3] = 1 + rand(2);           // 안주2 (필수)
-            c.wantAmounts[4] = maybeBuy(2 + rand(2)); // 아이스크림1 (선택 50%)
-            c.wantAmounts[5] = maybeBuy(1 + rand(2)); // 아이스크림2 (선택 50%)
-            c.wantAmounts[6] = maybeBuy(2 + rand(3)); // 폭죽 (선택 50%)
+            c.wantAmounts[0] = 6 + Util.rand(5);           // 맥주 (필수) - 많이
+            c.wantAmounts[1] = 3 + Util.rand(3);           // 소주 (필수)
+            c.wantAmounts[2] = 2 + Util.rand(2);           // 안주1 (필수)
+            c.wantAmounts[3] = 1 + Util.rand(2);           // 안주2 (필수)
+            c.wantAmounts[4] = maybeBuy(2 + Util.rand(2)); // 아이스크림1 (선택 50%)
+            c.wantAmounts[5] = maybeBuy(1 + Util.rand(2)); // 아이스크림2 (선택 50%)
+            c.wantAmounts[6] = maybeBuy(2 + Util.rand(3)); // 폭죽 (선택 50%)
 
         } else {
             // 혼자: 라면 + 맥주 (필수) / 음료, 아이스크림, 안주 (선택 50%)
@@ -2712,11 +2610,11 @@ public class Main {
             c.wantProducts[3] = getAvailableFromCategory(categoryIcecream);
             c.wantProducts[4] = getAvailableFromCategory(categorySnack);
 
-            c.wantAmounts[0] = 2 + rand(3);           // 라면 (필수)
-            c.wantAmounts[1] = 2 + rand(2);           // 맥주 (필수)
-            c.wantAmounts[2] = maybeBuy(1 + rand(2)); // 음료 (선택 50%)
-            c.wantAmounts[3] = maybeBuy(1 + rand(2)); // 아이스크림 (선택 50%)
-            c.wantAmounts[4] = maybeBuy(1 + rand(2)); // 안주 (선택 50%)
+            c.wantAmounts[0] = 2 + Util.rand(3);           // 라면 (필수)
+            c.wantAmounts[1] = 2 + Util.rand(2);           // 맥주 (필수)
+            c.wantAmounts[2] = maybeBuy(1 + Util.rand(2)); // 음료 (선택 50%)
+            c.wantAmounts[3] = maybeBuy(1 + Util.rand(2)); // 아이스크림 (선택 50%)
+            c.wantAmounts[4] = maybeBuy(1 + Util.rand(2)); // 안주 (선택 50%)
         }
 
         return c;
@@ -2739,10 +2637,10 @@ public class Main {
 
         // 재고 있는 상품이 있으면 그 중에서 랜덤 선택
         if (count > 0) {
-            return availableProducts[rand(count)];
+            return availableProducts[Util.rand(count)];
         }
 
         // 재고 있는 상품이 없으면 랜덤 선택 (재고 없음으로 처리됨)
-        return category[rand(category.length)];
+        return category[Util.rand(category.length)];
     }
 }

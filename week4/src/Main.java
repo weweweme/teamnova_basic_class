@@ -2232,6 +2232,16 @@ public class Main {
         int todayProfit = 0;     // 오늘 순이익
         int successCount = 0;    // 판매 성공 건수
         int failCount = 0;       // 판매 실패 건수
+        boolean bigEventOccurred = false;  // 빅 이벤트 발생 여부
+
+        // 빅 이벤트 체크 (직접 영업: 20% 확률)
+        if (checkBigEvent(20)) {
+            bigEventOccurred = true;
+            System.out.println();
+            System.out.println("★★★ 빅 이벤트 발생! ★★★");
+            System.out.println("대량 주문이 들어왔습니다!");
+            delay(1000);
+        }
 
         // 손님 응대 루프
         for (int i = 1; i <= todayCustomers; i++) {
@@ -2542,6 +2552,9 @@ public class Main {
         System.out.println("========================================");
         System.out.printf("          [ %d일차 정산 ]%n", day);
         System.out.println("========================================");
+        if (bigEventOccurred) {
+            System.out.println("★ 빅 이벤트 발생!");
+        }
         System.out.printf("오늘 방문 손님: %d명%n", todayCustomers);
         System.out.printf("판매 성공: %d건%n", successCount);
         System.out.printf("판매 실패: %d건%n", failCount);
@@ -2580,7 +2593,7 @@ public class Main {
         int failCount = 0;
 
         // 빅 이벤트 체크 (10% 확률)
-        boolean eventOccurred = checkBigEvent();
+        boolean eventOccurred = checkBigEvent(10);
 
         // 손님별 간략 처리
         for (int i = 0; i < todayCustomers; i++) {
@@ -2696,8 +2709,8 @@ public class Main {
             int todaySales = 0;
             int todayProfit = 0;
 
-            // 빅 이벤트 체크
-            if (checkBigEvent()) {
+            // 빅 이벤트 체크 (10% 확률)
+            if (checkBigEvent(10)) {
                 eventCount++;
                 System.out.print(" [이벤트!]");
             }
@@ -2794,9 +2807,9 @@ public class Main {
     /// 빅 이벤트 체크 및 처리 (10% 확률)
     /// 단체 주문, 펜션 배달, 축제 시즌 중 하나 발생
     /// </summary>
-    static boolean checkBigEvent() {
-        // 10% 확률로 이벤트 발생
-        if (rand(100) >= 10) {
+    static boolean checkBigEvent(int chance) {
+        // chance% 확률로 이벤트 발생
+        if (rand(100) >= chance) {
             return false;
         }
 

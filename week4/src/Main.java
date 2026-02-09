@@ -459,6 +459,7 @@ public class Main {
             System.out.println("[1] 상품 진열 (창고 → 매대)");
             System.out.println("[2] 상품 회수 (매대 → 창고)");
             System.out.println("[3] 창고 재고 확인");
+            System.out.println("[4] 자동 배정 (카테고리 균형)");
             System.out.println("[0] 돌아가기");
             System.out.print(">> ");
 
@@ -470,6 +471,8 @@ public class Main {
                 returnProduct();
             } else if (choice == 3) {
                 showWarehouse();
+            } else if (choice == 4) {
+                autoArrangeDisplay();
             } else if (choice == 0) {
                 managing = false;
             }
@@ -863,6 +866,141 @@ public class Main {
         if (name.equals(fishBread.name) || name.equals("붕어싸만코") || name.equals("붕어")) return fishBread;
         if (name.equals(firework.name) || name.equals("폭죽")) return firework;
         return null;
+    }
+
+    // ========== 자동 배정 (카테고리 균형) ==========
+
+    static void autoArrangeDisplay() {
+        clearScreen();
+        System.out.println("========================================");
+        System.out.println("      [ 자동 배정 - 카테고리 균형 ]");
+        System.out.println("========================================");
+        System.out.printf("현재 매대: %d / %d칸%n", usedSlot, MAX_SLOT);
+        System.out.println();
+
+        // 남은 슬롯 계산
+        int remainingSlots = MAX_SLOT - usedSlot;
+        if (remainingSlots <= 0) {
+            System.out.println("[!!] 매대가 꽉 찼습니다.");
+            System.out.println();
+            System.out.println("아무 키나 입력하면 돌아갑니다...");
+            scanner.next();
+            return;
+        }
+
+        // 카테고리별 상품 배열 (창고에 재고가 있는 것만)
+        // 10개 카테고리, 각 카테고리당 최대 5개 상품
+        Product[][] categories = new Product[10][5];
+        int[] categoryCounts = new int[10];
+        String[] categoryNames = {"음료", "맥주", "소주", "간식", "고기", "해수욕", "식재료", "라면", "아이스크림", "기타"};
+
+        // 카테고리 0: 음료
+        if (cola.warehouseStock > 0 && cola.displayStock == 0) categories[0][categoryCounts[0]++] = cola;
+        if (cider.warehouseStock > 0 && cider.displayStock == 0) categories[0][categoryCounts[0]++] = cider;
+        if (water.warehouseStock > 0 && water.displayStock == 0) categories[0][categoryCounts[0]++] = water;
+        if (pocari.warehouseStock > 0 && pocari.displayStock == 0) categories[0][categoryCounts[0]++] = pocari;
+        if (ipro.warehouseStock > 0 && ipro.displayStock == 0) categories[0][categoryCounts[0]++] = ipro;
+
+        // 카테고리 1: 맥주
+        if (cass.warehouseStock > 0 && cass.displayStock == 0) categories[1][categoryCounts[1]++] = cass;
+        if (terra.warehouseStock > 0 && terra.displayStock == 0) categories[1][categoryCounts[1]++] = terra;
+        if (hite.warehouseStock > 0 && hite.displayStock == 0) categories[1][categoryCounts[1]++] = hite;
+
+        // 카테고리 2: 소주
+        if (chamisul.warehouseStock > 0 && chamisul.displayStock == 0) categories[2][categoryCounts[2]++] = chamisul;
+        if (cheumcherum.warehouseStock > 0 && cheumcherum.displayStock == 0) categories[2][categoryCounts[2]++] = cheumcherum;
+        if (jinro.warehouseStock > 0 && jinro.displayStock == 0) categories[2][categoryCounts[2]++] = jinro;
+
+        // 카테고리 3: 간식/안주
+        if (driedSquid.warehouseStock > 0 && driedSquid.displayStock == 0) categories[3][categoryCounts[3]++] = driedSquid;
+        if (peanut.warehouseStock > 0 && peanut.displayStock == 0) categories[3][categoryCounts[3]++] = peanut;
+        if (chip.warehouseStock > 0 && chip.displayStock == 0) categories[3][categoryCounts[3]++] = chip;
+
+        // 카테고리 4: 고기
+        if (samgyupsal.warehouseStock > 0 && samgyupsal.displayStock == 0) categories[4][categoryCounts[4]++] = samgyupsal;
+        if (moksal.warehouseStock > 0 && moksal.displayStock == 0) categories[4][categoryCounts[4]++] = moksal;
+        if (sausage.warehouseStock > 0 && sausage.displayStock == 0) categories[4][categoryCounts[4]++] = sausage;
+
+        // 카테고리 5: 해수욕 용품
+        if (tube.warehouseStock > 0 && tube.displayStock == 0) categories[5][categoryCounts[5]++] = tube;
+        if (sunscreen.warehouseStock > 0 && sunscreen.displayStock == 0) categories[5][categoryCounts[5]++] = sunscreen;
+        if (beachBall.warehouseStock > 0 && beachBall.displayStock == 0) categories[5][categoryCounts[5]++] = beachBall;
+
+        // 카테고리 6: 식재료
+        if (ssamjang.warehouseStock > 0 && ssamjang.displayStock == 0) categories[6][categoryCounts[6]++] = ssamjang;
+        if (lettuce.warehouseStock > 0 && lettuce.displayStock == 0) categories[6][categoryCounts[6]++] = lettuce;
+        if (kimchi.warehouseStock > 0 && kimchi.displayStock == 0) categories[6][categoryCounts[6]++] = kimchi;
+
+        // 카테고리 7: 라면
+        if (shinRamen.warehouseStock > 0 && shinRamen.displayStock == 0) categories[7][categoryCounts[7]++] = shinRamen;
+        if (jinRamen.warehouseStock > 0 && jinRamen.displayStock == 0) categories[7][categoryCounts[7]++] = jinRamen;
+        if (neoguri.warehouseStock > 0 && neoguri.displayStock == 0) categories[7][categoryCounts[7]++] = neoguri;
+
+        // 카테고리 8: 아이스크림
+        if (melona.warehouseStock > 0 && melona.displayStock == 0) categories[8][categoryCounts[8]++] = melona;
+        if (screwBar.warehouseStock > 0 && screwBar.displayStock == 0) categories[8][categoryCounts[8]++] = screwBar;
+        if (fishBread.warehouseStock > 0 && fishBread.displayStock == 0) categories[8][categoryCounts[8]++] = fishBread;
+
+        // 카테고리 9: 기타
+        if (firework.warehouseStock > 0 && firework.displayStock == 0) categories[9][categoryCounts[9]++] = firework;
+
+        // 진열 가능한 상품 수 계산
+        int totalAvailable = 0;
+        for (int i = 0; i < 10; i++) {
+            totalAvailable = totalAvailable + categoryCounts[i];
+        }
+
+        if (totalAvailable == 0) {
+            System.out.println("[!!] 창고에 진열할 상품이 없습니다.");
+            System.out.println("     (이미 진열 중이거나 창고가 비어있음)");
+            System.out.println();
+            System.out.println("아무 키나 입력하면 돌아갑니다...");
+            scanner.next();
+            return;
+        }
+
+        // 카테고리별로 순환하며 진열
+        // 각 카테고리에서 한 상품씩 번갈아 진열하여 균형 맞춤
+        int displayedCount = 0;
+        int[] categoryIndex = new int[10];  // 각 카테고리에서 현재 진열 중인 인덱스
+
+        System.out.println("[ 진열 결과 ]");
+
+        // 라운드 로빈 방식으로 진열
+        boolean hasMore = true;
+        while (hasMore && usedSlot < MAX_SLOT) {
+            hasMore = false;
+
+            for (int cat = 0; cat < 10; cat++) {
+                // 이 카테고리에 진열할 상품이 남아있는지
+                if (categoryIndex[cat] < categoryCounts[cat]) {
+                    // 슬롯이 남아있는지
+                    if (usedSlot >= MAX_SLOT) {
+                        break;
+                    }
+
+                    Product product = categories[cat][categoryIndex[cat]];
+                    int amount = product.warehouseStock;
+
+                    // 진열 처리
+                    product.displayFromWarehouse(amount);
+                    usedSlot = usedSlot + 1;
+                    displayedCount++;
+
+                    System.out.printf(" - [%s] %s %d개 진열%n", categoryNames[cat], product.name, amount);
+
+                    categoryIndex[cat]++;
+                    hasMore = true;
+                }
+            }
+        }
+
+        System.out.println();
+        System.out.printf("총 %d개 상품 진열 완료!%n", displayedCount);
+        System.out.printf("매대: %d / %d칸%n", usedSlot, MAX_SLOT);
+        System.out.println();
+        System.out.println("아무 키나 입력하면 돌아갑니다...");
+        scanner.next();
     }
 
     // ========== 재고 막대그래프 출력 ==========

@@ -129,6 +129,30 @@ public class Main {
     // 모든 상품을 순회할 때 사용 (중복 없음)
     static Product[] allProducts;
 
+    // ========== 재사용 배열 (메서드 내 반복 할당 방지) ==========
+
+    // autoArrangeDisplay()용 - 카테고리별 진열 대기 상품 버퍼
+    static Product[][] arrangeCategoriesBuffer = new Product[10][5];  // [카테고리][상품] - 창고→매대 진열 대기 버퍼
+    static int[] arrangeCategoryCounts = new int[10];                 // 각 카테고리별 버퍼 내 상품 수
+    static int[] arrangeCategoryIndex = new int[10];                  // 라운드 로빈 진열 시 현재 인덱스
+    static String[] categoryNames = {"음료", "맥주", "소주", "간식", "고기", "해수욕", "식재료", "라면", "아이스크림", "폭죽"};
+
+    // 손님 쇼핑용 - 직접 영업 시 손님의 구매 목록
+    static Product[] shoppingList = new Product[8];   // 손님이 사려는 상품 목록 (최대 8개 - 가족 손님)
+    static int[] shoppingAmounts = new int[8];        // 각 상품별 구매 희망 수량
+    static int shoppingCount = 0;                     // 실제 사용 개수 (손님 유형별 다름: 가족 8, 커플 6, 친구 7, 혼자 5)
+
+    // 스킵 영업용 - 직접 영업 중 "남은 손님 스킵" 선택 시
+    static Product[] skipList = new Product[2];       // 스킵 처리 시 간략화된 구매 목록
+    static int[] skipAmounts = new int[2];            // 스킵 처리 시 구매 수량
+
+    // 판매 대상용 - 빠른 영업 / 1주일 스킵 시 손님별 구매 대상
+    static Product[] targets = new Product[8];        // 자동 영업 시 판매 대상 상품
+    static int targetsCount = 0;                      // 실제 사용 개수 (현재 3개 고정)
+
+    // getAvailableFromCategory()용 - 재고 있는 상품 필터링
+    static Product[] availableProducts = new Product[5];  // 카테고리 내 재고 있는 상품 임시 저장 (최대 5개 - 음료)
+
     // ========== 손님 멘트 배열 ==========
     // [손님유형][다양한 멘트] - 4종류 × 5개
 
@@ -1152,88 +1176,88 @@ public class Main {
         int remainingSlots = MAX_SLOT - usedSlot;
         if (remainingSlots <= 0) {
             System.out.println(" (매대가 꽉 찼습니다)");
-            
+
         } else {
-            // 카테고리별 상품 배열 (창고에 재고가 있고 매대에 없는 것만)
-            Product[][] categories = new Product[10][5];
-            int[] categoryCounts = new int[10];
-            String[] categoryNames = {"음료", "맥주", "소주", "간식", "고기", "해수욕", "식재료", "라면", "아이스크림", "폭죽"};
+            // 카테고리별 카운트 초기화 (재사용 배열)
+            for (int i = 0; i < 10; i++) {
+                arrangeCategoryCounts[i] = 0;
+                arrangeCategoryIndex[i] = 0;
+            }
 
             // 카테고리 0: 음료
-            if (cola.warehouseStock > 0 && cola.displayStock == 0) categories[0][categoryCounts[0]++] = cola;
-            if (cider.warehouseStock > 0 && cider.displayStock == 0) categories[0][categoryCounts[0]++] = cider;
-            if (water.warehouseStock > 0 && water.displayStock == 0) categories[0][categoryCounts[0]++] = water;
-            if (pocari.warehouseStock > 0 && pocari.displayStock == 0) categories[0][categoryCounts[0]++] = pocari;
-            if (ipro.warehouseStock > 0 && ipro.displayStock == 0) categories[0][categoryCounts[0]++] = ipro;
+            if (cola.warehouseStock > 0 && cola.displayStock == 0) arrangeCategoriesBuffer[0][arrangeCategoryCounts[0]++] = cola;
+            if (cider.warehouseStock > 0 && cider.displayStock == 0) arrangeCategoriesBuffer[0][arrangeCategoryCounts[0]++] = cider;
+            if (water.warehouseStock > 0 && water.displayStock == 0) arrangeCategoriesBuffer[0][arrangeCategoryCounts[0]++] = water;
+            if (pocari.warehouseStock > 0 && pocari.displayStock == 0) arrangeCategoriesBuffer[0][arrangeCategoryCounts[0]++] = pocari;
+            if (ipro.warehouseStock > 0 && ipro.displayStock == 0) arrangeCategoriesBuffer[0][arrangeCategoryCounts[0]++] = ipro;
 
             // 카테고리 1: 맥주
-            if (cass.warehouseStock > 0 && cass.displayStock == 0) categories[1][categoryCounts[1]++] = cass;
-            if (terra.warehouseStock > 0 && terra.displayStock == 0) categories[1][categoryCounts[1]++] = terra;
-            if (hite.warehouseStock > 0 && hite.displayStock == 0) categories[1][categoryCounts[1]++] = hite;
+            if (cass.warehouseStock > 0 && cass.displayStock == 0) arrangeCategoriesBuffer[1][arrangeCategoryCounts[1]++] = cass;
+            if (terra.warehouseStock > 0 && terra.displayStock == 0) arrangeCategoriesBuffer[1][arrangeCategoryCounts[1]++] = terra;
+            if (hite.warehouseStock > 0 && hite.displayStock == 0) arrangeCategoriesBuffer[1][arrangeCategoryCounts[1]++] = hite;
 
             // 카테고리 2: 소주
-            if (chamisul.warehouseStock > 0 && chamisul.displayStock == 0) categories[2][categoryCounts[2]++] = chamisul;
-            if (cheumcherum.warehouseStock > 0 && cheumcherum.displayStock == 0) categories[2][categoryCounts[2]++] = cheumcherum;
-            if (jinro.warehouseStock > 0 && jinro.displayStock == 0) categories[2][categoryCounts[2]++] = jinro;
+            if (chamisul.warehouseStock > 0 && chamisul.displayStock == 0) arrangeCategoriesBuffer[2][arrangeCategoryCounts[2]++] = chamisul;
+            if (cheumcherum.warehouseStock > 0 && cheumcherum.displayStock == 0) arrangeCategoriesBuffer[2][arrangeCategoryCounts[2]++] = cheumcherum;
+            if (jinro.warehouseStock > 0 && jinro.displayStock == 0) arrangeCategoriesBuffer[2][arrangeCategoryCounts[2]++] = jinro;
 
             // 카테고리 3: 간식/안주
-            if (driedSquid.warehouseStock > 0 && driedSquid.displayStock == 0) categories[3][categoryCounts[3]++] = driedSquid;
-            if (peanut.warehouseStock > 0 && peanut.displayStock == 0) categories[3][categoryCounts[3]++] = peanut;
-            if (chip.warehouseStock > 0 && chip.displayStock == 0) categories[3][categoryCounts[3]++] = chip;
+            if (driedSquid.warehouseStock > 0 && driedSquid.displayStock == 0) arrangeCategoriesBuffer[3][arrangeCategoryCounts[3]++] = driedSquid;
+            if (peanut.warehouseStock > 0 && peanut.displayStock == 0) arrangeCategoriesBuffer[3][arrangeCategoryCounts[3]++] = peanut;
+            if (chip.warehouseStock > 0 && chip.displayStock == 0) arrangeCategoriesBuffer[3][arrangeCategoryCounts[3]++] = chip;
 
             // 카테고리 4: 고기
-            if (samgyupsal.warehouseStock > 0 && samgyupsal.displayStock == 0) categories[4][categoryCounts[4]++] = samgyupsal;
-            if (moksal.warehouseStock > 0 && moksal.displayStock == 0) categories[4][categoryCounts[4]++] = moksal;
-            if (sausage.warehouseStock > 0 && sausage.displayStock == 0) categories[4][categoryCounts[4]++] = sausage;
+            if (samgyupsal.warehouseStock > 0 && samgyupsal.displayStock == 0) arrangeCategoriesBuffer[4][arrangeCategoryCounts[4]++] = samgyupsal;
+            if (moksal.warehouseStock > 0 && moksal.displayStock == 0) arrangeCategoriesBuffer[4][arrangeCategoryCounts[4]++] = moksal;
+            if (sausage.warehouseStock > 0 && sausage.displayStock == 0) arrangeCategoriesBuffer[4][arrangeCategoryCounts[4]++] = sausage;
 
             // 카테고리 5: 해수욕 용품
-            if (tube.warehouseStock > 0 && tube.displayStock == 0) categories[5][categoryCounts[5]++] = tube;
-            if (sunscreen.warehouseStock > 0 && sunscreen.displayStock == 0) categories[5][categoryCounts[5]++] = sunscreen;
-            if (beachBall.warehouseStock > 0 && beachBall.displayStock == 0) categories[5][categoryCounts[5]++] = beachBall;
+            if (tube.warehouseStock > 0 && tube.displayStock == 0) arrangeCategoriesBuffer[5][arrangeCategoryCounts[5]++] = tube;
+            if (sunscreen.warehouseStock > 0 && sunscreen.displayStock == 0) arrangeCategoriesBuffer[5][arrangeCategoryCounts[5]++] = sunscreen;
+            if (beachBall.warehouseStock > 0 && beachBall.displayStock == 0) arrangeCategoriesBuffer[5][arrangeCategoryCounts[5]++] = beachBall;
 
             // 카테고리 6: 식재료
-            if (ssamjang.warehouseStock > 0 && ssamjang.displayStock == 0) categories[6][categoryCounts[6]++] = ssamjang;
-            if (lettuce.warehouseStock > 0 && lettuce.displayStock == 0) categories[6][categoryCounts[6]++] = lettuce;
-            if (kimchi.warehouseStock > 0 && kimchi.displayStock == 0) categories[6][categoryCounts[6]++] = kimchi;
+            if (ssamjang.warehouseStock > 0 && ssamjang.displayStock == 0) arrangeCategoriesBuffer[6][arrangeCategoryCounts[6]++] = ssamjang;
+            if (lettuce.warehouseStock > 0 && lettuce.displayStock == 0) arrangeCategoriesBuffer[6][arrangeCategoryCounts[6]++] = lettuce;
+            if (kimchi.warehouseStock > 0 && kimchi.displayStock == 0) arrangeCategoriesBuffer[6][arrangeCategoryCounts[6]++] = kimchi;
 
             // 카테고리 7: 라면
-            if (shinRamen.warehouseStock > 0 && shinRamen.displayStock == 0) categories[7][categoryCounts[7]++] = shinRamen;
-            if (jinRamen.warehouseStock > 0 && jinRamen.displayStock == 0) categories[7][categoryCounts[7]++] = jinRamen;
-            if (neoguri.warehouseStock > 0 && neoguri.displayStock == 0) categories[7][categoryCounts[7]++] = neoguri;
+            if (shinRamen.warehouseStock > 0 && shinRamen.displayStock == 0) arrangeCategoriesBuffer[7][arrangeCategoryCounts[7]++] = shinRamen;
+            if (jinRamen.warehouseStock > 0 && jinRamen.displayStock == 0) arrangeCategoriesBuffer[7][arrangeCategoryCounts[7]++] = jinRamen;
+            if (neoguri.warehouseStock > 0 && neoguri.displayStock == 0) arrangeCategoriesBuffer[7][arrangeCategoryCounts[7]++] = neoguri;
 
             // 카테고리 8: 아이스크림
-            if (melona.warehouseStock > 0 && melona.displayStock == 0) categories[8][categoryCounts[8]++] = melona;
-            if (screwBar.warehouseStock > 0 && screwBar.displayStock == 0) categories[8][categoryCounts[8]++] = screwBar;
-            if (fishBread.warehouseStock > 0 && fishBread.displayStock == 0) categories[8][categoryCounts[8]++] = fishBread;
+            if (melona.warehouseStock > 0 && melona.displayStock == 0) arrangeCategoriesBuffer[8][arrangeCategoryCounts[8]++] = melona;
+            if (screwBar.warehouseStock > 0 && screwBar.displayStock == 0) arrangeCategoriesBuffer[8][arrangeCategoryCounts[8]++] = screwBar;
+            if (fishBread.warehouseStock > 0 && fishBread.displayStock == 0) arrangeCategoriesBuffer[8][arrangeCategoryCounts[8]++] = fishBread;
 
             // 카테고리 9: 폭죽
-            if (sparkler.warehouseStock > 0 && sparkler.displayStock == 0) categories[9][categoryCounts[9]++] = sparkler;
-            if (romanCandle.warehouseStock > 0 && romanCandle.displayStock == 0) categories[9][categoryCounts[9]++] = romanCandle;
-            if (fountain.warehouseStock > 0 && fountain.displayStock == 0) categories[9][categoryCounts[9]++] = fountain;
+            if (sparkler.warehouseStock > 0 && sparkler.displayStock == 0) arrangeCategoriesBuffer[9][arrangeCategoryCounts[9]++] = sparkler;
+            if (romanCandle.warehouseStock > 0 && romanCandle.displayStock == 0) arrangeCategoriesBuffer[9][arrangeCategoryCounts[9]++] = romanCandle;
+            if (fountain.warehouseStock > 0 && fountain.displayStock == 0) arrangeCategoriesBuffer[9][arrangeCategoryCounts[9]++] = fountain;
 
             // 진열 가능한 상품 수 계산
             int totalAvailable = 0;
             for (int i = 0; i < 10; i++) {
-                totalAvailable = totalAvailable + categoryCounts[i];
+                totalAvailable = totalAvailable + arrangeCategoryCounts[i];
             }
 
             if (totalAvailable == 0) {
                 System.out.println(" (창고에 새로 진열할 상품 없음)");
             } else {
                 // 라운드 로빈 방식으로 진열
-                int[] categoryIndex = new int[10];
                 boolean hasMore = true;
 
                 while (hasMore && usedSlot < MAX_SLOT) {
                     hasMore = false;
 
                     for (int cat = 0; cat < 10; cat++) {
-                        if (categoryIndex[cat] < categoryCounts[cat]) {
+                        if (arrangeCategoryIndex[cat] < arrangeCategoryCounts[cat]) {
                             if (usedSlot >= MAX_SLOT) {
                                 break;
                             }
 
-                            Product product = categories[cat][categoryIndex[cat]];
+                            Product product = arrangeCategoriesBuffer[cat][arrangeCategoryIndex[cat]];
                             int amount = Math.min(product.warehouseStock, MAX_DISPLAY_PER_SLOT);
 
                             product.displayFromWarehouse(amount);
@@ -1247,7 +1271,7 @@ public class Main {
                                 System.out.printf(" - [%s] %s %d개 진열%n", categoryNames[cat], product.name, amount);
                             }
 
-                            categoryIndex[cat]++;
+                            arrangeCategoryIndex[cat]++;
                             hasMore = true;
                         }
                     }
@@ -2305,101 +2329,86 @@ public class Main {
             String timeMsg = timeGreetings[rand(5)];
             String customerMessage = greeting + " " + timeMsg;
 
-            // 손님별 구매할 상품 목록 (카테고리에서 랜덤 선택)
-            Product[] shoppingList;
-            int[] shoppingAmounts;
-
+            // 손님별 구매할 상품 목록 (카테고리에서 랜덤 선택, 재사용 배열 사용)
             if (customerType == 0) {
                 // 가족: 고기 + 식재료 + 음료 (필수) / 안주, 아이스크림 (선택 50%)
                 customerName = "가족 손님";
+                shoppingCount = 8;
 
-                // 고기, 식재료, 음료는 여러 종류 가능
-                Product meat1 = getAvailableFromCategory(categoryMeat);
-                Product meat2 = getAvailableFromCategory(categoryMeat);
-                Product grocery1 = getAvailableFromCategory(categoryGrocery);
-                Product grocery2 = getAvailableFromCategory(categoryGrocery);
-                Product drink1 = getAvailableFromCategory(categoryDrink);
-                Product drink2 = getAvailableFromCategory(categoryDrink);
-                Product snack = getAvailableFromCategory(categorySnack);
-                Product icecream = getAvailableFromCategory(categoryIcecream);
+                shoppingList[0] = getAvailableFromCategory(categoryMeat);
+                shoppingList[1] = getAvailableFromCategory(categoryMeat);
+                shoppingList[2] = getAvailableFromCategory(categoryGrocery);
+                shoppingList[3] = getAvailableFromCategory(categoryGrocery);
+                shoppingList[4] = getAvailableFromCategory(categoryDrink);
+                shoppingList[5] = getAvailableFromCategory(categoryDrink);
+                shoppingList[6] = getAvailableFromCategory(categorySnack);
+                shoppingList[7] = getAvailableFromCategory(categoryIcecream);
 
-                shoppingList = new Product[]{meat1, meat2, grocery1, grocery2, drink1, drink2, snack, icecream};
-                shoppingAmounts = new int[]{
-                    2 + rand(2),           // 고기1 (필수)
-                    1 + rand(2),           // 고기2 (필수)
-                    1 + rand(2),           // 식재료1 (필수)
-                    1 + rand(2),           // 식재료2 (필수)
-                    2 + rand(3),           // 음료1 (필수)
-                    1 + rand(2),           // 음료2 (필수)
-                    maybeBuy(2 + rand(2)), // 안주 (선택 50%)
-                    maybeBuy(2 + rand(3))  // 아이스크림 (선택 50%)
-                };
+                shoppingAmounts[0] = 2 + rand(2);           // 고기1 (필수)
+                shoppingAmounts[1] = 1 + rand(2);           // 고기2 (필수)
+                shoppingAmounts[2] = 1 + rand(2);           // 식재료1 (필수)
+                shoppingAmounts[3] = 1 + rand(2);           // 식재료2 (필수)
+                shoppingAmounts[4] = 2 + rand(3);           // 음료1 (필수)
+                shoppingAmounts[5] = 1 + rand(2);           // 음료2 (필수)
+                shoppingAmounts[6] = maybeBuy(2 + rand(2)); // 안주 (선택 50%)
+                shoppingAmounts[7] = maybeBuy(2 + rand(3)); // 아이스크림 (선택 50%)
 
             } else if (customerType == 1) {
                 // 커플: 소주 + 맥주 + 안주 (필수) / 음료, 아이스크림 (선택 50%)
                 customerName = "커플 손님";
+                shoppingCount = 6;
 
-                // 술은 한 종류씩만, 안주는 여러 종류 가능
-                Product soju = getAvailableFromCategory(categorySoju);
-                Product beer = getAvailableFromCategory(categoryBeer);
-                Product snack1 = getAvailableFromCategory(categorySnack);
-                Product snack2 = getAvailableFromCategory(categorySnack);
-                Product drink = getAvailableFromCategory(categoryDrink);
-                Product icecream = getAvailableFromCategory(categoryIcecream);
+                shoppingList[0] = getAvailableFromCategory(categorySoju);
+                shoppingList[1] = getAvailableFromCategory(categoryBeer);
+                shoppingList[2] = getAvailableFromCategory(categorySnack);
+                shoppingList[3] = getAvailableFromCategory(categorySnack);
+                shoppingList[4] = getAvailableFromCategory(categoryDrink);
+                shoppingList[5] = getAvailableFromCategory(categoryIcecream);
 
-                shoppingList = new Product[]{soju, beer, snack1, snack2, drink, icecream};
-                shoppingAmounts = new int[]{
-                    2 + rand(2),           // 소주 (필수) - 한 종류
-                    2 + rand(3),           // 맥주 (필수) - 한 종류
-                    1 + rand(2),           // 안주1 (필수)
-                    1 + rand(2),           // 안주2 (필수)
-                    maybeBuy(1 + rand(2)), // 음료 (선택 50%)
-                    maybeBuy(1 + rand(2))  // 아이스크림 (선택 50%)
-                };
+                shoppingAmounts[0] = 2 + rand(2);           // 소주 (필수) - 한 종류
+                shoppingAmounts[1] = 2 + rand(3);           // 맥주 (필수) - 한 종류
+                shoppingAmounts[2] = 1 + rand(2);           // 안주1 (필수)
+                shoppingAmounts[3] = 1 + rand(2);           // 안주2 (필수)
+                shoppingAmounts[4] = maybeBuy(1 + rand(2)); // 음료 (선택 50%)
+                shoppingAmounts[5] = maybeBuy(1 + rand(2)); // 아이스크림 (선택 50%)
 
             } else if (customerType == 2) {
                 // 친구들: 맥주 + 소주 + 안주 (필수) / 아이스크림, 폭죽 (선택 50%)
                 customerName = "친구들";
+                shoppingCount = 7;
 
-                // 술은 한 종류씩만, 안주/아이스크림은 여러 종류 가능
-                Product beer = getAvailableFromCategory(categoryBeer);
-                Product soju = getAvailableFromCategory(categorySoju);
-                Product snack1 = getAvailableFromCategory(categorySnack);
-                Product snack2 = getAvailableFromCategory(categorySnack);
-                Product icecream1 = getAvailableFromCategory(categoryIcecream);
-                Product icecream2 = getAvailableFromCategory(categoryIcecream);
-                Product etc = getAvailableFromCategory(categoryEtc);
+                shoppingList[0] = getAvailableFromCategory(categoryBeer);
+                shoppingList[1] = getAvailableFromCategory(categorySoju);
+                shoppingList[2] = getAvailableFromCategory(categorySnack);
+                shoppingList[3] = getAvailableFromCategory(categorySnack);
+                shoppingList[4] = getAvailableFromCategory(categoryIcecream);
+                shoppingList[5] = getAvailableFromCategory(categoryIcecream);
+                shoppingList[6] = getAvailableFromCategory(categoryEtc);
 
-                shoppingList = new Product[]{beer, soju, snack1, snack2, icecream1, icecream2, etc};
-                shoppingAmounts = new int[]{
-                    6 + rand(5),           // 맥주 (필수) - 한 종류, 많이
-                    3 + rand(3),           // 소주 (필수) - 한 종류
-                    2 + rand(2),           // 안주1 (필수)
-                    1 + rand(2),           // 안주2 (필수)
-                    maybeBuy(2 + rand(2)), // 아이스크림1 (선택 50%)
-                    maybeBuy(1 + rand(2)), // 아이스크림2 (선택 50%)
-                    maybeBuy(2 + rand(3))  // 폭죽 (선택 50%)
-                };
+                shoppingAmounts[0] = 6 + rand(5);           // 맥주 (필수) - 한 종류, 많이
+                shoppingAmounts[1] = 3 + rand(3);           // 소주 (필수) - 한 종류
+                shoppingAmounts[2] = 2 + rand(2);           // 안주1 (필수)
+                shoppingAmounts[3] = 1 + rand(2);           // 안주2 (필수)
+                shoppingAmounts[4] = maybeBuy(2 + rand(2)); // 아이스크림1 (선택 50%)
+                shoppingAmounts[5] = maybeBuy(1 + rand(2)); // 아이스크림2 (선택 50%)
+                shoppingAmounts[6] = maybeBuy(2 + rand(3)); // 폭죽 (선택 50%)
 
             } else {
                 // 혼자: 라면 + 맥주 (필수) / 음료, 아이스크림, 안주 (선택 50%)
                 customerName = "혼자 온 손님";
+                shoppingCount = 5;
 
-                // 라면, 맥주 모두 한 종류씩
-                Product ramen = getAvailableFromCategory(categoryRamen);
-                Product beer = getAvailableFromCategory(categoryBeer);
-                Product drink = getAvailableFromCategory(categoryDrink);
-                Product icecream = getAvailableFromCategory(categoryIcecream);
-                Product snack = getAvailableFromCategory(categorySnack);
+                shoppingList[0] = getAvailableFromCategory(categoryRamen);
+                shoppingList[1] = getAvailableFromCategory(categoryBeer);
+                shoppingList[2] = getAvailableFromCategory(categoryDrink);
+                shoppingList[3] = getAvailableFromCategory(categoryIcecream);
+                shoppingList[4] = getAvailableFromCategory(categorySnack);
 
-                shoppingList = new Product[]{ramen, beer, drink, icecream, snack};
-                shoppingAmounts = new int[]{
-                    2 + rand(3),           // 라면 (필수) - 한 종류
-                    2 + rand(2),           // 맥주 (필수) - 한 종류
-                    maybeBuy(1 + rand(2)), // 음료 (선택 50%)
-                    maybeBuy(1 + rand(2)), // 아이스크림 (선택 50%)
-                    maybeBuy(1 + rand(2))  // 안주 (선택 50%)
-                };
+                shoppingAmounts[0] = 2 + rand(3);           // 라면 (필수) - 한 종류
+                shoppingAmounts[1] = 2 + rand(2);           // 맥주 (필수) - 한 종류
+                shoppingAmounts[2] = maybeBuy(1 + rand(2)); // 음료 (선택 50%)
+                shoppingAmounts[3] = maybeBuy(1 + rand(2)); // 아이스크림 (선택 50%)
+                shoppingAmounts[4] = maybeBuy(1 + rand(2)); // 안주 (선택 50%)
             }
 
             System.out.println();
@@ -2411,7 +2420,7 @@ public class Main {
 
             // 쇼핑 리스트 먼저 한번에 출력
             System.out.println("쇼핑 리스트:");
-            for (int j = 0; j < shoppingList.length; j++) {
+            for (int j = 0; j < shoppingCount; j++) {
                 if (shoppingAmounts[j] > 0) {
                     System.out.printf(" - %s %d개%n", shoppingList[j].name, shoppingAmounts[j]);
                 }
@@ -2425,7 +2434,7 @@ public class Main {
             int customerSales = 0;
             int customerProfit = 0;
 
-            for (int j = 0; j < shoppingList.length; j++) {
+            for (int j = 0; j < shoppingCount; j++) {
                 Product product = shoppingList[j];
                 int wantAmount = shoppingAmounts[j];
 
@@ -2511,28 +2520,34 @@ public class Main {
                     delay(500);
 
                     for (int k = i + 1; k <= todayCustomers; k++) {
-                        // 간단히 랜덤 손님 처리
+                        // 간단히 랜덤 손님 처리 (재사용 배열 사용)
                         int skipType = rand(4);
-                        Product[] skipList;
-                        int[] skipAmounts;
 
                         // 손님별 간단 쇼핑 리스트
                         if (skipType == 0) {
-                            skipList = new Product[]{getRandomFromCategory(categoryMeat), getRandomFromCategory(categoryDrink)};
-                            skipAmounts = new int[]{2 + rand(2), 3 + rand(3)};
+                            skipList[0] = getRandomFromCategory(categoryMeat);
+                            skipList[1] = getRandomFromCategory(categoryDrink);
+                            skipAmounts[0] = 2 + rand(2);
+                            skipAmounts[1] = 3 + rand(3);
                         } else if (skipType == 1) {
-                            skipList = new Product[]{getRandomFromCategory(categorySoju), getRandomFromCategory(categorySnack)};
-                            skipAmounts = new int[]{2 + rand(2), 2 + rand(2)};
+                            skipList[0] = getRandomFromCategory(categorySoju);
+                            skipList[1] = getRandomFromCategory(categorySnack);
+                            skipAmounts[0] = 2 + rand(2);
+                            skipAmounts[1] = 2 + rand(2);
                         } else if (skipType == 2) {
-                            skipList = new Product[]{getRandomFromCategory(categoryBeer), getRandomFromCategory(categorySoju)};
-                            skipAmounts = new int[]{4 + rand(3), 2 + rand(2)};
+                            skipList[0] = getRandomFromCategory(categoryBeer);
+                            skipList[1] = getRandomFromCategory(categorySoju);
+                            skipAmounts[0] = 4 + rand(3);
+                            skipAmounts[1] = 2 + rand(2);
                         } else {
-                            skipList = new Product[]{getRandomFromCategory(categoryRamen), getRandomFromCategory(categoryBeer)};
-                            skipAmounts = new int[]{2 + rand(2), 2 + rand(2)};
+                            skipList[0] = getRandomFromCategory(categoryRamen);
+                            skipList[1] = getRandomFromCategory(categoryBeer);
+                            skipAmounts[0] = 2 + rand(2);
+                            skipAmounts[1] = 2 + rand(2);
                         }
 
                         // 판매 처리
-                        for (int m = 0; m < skipList.length; m++) {
+                        for (int m = 0; m < 2; m++) {
                             Product p = skipList[m];
                             int want = skipAmounts[m];
 
@@ -2624,40 +2639,33 @@ public class Main {
         // 빅 이벤트 체크 (10% 확률)
         boolean eventOccurred = checkBigEvent(10);
 
-        // 손님별 간략 처리
+        // 손님별 간략 처리 (재사용 배열 사용)
         for (int i = 0; i < todayCustomers; i++) {
             int customerType = rand(4);
 
             // 카테고리별 랜덤 판매 시뮬레이션
-            Product[] targets;
+            targetsCount = 3;
             if (customerType == 0) {
-                targets = new Product[]{
-                    getRandomFromCategory(categoryMeat),
-                    getRandomFromCategory(categoryGrocery),
-                    getRandomFromCategory(categoryDrink)
-                };
+                targets[0] = getRandomFromCategory(categoryMeat);
+                targets[1] = getRandomFromCategory(categoryGrocery);
+                targets[2] = getRandomFromCategory(categoryDrink);
             } else if (customerType == 1) {
-                targets = new Product[]{
-                    getRandomFromCategory(categorySoju),
-                    getRandomFromCategory(categoryBeer),
-                    getRandomFromCategory(categorySnack)
-                };
+                targets[0] = getRandomFromCategory(categorySoju);
+                targets[1] = getRandomFromCategory(categoryBeer);
+                targets[2] = getRandomFromCategory(categorySnack);
             } else if (customerType == 2) {
-                targets = new Product[]{
-                    getRandomFromCategory(categoryBeer),
-                    getRandomFromCategory(categorySoju),
-                    getRandomFromCategory(categorySnack)
-                };
+                targets[0] = getRandomFromCategory(categoryBeer);
+                targets[1] = getRandomFromCategory(categorySoju);
+                targets[2] = getRandomFromCategory(categorySnack);
             } else {
-                targets = new Product[]{
-                    getRandomFromCategory(categoryRamen),
-                    getRandomFromCategory(categoryBeer),
-                    getRandomFromCategory(categoryIcecream)
-                };
+                targets[0] = getRandomFromCategory(categoryRamen);
+                targets[1] = getRandomFromCategory(categoryBeer);
+                targets[2] = getRandomFromCategory(categoryIcecream);
             }
 
             // 각 상품 판매 시도
-            for (Product p : targets) {
+            for (int j = 0; j < targetsCount; j++) {
+                Product p = targets[j];
                 int want = 1 + rand(3);
 
                 if (p.displayStock >= want) {
@@ -2743,38 +2751,31 @@ public class Main {
                 System.out.print(" [이벤트!]");
             }
 
-            // 손님별 간략 처리
+            // 손님별 간략 처리 (재사용 배열 사용)
             for (int i = 0; i < todayCustomers; i++) {
                 int customerType = rand(4);
-                Product[] targets;
+                targetsCount = 3;
 
                 if (customerType == 0) {
-                    targets = new Product[]{
-                        getRandomFromCategory(categoryMeat),
-                        getRandomFromCategory(categoryGrocery),
-                        getRandomFromCategory(categoryDrink)
-                    };
+                    targets[0] = getRandomFromCategory(categoryMeat);
+                    targets[1] = getRandomFromCategory(categoryGrocery);
+                    targets[2] = getRandomFromCategory(categoryDrink);
                 } else if (customerType == 1) {
-                    targets = new Product[]{
-                        getRandomFromCategory(categorySoju),
-                        getRandomFromCategory(categoryBeer),
-                        getRandomFromCategory(categorySnack)
-                    };
+                    targets[0] = getRandomFromCategory(categorySoju);
+                    targets[1] = getRandomFromCategory(categoryBeer);
+                    targets[2] = getRandomFromCategory(categorySnack);
                 } else if (customerType == 2) {
-                    targets = new Product[]{
-                        getRandomFromCategory(categoryBeer),
-                        getRandomFromCategory(categorySoju),
-                        getRandomFromCategory(categorySnack)
-                    };
+                    targets[0] = getRandomFromCategory(categoryBeer);
+                    targets[1] = getRandomFromCategory(categorySoju);
+                    targets[2] = getRandomFromCategory(categorySnack);
                 } else {
-                    targets = new Product[]{
-                        getRandomFromCategory(categoryRamen),
-                        getRandomFromCategory(categoryBeer),
-                        getRandomFromCategory(categoryIcecream)
-                    };
+                    targets[0] = getRandomFromCategory(categoryRamen);
+                    targets[1] = getRandomFromCategory(categoryBeer);
+                    targets[2] = getRandomFromCategory(categoryIcecream);
                 }
 
-                for (Product p : targets) {
+                for (int j = 0; j < targetsCount; j++) {
+                    Product p = targets[j];
                     int want = 1 + rand(3);
 
                     if (p.displayStock >= want) {
@@ -3068,20 +3069,19 @@ public class Main {
     /// 재고 있는 상품이 없으면 랜덤 선택 (재고 없음 처리)
     /// </summary>
     static Product getAvailableFromCategory(Product[] category) {
-        // 재고 있는 상품들 먼저 모음
-        Product[] available = new Product[category.length];
+        // 재고 있는 상품들 먼저 모음 (재사용 배열 사용)
         int count = 0;
 
         for (Product p : category) {
             if (p.displayStock > 0) {
-                available[count] = p;
+                availableProducts[count] = p;
                 count++;
             }
         }
 
         // 재고 있는 상품이 있으면 그 중에서 랜덤 선택
         if (count > 0) {
-            return available[rand(count)];
+            return availableProducts[rand(count)];
         }
 
         // 재고 있는 상품이 없으면 랜덤 선택 (재고 없음으로 처리됨)

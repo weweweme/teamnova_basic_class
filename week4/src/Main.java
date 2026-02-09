@@ -1240,62 +1240,84 @@ public class Main {
             int threshold = Util.readInt(scanner);
 
             // 카테고리별 정책 설정
-            if (categoryChoice == 1) {
-                autoOrderDrink = true;
-                thresholdDrink = threshold;
-            } else if (categoryChoice == 2) {
-                autoOrderBeer = true;
-                thresholdBeer = threshold;
-            } else if (categoryChoice == 3) {
-                autoOrderSoju = true;
-                thresholdSoju = threshold;
-            } else if (categoryChoice == 4) {
-                autoOrderSnack = true;
-                thresholdSnack = threshold;
-            } else if (categoryChoice == 5) {
-                autoOrderMeat = true;
-                thresholdMeat = threshold;
-            } else if (categoryChoice == 6) {
-                autoOrderBeach = true;
-                thresholdBeach = threshold;
-            } else if (categoryChoice == 7) {
-                autoOrderGrocery = true;
-                thresholdGrocery = threshold;
-            } else if (categoryChoice == 8) {
-                autoOrderRamen = true;
-                thresholdRamen = threshold;
-            } else if (categoryChoice == 9) {
-                autoOrderIcecream = true;
-                thresholdIcecream = threshold;
-            } else if (categoryChoice == 10) {
-                autoOrderEtc = true;
-                thresholdEtc = threshold;
+            switch (categoryChoice) {
+                case 1:
+                    autoOrderDrink = true;
+                    thresholdDrink = threshold;
+                    break;
+                case 2:
+                    autoOrderBeer = true;
+                    thresholdBeer = threshold;
+                    break;
+                case 3:
+                    autoOrderSoju = true;
+                    thresholdSoju = threshold;
+                    break;
+                case 4:
+                    autoOrderSnack = true;
+                    thresholdSnack = threshold;
+                    break;
+                case 5:
+                    autoOrderMeat = true;
+                    thresholdMeat = threshold;
+                    break;
+                case 6:
+                    autoOrderBeach = true;
+                    thresholdBeach = threshold;
+                    break;
+                case 7:
+                    autoOrderGrocery = true;
+                    thresholdGrocery = threshold;
+                    break;
+                case 8:
+                    autoOrderRamen = true;
+                    thresholdRamen = threshold;
+                    break;
+                case 9:
+                    autoOrderIcecream = true;
+                    thresholdIcecream = threshold;
+                    break;
+                case 10:
+                    autoOrderEtc = true;
+                    thresholdEtc = threshold;
+                    break;
             }
 
             System.out.println("[OK] " + categoryName + " 카테고리 등록 완료 (임계값: " + threshold + "개)");
 
         } else if (actionChoice == 2) {
             // 자동주문 해제
-            if (categoryChoice == 1) {
-                autoOrderDrink = false;
-            } else if (categoryChoice == 2) {
-                autoOrderBeer = false;
-            } else if (categoryChoice == 3) {
-                autoOrderSoju = false;
-            } else if (categoryChoice == 4) {
-                autoOrderSnack = false;
-            } else if (categoryChoice == 5) {
-                autoOrderMeat = false;
-            } else if (categoryChoice == 6) {
-                autoOrderBeach = false;
-            } else if (categoryChoice == 7) {
-                autoOrderGrocery = false;
-            } else if (categoryChoice == 8) {
-                autoOrderRamen = false;
-            } else if (categoryChoice == 9) {
-                autoOrderIcecream = false;
-            } else if (categoryChoice == 10) {
-                autoOrderEtc = false;
+            switch (categoryChoice) {
+                case 1:
+                    autoOrderDrink = false;
+                    break;
+                case 2:
+                    autoOrderBeer = false;
+                    break;
+                case 3:
+                    autoOrderSoju = false;
+                    break;
+                case 4:
+                    autoOrderSnack = false;
+                    break;
+                case 5:
+                    autoOrderMeat = false;
+                    break;
+                case 6:
+                    autoOrderBeach = false;
+                    break;
+                case 7:
+                    autoOrderGrocery = false;
+                    break;
+                case 8:
+                    autoOrderRamen = false;
+                    break;
+                case 9:
+                    autoOrderIcecream = false;
+                    break;
+                case 10:
+                    autoOrderEtc = false;
+                    break;
             }
 
             System.out.println("[OK] " + categoryName + " 카테고리 자동주문 해제됨");

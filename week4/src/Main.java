@@ -7,6 +7,7 @@ public class Main {
     static final int INIT_MONEY = 50000000;           // 초기 자본 5000만원
     static final int GOAL_MONEY = 300000000;          // 목표 금액 3억원
     static final int MAX_SLOT = 30;                   // 매대 최대 슬롯
+    static final int MIN_SLOT_FOR_BUSINESS = 15;     // 영업 시작 최소 슬롯 (50%)
     static final int DEFAULT_PRICE_MULTIPLIER = 3;   // 기본 가격 배율
 
     // ========== 게임 변수 ==========
@@ -238,6 +239,18 @@ public class Main {
                     break;
 
                 case 2:
+                    // 영업 시작 전 매대 체크
+                    if (usedSlot < MIN_SLOT_FOR_BUSINESS) {
+                        System.out.println();
+                        System.out.println("[!!] 매대가 부족합니다!");
+                        System.out.printf("    현재: %d칸 / 최소: %d칸 (50%%)%n", usedSlot, MIN_SLOT_FOR_BUSINESS);
+                        System.out.println("    도매상에서 상품을 구매하고 매대에 진열하세요.");
+                        System.out.println();
+                        System.out.println("아무 키나 입력하면 돌아갑니다...");
+                        scanner.next();
+                        break;
+                    }
+
                     // 영업 시작 (서브메뉴)
                     int businessResult = showBusinessMenu();
                     switch (businessResult) {

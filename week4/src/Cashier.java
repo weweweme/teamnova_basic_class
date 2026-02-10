@@ -8,7 +8,7 @@ public class Cashier {
 
     // ========== 의존 객체 ==========
 
-    private Market market;              // market.money, market.day, market.timeOfDay 접근용
+    private GameManager game;           // game.money, game.day, game.timeOfDay 접근용
     private Inventory inventory;        // inventory.display, inventory.getAvailableFromCategory() 접근용
     private ProductCatalog catalog;     // catalog.categoryDrink, catalog.getRandomFromCategory() 등 접근용
     private Scanner scanner;
@@ -86,10 +86,10 @@ public class Cashier {
 
     /// <summary>
     /// Cashier 생성자
-    /// Market, Inventory, ProductCatalog, Scanner를 전달받음
+    /// GameManager, Inventory, ProductCatalog, Scanner를 전달받음
     /// </summary>
-    public Cashier(Market market, Inventory inventory, ProductCatalog catalog, Scanner scanner) {
-        this.market = market;
+    public Cashier(GameManager game, Inventory inventory, ProductCatalog catalog, Scanner scanner) {
+        this.game = game;
         this.inventory = inventory;
         this.catalog = catalog;
         this.scanner = scanner;
@@ -135,11 +135,11 @@ public class Cashier {
             String greeting = customerGreetings[customerType][Util.rand(5)];
             // 현재 시간대에 맞는 멘트 선택
             String timeMsg;
-            switch (market.timeOfDay) {
-                case Market.TIME_MORNING:
+            switch (game.timeOfDay) {
+                case GameManager.TIME_MORNING:
                     timeMsg = morningGreetings[Util.rand(5)];
                     break;
-                case Market.TIME_NIGHT:
+                case GameManager.TIME_NIGHT:
                     timeMsg = nightGreetings[Util.rand(5)];
                     break;
                 default:
@@ -211,7 +211,7 @@ public class Cashier {
 
                     inventory.display.sell(product, wantAmount);
 
-                    market.money = market.money + saleAmount;
+                    game.money = game.money + saleAmount;
                     customerSales = customerSales + saleAmount;
                     customerProfit = customerProfit + profitAmount;
                     todaySales = todaySales + saleAmount;
@@ -227,7 +227,7 @@ public class Cashier {
 
                     inventory.display.sell(product, currentStock);
 
-                    market.money = market.money + saleAmount;
+                    game.money = game.money + saleAmount;
                     customerSales = customerSales + saleAmount;
                     customerProfit = customerProfit + profitAmount;
                     todaySales = todaySales + saleAmount;
@@ -312,7 +312,7 @@ public class Cashier {
                                 int skipSaleAmount = skipProduct.sellPrice * skipWantAmount;
                                 int skipProfitAmount = (skipProduct.sellPrice - skipProduct.buyPrice) * skipWantAmount;
                                 inventory.display.sell(skipProduct, skipWantAmount);
-                                market.money += skipSaleAmount;
+                                game.money += skipSaleAmount;
                                 todaySales += skipSaleAmount;
                                 todayProfit += skipProfitAmount;
                                 successCount++;
@@ -320,7 +320,7 @@ public class Cashier {
                                 int skipSaleAmount = skipProduct.sellPrice * skipStock;
                                 int skipProfitAmount = (skipProduct.sellPrice - skipProduct.buyPrice) * skipStock;
                                 inventory.display.sell(skipProduct, skipStock);
-                                market.money += skipSaleAmount;
+                                game.money += skipSaleAmount;
                                 todaySales += skipSaleAmount;
                                 todayProfit += skipProfitAmount;
                                 successCount++;
@@ -347,7 +347,7 @@ public class Cashier {
 
         // 하루 정산
         Util.delay(800);  // 정산 준비 연출
-        printDailySettlement(market.day, todayCustomers, successCount, failCount,
+        printDailySettlement(game.day, todayCustomers, successCount, failCount,
                 todaySales, todayProfit, bigEventOccurred);
 
         System.out.println();
@@ -362,7 +362,7 @@ public class Cashier {
     public void startQuickBusiness() {
         Util.clearScreen();
         System.out.println("========================================");
-        System.out.println("         [ 빠른 영업 - " + market.day + "일차 ]");
+        System.out.println("         [ 빠른 영업 - " + game.day + "일차 ]");
         System.out.println("========================================");
         System.out.println();
         System.out.println("영업 중...");
@@ -423,7 +423,7 @@ public class Cashier {
                 int soldAmount = result[2];
 
                 if (soldAmount > 0) {
-                    market.money = market.money + saleAmount;
+                    game.money = game.money + saleAmount;
                     todaySales = todaySales + saleAmount;
                     todayProfit = todayProfit + profitAmount;
                     successCount++;
@@ -438,7 +438,7 @@ public class Cashier {
         }
 
         // 결과 출력
-        printDailySettlement(market.day, todayCustomers, successCount, failCount,
+        printDailySettlement(game.day, todayCustomers, successCount, failCount,
                              todaySales, todayProfit, eventOccurred);
 
         System.out.println();
@@ -585,13 +585,13 @@ public class Cashier {
                 int sale = p.sellPrice * sellAmount;
                 inventory.display.sell(p, sellAmount);
 
-                market.money = market.money + sale;
+                game.money = game.money + sale;
                 totalSale = totalSale + sale;
             } else if (stock > 0) {
                 int sale = p.sellPrice * stock;
                 inventory.display.sell(p, stock);
 
-                market.money = market.money + sale;
+                game.money = game.money + sale;
                 totalSale = totalSale + sale;
             }
         }
@@ -670,11 +670,11 @@ public class Cashier {
                                       int sales, int profit, boolean bigEvent) {
         // 시간대 문자열
         String timeName;
-        switch (market.timeOfDay) {
-            case Market.TIME_MORNING:
+        switch (game.timeOfDay) {
+            case GameManager.TIME_MORNING:
                 timeName = "아침";
                 break;
-            case Market.TIME_NIGHT:
+            case GameManager.TIME_NIGHT:
                 timeName = "밤";
                 break;
             default:
@@ -697,8 +697,8 @@ public class Cashier {
         System.out.printf("  오늘 매출:    %,d원%n", sales);
         System.out.printf("  순이익:      +%,d원%n", profit);
         System.out.println("----------------------------------------");
-        System.out.printf("  현재 총 자본: %,d원%n", market.money);
-        System.out.printf("  목표까지:     %,d원%n", market.goalMoney - market.money);
+        System.out.printf("  현재 총 자본: %,d원%n", game.money);
+        System.out.printf("  목표까지:     %,d원%n", game.goalMoney - game.money);
         System.out.println("========================================");
     }
 }

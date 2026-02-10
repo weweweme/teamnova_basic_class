@@ -3,7 +3,7 @@ import java.util.Scanner;
 /// <summary>
 /// 메인 클래스
 /// 게임 시작 화면과 모드 선택만 담당
-/// 실제 게임 로직은 Market 클래스에서 처리
+/// 실제 게임 로직은 GameManager 클래스에서 처리
 /// </summary>
 public class Main {
 
@@ -65,9 +65,9 @@ public class Main {
             return;
         }
 
-        // 마켓 생성 및 게임 시작
-        Market market = new Market(money, goalMoney, priceMultiplier, scanner);
-        market.run();
+        // 게임 매니저 생성 및 게임 시작
+        GameManager gameManager = new GameManager(money, goalMoney, priceMultiplier, scanner);
+        gameManager.run();
 
         scanner.close();
     }

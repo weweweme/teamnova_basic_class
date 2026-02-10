@@ -8,7 +8,7 @@ public class Wholesaler {
 
     // ========== 필드 ==========
 
-    private Market market;              // 자본(money) 접근용
+    private GameManager game;           // 게임 상태(money) 접근용
     private Inventory inventory;        // 재고 관리 (창고, 매대, 총 재고 조회)
     private ProductCatalog catalog;     // 상품/카테고리 조회
     private Scanner scanner;
@@ -22,8 +22,8 @@ public class Wholesaler {
     /// <summary>
     /// Wholesaler 생성자
     /// </summary>
-    public Wholesaler(Market market, Inventory inventory, ProductCatalog catalog, Scanner scanner) {
-        this.market = market;
+    public Wholesaler(GameManager game, Inventory inventory, ProductCatalog catalog, Scanner scanner) {
+        this.game = game;
         this.inventory = inventory;
         this.catalog = catalog;
         this.scanner = scanner;
@@ -42,7 +42,7 @@ public class Wholesaler {
             System.out.println("========================================");
             System.out.println("            [ 도매상 ]");
             System.out.println("========================================");
-            System.out.printf("현재 자본: %,d원%n", market.money);
+            System.out.printf("현재 자본: %,d원%n", game.money);
             System.out.printf("매대: %d / %d칸%n", inventory.display.getUsedSlots(), inventory.maxSlot);
             System.out.println();
             System.out.println("[1] 카테고리별 구매");
@@ -84,7 +84,7 @@ public class Wholesaler {
             System.out.println("========================================");
             System.out.println("        [ 카테고리 선택 ]");
             System.out.println("========================================");
-            System.out.printf("현재 자본: %,d원 | 매대: %d / %d칸%n", market.money, inventory.display.getUsedSlots(), inventory.maxSlot);
+            System.out.printf("현재 자본: %,d원 | 매대: %d / %d칸%n", game.money, inventory.display.getUsedSlots(), inventory.maxSlot);
             System.out.println();
             System.out.println("[1] 음료        [2] 맥주        [3] 소주");
             System.out.println("[4] 간식/안주   [5] 고기        [6] 해수욕용품");
@@ -156,13 +156,13 @@ public class Wholesaler {
         int totalCost = product.buyPrice * quantity;
 
         // 자본 체크
-        if (totalCost > market.money) {
+        if (totalCost > game.money) {
             System.out.println("[!!] 자본이 부족합니다. (필요: " + String.format("%,d", totalCost) + "원)");
             return;
         }
 
         // 구매 처리 (창고로 입고)
-        market.money = market.money - totalCost;
+        game.money = game.money - totalCost;
         inventory.warehouse.addStock(product, quantity);
 
         System.out.println("[OK] " + product.name + " " + quantity + "개 창고로 입고! (-" + String.format("%,d", totalCost) + "원)");
@@ -444,7 +444,7 @@ public class Wholesaler {
         System.out.println();
         System.out.println("----------------------------------------");
         System.out.printf("총 주문 금액: -%,d원%n", totalCost);
-        System.out.printf("남은 자본: %,d원%n", market.money);
+        System.out.printf("남은 자본: %,d원%n", game.money);
         System.out.println("----------------------------------------");
 
         System.out.println();
@@ -468,13 +468,13 @@ public class Wholesaler {
         int cost = product.buyPrice * orderAmount;
 
         // 자본 체크
-        if (cost > market.money) {
+        if (cost > game.money) {
             System.out.printf(" - %s: 자본 부족 (필요: %,d원)%n", product.name, cost);
             return 0;
         }
 
         // 주문 처리 (창고로 입고)
-        market.money = market.money - cost;
+        game.money = game.money - cost;
         inventory.warehouse.addStock(product, orderAmount);
 
         System.out.printf(" - %s %d박스(%d개) 창고 입고 (-%,d원)%n", product.name, AUTO_ORDER_BOX_COUNT, orderAmount, cost);

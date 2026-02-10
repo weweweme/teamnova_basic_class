@@ -696,23 +696,27 @@ public class Main {
 
         // 창고에 재고가 있는 상품 목록 출력
         // 이미 진열 중인 상품은 [진열중] 표시
+        // 번호 → 상품 매핑용 배열 (번호로 선택하기 위해)
+        Product[] stockList = new Product[allProducts.length];
         System.out.println("--- 창고 재고 ---");
-        int num = 1;
+        int num = 0;
         for (Product p : allProducts) {
             int stock = warehouse.getStock(p);
             if (stock > 0) {
+                stockList[num] = p;
+                num++;
                 int displayed = display.getDisplayed(p);
                 if (displayed > 0) {
                     // 이미 매대에 진열 중인 상품
                     System.out.printf("%d. %s (창고: %d개) [진열중 %d/%d]%n",
-                        num++, p.name, stock, displayed, MAX_DISPLAY_PER_SLOT);
+                        num, p.name, stock, displayed, MAX_DISPLAY_PER_SLOT);
                 } else {
-                    System.out.printf("%d. %s (창고: %d개)%n", num++, p.name, stock);
+                    System.out.printf("%d. %s (창고: %d개)%n", num, p.name, stock);
                 }
             }
         }
 
-        if (num == 1) {
+        if (num == 0) {
             System.out.println("  창고가 비어있습니다.");
             System.out.println();
             System.out.println("아무 키나 입력하면 돌아갑니다...");
@@ -721,26 +725,22 @@ public class Main {
         }
 
         System.out.println();
-        System.out.print("진열할 상품명 입력 (취소: 0): ");
-        String productName = scanner.next();
+        System.out.print("진열할 상품 번호 입력 (취소: 0): ");
+        int productNum = Util.readInt(scanner);
 
-        if (productName.equals("0")) {
+        if (productNum == 0 || productNum == Util.INVALID_INPUT) {
             return;
         }
 
-        // 상품 찾기
-        Product product = productMap.get(productName);
-
-        if (product == null) {
-            System.out.println("[!!] 상품을 찾을 수 없습니다.");
+        // 번호 범위 체크
+        if (productNum < 1 || productNum > num) {
+            System.out.println("[!!] 잘못된 번호입니다.");
             return;
         }
 
+        // 번호로 상품 찾기 (1번 → stockList[0])
+        Product product = stockList[productNum - 1];
         int warehouseStock = warehouse.getStock(product);
-        if (warehouseStock == 0) {
-            System.out.println("[!!] 창고에 재고가 없습니다.");
-            return;
-        }
 
         // 새 상품이면 슬롯 체크
         int currentDisplay = display.getDisplayed(product);

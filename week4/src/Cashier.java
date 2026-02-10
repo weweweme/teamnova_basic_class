@@ -8,79 +8,15 @@ public class Cashier {
 
     // ========== 의존 객체 ==========
 
-    private GameManager game;           // game.money, game.day, game.timeOfDay 접근용
-    private Inventory inventory;        // inventory.display, inventory.getAvailableFromCategory() 접근용
-    private ProductCatalog catalog;     // catalog.categoryDrink, catalog.getRandomFromCategory() 등 접근용
-    private Scanner scanner;
+    private final GameManager game;           // game.money, game.day, game.timeOfDay 접근용
+    private final Inventory inventory;        // inventory.display, inventory.getAvailableFromCategory() 접근용
+    private final ProductCatalog catalog;     // catalog.categoryDrink, catalog.getRandomFromCategory() 등 접근용
+    private final Scanner scanner;
 
     // ========== 재사용 배열 (스킵 영업용) ==========
 
-    private Product[] skipList = new Product[2];       // 스킵 처리 시 간략화된 구매 목록
-    private int[] skipAmounts = new int[2];            // 스킵 처리 시 구매 수량
-
-    // ========== 손님 멘트 배열 ==========
-    // [손님유형][다양한 멘트] - 4종류 x 5개
-
-    private String[][] customerGreetings = {
-        // 가족 손님 (0)
-        {
-            "바베큐 하려고 왔어요~",
-            "애들이랑 고기 구워 먹으려고요!",
-            "가족 나들이 왔다가 들렀어요~",
-            "오늘 저녁은 삼겹살이에요!",
-            "아이들 간식도 좀 사려고요~"
-        },
-        // 커플 손님 (1)
-        {
-            "오늘 달 보면서 한잔 하려고요~",
-            "둘이서 조용히 마시려고요~",
-            "데이트하다가 들렀어요!",
-            "와인 대신 소주로 할래요~",
-            "안주 좀 추천해주세요~"
-        },
-        // 친구들 (2)
-        {
-            "우리 오늘 펜션에서 파티해요!!",
-            "MT 왔어요! 술 많이 주세요~",
-            "불꽃놀이 할 건데 폭죽 있어요?",
-            "다같이 모여서 놀려고요!",
-            "친구들이랑 바베큐 파티에요~"
-        },
-        // 혼자 온 손님 (3)
-        {
-            "라면이랑 맥주 좀 주세요.",
-            "혼자 조용히 먹으려고요...",
-            "야식 사러 왔어요~",
-            "간단하게 먹을 거 찾고 있어요.",
-            "편하게 혼술하려고요~"
-        }
-    };
-
-    // 시간대별 멘트 - timeOfDay에 따라 다른 배열 사용
-
-    private String[] morningGreetings = {
-        "아침부터 열일하시네요!",
-        "아침 일찍 오셨네요~",
-        "오전에 미리 사두려고요!",
-        "아침밥 준비하러 왔어요~",
-        "일찍 나왔더니 기분 좋네요!"
-    };
-
-    private String[] afternoonGreetings = {
-        "점심 준비하러 왔어요~",
-        "오후에 먹으려고요!",
-        "낮이라 사람 많네요~",
-        "한낮에 장보러 왔어요!",
-        "오후에 뭐 좀 사려고요~"
-    };
-
-    private String[] nightGreetings = {
-        "저녁에 다 같이 먹을 거예요~",
-        "밤에 야식으로 먹을 거예요!",
-        "저녁 준비하러 왔어요~",
-        "밤바람 쐬러 나왔다가 들렀어요~",
-        "야식 사러 왔어요!"
-    };
+    private final Product[] skipList = new Product[2];       // 스킵 처리 시 간략화된 구매 목록
+    private final int[] skipAmounts = new int[2];            // 스킵 처리 시 구매 수량
 
     // ========== 생성자 ==========
 
@@ -132,20 +68,13 @@ public class Cashier {
             Customer customer = createCustomer(customerType);
 
             // 멘트 조합: [손님 인사] + [시간대 멘트]
-            String greeting = customerGreetings[customerType][Util.rand(5)];
+            String greeting = Customer.TYPE_GREETINGS[customerType][Util.rand(5)];
             // 현재 시간대에 맞는 멘트 선택
-            String timeMsg;
-            switch (game.timeOfDay) {
-                case GameManager.TIME_MORNING:
-                    timeMsg = morningGreetings[Util.rand(5)];
-                    break;
-                case GameManager.TIME_NIGHT:
-                    timeMsg = nightGreetings[Util.rand(5)];
-                    break;
-                default:
-                    timeMsg = afternoonGreetings[Util.rand(5)];
-                    break;
-            }
+            String timeMsg = switch (game.timeOfDay) {
+                case GameManager.TIME_MORNING -> Customer.MORNING_GREETINGS[Util.rand(5)];
+                case GameManager.TIME_NIGHT -> Customer.NIGHT_GREETINGS[Util.rand(5)];
+                default -> Customer.AFTERNOON_GREETINGS[Util.rand(5)];
+            };
             customer.greeting = greeting + " " + timeMsg;
 
             System.out.println();

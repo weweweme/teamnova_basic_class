@@ -688,13 +688,27 @@ public class Main {
         System.out.printf("매대: %d / %d칸%n", display.getUsedSlots(), MAX_SLOT);
         System.out.println();
 
+        // 매대가 꽉 찼으면 경고
+        if (!display.hasEmptySlot()) {
+            System.out.println("[!!] 매대가 꽉 찼습니다! (이미 진열된 상품만 추가 가능)");
+            System.out.println();
+        }
+
         // 창고에 재고가 있는 상품 목록 출력
+        // 이미 진열 중인 상품은 [진열중] 표시
         System.out.println("--- 창고 재고 ---");
         int num = 1;
         for (Product p : allProducts) {
             int stock = warehouse.getStock(p);
             if (stock > 0) {
-                System.out.printf("%d. %s (%d개)%n", num++, p.name, stock);
+                int displayed = display.getDisplayed(p);
+                if (displayed > 0) {
+                    // 이미 매대에 진열 중인 상품
+                    System.out.printf("%d. %s (창고: %d개) [진열중 %d/%d]%n",
+                        num++, p.name, stock, displayed, MAX_DISPLAY_PER_SLOT);
+                } else {
+                    System.out.printf("%d. %s (창고: %d개)%n", num++, p.name, stock);
+                }
             }
         }
 

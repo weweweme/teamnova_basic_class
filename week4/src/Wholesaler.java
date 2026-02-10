@@ -15,7 +15,7 @@ public class Wholesaler {
 
     // ========== 상수 ==========
 
-    private static final int AUTO_ORDER_BOX_COUNT = 3;  // 자동주문 시 박스 수 (약 1주일치)
+    private static final int DEFAULT_BOX_COUNT = 3;  // 자동주문 기본 박스 수
 
     // ========== 생성자 ==========
 
@@ -256,16 +256,23 @@ public class Wholesaler {
         int actionChoice = Util.readInt(scanner);
 
         if (actionChoice == 1) {
-            // 자동주문 등록: 임계값을 입력받아 카테고리에 설정
+            // 자동주문 등록: 임계값과 박스 수를 입력받아 카테고리에 설정
             // -> executeAutoOrder() 실행 시 이 카테고리의 모든 상품이 임계값 기준으로 자동 주문됨
             System.out.print("임계값 입력 (재고 몇 개 이하면 주문?) >> ");
             int threshold = Util.readInt(scanner);
 
+            System.out.print("주문 박스 수 입력 (기본 3) >> ");
+            int boxCount = Util.readInt(scanner);
+            if (boxCount <= 0) {
+                boxCount = DEFAULT_BOX_COUNT;
+            }
+
             Category cat = catalog.allCategories[categoryChoice - 1];
             cat.autoOrderEnabled = true;
             cat.autoOrderThreshold = threshold;
+            cat.autoOrderBoxCount = boxCount;
 
-            System.out.println("[OK] " + categoryName + " 카테고리 등록 완료 (임계값: " + threshold + "개)");
+            System.out.println("[OK] " + categoryName + " 카테고리 등록 완료 (임계값: " + threshold + "개, " + boxCount + "박스)");
 
         } else if (actionChoice == 2) {
             // 자동주문 해제: 카테고리의 자동주문 플래그를 끔
@@ -334,16 +341,23 @@ public class Wholesaler {
         int actionChoice = Util.readInt(scanner);
 
         if (actionChoice == 1) {
-            // 자동주문 등록: 임계값을 입력받아 개별 상품에 설정
+            // 자동주문 등록: 임계값과 박스 수를 입력받아 개별 상품에 설정
             // -> executeAutoOrder() 실행 시 이 상품이 임계값 기준으로 자동 주문됨
             //    (단, 카테고리 정책이 등록된 경우 카테고리 정책이 우선)
             System.out.print("임계값 입력 (재고 몇 개 이하면 주문?) >> ");
             int threshold = Util.readInt(scanner);
 
+            System.out.print("주문 박스 수 입력 (기본 3) >> ");
+            int boxCount = Util.readInt(scanner);
+            if (boxCount <= 0) {
+                boxCount = DEFAULT_BOX_COUNT;
+            }
+
             product.autoOrderEnabled = true;
             product.autoOrderThreshold = threshold;
+            product.autoOrderBoxCount = boxCount;
 
-            System.out.println("[OK] " + product.name + " 등록 완료 (임계값: " + threshold + "개)");
+            System.out.println("[OK] " + product.name + " 등록 완료 (임계값: " + threshold + "개, " + boxCount + "박스)");
 
         } else if (actionChoice == 2) {
             // 자동주문 해제: 상품의 자동주문 플래그를 끔
@@ -389,7 +403,7 @@ public class Wholesaler {
 
         for (Category cat : catalog.allCategories) {
             if (cat.autoOrderEnabled) {
-                System.out.println(" - " + cat.name + ": 임계값 " + cat.autoOrderThreshold + "개");
+                System.out.println(" - " + cat.name + ": 임계값 " + cat.autoOrderThreshold + "개, " + cat.autoOrderBoxCount + "박스");
                 hasCategoryPolicy = true;
             }
         }
@@ -411,7 +425,7 @@ public class Wholesaler {
         // 모든 상품 체크
         for (Product p : catalog.allProducts) {
             if (p.autoOrderEnabled) {
-                System.out.println(" - " + p.name + ": 임계값 " + p.autoOrderThreshold + "개");
+                System.out.println(" - " + p.name + ": 임계값 " + p.autoOrderThreshold + "개, " + p.autoOrderBoxCount + "박스");
                 hasIndividualPolicy = true;
             }
         }
@@ -446,7 +460,7 @@ public class Wholesaler {
         for (Category cat : catalog.allCategories) {
             if (cat.autoOrderEnabled) {
                 for (Product p : cat.products) {
-                    totalCost = totalCost + autoOrderProduct(p, cat.autoOrderThreshold);
+                    totalCost = totalCost + autoOrderProduct(p, cat.autoOrderThreshold, cat.autoOrderBoxCount);
                 }
             }
         }
@@ -459,7 +473,7 @@ public class Wholesaler {
             if (!cat.autoOrderEnabled) {
                 for (Product p : cat.products) {
                     if (p.autoOrderEnabled) {
-                        totalCost = totalCost + autoOrderProduct(p, p.autoOrderThreshold);
+                        totalCost = totalCost + autoOrderProduct(p, p.autoOrderThreshold, p.autoOrderBoxCount);
                     }
                 }
             }
@@ -479,9 +493,9 @@ public class Wholesaler {
 
     /// <summary>
     /// 개별 상품 자동주문 처리
-    /// 재고가 임계값 이하면 AUTO_ORDER_BOX_COUNT 박스 주문, 주문 금액 반환
+    /// 재고가 임계값 이하면 지정된 박스 수만큼 주문, 주문 금액 반환
     /// </summary>
-    private int autoOrderProduct(Product product, int threshold) {
+    private int autoOrderProduct(Product product, int threshold, int boxCount) {
         // 재고 확인: 총 재고(창고+매대)가 임계값 이하인지 체크
         int totalStock = market.getTotalStock(product);
         if (totalStock > threshold) {
@@ -489,9 +503,8 @@ public class Wholesaler {
             return 0;
         }
 
-        // 주문 수량 계산: 박스 단위 × 3박스 (약 1주일치)
-        int quantityPerBox = product.quantityPerBox;
-        int orderAmount = quantityPerBox * AUTO_ORDER_BOX_COUNT;
+        // 주문 수량 계산: 박스당 수량 × 박스 수
+        int orderAmount = product.quantityPerBox * boxCount;
         int cost = product.buyPrice * orderAmount;
 
         // 자본 부족 시 주문 불가
@@ -504,7 +517,7 @@ public class Wholesaler {
         game.money = game.money - cost;
         market.warehouse.addStock(product, orderAmount);
 
-        System.out.printf(" - %s %d박스(%d개) 창고 입고 (-%,d원)%n", product.name, AUTO_ORDER_BOX_COUNT, orderAmount, cost);
+        System.out.printf(" - %s %d박스(%d개) 창고 입고 (-%,d원)%n", product.name, boxCount, orderAmount, cost);
 
         return cost;
     }

@@ -27,6 +27,7 @@ public class Category {
     // 자동주문 정책
     public boolean autoOrderEnabled;  // 자동주문 활성화 여부 (기본 true)
     public int autoOrderThreshold;    // 자동주문 임계값 (재고가 이 값 이하면 주문, 기본 10)
+    public int autoOrderBoxCount;     // 자동주문 박스 수 (기본 3)
 
     // ========== 생성자 ==========
 
@@ -41,6 +42,7 @@ public class Category {
         this.index = index;
         this.autoOrderEnabled = true;
         this.autoOrderThreshold = 10;
+        this.autoOrderBoxCount = 3;
     }
 
     // ========== 메서드 ==========

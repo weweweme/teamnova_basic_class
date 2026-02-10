@@ -15,6 +15,7 @@ public class Product {
     // 자동주문 설정 (상품별 개별 설정)
     public boolean autoOrderEnabled;   // 자동주문 활성화 여부
     public int autoOrderThreshold;     // 자동주문 임계값 (총 재고가 이 값 이하면 주문)
+    public int autoOrderBoxCount;      // 자동주문 박스 수 (기본 3)
 
     // ========== 생성자 ==========
 

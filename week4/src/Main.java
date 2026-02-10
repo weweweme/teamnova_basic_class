@@ -349,11 +349,6 @@ public class Main {
                             startQuickBusiness();
                             advanceTime();
                             break;
-                        case 3:
-                            // 1주일 스킵
-                            skipWeek();
-                            timeOfDay = TIME_MORNING;
-                            break;
                         // case 0: 돌아가기 (아무것도 안 함)
                     }
                     break;
@@ -506,8 +501,7 @@ public class Main {
         System.out.println("========================================");
         System.out.println();
         System.out.println("[1] 직접 영업 (손님 한 명씩 응대)");
-        System.out.println("[2] 빠른 영업 (하루 결과만 요약)");
-        System.out.println("[3] 1주일 스킵 (7일 자동 영업)");
+        System.out.println("[2] 빠른 영업 (결과만 요약)");
         System.out.println("[0] 돌아가기");
         System.out.print(">> ");
 
@@ -2434,74 +2428,6 @@ public class Main {
     }
 
     /// <summary>
-    /// 1주일 스킵 (7일 자동 영업)
-    /// </summary>
-    private static void skipWeek() {
-        Util.clearScreen();
-        System.out.println("========================================");
-        System.out.println("         [ 1주일 스킵 ]");
-        System.out.println("========================================");
-        System.out.printf("%d일차 ~ %d일차 자동 영업 시작...%n", day, day + 6);
-        System.out.println();
-
-        int weekSales = 0;
-        int weekProfit = 0;
-        int eventCount = 0;
-
-        // 7일 반복
-        for (int d = 0; d < 7; d++) {
-            System.out.printf("%d일차 영업 중...", day);
-            Util.delay(300);
-
-            int todayCustomers = 10 + Util.rand(11);
-            int todaySales = 0;
-            int todayProfit = 0;
-
-            // 빅 이벤트 체크 (10% 확률)
-            if (checkBigEvent(10)) {
-                eventCount++;
-                System.out.print(" [이벤트!]");
-            }
-
-            // 손님별 간략 처리
-            for (int customerNum = 0; customerNum < todayCustomers; customerNum++) {
-                int customerType = Util.rand(4);
-
-                // 손님 타입에 따라 targets 배열 설정
-                setTargetsByCustomerType(customerType);
-
-                for (int itemIndex = 0; itemIndex < targetsCount; itemIndex++) {
-                    Product product = targets[itemIndex];
-                    int wantAmount = 1 + Util.rand(3);
-
-                    int[] result = sellProduct(product, wantAmount);
-                    int saleAmount = result[0];
-                    int profitAmount = result[1];
-
-                    if (saleAmount > 0) {
-                        money = money + saleAmount;
-                        todaySales = todaySales + saleAmount;
-                        todayProfit = todayProfit + profitAmount;
-                    }
-                }
-            }
-
-            weekSales = weekSales + todaySales;
-            weekProfit = weekProfit + todayProfit;
-
-            System.out.printf(" 매출 %,d원%n", todaySales);
-            day++;
-        }
-
-        // 주간 요약
-        printWeeklySettlement(7, eventCount, weekSales, weekProfit);
-
-        System.out.println();
-        System.out.println("아무 키나 입력하면 계속...");
-        scanner.next();
-    }
-
-    /// <summary>
     /// 빅 이벤트 체크 및 처리 (10% 확률)
     /// 단체 주문, 펜션 배달, 축제 시즌 중 하나 발생
     /// </summary>
@@ -2673,28 +2599,6 @@ public class Main {
         System.out.println("----------------------------------------");
         System.out.printf("  오늘 매출:    %,d원%n", sales);
         System.out.printf("  순이익:      +%,d원%n", profit);
-        System.out.println("----------------------------------------");
-        System.out.printf("  현재 총 자본: %,d원%n", money);
-        System.out.printf("  목표까지:     %,d원%n", goalMoney - money);
-        System.out.println("========================================");
-    }
-
-    /// <summary>
-    /// 주간 정산 출력
-    /// </summary>
-    private static void printWeeklySettlement(int days, int eventCount, int sales, int profit) {
-        System.out.println();
-        System.out.println("========================================");
-        System.out.println("         [ 주간 요약 ]");
-        System.out.println("========================================");
-        System.out.printf("기간: %d일 영업%n", days);
-        if (eventCount > 0) {
-            System.out.printf("빅 이벤트: %d회 발생%n", eventCount);
-        }
-        System.out.println();
-        System.out.println("----------------------------------------");
-        System.out.printf("  주간 매출:    %,d원%n", sales);
-        System.out.printf("  주간 순이익: +%,d원%n", profit);
         System.out.println("----------------------------------------");
         System.out.printf("  현재 총 자본: %,d원%n", money);
         System.out.printf("  목표까지:     %,d원%n", goalMoney - money);

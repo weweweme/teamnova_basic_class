@@ -213,14 +213,22 @@ public class Main {
         }
     };
 
-    // 시간대별 멘트 - 5개
+    // 시간대별 멘트 - isMorning 여부에 따라 다른 배열 사용
 
-    static String[] timeGreetings = {
+    static String[] morningGreetings = {
         "아침부터 열일하시네요!",
+        "아침 일찍 오셨네요~",
+        "오전에 미리 사두려고요!",
+        "아침밥 준비하러 왔어요~",
+        "일찍 나왔더니 기분 좋네요!"
+    };
+
+    static String[] afternoonGreetings = {
         "점심 준비하러 왔어요~",
         "오후에 먹으려고요!",
         "저녁에 다 같이 먹을 거예요~",
-        "밤에 야식으로 먹을 거예요!"
+        "밤에 야식으로 먹을 거예요!",
+        "저녁 준비하러 왔어요~"
     };
 
     public static void main(String[] args) {
@@ -2108,7 +2116,10 @@ public class Main {
 
             // 멘트 조합: [손님 인사] + [시간대 멘트]
             String greeting = customerGreetings[customerType][Util.rand(5)];
-            String timeMsg = timeGreetings[Util.rand(5)];
+            // isMorning 상태에 따라 아침/오후 멘트 선택
+            String timeMsg = isMorning
+                ? morningGreetings[Util.rand(5)]
+                : afternoonGreetings[Util.rand(5)];
             customer.greeting = greeting + " " + timeMsg;
 
             System.out.println();

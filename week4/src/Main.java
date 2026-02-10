@@ -2952,11 +2952,11 @@ public class Main {
             c.wantProducts[3] = getAvailableFromCategory(categoryIcecream);
             c.wantProducts[4] = getAvailableFromCategory(categorySnack);
 
-            c.wantAmounts[0] = 2 + Util.rand(3);           // 라면 (필수)
-            c.wantAmounts[1] = 2 + Util.rand(2);           // 맥주 (필수)
-            c.wantAmounts[2] = maybeBuy(1 + Util.rand(2)); // 음료 (선택 50%)
-            c.wantAmounts[3] = maybeBuy(1 + Util.rand(2)); // 아이스크림 (선택 50%)
-            c.wantAmounts[4] = maybeBuy(1 + Util.rand(2)); // 안주 (선택 50%)
+            c.wantAmounts[0] = 1 + Util.rand(2);           // 라면 (필수) 1~2개
+            c.wantAmounts[1] = 1 + Util.rand(2);           // 맥주 (필수) 1~2개
+            c.wantAmounts[2] = maybeBuy(1);                 // 음료 (선택 50%) 0~1개
+            c.wantAmounts[3] = maybeBuy(1);                 // 아이스크림 (선택 50%) 0~1개
+            c.wantAmounts[4] = maybeBuy(1);                 // 안주 (선택 50%) 0~1개
         }
 
         return c;

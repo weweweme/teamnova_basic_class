@@ -490,8 +490,8 @@ public class Wholesaler {
         }
 
         // 주문 수량 계산: 박스 단위 × 3박스 (약 1주일치)
-        int boxSize = product.boxSize;
-        int orderAmount = boxSize * AUTO_ORDER_BOX_COUNT;
+        int quantityPerBox = product.quantityPerBox;
+        int orderAmount = quantityPerBox * AUTO_ORDER_BOX_COUNT;
         int cost = product.buyPrice * orderAmount;
 
         // 자본 부족 시 주문 불가

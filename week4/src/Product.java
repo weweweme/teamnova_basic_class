@@ -10,7 +10,7 @@ public class Product {
     public int buyPrice;         // 매입가
     public int sellPrice;        // 판매가
     public int popularity;       // 인기도 (높을수록 손님이 많이 찾음)
-    public int boxSize;          // 박스당 수량 (도매상에서 이 단위로 구매)
+    public int quantityPerBox;          // 박스당 수량 (도매상에서 이 단위로 구매)
 
     // 자동주문 설정 (상품별 개별 설정)
     public boolean autoOrderEnabled;   // 자동주문 활성화 여부
@@ -19,13 +19,13 @@ public class Product {
     // ========== 생성자 ==========
 
     /// <summary>
-    /// 박스 사이즈 지정 생성자
+    /// 상품 생성자
     /// </summary>
-    public Product(String name, int buyPrice, int sellPrice, int popularity, int boxSize) {
+    public Product(String name, int buyPrice, int sellPrice, int popularity, int quantityPerBox) {
         this.name = name;
         this.buyPrice = buyPrice;
         this.sellPrice = sellPrice;
         this.popularity = popularity;
-        this.boxSize = boxSize;
+        this.quantityPerBox = quantityPerBox;
     }
 }

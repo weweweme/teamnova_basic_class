@@ -7,6 +7,10 @@ import java.util.Map;
 /// </summary>
 public class ProductCatalog {
 
+    // ========== 상수 ==========
+
+    public static final int CATEGORY_COUNT = 10;  // 전체 카테고리 수
+
     // ========== 상품 객체 ==========
 
     // 음료

@@ -240,26 +240,69 @@ public class Customer {
     }
 
     /// <summary>
-    /// 매대에서 직접 상품을 골라 wantProducts에 채움
-    /// 카테고리별로 매대에 재고 있는 상품 우선, 없으면 랜덤 선택
+    /// 매대에서 직접 상품을 골라 가져감 (매대 재고 차감)
+    /// 재고가 부족하면 있는 만큼만 가져가고, 없으면 아쉬워함
+    /// verbose=true: 쇼핑 과정 출력 (직접 영업용)
+    /// verbose=false: 출력 없이 처리 (빠른 영업용)
     /// </summary>
-    public void pickProducts(Display display, Category[] allCategories) {
+    /// <returns>int[2] = {성공건수, 실패건수}</returns>
+    public int[] pickProducts(Display display, Category[] allCategories, boolean verbose) {
+        int successCount = 0;
+        int failCount = 0;
+
         for (int i = 0; i < wantCount; i++) {
             // 수량 0이면 선택 안 된 항목 (maybeBuy에서 탈락)
             if (wantAmounts[i] <= 0) {
                 continue;
             }
+
             Category cat = allCategories[wantCategories[i]];
-            wantProducts[i] = pickFromDisplay(display, cat);
+            Product product = pickFromDisplay(display, cat);
+
+            // 카테고리에 재고 있는 상품이 하나도 없음
+            if (product == null) {
+                if (verbose) {
+                    System.out.printf(" - %s 쪽은 다 떨어졌네...%n", cat.name);
+                }
+                wantAmounts[i] = 0;
+                failCount++;
+                continue;
+            }
+
+            wantProducts[i] = product;
+            int stock = display.getDisplayed(product);
+            int wanted = wantAmounts[i];
+
+            if (stock >= wanted) {
+                // 원하는 만큼 전부 가져감
+                display.sell(product, wanted);
+                successCount++;
+            } else {
+                // 있는 만큼만 가져감
+                display.sell(product, stock);
+                wantAmounts[i] = stock;
+                successCount++;
+                failCount++;
+                if (verbose) {
+                    System.out.printf(" - %s %d개 갖고 싶었는데 %d개밖에 없네...%n", product.name, wanted, stock);
+                }
+            }
         }
+
+        // 고른 상품 목록 출력
+        if (verbose) {
+            showPickedProducts();
+        }
+
+        return new int[]{successCount, failCount};
     }
 
     /// <summary>
     /// 매대에서 재고 있는 상품 중 랜덤 선택
-    /// 재고 있는 상품이 없으면 아무거나 선택 (체크아웃 시 재고 없음 처리)
+    /// 재고 있는 상품이 하나도 없으면 null 반환
     /// </summary>
     private static Product pickFromDisplay(Display display, Category cat) {
-        // 1차: 매대에 재고 있는 상품 개수 세기
+        // 매대에 재고 있는 상품 개수 세기
         int count = 0;
         for (Product p : cat.products) {
             if (display.getDisplayed(p) > 0) {
@@ -267,22 +310,24 @@ public class Customer {
             }
         }
 
+        // 재고 있는 상품이 없음
+        if (count == 0) {
+            return null;
+        }
+
         // 재고 있는 상품 중 랜덤 선택
-        if (count > 0) {
-            int target = Util.rand(count);
-            int idx = 0;
-            for (Product p : cat.products) {
-                if (display.getDisplayed(p) > 0) {
-                    if (idx == target) {
-                        return p;
-                    }
-                    idx++;
+        int target = Util.rand(count);
+        int idx = 0;
+        for (Product p : cat.products) {
+            if (display.getDisplayed(p) > 0) {
+                if (idx == target) {
+                    return p;
                 }
+                idx++;
             }
         }
 
-        // 매대에 재고 없음 → 랜덤 선택 (체크아웃 시 "재고 없음" 처리됨)
-        return cat.products[Util.rand(cat.products.length)];
+        return null;
     }
 
     /// <summary>
@@ -293,10 +338,10 @@ public class Customer {
     }
 
     /// <summary>
-    /// 원하는 상품 목록 출력
+    /// 매대에서 고른 상품 목록 출력
     /// </summary>
-    public void sayWant() {
-        System.out.println("원하는 상품:");
+    public void showPickedProducts() {
+        System.out.println("고른 상품:");
         for (int i = 0; i < wantCount; i++) {
             if (wantAmounts[i] > 0 && wantProducts[i] != null) {
                 System.out.println(" - " + wantProducts[i].name + " " + wantAmounts[i] + "개");

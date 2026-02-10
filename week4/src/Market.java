@@ -17,7 +17,8 @@ public class Market {
 
     public Warehouse warehouse;      // 창고 (Wholesaler에서 market.warehouse로 접근)
     public Display display;          // 매대 (Wholesaler에서 접근)
-    private Cashier cashier;         // 계산대 (결제 처리 전용)
+
+    private final Cashier cashier;         // 계산대 (결제 처리 전용)
 
     // ========== 협력 객체 ==========
 
@@ -28,7 +29,7 @@ public class Market {
     // ========== 재사용 배열 (메서드 내 반복 할당 방지) ==========
 
     // autoArrangeDisplay()용 - 라운드 로빈 진열 시 각 카테고리의 현재 탐색 위치
-    private final int[] categoryIndex = new int[10];
+    private final int[] categoryIndex = new int[ProductCatalog.CATEGORY_COUNT];
 
     // ========== 생성자 ==========
 
@@ -42,7 +43,7 @@ public class Market {
         this.scanner = scanner;
         this.warehouse = new Warehouse();
         this.display = new Display(MAX_SLOT, MAX_DISPLAY_PER_SLOT);
-        this.cashier = new Cashier(display);
+        this.cashier = new Cashier();
     }
 
     // ========== 재고 조회 ==========
@@ -690,7 +691,7 @@ public class Market {
             // 랜덤 손님 유형 (0: 가족, 1: 커플, 2: 친구들, 3: 혼자)
             int customerType = Util.rand(4);
 
-            // 손님 생성 + 매대에서 직접 상품 선택
+            // 손님이 가게에 들어옴
             Customer customer = customerEntered(customerType);
 
             System.out.println();
@@ -700,16 +701,16 @@ public class Market {
             customer.sayGreeting();
             System.out.println();
 
-            // 쇼핑 리스트 출력
-            customer.sayWant();
+            // 손님이 매대에서 직접 상품을 고름 (재고 차감 + 고른 목록 출력)
+            int[] pickResult = customer.pickProducts(display, catalog.allCategories, true);
+            successCount = successCount + pickResult[0];
+            failCount = failCount + pickResult[1];
             Util.delay(500);
 
-            // 캐셔에게 결제 (verbose=true: 상세 출력)
-            int[] result = cashier.checkout(customer, true);
-            todaySales = todaySales + result[0];
-            todayProfit = todayProfit + result[1];
-            successCount = successCount + result[2];
-            failCount = failCount + result[3];
+            // 캐셔에게 결제 (verbose=true: 결제 내역 출력)
+            int[] checkoutResult = cashier.checkout(customer, true);
+            todaySales = todaySales + checkoutResult[0];
+            todayProfit = todayProfit + checkoutResult[1];
 
             // 다음 손님 또는 스킵 선택 (마지막 손님이 아닌 경우)
             if (customerNum < todayCustomers) {
@@ -737,13 +738,13 @@ public class Market {
 
                     for (int skipNum = customerNum + 1; skipNum <= todayCustomers; skipNum++) {
                         Customer skipCustomer = customerEntered(Util.rand(4));
+                        int[] skipPick = skipCustomer.pickProducts(display, catalog.allCategories, false);
+                        successCount = successCount + skipPick[0];
+                        failCount = failCount + skipPick[1];
 
-                        // 캐셔에게 결제 (verbose=false: 출력 없이)
-                        int[] skipResult = cashier.checkout(skipCustomer, false);
-                        todaySales = todaySales + skipResult[0];
-                        todayProfit = todayProfit + skipResult[1];
-                        successCount = successCount + skipResult[2];
-                        failCount = failCount + skipResult[3];
+                        int[] skipCheckout = cashier.checkout(skipCustomer, false);
+                        todaySales = todaySales + skipCheckout[0];
+                        todayProfit = todayProfit + skipCheckout[1];
                     }
                     System.out.printf("손님 %d명 처리 완료!%n", todayCustomers - customerNum);
                     break;
@@ -799,12 +800,13 @@ public class Market {
         // 손님별 처리 (출력 없이)
         for (int customerNum = 0; customerNum < todayCustomers; customerNum++) {
             Customer customer = customerEntered(Util.rand(4));
+            int[] pickResult = customer.pickProducts(display, catalog.allCategories, false);
+            successCount = successCount + pickResult[0];
+            failCount = failCount + pickResult[1];
 
-            int[] result = cashier.checkout(customer, false);
-            todaySales = todaySales + result[0];
-            todayProfit = todayProfit + result[1];
-            successCount = successCount + result[2];
-            failCount = failCount + result[3];
+            int[] checkoutResult = cashier.checkout(customer, false);
+            todaySales = todaySales + checkoutResult[0];
+            todayProfit = todayProfit + checkoutResult[1];
         }
 
         // 총 매출 (일반 판매 + 빅 이벤트)
@@ -825,14 +827,11 @@ public class Market {
 
     /// <summary>
     /// 손님이 가게에 들어옴
-    /// 유형별 쇼핑 패턴(카테고리+수량)을 자동 설정하고,
-    /// 매대에서 직접 상품을 고름
+    /// 유형별 쇼핑 패턴(카테고리+수량)을 자동 설정하고 인사말 생성
+    /// 상품 선택(pickProducts)은 호출하는 쪽에서 별도 수행
     /// </summary>
     private Customer customerEntered(int type) {
         Customer c = new Customer(type);
-
-        // 손님이 매대에서 직접 상품을 고름
-        c.pickProducts(display, catalog.allCategories);
 
         // 멘트 조합: [손님 인사] + [시간대 멘트]
         String greeting = Customer.TYPE_GREETINGS[type][Util.rand(5)];

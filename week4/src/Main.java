@@ -2915,12 +2915,12 @@ public class Main {
             c.wantProducts[4] = getAvailableFromCategory(categoryDrink);
             c.wantProducts[5] = getAvailableFromCategory(categoryIcecream);
 
-            c.wantAmounts[0] = 2 + Util.rand(2);           // 소주 (필수)
-            c.wantAmounts[1] = 2 + Util.rand(3);           // 맥주 (필수)
-            c.wantAmounts[2] = 1 + Util.rand(2);           // 안주1 (필수)
-            c.wantAmounts[3] = 1 + Util.rand(2);           // 안주2 (필수)
-            c.wantAmounts[4] = maybeBuy(1 + Util.rand(2)); // 음료 (선택 50%)
-            c.wantAmounts[5] = maybeBuy(1 + Util.rand(2)); // 아이스크림 (선택 50%)
+            c.wantAmounts[0] = 1 + Util.rand(2);           // 소주 (필수) 1~2개
+            c.wantAmounts[1] = 1 + Util.rand(2);           // 맥주 (필수) 1~2개
+            c.wantAmounts[2] = 1 + Util.rand(2);           // 안주1 (필수) 1~2개
+            c.wantAmounts[3] = maybeBuy(1 + Util.rand(2)); // 안주2 (선택 50%) 0~2개
+            c.wantAmounts[4] = maybeBuy(1);                 // 음료 (선택 50%) 0~1개
+            c.wantAmounts[5] = maybeBuy(1);                 // 아이스크림 (선택 50%) 0~1개
 
         } else if (type == Customer.TYPE_FRIENDS) {
             // 친구들: 맥주 + 소주 + 안주 (필수) / 아이스크림, 폭죽 (선택 50%)

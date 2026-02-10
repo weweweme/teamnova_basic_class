@@ -1,0 +1,52 @@
+/// <summary>
+/// 카테고리 클래스
+/// 상품 카테고리의 이름, 상품 목록, 자동주문 정책을 묶어 관리
+/// </summary>
+public class Category {
+
+    // ========== 필드 ==========
+
+    public String name;               // 카테고리명 ("음료", "맥주" 등)
+    public String boxUnit;            // 박스 단위 표시 ("1박스=24개" 등, 도매상 UI용)
+    public Product[] products;        // 카테고리 내 상품 배열
+    public int index;                 // 0-based 카테고리 인덱스
+
+    // 자동주문 정책
+    public boolean autoOrderEnabled;  // 자동주문 활성화 여부 (기본 true)
+    public int autoOrderThreshold;    // 자동주문 임계값 (재고가 이 값 이하면 주문, 기본 10)
+
+    // ========== 생성자 ==========
+
+    /// <summary>
+    /// Category 생성자
+    /// 자동주문은 기본 활성화 (임계값 10)
+    /// </summary>
+    public Category(String name, String boxUnit, Product[] products, int index) {
+        this.name = name;
+        this.boxUnit = boxUnit;
+        this.products = products;
+        this.index = index;
+        this.autoOrderEnabled = true;
+        this.autoOrderThreshold = 10;
+    }
+
+    // ========== 메서드 ==========
+
+    /// <summary>
+    /// 번호(1-based)로 상품 찾기
+    /// 유효하지 않은 번호면 null 반환
+    /// </summary>
+    public Product getProductByNum(int num) {
+        if (num < 1 || num > products.length) {
+            return null;
+        }
+        return products[num - 1];
+    }
+
+    /// <summary>
+    /// 카테고리 내 상품 개수 반환
+    /// </summary>
+    public int getProductCount() {
+        return products.length;
+    }
+}

@@ -20,7 +20,12 @@ public class Main {
     static int goalMoney;
     static int priceMultiplier;
     static int day = 1;
-    static boolean isMorning = true;  // true: 아침, false: 오후
+    // 시간대 상수
+    static final int TIME_MORNING = 0;    // 아침 (도매상 이용 가능)
+    static final int TIME_AFTERNOON = 1;  // 낮 (영업 전반부)
+    static final int TIME_NIGHT = 2;      // 밤 (영업 후반부)
+
+    static int timeOfDay = TIME_MORNING;  // 현재 시간대
 
     static Scanner scanner = new Scanner(System.in);
 
@@ -213,7 +218,7 @@ public class Main {
         }
     };
 
-    // 시간대별 멘트 - isMorning 여부에 따라 다른 배열 사용
+    // 시간대별 멘트 - timeOfDay에 따라 다른 배열 사용
 
     static String[] morningGreetings = {
         "아침부터 열일하시네요!",
@@ -226,9 +231,17 @@ public class Main {
     static String[] afternoonGreetings = {
         "점심 준비하러 왔어요~",
         "오후에 먹으려고요!",
+        "낮이라 사람 많네요~",
+        "한낮에 장보러 왔어요!",
+        "오후에 뭐 좀 사려고요~"
+    };
+
+    static String[] nightGreetings = {
         "저녁에 다 같이 먹을 거예요~",
         "밤에 야식으로 먹을 거예요!",
-        "저녁 준비하러 왔어요~"
+        "저녁 준비하러 왔어요~",
+        "밤바람 쐬러 나왔다가 들렀어요~",
+        "야식 사러 왔어요!"
     };
 
     public static void main(String[] args) {
@@ -302,9 +315,9 @@ public class Main {
             switch (choice) {
                 case 1:
                     // 도매상
-                    if (isMorning) {
+                    if (timeOfDay == TIME_MORNING) {
                         goWholesaler();
-                        isMorning = false;  // 도매상 갔다오면 오후로 전환
+                        timeOfDay = TIME_AFTERNOON;  // 도매상 갔다오면 낮으로 전환
                     } else {
                         System.out.println("[!!] 도매상은 오전에만 이용 가능합니다.");
                     }
@@ -330,18 +343,18 @@ public class Main {
                             // 직접 영업
                             startBusiness();
                             day++;
-                            isMorning = true;
+                            timeOfDay = TIME_MORNING;
                             break;
                         case 2:
                             // 빠른 영업
                             startQuickBusiness();
                             day++;
-                            isMorning = true;
+                            timeOfDay = TIME_MORNING;
                             break;
                         case 3:
                             // 1주일 스킵
                             skipWeek();
-                            isMorning = true;
+                            timeOfDay = TIME_MORNING;
                             break;
                         // case 0: 돌아가기 (아무것도 안 함)
                     }
@@ -412,23 +425,30 @@ public class Main {
     private static void printDailyMenu() {
         Util.clearScreen();
         System.out.println("========================================");
-        if (isMorning) {
-            System.out.println("          [  " + day + "일차 - 아침  ]");
-        } else {
-            System.out.println("          [  " + day + "일차 - 오후  ]");
+        // 시간대에 따른 표시
+        switch (timeOfDay) {
+            case TIME_MORNING:
+                System.out.println("          [  " + day + "일차 - 아침  ]");
+                break;
+            case TIME_AFTERNOON:
+                System.out.println("          [  " + day + "일차 - 낮  ]");
+                break;
+            case TIME_NIGHT:
+                System.out.println("          [  " + day + "일차 - 밤  ]");
+                break;
         }
         System.out.println("========================================");
         System.out.println("현재 자본: " + String.format("%,d", money) + "원");
         System.out.println("매대 현황: " + display.getUsedSlots() + " / " + MAX_SLOT + "칸");
         System.out.println();
 
-        if (isMorning) {
+        if (timeOfDay == TIME_MORNING) {
             // 아침: 도매상, 영업, 재고/매대 모두 가능
             System.out.println("[1] 도매상 가기 (오전 소비)");
             System.out.println("[2] 영업 시작");
             System.out.println("[3] 재고/매대 관리");
         } else {
-            // 오후: 영업, 재고/매대만 가능
+            // 낮/밤: 영업, 재고/매대만 가능
             System.out.println("[1] (도매상 마감)");
             System.out.println("[2] 영업 시작");
             System.out.println("[3] 재고/매대 관리");
@@ -2100,8 +2120,9 @@ public class Main {
         // 손님 응대 루프
         for (int customerNum = 1; customerNum <= todayCustomers; customerNum++) {
 
-            // 손님 절반쯤 지났을 때 빅 이벤트 체크 (20% 확률)
+            // 손님 절반쯤 지났을 때 빅 이벤트 체크 (20% 확률) + 밤으로 전환
             if (!bigEventOccurred && customerNum == todayCustomers / 2) {
+                timeOfDay = TIME_NIGHT;  // 영업 후반부 → 밤으로 전환
                 if (checkBigEvent(20)) {
                     bigEventOccurred = true;
                     Util.delay(1000);
@@ -2116,10 +2137,19 @@ public class Main {
 
             // 멘트 조합: [손님 인사] + [시간대 멘트]
             String greeting = customerGreetings[customerType][Util.rand(5)];
-            // isMorning 상태에 따라 아침/오후 멘트 선택
-            String timeMsg = isMorning
-                ? morningGreetings[Util.rand(5)]
-                : afternoonGreetings[Util.rand(5)];
+            // 현재 시간대에 맞는 멘트 선택
+            String timeMsg;
+            switch (timeOfDay) {
+                case TIME_MORNING:
+                    timeMsg = morningGreetings[Util.rand(5)];
+                    break;
+                case TIME_NIGHT:
+                    timeMsg = nightGreetings[Util.rand(5)];
+                    break;
+                default:
+                    timeMsg = afternoonGreetings[Util.rand(5)];
+                    break;
+            }
             customer.greeting = greeting + " " + timeMsg;
 
             System.out.println();

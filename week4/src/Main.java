@@ -173,10 +173,6 @@ public class Main {
     static Product[] skipList = new Product[2];       // 스킵 처리 시 간략화된 구매 목록
     static int[] skipAmounts = new int[2];            // 스킵 처리 시 구매 수량
 
-    // 판매 대상용 - 빠른 영업 / 1주일 스킵 시 손님별 구매 대상
-    static Product[] targets = new Product[8];        // 자동 영업 시 판매 대상 상품
-    static int targetsCount = 0;                      // 실제 사용 개수 (현재 3개 고정)
-
     // getAvailableFromCategory()용 - 재고 있는 상품 필터링
     static Product[] availableProducts = new Product[5];  // 카테고리 내 재고 있는 상품 임시 저장 (최대 5개 - 음료)
 
@@ -2427,17 +2423,44 @@ public class Main {
         // 빅 이벤트 체크 (10% 확률)
         boolean eventOccurred = checkBigEvent(10);
 
-        // 손님별 간략 처리
+        // 손님별 간략 처리 (직접 영업과 동일한 createCustomer 사용)
         for (int customerNum = 0; customerNum < todayCustomers; customerNum++) {
             int customerType = Util.rand(4);
+            Customer customer = createCustomer(customerType);
 
-            // 손님 타입에 따라 targets 배열 설정
-            setTargetsByCustomerType(customerType);
+            // 같은 상품 합산
+            Product[] mergedProducts = new Product[customer.wantCount];
+            int[] mergedWants = new int[customer.wantCount];
+            int mergedCount = 0;
 
-            // 각 상품 판매 시도
-            for (int itemIndex = 0; itemIndex < targetsCount; itemIndex++) {
-                Product product = targets[itemIndex];
-                int wantAmount = 1 + Util.rand(3);
+            for (int itemIndex = 0; itemIndex < customer.wantCount; itemIndex++) {
+                Product product = customer.wantProducts[itemIndex];
+                int wantAmount = customer.wantAmounts[itemIndex];
+
+                if (wantAmount <= 0) {
+                    continue;
+                }
+
+                boolean found = false;
+                for (int m = 0; m < mergedCount; m++) {
+                    if (mergedProducts[m] == product) {
+                        mergedWants[m] = mergedWants[m] + wantAmount;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    mergedProducts[mergedCount] = product;
+                    mergedWants[mergedCount] = wantAmount;
+                    mergedCount++;
+                }
+            }
+
+            // 합산된 목록으로 판매
+            for (int itemIndex = 0; itemIndex < mergedCount; itemIndex++) {
+                Product product = mergedProducts[itemIndex];
+                int wantAmount = mergedWants[itemIndex];
 
                 int[] result = sellProduct(product, wantAmount);
                 int saleAmount = result[0];
@@ -2450,7 +2473,6 @@ public class Main {
                     todayProfit = todayProfit + profitAmount;
                     successCount++;
 
-                    // 일부만 판매된 경우 실패도 카운트
                     if (soldAmount < wantAmount) {
                         failCount++;
                     }
@@ -2562,39 +2584,6 @@ public class Main {
     }
 
     /// <summary>
-    /// 손님 타입에 따라 targets 배열에 상품 설정
-    /// - 0: 가족 (고기, 식재료, 음료)
-    /// - 1: 커플 (소주, 맥주, 안주)
-    /// - 2: 친구들 (맥주, 소주, 안주)
-    /// - 3: 혼자 (라면, 맥주, 아이스크림)
-    /// </summary>
-    private static void setTargetsByCustomerType(int customerType) {
-        targetsCount = 3;
-        switch (customerType) {
-            case 0:
-                targets[0] = getRandomFromCategory(categoryMeat);
-                targets[1] = getRandomFromCategory(categoryGrocery);
-                targets[2] = getRandomFromCategory(categoryDrink);
-                break;
-            case 1:
-                targets[0] = getRandomFromCategory(categorySoju);
-                targets[1] = getRandomFromCategory(categoryBeer);
-                targets[2] = getRandomFromCategory(categorySnack);
-                break;
-            case 2:
-                targets[0] = getRandomFromCategory(categoryBeer);
-                targets[1] = getRandomFromCategory(categorySoju);
-                targets[2] = getRandomFromCategory(categorySnack);
-                break;
-            default:
-                targets[0] = getRandomFromCategory(categoryRamen);
-                targets[1] = getRandomFromCategory(categoryBeer);
-                targets[2] = getRandomFromCategory(categoryIcecream);
-                break;
-        }
-    }
-
-    /// <summary>
     /// 상품 판매 처리
     /// 매대 재고에서 판매하고 결과 반환
     /// </summary>
@@ -2627,9 +2616,23 @@ public class Main {
     /// </summary>
     private static void printDailySettlement(int dayNum, int customers, int success, int fail,
                                               int sales, int profit, boolean bigEvent) {
+        // 시간대 문자열
+        String timeName;
+        switch (timeOfDay) {
+            case TIME_MORNING:
+                timeName = "아침";
+                break;
+            case TIME_NIGHT:
+                timeName = "밤";
+                break;
+            default:
+                timeName = "낮";
+                break;
+        }
+
         System.out.println();
         System.out.println("========================================");
-        System.out.printf("          [ %d일차 정산 ]%n", dayNum);
+        System.out.printf("       [ %d일차 %s 영업 정산 ]%n", dayNum, timeName);
         System.out.println("========================================");
         if (bigEvent) {
             System.out.println("★ 빅 이벤트 발생!");

@@ -20,7 +20,8 @@ public class Category {
     // ========== 필드 ==========
 
     public String name;               // 카테고리명 ("음료", "맥주" 등)
-    public String boxUnit;            // 박스 단위 표시 ("1박스=24개" 등, 도매상 UI용)
+    public String packageName;        // 포장 단위 이름 ("박스", "판", "묶음")
+    public String countSuffix;           // 상품 단위 ("개", "병", "팩")
     public Product[] products;        // 카테고리 내 상품 배열
     public int index;                 // 0-based 카테고리 인덱스
 
@@ -35,9 +36,10 @@ public class Category {
     /// Category 생성자
     /// 자동주문은 기본 활성화 (임계값 10)
     /// </summary>
-    public Category(String name, String boxUnit, Product[] products, int index) {
+    public Category(String name, String packageName, String countSuffix, Product[] products, int index) {
         this.name = name;
-        this.boxUnit = boxUnit;
+        this.packageName = packageName;
+        this.countSuffix = countSuffix;
         this.products = products;
         this.index = index;
         this.autoOrderEnabled = true;
@@ -48,8 +50,16 @@ public class Category {
     // ========== 메서드 ==========
 
     /// <summary>
-    /// 번호(1-based)로 상품 찾기
-    /// 유효하지 않은 번호면 null 반환
+    /// 포장 정보 문자열 반환 (예: "1박스 = 24개")
+    /// 카테고리 내 첫 번째 상품의 quantityPerBox를 사용
+    /// </summary>
+    public String getPackageInfo() {
+        return String.format("1%s = %d%s", packageName, products[0].quantityPerBox, countSuffix);
+    }
+
+    /// <summary>
+    /// 사용자가 입력한 번호(1번부터 시작)로 상품 찾기
+    /// 존재하지 않는 번호면 null 반환
     /// </summary>
     public Product getProductByNum(int num) {
         if (num < 1 || num > products.length) {

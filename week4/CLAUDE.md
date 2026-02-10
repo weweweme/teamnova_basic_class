@@ -85,6 +85,16 @@ java -cp out Main
   private int money;
   public void startBusiness() { ... }
   ```
+- **주석은 누구나 이해할 수 있게**: 프로그래밍 전문 용어(0-based, 1-based, nullable 등) 대신 누구나 알 수 있는 한국어로 작성
+  ```java
+  // 나쁜 예: 전문 용어 사용
+  /// 번호(1-based)로 상품 찾기
+  /// 유효하지 않은 번호면 null 반환
+
+  // 좋은 예: 누구나 이해 가능
+  /// 사용자가 입력한 번호(1번부터 시작)로 상품 찾기
+  /// 존재하지 않는 번호면 null 반환
+  ```
 - **메서드 주석 스타일**: 메서드 설명은 `/// <summary>` 형식 사용
   ```java
   /// <summary>

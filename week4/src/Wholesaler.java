@@ -116,7 +116,7 @@ public class Wholesaler {
 
             // 카테고리 헤더 (카테고리명 + 박스 단위 표시)
             System.out.println("========================================");
-            System.out.printf("        [ %s ] (%s)%n", cat.name, cat.boxUnit);
+            System.out.printf("        [ %s ] (%s)%n", cat.name, cat.getPackageInfo());
             System.out.println("========================================");
 
             // 카테고리 내 상품 목록 출력 (번호, 이름, 매입가, 판매가, 총 재고)

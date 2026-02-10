@@ -9,7 +9,7 @@ public class Wholesaler {
     // ========== 필드 ==========
 
     private final GameManager game;           // 게임 상태(money) 접근용
-    private final Inventory inventory;        // 재고 관리 (창고, 매대, 총 재고 조회)
+    private final Market market;              // 가게 (창고, 매대, 총 재고 조회)
     private final ProductCatalog catalog;     // 상품/카테고리 조회
     private final Scanner scanner;
 
@@ -22,9 +22,9 @@ public class Wholesaler {
     /// <summary>
     /// Wholesaler 생성자
     /// </summary>
-    public Wholesaler(GameManager game, Inventory inventory, ProductCatalog catalog, Scanner scanner) {
+    public Wholesaler(GameManager game, Market market, ProductCatalog catalog, Scanner scanner) {
         this.game = game;
-        this.inventory = inventory;
+        this.market = market;
         this.catalog = catalog;
         this.scanner = scanner;
     }
@@ -43,7 +43,7 @@ public class Wholesaler {
             System.out.println("            [ 도매상 ]");
             System.out.println("========================================");
             System.out.printf("현재 자본: %,d원%n", game.money);
-            System.out.printf("매대: %d / %d칸%n", inventory.display.getUsedSlots(), inventory.maxSlot);
+            System.out.printf("매대: %d / %d칸%n", market.display.getUsedSlots(), Market.MAX_SLOT);
             System.out.println();
             System.out.println("[1] 카테고리별 구매");
             System.out.println("[2] 정책 설정");
@@ -84,7 +84,7 @@ public class Wholesaler {
             System.out.println("========================================");
             System.out.println("        [ 카테고리 선택 ]");
             System.out.println("========================================");
-            System.out.printf("현재 자본: %,d원 | 매대: %d / %d칸%n", game.money, inventory.display.getUsedSlots(), inventory.maxSlot);
+            System.out.printf("현재 자본: %,d원 | 매대: %d / %d칸%n", game.money, market.display.getUsedSlots(), Market.MAX_SLOT);
             System.out.println();
             System.out.println("[1] 음료        [2] 맥주        [3] 소주");
             System.out.println("[4] 간식/안주   [5] 고기        [6] 해수욕용품");
@@ -128,7 +128,7 @@ public class Wholesaler {
             for (int i = 0; i < cat.products.length; i++) {
                 Product p = cat.products[i];
                 System.out.printf("%d. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n",
-                    i + 1, p.name, p.buyPrice, p.sellPrice, inventory.getTotalStock(p));
+                    i + 1, p.name, p.buyPrice, p.sellPrice, market.getTotalStock(p));
             }
 
             System.out.println();
@@ -171,7 +171,7 @@ public class Wholesaler {
 
         // 구매 처리 (창고로 입고)
         game.money = game.money - totalCost;
-        inventory.warehouse.addStock(product, quantity);
+        market.warehouse.addStock(product, quantity);
 
         System.out.println("[OK] " + product.name + " " + quantity + "개 창고로 입고! (-" + String.format("%,d", totalCost) + "원)");
     }
@@ -380,7 +380,7 @@ public class Wholesaler {
         // 상품 번호(1부터), 이름, 총 재고(창고+매대) 출력
         for (int i = 0; i < cat.products.length; i++) {
             Product p = cat.products[i];
-            System.out.printf("%d. %s (재고: %d)%n", i + 1, p.name, inventory.getTotalStock(p));
+            System.out.printf("%d. %s (재고: %d)%n", i + 1, p.name, market.getTotalStock(p));
         }
     }
 
@@ -498,7 +498,7 @@ public class Wholesaler {
     /// </summary>
     private int autoOrderProduct(Product product, int threshold) {
         // 재고 확인: 총 재고(창고+매대)가 임계값 이하인지 체크
-        int totalStock = inventory.getTotalStock(product);
+        int totalStock = market.getTotalStock(product);
         if (totalStock > threshold) {
             // 재고 충분 -> 주문 불필요
             return 0;
@@ -517,7 +517,7 @@ public class Wholesaler {
 
         // 구매 처리: 자본 차감 + 창고 입고
         game.money = game.money - cost;
-        inventory.warehouse.addStock(product, orderAmount);
+        market.warehouse.addStock(product, orderAmount);
 
         System.out.printf(" - %s %d박스(%d개) 창고 입고 (-%,d원)%n", product.name, AUTO_ORDER_BOX_COUNT, orderAmount, cost);
 

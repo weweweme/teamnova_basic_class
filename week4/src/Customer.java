@@ -240,6 +240,52 @@ public class Customer {
     }
 
     /// <summary>
+    /// 매대에서 직접 상품을 골라 wantProducts에 채움
+    /// 카테고리별로 매대에 재고 있는 상품 우선, 없으면 랜덤 선택
+    /// </summary>
+    public void pickProducts(Display display, Category[] allCategories) {
+        for (int i = 0; i < wantCount; i++) {
+            // 수량 0이면 선택 안 된 항목 (maybeBuy에서 탈락)
+            if (wantAmounts[i] <= 0) {
+                continue;
+            }
+            Category cat = allCategories[wantCategories[i]];
+            wantProducts[i] = pickFromDisplay(display, cat);
+        }
+    }
+
+    /// <summary>
+    /// 매대에서 재고 있는 상품 중 랜덤 선택
+    /// 재고 있는 상품이 없으면 아무거나 선택 (체크아웃 시 재고 없음 처리)
+    /// </summary>
+    private static Product pickFromDisplay(Display display, Category cat) {
+        // 1차: 매대에 재고 있는 상품 개수 세기
+        int count = 0;
+        for (Product p : cat.products) {
+            if (display.getDisplayed(p) > 0) {
+                count++;
+            }
+        }
+
+        // 재고 있는 상품 중 랜덤 선택
+        if (count > 0) {
+            int target = Util.rand(count);
+            int idx = 0;
+            for (Product p : cat.products) {
+                if (display.getDisplayed(p) > 0) {
+                    if (idx == target) {
+                        return p;
+                    }
+                    idx++;
+                }
+            }
+        }
+
+        // 매대에 재고 없음 → 랜덤 선택 (체크아웃 시 "재고 없음" 처리됨)
+        return cat.products[Util.rand(cat.products.length)];
+    }
+
+    /// <summary>
     /// 인사말 출력
     /// </summary>
     public void sayGreeting() {

@@ -1,33 +1,27 @@
 import java.util.Scanner;
 
 /// <summary>
-/// 계산대(영업) 클래스
-/// 손님 응대(직접 영업), 빠른 영업, 빅 이벤트, 판매 처리를 담당
+/// 계산대 클래스
+/// 손님이 매대에서 직접 고른 상품의 결제 처리를 담당
+/// 직접 영업, 빠른 영업, 빅 이벤트 처리
 /// </summary>
 public class Cashier {
 
     // ========== 의존 객체 ==========
 
     private final GameManager game;           // game.money, game.day, game.timeOfDay 접근용
-    private final Inventory inventory;        // inventory.display, inventory.getAvailableFromCategory() 접근용
-    private final ProductCatalog catalog;     // catalog.categoryDrink, catalog.getRandomFromCategory() 등 접근용
+    private final Market market;              // market.display (판매), market.sellBulk (빅이벤트)
     private final Scanner scanner;
-
-    // ========== 재사용 배열 (스킵 영업용) ==========
-
-    private final Product[] skipList = new Product[2];       // 스킵 처리 시 간략화된 구매 목록
-    private final int[] skipAmounts = new int[2];            // 스킵 처리 시 구매 수량
 
     // ========== 생성자 ==========
 
     /// <summary>
     /// Cashier 생성자
-    /// GameManager, Inventory, ProductCatalog, Scanner를 전달받음
+    /// GameManager, Market, Scanner를 전달받음
     /// </summary>
-    public Cashier(GameManager game, Inventory inventory, ProductCatalog catalog, Scanner scanner) {
+    public Cashier(GameManager game, Market market, Scanner scanner) {
         this.game = game;
-        this.inventory = inventory;
-        this.catalog = catalog;
+        this.market = market;
         this.scanner = scanner;
     }
 
@@ -64,18 +58,8 @@ public class Cashier {
             // 랜덤 손님 유형 (0: 가족, 1: 커플, 2: 친구들, 3: 혼자)
             int customerType = Util.rand(4);
 
-            // 손님 객체 생성
+            // 손님 생성 + 매대에서 직접 상품 선택
             Customer customer = createCustomer(customerType);
-
-            // 멘트 조합: [손님 인사] + [시간대 멘트]
-            String greeting = Customer.TYPE_GREETINGS[customerType][Util.rand(5)];
-            // 현재 시간대에 맞는 멘트 선택
-            String timeMsg = switch (game.timeOfDay) {
-                case GameManager.TIME_MORNING -> Customer.MORNING_GREETINGS[Util.rand(5)];
-                case GameManager.TIME_NIGHT -> Customer.NIGHT_GREETINGS[Util.rand(5)];
-                default -> Customer.AFTERNOON_GREETINGS[Util.rand(5)];
-            };
-            customer.greeting = greeting + " " + timeMsg;
 
             System.out.println();
             System.out.println("----------------------------------------");
@@ -132,13 +116,13 @@ public class Cashier {
                 Product product = mergedProducts[itemIndex];
                 int wantAmount = mergedWants[itemIndex];
 
-                int currentStock = inventory.display.getDisplayed(product);
+                int currentStock = market.display.getDisplayed(product);
                 if (currentStock >= wantAmount) {
                     // 전부 판매 가능
                     int saleAmount = product.sellPrice * wantAmount;
                     int profitAmount = (product.sellPrice - product.buyPrice) * wantAmount;
 
-                    inventory.display.sell(product, wantAmount);
+                    market.display.sell(product, wantAmount);
 
                     game.money = game.money + saleAmount;
                     customerSales = customerSales + saleAmount;
@@ -154,7 +138,7 @@ public class Cashier {
                     int saleAmount = product.sellPrice * currentStock;
                     int profitAmount = (product.sellPrice - product.buyPrice) * currentStock;
 
-                    inventory.display.sell(product, currentStock);
+                    market.display.sell(product, currentStock);
 
                     game.money = game.money + saleAmount;
                     customerSales = customerSales + saleAmount;
@@ -199,61 +183,38 @@ public class Cashier {
                 int choice = Util.readInt(scanner);  // 기본값 1 (다음 손님)
 
                 if (choice == 2) {
-                    // 남은 손님 자동 처리
+                    // 남은 손님 자동 처리 (Customer 객체로 간소화)
                     System.out.println();
                     System.out.println("남은 손님을 빠르게 처리합니다...");
                     Util.delay(500);
 
-                    for (int skipCustomerNum = customerNum + 1; skipCustomerNum <= todayCustomers; skipCustomerNum++) {
-                        // 간단히 랜덤 손님 처리 (재사용 배열 사용)
-                        int skipType = Util.rand(4);
+                    for (int skipNum = customerNum + 1; skipNum <= todayCustomers; skipNum++) {
+                        // 손님 생성 + 매대에서 직접 상품 선택
+                        Customer skipCustomer = createCustomer(Util.rand(4));
 
-                        // 손님별 간단 쇼핑 리스트 (매대에서 재고 있는 상품 우선 선택)
-                        if (skipType == 0) {
-                            skipList[0] = inventory.getAvailableFromCategory(catalog.allCategories[Category.INDEX_MEAT]);
-                            skipList[1] = inventory.getAvailableFromCategory(catalog.allCategories[Category.INDEX_DRINK]);
-                            skipAmounts[0] = 2 + Util.rand(2);
-                            skipAmounts[1] = 3 + Util.rand(3);
-                        } else if (skipType == 1) {
-                            skipList[0] = inventory.getAvailableFromCategory(catalog.allCategories[Category.INDEX_SOJU]);
-                            skipList[1] = inventory.getAvailableFromCategory(catalog.allCategories[Category.INDEX_SNACK]);
-                            skipAmounts[0] = 2 + Util.rand(2);
-                            skipAmounts[1] = 2 + Util.rand(2);
-                        } else if (skipType == 2) {
-                            skipList[0] = inventory.getAvailableFromCategory(catalog.allCategories[Category.INDEX_BEER]);
-                            skipList[1] = inventory.getAvailableFromCategory(catalog.allCategories[Category.INDEX_SOJU]);
-                            skipAmounts[0] = 4 + Util.rand(3);
-                            skipAmounts[1] = 2 + Util.rand(2);
-                        } else {
-                            skipList[0] = inventory.getAvailableFromCategory(catalog.allCategories[Category.INDEX_RAMEN]);
-                            skipList[1] = inventory.getAvailableFromCategory(catalog.allCategories[Category.INDEX_BEER]);
-                            skipAmounts[0] = 2 + Util.rand(2);
-                            skipAmounts[1] = 2 + Util.rand(2);
-                        }
+                        // 손님이 고른 상품 판매 처리
+                        for (int i = 0; i < skipCustomer.wantCount; i++) {
+                            Product skipProduct = skipCustomer.wantProducts[i];
+                            int skipWantAmount = skipCustomer.wantAmounts[i];
 
-                        // 판매 처리
-                        for (int skipItemIndex = 0; skipItemIndex < 2; skipItemIndex++) {
-                            Product skipProduct = skipList[skipItemIndex];
-                            int skipWantAmount = skipAmounts[skipItemIndex];
-                            int skipStock = inventory.display.getDisplayed(skipProduct);
+                            if (skipWantAmount <= 0 || skipProduct == null) {
+                                continue;
+                            }
 
-                            if (skipStock >= skipWantAmount) {
-                                int skipSaleAmount = skipProduct.sellPrice * skipWantAmount;
-                                int skipProfitAmount = (skipProduct.sellPrice - skipProduct.buyPrice) * skipWantAmount;
-                                inventory.display.sell(skipProduct, skipWantAmount);
-                                game.money += skipSaleAmount;
-                                todaySales += skipSaleAmount;
-                                todayProfit += skipProfitAmount;
+                            int[] result = sellProduct(skipProduct, skipWantAmount);
+                            int saleAmount = result[0];
+                            int profitAmount = result[1];
+                            int soldAmount = result[2];
+
+                            if (soldAmount > 0) {
+                                game.money = game.money + saleAmount;
+                                todaySales = todaySales + saleAmount;
+                                todayProfit = todayProfit + profitAmount;
                                 successCount++;
-                            } else if (skipStock > 0) {
-                                int skipSaleAmount = skipProduct.sellPrice * skipStock;
-                                int skipProfitAmount = (skipProduct.sellPrice - skipProduct.buyPrice) * skipStock;
-                                inventory.display.sell(skipProduct, skipStock);
-                                game.money += skipSaleAmount;
-                                todaySales += skipSaleAmount;
-                                todayProfit += skipProfitAmount;
-                                successCount++;
-                                failCount++;
+
+                                if (soldAmount < skipWantAmount) {
+                                    failCount++;
+                                }
                             } else {
                                 failCount++;
                             }
@@ -307,10 +268,10 @@ public class Cashier {
         // 빅 이벤트 체크 (10% 확률)
         boolean eventOccurred = checkBigEvent(10);
 
-        // 손님별 간략 처리 (직접 영업과 동일한 createCustomer 사용)
+        // 손님별 간략 처리 (Customer 객체 사용)
         for (int customerNum = 0; customerNum < todayCustomers; customerNum++) {
-            int customerType = Util.rand(4);
-            Customer customer = createCustomer(customerType);
+            // 손님 생성 + 매대에서 직접 상품 선택
+            Customer customer = createCustomer(Util.rand(4));
 
             // 같은 상품 합산
             Product[] mergedProducts = new Product[customer.wantCount];
@@ -376,18 +337,25 @@ public class Cashier {
     }
 
     /// <summary>
-    /// 손님 객체 생성
+    /// 손님 객체 생성 + 매대에서 상품 선택까지 처리
     /// Customer가 유형별 쇼핑 패턴(카테고리+수량)을 자동 설정하고,
-    /// 여기서는 카테고리를 매대의 실제 상품으로 변환만 담당
+    /// pickProducts()로 매대에서 직접 상품을 고름
     /// </summary>
     private Customer createCustomer(int type) {
         Customer c = new Customer(type);
 
-        // 손님이 정한 카테고리를 매대에서 실제 상품으로 변환
-        for (int i = 0; i < c.wantCount; i++) {
-            c.wantProducts[i] = inventory.getAvailableFromCategory(
-                catalog.allCategories[c.wantCategories[i]]);
-        }
+        // 손님이 매대에서 직접 상품을 고름
+        c.pickProducts(market.display, market.catalog.allCategories);
+
+        // 멘트 조합: [손님 인사] + [시간대 멘트]
+        String greeting = Customer.TYPE_GREETINGS[type][Util.rand(5)];
+        // 현재 시간대에 맞는 멘트 선택
+        String timeMsg = switch (game.timeOfDay) {
+            case GameManager.TIME_MORNING -> Customer.MORNING_GREETINGS[Util.rand(5)];
+            case GameManager.TIME_NIGHT -> Customer.NIGHT_GREETINGS[Util.rand(5)];
+            default -> Customer.AFTERNOON_GREETINGS[Util.rand(5)];
+        };
+        c.greeting = greeting + " " + timeMsg;
 
         return c;
     }
@@ -400,20 +368,20 @@ public class Cashier {
     private int[] sellProduct(Product product, int wantAmount) {
         int[] result = new int[3];  // [판매액, 이익, 실제판매수량]
 
-        int stock = inventory.display.getDisplayed(product);
+        int stock = market.display.getDisplayed(product);
 
         if (stock >= wantAmount) {
             // 전부 판매 가능
             result[0] = product.sellPrice * wantAmount;
             result[1] = (product.sellPrice - product.buyPrice) * wantAmount;
             result[2] = wantAmount;
-            inventory.display.sell(product, wantAmount);
+            market.display.sell(product, wantAmount);
         } else if (stock > 0) {
             // 일부만 판매
             result[0] = product.sellPrice * stock;
             result[1] = (product.sellPrice - product.buyPrice) * stock;
             result[2] = stock;
-            inventory.display.sell(product, stock);
+            market.display.sell(product, stock);
         }
         // else: 재고 없음 - result는 이미 0으로 초기화됨
 
@@ -421,7 +389,7 @@ public class Cashier {
     }
 
     /// <summary>
-    /// 빅 이벤트 체크 및 처리 (10% 확률)
+    /// 빅 이벤트 체크 및 처리
     /// 단체 주문, 펜션 배달, 축제 시즌 중 하나 발생
     /// </summary>
     private boolean checkBigEvent(int chance) {
@@ -440,8 +408,8 @@ public class Cashier {
             System.out.println("========================================");
             System.out.println("\"여기 수련회인데요, 대량 주문할게요!\"");
             System.out.println();
-            int bonus = inventory.sellBulk(catalog.allCategories[Category.INDEX_DRINK], 10 + Util.rand(10));
-            bonus = bonus + inventory.sellBulk(catalog.allCategories[Category.INDEX_SNACK], 5 + Util.rand(5));
+            int bonus = market.sellBulk(Category.INDEX_DRINK, 10 + Util.rand(10));
+            bonus = bonus + market.sellBulk(Category.INDEX_SNACK, 5 + Util.rand(5));
             game.money = game.money + bonus;
             if (bonus > 0) {
                 System.out.printf(">> 단체 주문 매출: %,d원%n", bonus);
@@ -457,9 +425,9 @@ public class Cashier {
             System.out.println("========================================");
             System.out.println("\"펜션에서 바베큐 세트 배달 부탁드려요!\"");
             System.out.println();
-            int bonus = inventory.sellBulk(catalog.allCategories[Category.INDEX_MEAT], 5 + Util.rand(5));
-            bonus = bonus + inventory.sellBulk(catalog.allCategories[Category.INDEX_DRINK], 5 + Util.rand(5));
-            bonus = bonus + inventory.sellBulk(catalog.allCategories[Category.INDEX_GROCERY], 3 + Util.rand(3));
+            int bonus = market.sellBulk(Category.INDEX_MEAT, 5 + Util.rand(5));
+            bonus = bonus + market.sellBulk(Category.INDEX_DRINK, 5 + Util.rand(5));
+            bonus = bonus + market.sellBulk(Category.INDEX_GROCERY, 3 + Util.rand(3));
             game.money = game.money + bonus;
             if (bonus > 0) {
                 System.out.printf(">> 펜션 배달 매출: %,d원%n", bonus);
@@ -475,8 +443,8 @@ public class Cashier {
             System.out.println("========================================");
             System.out.println("\"축제 준비물 사러 왔어요!\"");
             System.out.println();
-            int bonus = inventory.sellBulk(catalog.allCategories[Category.INDEX_FIREWORK], 5 + Util.rand(10));
-            bonus = bonus + inventory.sellBulk(catalog.allCategories[Category.INDEX_BEER], 10 + Util.rand(10));
+            int bonus = market.sellBulk(Category.INDEX_FIREWORK, 5 + Util.rand(10));
+            bonus = bonus + market.sellBulk(Category.INDEX_BEER, 10 + Util.rand(10));
             game.money = game.money + bonus;
             if (bonus > 0) {
                 System.out.printf(">> 축제 시즌 매출: %,d원%n", bonus);

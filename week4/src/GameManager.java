@@ -44,14 +44,12 @@ public class GameManager {
         // 협력 객체 초기화
         // 상품/카테고리 데이터
         ProductCatalog catalog = new ProductCatalog(priceMultiplier);
-        // 재고 관리 (창고+매대)
-        Inventory inventory = new Inventory(Market.MAX_SLOT, Market.MAX_DISPLAY_PER_SLOT);
+        // 가게 (메뉴 UI + 창고 + 매대 + 재고 관리)
+        Market market = new Market(this, catalog, scanner);
         // 도매상/구매/자동주문
-        Wholesaler wholesaler = new Wholesaler(this, inventory, catalog, scanner);
-        // 영업/손님/판매
-        Cashier cashier = new Cashier(this, inventory, catalog, scanner);
-        // 가게 메뉴/UI
-        Market market = new Market(this, inventory, catalog, scanner);
+        Wholesaler wholesaler = new Wholesaler(this, market, catalog, scanner);
+        // 계산대 (결제 처리 + 빅이벤트)
+        Cashier cashier = new Cashier(this, market, scanner);
 
         // ========== 게임 루프 ==========
 

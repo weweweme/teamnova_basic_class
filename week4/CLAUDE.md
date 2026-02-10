@@ -154,41 +154,52 @@ java -cp out Main
 - **하루 손님 10~20명**: 펜션촌 비수기/성수기 유동 인구 고려, 일반 편의점(일 200~300명)보다 적게 설정
 - **참고 자료**: [편의점 쇼퍼 트렌드 2024](https://retailtalk.co.kr), [강릉교차로 부동산](https://mland.gnkcr.com)
 
+### 설계 원칙
+
+- **손님이 직접 고른다**: Customer가 매대(Display)에서 상품을 직접 선택 (`pickProducts`)
+- **캐셔는 계산만**: Cashier는 손님이 가져온 상품의 결제만 처리 (상품 선택 관여 X)
+- **가게 = 창고 + 매대**: Market이 Warehouse와 Display를 직접 소유 (Inventory 클래스 삭제)
+
 ### 클래스 구조
 
 ```
 Main (타이틀 화면 + 게임 모드 선택)
- └─ Market (게임 루프 + 시간 관리 + 메뉴 조율)
-     ├─ ProductCatalog (상품/카테고리 데이터 저장소)
-     ├─ Inventory (재고: 창고+매대 통합 관리)
+ └─ GameManager (게임 루프 + 시간 관리 + 승리/패배 판정)
+     ├─ Market (가게: 메뉴 UI + 창고 + 매대 + 재고 관리)
      │   ├─ Warehouse (창고)
      │   └─ Display (매대)
+     ├─ ProductCatalog (상품/카테고리 데이터 저장소)
      ├─ Wholesaler (도매상: 구매/자동주문)
-     └─ Cashier (계산대: 영업/손님/판매)
+     └─ Cashier (계산대: 결제 처리 + 빅이벤트)
+         └─ Customer (손님: 매대에서 직접 상품 선택)
 ```
 
 | 클래스 | 역할 |
 |--------|------|
-| `Main` | 타이틀 화면 + 게임 모드(기본/커스텀) 선택 → Market 생성 |
-| `Market` | 게임 루프, 시간 관리(아침/낮/밤), 메뉴 표시, 협력 객체 조율 |
+| `Main` | 타이틀 화면 + 게임 모드(기본/커스텀) 선택 → GameManager 생성 |
+| `GameManager` | 게임 루프, 시간 관리(아침/낮/밤), 승리/패배 판정, 게임 상태(money/day) 보유 |
+| `Market` | 가게 전체: 메뉴 UI + 창고/매대 소유 + 재고 관리(진열/회수/자동배정) + 대량 판매 |
 | `ProductCatalog` | 상품 50개 + 카테고리 10개 데이터, 상품명 검색(Map) |
-| `Inventory` | 창고↔매대 재고 이동, 자동배정, 재고 조회/출력 |
 | `Wholesaler` | 도매상 카테고리별 구매, 자동주문 정책 설정/실행 |
-| `Cashier` | 직접/빠른 영업, 손님 생성, 판매 처리, 빅 이벤트 |
+| `Cashier` | 직접/빠른 영업, 결제 처리, 빅 이벤트 (상품 선택은 Customer가 담당) |
+| `Customer` | 손님 데이터 + 유형별 쇼핑 패턴 + 매대에서 직접 상품 선택(pickProducts), 인사말 상수 |
 | `Product` | 상품 데이터 (이름, 매입가, 판매가, 인기도, 박스크기) |
-| `Category` | 카테고리 데이터 (이름, 상품 배열, 자동주문 정책) |
-| `Customer` | 손님 데이터 (유형, 쇼핑 리스트, 인사말) |
+| `Category` | 카테고리 데이터 (이름, 상품 배열, 자동주문 정책, 인덱스 상수) |
 | `Warehouse` | 창고 재고 관리 (HashMap 기반) |
 | `Display` | 매대 슬롯 관리 (진열/판매/회수) |
 | `Util` | 유틸리티 (입력, 랜덤, 딜레이, 화면 클리어 등) |
 
-**공유 상태 접근 방식:** `money`, `day`, `timeOfDay`는 Market이 보유, 협력 객체들이 `market.money` 등으로 직접 접근
+**공유 상태 접근 방식:** `money`, `day`, `timeOfDay`는 GameManager가 보유, 협력 객체들이 `game.money` 등으로 직접 접근
 
 **손님 유형 (Customer 내부 상수):**
-- `TYPE_FAMILY(0)` - 가족 (고기, 음료 많이 삼)
-- `TYPE_COUPLE(1)` - 커플 (술, 안주)
-- `TYPE_FRIENDS(2)` - 친구들 (다 조금씩)
-- `TYPE_SOLO(3)` - 혼자 온 사람 (라면, 맥주)
+- `TYPE_FAMILY(0)` - 가족: 고기+식재료+음료 필수, 안주/아이스크림 선택
+- `TYPE_COUPLE(1)` - 커플: 소주+맥주+안주 필수, 음료/아이스크림 선택
+- `TYPE_FRIENDS(2)` - 친구들: 맥주+소주+안주 필수, 아이스크림/폭죽 선택
+- `TYPE_SOLO(3)` - 혼자: 라면+맥주 필수, 음료/아이스크림/안주 선택
+
+**카테고리 인덱스 (Category 내부 상수):**
+- `INDEX_DRINK(0)`, `INDEX_BEER(1)`, `INDEX_SOJU(2)`, `INDEX_SNACK(3)`, `INDEX_MEAT(4)`
+- `INDEX_BEACH(5)`, `INDEX_GROCERY(6)`, `INDEX_RAMEN(7)`, `INDEX_ICECREAM(8)`, `INDEX_FIREWORK(9)`
 
 ### 게임 시스템
 

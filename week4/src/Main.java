@@ -897,13 +897,26 @@ public class Main {
             System.out.println(" (매대가 꽉 찼습니다)");
 
         } else {
-            // 매대에 진열할 상품 목록 준비
-            // 창고에는 있지만 아직 매대에 없는 상품들을 카테고리별로 모아둔다
-            // 예: 창고에 콜라 20개 있고 매대에 0개 → 진열 대기 목록에 추가
+            // ──────────────────────────────────────────────
+            // [준비] 카테고리별 진열 대기 목록 만들기
+            // ──────────────────────────────────────────────
+            // 조건: 창고에 재고가 있고(O) + 매대에 아직 없는(X) 상품
+            //
+            // fillArrangeBuffer()가 각 카테고리를 순회하며 조건에 맞는 상품을
+            // arrangeCategoriesBuffer 2차원 배열에 채운다
+            //
+            // 결과 예시:
+            //   arrangeCategoriesBuffer[0] = [환타, 밀키스]  ← 음료 중 매대에 없는 것
+            //   arrangeCategoriesBuffer[1] = [클라우드]      ← 맥주 중 매대에 없는 것
+            //   arrangeCategoriesBuffer[2] = []              ← 소주는 전부 매대에 있음
+            //   ...
+            //   arrangeCategoryCounts[0] = 2  ← 음료 대기 상품 2개
+            //   arrangeCategoryCounts[1] = 1  ← 맥주 대기 상품 1개
+            //   arrangeCategoryCounts[2] = 0  ← 소주 대기 상품 0개
             int totalAvailable = 0;
             for (int i = 0; i < 10; i++) {
-                arrangeCategoryCounts[i] = 0;
-                arrangeCategoryIndex[i] = 0;
+                arrangeCategoryCounts[i] = 0;   // 버퍼 초기화
+                arrangeCategoryIndex[i] = 0;    // 진열 순서 인덱스 초기화
                 fillArrangeBuffer(i, allCategories[i]);
                 totalAvailable = totalAvailable + arrangeCategoryCounts[i];
             }
@@ -911,18 +924,31 @@ public class Main {
             if (totalAvailable == 0) {
                 System.out.println(" (창고에 새로 진열할 상품 없음)");
             } else {
-                // 라운드 로빈 방식으로 진열
+                // 한 카테고리에 몰아서 진열하지 않고, 돌아가며 1개씩 진열한다
+                // → 매대 30칸을 특정 카테고리가 독점하는 것을 방지
+                //
+                // 동작 순서 (매대 빈 슬롯이 5칸인 경우):
+                //   1바퀴: 음료(환타) → 맥주(클라우드) → 간식(육포) → 라면(불닭) → 아이스크림(보석바) → 5칸 다 참 → 종료
+                //
+                // arrangeCategoryIndex[cat]가 각 카테고리에서 "다음에 진열할 상품" 위치를 추적
+                // 모든 카테고리의 인덱스가 끝까지 도달하면 hasMore = false → while 종료
                 boolean hasMore = true;
 
                 while (hasMore && display.hasEmptySlot()) {
-                    hasMore = false;
+                    hasMore = false;  // 이번 바퀴에서 진열한 게 없으면 종료
 
+                    // 10개 카테고리를 순서대로 순회 (1바퀴)
                     for (int cat = 0; cat < 10; cat++) {
+
+                        // 이 카테고리에 아직 진열할 상품이 남아있는가?
                         if (arrangeCategoryIndex[cat] < arrangeCategoryCounts[cat]) {
+
+                            // 매대가 중간에 꽉 찰 수 있으므로 매번 체크
                             if (!display.hasEmptySlot()) {
                                 break;
                             }
 
+                            // 현재 인덱스 위치의 상품을 매대에 진열
                             Product product = arrangeCategoriesBuffer[cat][arrangeCategoryIndex[cat]];
                             int displayed = display.displayFromWarehouse(product, warehouse, MAX_DISPLAY_PER_SLOT);
 
@@ -937,7 +963,9 @@ public class Main {
                                 }
                             }
 
+                            // 다음 상품으로 인덱스 이동
                             arrangeCategoryIndex[cat]++;
+                            // 이번 바퀴에서 진열했으므로 다음 바퀴도 시도
                             hasMore = true;
                         }
                     }

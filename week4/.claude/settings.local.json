@@ -10,7 +10,8 @@
       "Bash(npm i:*)",
       "Bash(sudo npm:*)",
       "Bash(md5:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(wc:*)"
     ],
     "deny": [],
     "ask": []

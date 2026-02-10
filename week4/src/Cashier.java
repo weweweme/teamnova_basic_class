@@ -208,25 +208,25 @@ public class Cashier {
                         // 간단히 랜덤 손님 처리 (재사용 배열 사용)
                         int skipType = Util.rand(4);
 
-                        // 손님별 간단 쇼핑 리스트
+                        // 손님별 간단 쇼핑 리스트 (매대에서 재고 있는 상품 우선 선택)
                         if (skipType == 0) {
-                            skipList[0] = catalog.getRandomFromCategory(catalog.categoryMeat);
-                            skipList[1] = catalog.getRandomFromCategory(catalog.categoryDrink);
+                            skipList[0] = inventory.getAvailableFromCategory(catalog.allCategories[Category.INDEX_MEAT]);
+                            skipList[1] = inventory.getAvailableFromCategory(catalog.allCategories[Category.INDEX_DRINK]);
                             skipAmounts[0] = 2 + Util.rand(2);
                             skipAmounts[1] = 3 + Util.rand(3);
                         } else if (skipType == 1) {
-                            skipList[0] = catalog.getRandomFromCategory(catalog.categorySoju);
-                            skipList[1] = catalog.getRandomFromCategory(catalog.categorySnack);
+                            skipList[0] = inventory.getAvailableFromCategory(catalog.allCategories[Category.INDEX_SOJU]);
+                            skipList[1] = inventory.getAvailableFromCategory(catalog.allCategories[Category.INDEX_SNACK]);
                             skipAmounts[0] = 2 + Util.rand(2);
                             skipAmounts[1] = 2 + Util.rand(2);
                         } else if (skipType == 2) {
-                            skipList[0] = catalog.getRandomFromCategory(catalog.categoryBeer);
-                            skipList[1] = catalog.getRandomFromCategory(catalog.categorySoju);
+                            skipList[0] = inventory.getAvailableFromCategory(catalog.allCategories[Category.INDEX_BEER]);
+                            skipList[1] = inventory.getAvailableFromCategory(catalog.allCategories[Category.INDEX_SOJU]);
                             skipAmounts[0] = 4 + Util.rand(3);
                             skipAmounts[1] = 2 + Util.rand(2);
                         } else {
-                            skipList[0] = catalog.getRandomFromCategory(catalog.categoryRamen);
-                            skipList[1] = catalog.getRandomFromCategory(catalog.categoryBeer);
+                            skipList[0] = inventory.getAvailableFromCategory(catalog.allCategories[Category.INDEX_RAMEN]);
+                            skipList[1] = inventory.getAvailableFromCategory(catalog.allCategories[Category.INDEX_BEER]);
                             skipAmounts[0] = 2 + Util.rand(2);
                             skipAmounts[1] = 2 + Util.rand(2);
                         }
@@ -376,100 +376,20 @@ public class Cashier {
     }
 
     /// <summary>
-    /// 손님 객체 생성 (유형별 구매 목록 설정)
+    /// 손님 객체 생성
+    /// Customer가 유형별 쇼핑 패턴(카테고리+수량)을 자동 설정하고,
+    /// 여기서는 카테고리를 매대의 실제 상품으로 변환만 담당
     /// </summary>
     private Customer createCustomer(int type) {
-        Customer c;
+        Customer c = new Customer(type);
 
-        if (type == Customer.TYPE_FAMILY) {
-            // 가족: 고기 + 식재료 + 음료 (필수) / 안주, 아이스크림 (선택 50%)
-            c = new Customer(type, "가족 손님");
-
-            c.wantProducts[0] = inventory.getAvailableFromCategory(catalog.categoryMeat);
-            c.wantProducts[1] = inventory.getAvailableFromCategory(catalog.categoryMeat);
-            c.wantProducts[2] = inventory.getAvailableFromCategory(catalog.categoryGrocery);
-            c.wantProducts[3] = inventory.getAvailableFromCategory(catalog.categoryGrocery);
-            c.wantProducts[4] = inventory.getAvailableFromCategory(catalog.categoryDrink);
-            c.wantProducts[5] = inventory.getAvailableFromCategory(catalog.categoryDrink);
-            c.wantProducts[6] = inventory.getAvailableFromCategory(catalog.categorySnack);
-            c.wantProducts[7] = inventory.getAvailableFromCategory(catalog.categoryIcecream);
-
-            c.wantAmounts[0] = 2 + Util.rand(2);           // 고기1 (필수)
-            c.wantAmounts[1] = 1 + Util.rand(2);           // 고기2 (필수)
-            c.wantAmounts[2] = 1 + Util.rand(2);           // 식재료1 (필수)
-            c.wantAmounts[3] = 1 + Util.rand(2);           // 식재료2 (필수)
-            c.wantAmounts[4] = 2 + Util.rand(3);           // 음료1 (필수)
-            c.wantAmounts[5] = 1 + Util.rand(2);           // 음료2 (필수)
-            c.wantAmounts[6] = maybeBuy(2 + Util.rand(2)); // 안주 (선택 50%)
-            c.wantAmounts[7] = maybeBuy(2 + Util.rand(3)); // 아이스크림 (선택 50%)
-
-        } else if (type == Customer.TYPE_COUPLE) {
-            // 커플: 소주 + 맥주 + 안주 (필수) / 음료, 아이스크림 (선택 50%)
-            c = new Customer(type, "커플 손님");
-
-            c.wantProducts[0] = inventory.getAvailableFromCategory(catalog.categorySoju);
-            c.wantProducts[1] = inventory.getAvailableFromCategory(catalog.categoryBeer);
-            c.wantProducts[2] = inventory.getAvailableFromCategory(catalog.categorySnack);
-            c.wantProducts[3] = inventory.getAvailableFromCategory(catalog.categorySnack);
-            c.wantProducts[4] = inventory.getAvailableFromCategory(catalog.categoryDrink);
-            c.wantProducts[5] = inventory.getAvailableFromCategory(catalog.categoryIcecream);
-
-            c.wantAmounts[0] = 1 + Util.rand(2);           // 소주 (필수) 1~2개
-            c.wantAmounts[1] = 1 + Util.rand(2);           // 맥주 (필수) 1~2개
-            c.wantAmounts[2] = 1 + Util.rand(2);           // 안주1 (필수) 1~2개
-            c.wantAmounts[3] = maybeBuy(1 + Util.rand(2)); // 안주2 (선택 50%) 0~2개
-            c.wantAmounts[4] = maybeBuy(1);                 // 음료 (선택 50%) 0~1개
-            c.wantAmounts[5] = maybeBuy(1);                 // 아이스크림 (선택 50%) 0~1개
-
-        } else if (type == Customer.TYPE_FRIENDS) {
-            // 친구들: 맥주 + 소주 + 안주 (필수) / 아이스크림, 폭죽 (선택 50%)
-            c = new Customer(type, "친구들");
-
-            c.wantProducts[0] = inventory.getAvailableFromCategory(catalog.categoryBeer);
-            c.wantProducts[1] = inventory.getAvailableFromCategory(catalog.categorySoju);
-            c.wantProducts[2] = inventory.getAvailableFromCategory(catalog.categorySnack);
-            c.wantProducts[3] = inventory.getAvailableFromCategory(catalog.categorySnack);
-            c.wantProducts[4] = inventory.getAvailableFromCategory(catalog.categoryIcecream);
-            c.wantProducts[5] = inventory.getAvailableFromCategory(catalog.categoryIcecream);
-            c.wantProducts[6] = inventory.getAvailableFromCategory(catalog.categoryFirework);
-
-            c.wantAmounts[0] = 6 + Util.rand(5);           // 맥주 (필수) - 많이
-            c.wantAmounts[1] = 3 + Util.rand(3);           // 소주 (필수)
-            c.wantAmounts[2] = 2 + Util.rand(2);           // 안주1 (필수)
-            c.wantAmounts[3] = 1 + Util.rand(2);           // 안주2 (필수)
-            c.wantAmounts[4] = maybeBuy(2 + Util.rand(2)); // 아이스크림1 (선택 50%)
-            c.wantAmounts[5] = maybeBuy(1 + Util.rand(2)); // 아이스크림2 (선택 50%)
-            c.wantAmounts[6] = maybeBuy(2 + Util.rand(3)); // 폭죽 (선택 50%)
-
-        } else {
-            // 혼자: 라면 + 맥주 (필수) / 음료, 아이스크림, 안주 (선택 50%)
-            c = new Customer(type, "혼자 온 손님");
-
-            c.wantProducts[0] = inventory.getAvailableFromCategory(catalog.categoryRamen);
-            c.wantProducts[1] = inventory.getAvailableFromCategory(catalog.categoryBeer);
-            c.wantProducts[2] = inventory.getAvailableFromCategory(catalog.categoryDrink);
-            c.wantProducts[3] = inventory.getAvailableFromCategory(catalog.categoryIcecream);
-            c.wantProducts[4] = inventory.getAvailableFromCategory(catalog.categorySnack);
-
-            c.wantAmounts[0] = 1 + Util.rand(2);           // 라면 (필수) 1~2개
-            c.wantAmounts[1] = 1 + Util.rand(2);           // 맥주 (필수) 1~2개
-            c.wantAmounts[2] = maybeBuy(1);                 // 음료 (선택 50%) 0~1개
-            c.wantAmounts[3] = maybeBuy(1);                 // 아이스크림 (선택 50%) 0~1개
-            c.wantAmounts[4] = maybeBuy(1);                 // 안주 (선택 50%) 0~1개
+        // 손님이 정한 카테고리를 매대에서 실제 상품으로 변환
+        for (int i = 0; i < c.wantCount; i++) {
+            c.wantProducts[i] = inventory.getAvailableFromCategory(
+                catalog.allCategories[c.wantCategories[i]]);
         }
 
         return c;
-    }
-
-    /// <summary>
-    /// 50% 확률로 구매 (선택 카테고리용)
-    /// 50% 확률로 원래 수량 반환, 50% 확률로 0 반환
-    /// </summary>
-    private int maybeBuy(int amount) {
-        if (Util.rand(2) == 0) {
-            return 0;       // 안 삼
-        }
-        return amount;      // 삼
     }
 
     /// <summary>
@@ -501,34 +421,6 @@ public class Cashier {
     }
 
     /// <summary>
-    /// 카테고리에서 대량 판매 처리
-    /// 판매된 금액 반환
-    /// </summary>
-    private int sellBulk(Category category, int amount) {
-        int totalSale = 0;
-        int sellAmount = amount / category.products.length;
-
-        for (Product p : category.products) {
-            int stock = inventory.display.getDisplayed(p);
-            if (stock >= sellAmount) {
-                int sale = p.sellPrice * sellAmount;
-                inventory.display.sell(p, sellAmount);
-
-                game.money = game.money + sale;
-                totalSale = totalSale + sale;
-            } else if (stock > 0) {
-                int sale = p.sellPrice * stock;
-                inventory.display.sell(p, stock);
-
-                game.money = game.money + sale;
-                totalSale = totalSale + sale;
-            }
-        }
-
-        return totalSale;
-    }
-
-    /// <summary>
     /// 빅 이벤트 체크 및 처리 (10% 확률)
     /// 단체 주문, 펜션 배달, 축제 시즌 중 하나 발생
     /// </summary>
@@ -548,8 +440,9 @@ public class Cashier {
             System.out.println("========================================");
             System.out.println("\"여기 수련회인데요, 대량 주문할게요!\"");
             System.out.println();
-            int bonus = sellBulk(catalog.categoryDrink, 10 + Util.rand(10));
-            bonus = bonus + sellBulk(catalog.categorySnack, 5 + Util.rand(5));
+            int bonus = inventory.sellBulk(catalog.allCategories[Category.INDEX_DRINK], 10 + Util.rand(10));
+            bonus = bonus + inventory.sellBulk(catalog.allCategories[Category.INDEX_SNACK], 5 + Util.rand(5));
+            game.money = game.money + bonus;
             if (bonus > 0) {
                 System.out.printf(">> 단체 주문 매출: %,d원%n", bonus);
             } else {
@@ -564,9 +457,10 @@ public class Cashier {
             System.out.println("========================================");
             System.out.println("\"펜션에서 바베큐 세트 배달 부탁드려요!\"");
             System.out.println();
-            int bonus = sellBulk(catalog.categoryMeat, 5 + Util.rand(5));
-            bonus = bonus + sellBulk(catalog.categoryDrink, 5 + Util.rand(5));
-            bonus = bonus + sellBulk(catalog.categoryGrocery, 3 + Util.rand(3));
+            int bonus = inventory.sellBulk(catalog.allCategories[Category.INDEX_MEAT], 5 + Util.rand(5));
+            bonus = bonus + inventory.sellBulk(catalog.allCategories[Category.INDEX_DRINK], 5 + Util.rand(5));
+            bonus = bonus + inventory.sellBulk(catalog.allCategories[Category.INDEX_GROCERY], 3 + Util.rand(3));
+            game.money = game.money + bonus;
             if (bonus > 0) {
                 System.out.printf(">> 펜션 배달 매출: %,d원%n", bonus);
             } else {
@@ -581,8 +475,9 @@ public class Cashier {
             System.out.println("========================================");
             System.out.println("\"축제 준비물 사러 왔어요!\"");
             System.out.println();
-            int bonus = sellBulk(catalog.categoryFirework, 5 + Util.rand(10));
-            bonus = bonus + sellBulk(catalog.categoryBeer, 10 + Util.rand(10));
+            int bonus = inventory.sellBulk(catalog.allCategories[Category.INDEX_FIREWORK], 5 + Util.rand(10));
+            bonus = bonus + inventory.sellBulk(catalog.allCategories[Category.INDEX_BEER], 10 + Util.rand(10));
+            game.money = game.money + bonus;
             if (bonus > 0) {
                 System.out.printf(">> 축제 시즌 매출: %,d원%n", bonus);
             } else {

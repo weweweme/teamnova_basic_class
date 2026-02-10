@@ -1,6 +1,7 @@
 /// <summary>
 /// 손님 클래스
 /// 유형(가족, 커플, 친구, 혼자)에 따라 구매 패턴이 다름
+/// 생성 시 유형별 쇼핑 패턴(카테고리+수량)을 자동 설정
 /// </summary>
 public class Customer {
 
@@ -24,7 +25,8 @@ public class Customer {
     public String greeting;       // 인사말
 
     // 구매 목록
-    public Product[] wantProducts;   // 원하는 상품 목록
+    public int[] wantCategories;     // 원하는 카테고리 인덱스 (Category.INDEX_MEAT 등)
+    public Product[] wantProducts;   // 실제 선택된 상품 (Cashier가 매대에서 골라 채움)
     public int[] wantAmounts;        // 각 상품별 희망 수량
     public int wantCount;            // 실제 구매 품목 수
 
@@ -32,16 +34,21 @@ public class Customer {
 
     /// <summary>
     /// 손님 생성
+    /// 유형에 따라 이름, 쇼핑 패턴(카테고리+수량)을 자동 설정
     /// </summary>
-    public Customer(int type, String typeName) {
+    public Customer(int type) {
         this.type = type;
-        this.typeName = typeName;
+        this.typeName = getTypeName(type);
 
         // 유형별 배열 크기 할당
         int maxItems = getMaxItems(type);
+        this.wantCategories = new int[maxItems];
         this.wantProducts = new Product[maxItems];
         this.wantAmounts = new int[maxItems];
         this.wantCount = maxItems;
+
+        // 유형별 쇼핑 패턴 설정
+        initShoppingList();
     }
 
     // ========== 멘트 상수 ==========
@@ -110,18 +117,126 @@ public class Customer {
     // ========== 메서드 ==========
 
     /// <summary>
+    /// 유형별 이름 반환
+    /// </summary>
+    private static String getTypeName(int type) {
+        switch (type) {
+            case TYPE_FAMILY:
+                return "가족 손님";
+            case TYPE_COUPLE:
+                return "커플 손님";
+            case TYPE_FRIENDS:
+                return "친구들";
+            default:
+                return "혼자 온 손님";
+        }
+    }
+
+    /// <summary>
     /// 유형별 최대 품목 수 반환
     /// </summary>
     public static int getMaxItems(int type) {
-        if (type == TYPE_FAMILY) {
-            return MAX_ITEMS_FAMILY;
-        } else if (type == TYPE_COUPLE) {
-            return MAX_ITEMS_COUPLE;
-        } else if (type == TYPE_FRIENDS) {
-            return MAX_ITEMS_FRIENDS;
-        } else {
-            return MAX_ITEMS_SOLO;
+        switch (type) {
+            case TYPE_FAMILY:
+                return MAX_ITEMS_FAMILY;
+            case TYPE_COUPLE:
+                return MAX_ITEMS_COUPLE;
+            case TYPE_FRIENDS:
+                return MAX_ITEMS_FRIENDS;
+            default:
+                return MAX_ITEMS_SOLO;
         }
+    }
+
+    /// <summary>
+    /// 유형별 쇼핑 패턴 설정
+    /// 어떤 카테고리에서 몇 개를 살지 결정
+    /// </summary>
+    private void initShoppingList() {
+        switch (type) {
+            case TYPE_FAMILY:
+                // 가족: 고기 + 식재료 + 음료 (필수) / 안주, 아이스크림 (선택 50%)
+                wantCategories[0] = Category.INDEX_MEAT;
+                wantCategories[1] = Category.INDEX_MEAT;
+                wantCategories[2] = Category.INDEX_GROCERY;
+                wantCategories[3] = Category.INDEX_GROCERY;
+                wantCategories[4] = Category.INDEX_DRINK;
+                wantCategories[5] = Category.INDEX_DRINK;
+                wantCategories[6] = Category.INDEX_SNACK;
+                wantCategories[7] = Category.INDEX_ICECREAM;
+
+                wantAmounts[0] = 2 + Util.rand(2);           // 고기1 (필수)
+                wantAmounts[1] = 1 + Util.rand(2);           // 고기2 (필수)
+                wantAmounts[2] = 1 + Util.rand(2);           // 식재료1 (필수)
+                wantAmounts[3] = 1 + Util.rand(2);           // 식재료2 (필수)
+                wantAmounts[4] = 2 + Util.rand(3);           // 음료1 (필수)
+                wantAmounts[5] = 1 + Util.rand(2);           // 음료2 (필수)
+                wantAmounts[6] = maybeBuy(2 + Util.rand(2)); // 안주 (선택 50%)
+                wantAmounts[7] = maybeBuy(2 + Util.rand(3)); // 아이스크림 (선택 50%)
+                break;
+
+            case TYPE_COUPLE:
+                // 커플: 소주 + 맥주 + 안주 (필수) / 음료, 아이스크림 (선택 50%)
+                wantCategories[0] = Category.INDEX_SOJU;
+                wantCategories[1] = Category.INDEX_BEER;
+                wantCategories[2] = Category.INDEX_SNACK;
+                wantCategories[3] = Category.INDEX_SNACK;
+                wantCategories[4] = Category.INDEX_DRINK;
+                wantCategories[5] = Category.INDEX_ICECREAM;
+
+                wantAmounts[0] = 1 + Util.rand(2);           // 소주 (필수) 1~2개
+                wantAmounts[1] = 1 + Util.rand(2);           // 맥주 (필수) 1~2개
+                wantAmounts[2] = 1 + Util.rand(2);           // 안주1 (필수) 1~2개
+                wantAmounts[3] = maybeBuy(1 + Util.rand(2)); // 안주2 (선택 50%) 0~2개
+                wantAmounts[4] = maybeBuy(1);                 // 음료 (선택 50%) 0~1개
+                wantAmounts[5] = maybeBuy(1);                 // 아이스크림 (선택 50%) 0~1개
+                break;
+
+            case TYPE_FRIENDS:
+                // 친구들: 맥주 + 소주 + 안주 (필수) / 아이스크림, 폭죽 (선택 50%)
+                wantCategories[0] = Category.INDEX_BEER;
+                wantCategories[1] = Category.INDEX_SOJU;
+                wantCategories[2] = Category.INDEX_SNACK;
+                wantCategories[3] = Category.INDEX_SNACK;
+                wantCategories[4] = Category.INDEX_ICECREAM;
+                wantCategories[5] = Category.INDEX_ICECREAM;
+                wantCategories[6] = Category.INDEX_FIREWORK;
+
+                wantAmounts[0] = 6 + Util.rand(5);           // 맥주 (필수) - 많이
+                wantAmounts[1] = 3 + Util.rand(3);           // 소주 (필수)
+                wantAmounts[2] = 2 + Util.rand(2);           // 안주1 (필수)
+                wantAmounts[3] = 1 + Util.rand(2);           // 안주2 (필수)
+                wantAmounts[4] = maybeBuy(2 + Util.rand(2)); // 아이스크림1 (선택 50%)
+                wantAmounts[5] = maybeBuy(1 + Util.rand(2)); // 아이스크림2 (선택 50%)
+                wantAmounts[6] = maybeBuy(2 + Util.rand(3)); // 폭죽 (선택 50%)
+                break;
+
+            default:
+                // 혼자: 라면 + 맥주 (필수) / 음료, 아이스크림, 안주 (선택 50%)
+                wantCategories[0] = Category.INDEX_RAMEN;
+                wantCategories[1] = Category.INDEX_BEER;
+                wantCategories[2] = Category.INDEX_DRINK;
+                wantCategories[3] = Category.INDEX_ICECREAM;
+                wantCategories[4] = Category.INDEX_SNACK;
+
+                wantAmounts[0] = 1 + Util.rand(2);           // 라면 (필수) 1~2개
+                wantAmounts[1] = 1 + Util.rand(2);           // 맥주 (필수) 1~2개
+                wantAmounts[2] = maybeBuy(1);                 // 음료 (선택 50%) 0~1개
+                wantAmounts[3] = maybeBuy(1);                 // 아이스크림 (선택 50%) 0~1개
+                wantAmounts[4] = maybeBuy(1);                 // 안주 (선택 50%) 0~1개
+                break;
+        }
+    }
+
+    /// <summary>
+    /// 50% 확률로 구매 (선택 카테고리용)
+    /// 50% 확률로 원래 수량 반환, 50% 확률로 0 반환
+    /// </summary>
+    private static int maybeBuy(int amount) {
+        if (Util.rand(2) == 0) {
+            return 0;       // 안 삼
+        }
+        return amount;      // 삼
     }
 
     /// <summary>

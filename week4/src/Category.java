@@ -4,6 +4,19 @@
 /// </summary>
 public class Category {
 
+    // ========== 카테고리 인덱스 상수 ==========
+
+    public static final int INDEX_DRINK = 0;      // 음료
+    public static final int INDEX_BEER = 1;       // 맥주
+    public static final int INDEX_SOJU = 2;       // 소주
+    public static final int INDEX_SNACK = 3;      // 간식/안주
+    public static final int INDEX_MEAT = 4;       // 고기
+    public static final int INDEX_BEACH = 5;      // 해수욕용품
+    public static final int INDEX_GROCERY = 6;    // 식재료
+    public static final int INDEX_RAMEN = 7;      // 라면
+    public static final int INDEX_ICECREAM = 8;   // 아이스크림
+    public static final int INDEX_FIREWORK = 9;   // 폭죽
+
     // ========== 필드 ==========
 
     public String name;               // 카테고리명 ("음료", "맥주" 등)

@@ -68,6 +68,34 @@ public class Inventory {
         return category.products[Util.rand(category.products.length)];
     }
 
+    // ========== 매대 판매 ==========
+
+    /// <summary>
+    /// 카테고리에서 대량 판매 처리
+    /// 카테고리 내 상품을 균등하게 나눠서 매대에서 판매
+    /// 판매된 총 금액 반환 (money 처리는 호출자가 담당)
+    /// </summary>
+    public int sellBulk(Category category, int amount) {
+        int totalSale = 0;
+        // 총 요청 수량을 카테고리 내 상품 수로 균등 분배
+        int sellAmount = amount / category.products.length;
+
+        for (Product p : category.products) {
+            int stock = display.getDisplayed(p);
+            if (stock >= sellAmount) {
+                int sale = p.sellPrice * sellAmount;
+                display.sell(p, sellAmount);
+                totalSale = totalSale + sale;
+            } else if (stock > 0) {
+                int sale = p.sellPrice * stock;
+                display.sell(p, stock);
+                totalSale = totalSale + sale;
+            }
+        }
+
+        return totalSale;
+    }
+
     // ========== 매대 관리 메뉴 ==========
 
     /// <summary>

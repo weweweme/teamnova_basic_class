@@ -342,14 +342,12 @@ public class Main {
                         case 1:
                             // 직접 영업
                             startBusiness();
-                            day++;
-                            timeOfDay = TIME_MORNING;
+                            advanceTime();  // 아침→낮, 낮→밤
                             break;
                         case 2:
                             // 빠른 영업
                             startQuickBusiness();
-                            day++;
-                            timeOfDay = TIME_MORNING;
+                            advanceTime();
                             break;
                         case 3:
                             // 1주일 스킵
@@ -365,6 +363,16 @@ public class Main {
                     showInventoryMenu();
                     break;
 
+                case 4:
+                    // 다음 날로 (밤에만 가능)
+                    if (timeOfDay == TIME_NIGHT) {
+                        day++;
+                        timeOfDay = TIME_MORNING;
+                    } else {
+                        System.out.println("[!!] 아직 하루가 끝나지 않았습니다.");
+                    }
+                    break;
+
                 case 0:
                     playing = false;
                     break;
@@ -377,6 +385,26 @@ public class Main {
 
         System.out.println("게임을 종료합니다.");
         scanner.close();
+    }
+
+    /// <summary>
+    /// 시간대를 한 단계 전진
+    /// 아침 → 낮, 낮 → 밤, 밤 → 아침(다음 날)
+    /// </summary>
+    private static void advanceTime() {
+        switch (timeOfDay) {
+            case TIME_MORNING:
+                timeOfDay = TIME_AFTERNOON;
+                break;
+            case TIME_AFTERNOON:
+                timeOfDay = TIME_NIGHT;
+                break;
+            case TIME_NIGHT:
+                // 밤 영업 끝 → 다음 날 아침
+                day++;
+                timeOfDay = TIME_MORNING;
+                break;
+        }
     }
 
     /// <summary>
@@ -442,16 +470,26 @@ public class Main {
         System.out.println("매대 현황: " + display.getUsedSlots() + " / " + MAX_SLOT + "칸");
         System.out.println();
 
-        if (timeOfDay == TIME_MORNING) {
-            // 아침: 도매상, 영업, 재고/매대 모두 가능
-            System.out.println("[1] 도매상 가기 (오전 소비)");
-            System.out.println("[2] 영업 시작");
-            System.out.println("[3] 재고/매대 관리");
-        } else {
-            // 낮/밤: 영업, 재고/매대만 가능
-            System.out.println("[1] (도매상 마감)");
-            System.out.println("[2] 영업 시작");
-            System.out.println("[3] 재고/매대 관리");
+        switch (timeOfDay) {
+            case TIME_MORNING:
+                // 아침: 도매상, 영업, 재고/매대 모두 가능
+                System.out.println("[1] 도매상 가기 (오전 소비)");
+                System.out.println("[2] 영업 시작");
+                System.out.println("[3] 재고/매대 관리");
+                break;
+            case TIME_AFTERNOON:
+                // 낮: 영업, 재고/매대만 가능
+                System.out.println("[1] (도매상 마감)");
+                System.out.println("[2] 영업 시작");
+                System.out.println("[3] 재고/매대 관리");
+                break;
+            case TIME_NIGHT:
+                // 밤: 영업, 재고/매대, 다음 날 가능
+                System.out.println("[1] (도매상 마감)");
+                System.out.println("[2] 영업 시작");
+                System.out.println("[3] 재고/매대 관리");
+                System.out.println("[4] 다음 날로");
+                break;
         }
         System.out.println("[0] 게임 종료");
         System.out.print(">> ");
@@ -2120,9 +2158,8 @@ public class Main {
         // 손님 응대 루프
         for (int customerNum = 1; customerNum <= todayCustomers; customerNum++) {
 
-            // 손님 절반쯤 지났을 때 빅 이벤트 체크 (20% 확률) + 밤으로 전환
+            // 손님 절반쯤 지났을 때 빅 이벤트 체크 (20% 확률)
             if (!bigEventOccurred && customerNum == todayCustomers / 2) {
-                timeOfDay = TIME_NIGHT;  // 영업 후반부 → 밤으로 전환
                 if (checkBigEvent(20)) {
                     bigEventOccurred = true;
                     Util.delay(1000);

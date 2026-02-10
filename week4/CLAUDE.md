@@ -72,6 +72,19 @@ java -cp out Main
           break;
   }
   ```
+- **접근한정자 필수**: 모든 필드와 메서드에 적절한 접근한정자를 반드시 명시 (package-private 금지)
+  - `private`: 클래스 내부에서만 사용하는 필드/메서드 (기본값으로 사용)
+  - `public`: 외부 클래스에서 접근해야 하는 필드/메서드
+  - 접근한정자 없이 선언하지 않는다 (Java의 package-private는 의도가 불명확)
+  ```java
+  // 나쁜 예: 접근한정자 생략 (package-private)
+  int money;
+  void startBusiness() { ... }
+
+  // 좋은 예: 의도를 명확히
+  private int money;
+  public void startBusiness() { ... }
+  ```
 - **메서드 주석 스타일**: 메서드 설명은 `/// <summary>` 형식 사용
   ```java
   /// <summary>
@@ -143,25 +156,39 @@ java -cp out Main
 
 ### 클래스 구조
 
-**메인**: `Main.java` - 게임 로직 전체 진행
+```
+Main (타이틀 화면 + 게임 모드 선택)
+ └─ Market (게임 루프 + 시간 관리 + 메뉴 조율)
+     ├─ ProductCatalog (상품/카테고리 데이터 저장소)
+     ├─ Inventory (재고: 창고+매대 통합 관리)
+     │   ├─ Warehouse (창고)
+     │   └─ Display (매대)
+     ├─ Wholesaler (도매상: 구매/자동주문)
+     └─ Cashier (계산대: 영업/손님/판매)
+```
 
-**상품 클래스 (개별 파일로):**
-- 음료: `Cola`, `Cider`, `Water`, `Pocari`, `Ipro`
-- 맥주: `Cass`, `Terra`, `Hite`
-- 소주: `Chamisul`, `Cheumcherum`, `Jinro`
-- 간식/안주: `DriedSquid`, `Peanut`, `Chip`
-- 고기: `Samgyupsal`, `Moksal`, `Sausage`
-- 해수욕 용품: `Tube`, `Sunscreen`, `BeachBall`
-- 식재료: `Ssamjang`, `Lettuce`, `Kimchi`
-- 라면: `ShinRamen`, `JinRamen`, `Neoguri`
-- 아이스크림: `Melona`, `ScrewBar`, `FishBread`
-- 기타: `Firework` (폭죽)
+| 클래스 | 역할 |
+|--------|------|
+| `Main` | 타이틀 화면 + 게임 모드(기본/커스텀) 선택 → Market 생성 |
+| `Market` | 게임 루프, 시간 관리(아침/낮/밤), 메뉴 표시, 협력 객체 조율 |
+| `ProductCatalog` | 상품 50개 + 카테고리 10개 데이터, 상품명 검색(Map) |
+| `Inventory` | 창고↔매대 재고 이동, 자동배정, 재고 조회/출력 |
+| `Wholesaler` | 도매상 카테고리별 구매, 자동주문 정책 설정/실행 |
+| `Cashier` | 직접/빠른 영업, 손님 생성, 판매 처리, 빅 이벤트 |
+| `Product` | 상품 데이터 (이름, 매입가, 판매가, 인기도, 박스크기) |
+| `Category` | 카테고리 데이터 (이름, 상품 배열, 자동주문 정책) |
+| `Customer` | 손님 데이터 (유형, 쇼핑 리스트, 인사말) |
+| `Warehouse` | 창고 재고 관리 (HashMap 기반) |
+| `Display` | 매대 슬롯 관리 (진열/판매/회수) |
+| `Util` | 유틸리티 (입력, 랜덤, 딜레이, 화면 클리어 등) |
 
-**손님 클래스:**
-- `Family` - 가족 단위 (고기, 음료 많이 삼)
-- `Couple` - 커플 (술, 안주)
-- `Friends` - 친구들 (다 조금씩)
-- `Solo` - 혼자 온 사람 (라면, 맥주)
+**공유 상태 접근 방식:** `money`, `day`, `timeOfDay`는 Market이 보유, 협력 객체들이 `market.money` 등으로 직접 접근
+
+**손님 유형 (Customer 내부 상수):**
+- `TYPE_FAMILY(0)` - 가족 (고기, 음료 많이 삼)
+- `TYPE_COUPLE(1)` - 커플 (술, 안주)
+- `TYPE_FRIENDS(2)` - 친구들 (다 조금씩)
+- `TYPE_SOLO(3)` - 혼자 온 사람 (라면, 맥주)
 
 ### 게임 시스템
 

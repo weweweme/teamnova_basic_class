@@ -42,11 +42,4 @@ public class Category {
         }
         return products[num - 1];
     }
-
-    /// <summary>
-    /// 카테고리 내 상품 개수 반환
-    /// </summary>
-    public int getProductCount() {
-        return products.length;
-    }
 }

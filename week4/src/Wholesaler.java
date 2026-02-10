@@ -8,10 +8,10 @@ public class Wholesaler {
 
     // ========== 필드 ==========
 
-    private GameManager game;           // 게임 상태(money) 접근용
-    private Inventory inventory;        // 재고 관리 (창고, 매대, 총 재고 조회)
-    private ProductCatalog catalog;     // 상품/카테고리 조회
-    private Scanner scanner;
+    private final GameManager game;           // 게임 상태(money) 접근용
+    private final Inventory inventory;        // 재고 관리 (창고, 매대, 총 재고 조회)
+    private final ProductCatalog catalog;     // 상품/카테고리 조회
+    private final Scanner scanner;
 
     // ========== 상수 ==========
 
@@ -107,18 +107,24 @@ public class Wholesaler {
 
     /// <summary>
     /// 카테고리 내 상품 구매
+    /// 선택한 카테고리의 상품 목록(매입가/판매가/재고)을 출력하고,
+    /// 사용자가 상품 번호와 수량을 입력하면 purchaseProduct()로 구매 처리
+    /// 0 입력 시 카테고리 선택 화면으로 복귀
     /// </summary>
     private void buyCategoryProducts(int category) {
         boolean buying = true;
+        // 사용자 입력은 1번부터, 배열은 0번부터이므로 -1
         Category cat = catalog.allCategories[category - 1];
 
         while (buying) {
             Util.clearScreen();
 
+            // 카테고리 헤더 (카테고리명 + 박스 단위 표시)
             System.out.println("========================================");
             System.out.printf("        [ %s ] (%s)%n", cat.name, cat.boxUnit);
             System.out.println("========================================");
 
+            // 카테고리 내 상품 목록 출력 (번호, 이름, 매입가, 판매가, 총 재고)
             for (int i = 0; i < cat.products.length; i++) {
                 Product p = cat.products[i];
                 System.out.printf("%d. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n",
@@ -132,8 +138,10 @@ public class Wholesaler {
             int productChoice = Util.readInt(scanner);
 
             if (productChoice == 0) {
+                // 카테고리 선택 화면으로 복귀
                 buying = false;
             } else {
+                // 상품 번호와 수량을 받아 구매 처리
                 System.out.print("수량 입력 >> ");
                 int quantity = Util.readInt(scanner);
                 purchaseProduct(category, productChoice, quantity);
@@ -212,8 +220,13 @@ public class Wholesaler {
 
     /// <summary>
     /// 카테고리 단위 정책 설정
+    /// 카테고리를 선택한 뒤, 해당 카테고리 전체 상품에 대해
+    /// 자동주문 등록(임계값 설정) 또는 해제를 수행
+    /// 등록 시 카테고리의 autoOrderEnabled/autoOrderThreshold가 갱신됨
     /// </summary>
     private void setCategoryPolicy() {
+        // ========== 1단계: 카테고리 선택 ==========
+
         Util.clearScreen();
         System.out.println("========================================");
         System.out.println("      [ 카테고리 단위 설정 ]");
@@ -232,13 +245,16 @@ public class Wholesaler {
             return;
         }
 
+        // 범위 밖 입력 방어
         if (categoryChoice < 1 || categoryChoice > 10) {
             System.out.println("잘못된 입력입니다.");
             return;
         }
 
-        // 카테고리명 가져오기
+        // 사용자 입력은 1번부터, 배열은 0번부터이므로 -1
         String categoryName = catalog.allCategories[categoryChoice - 1].name;
+
+        // ========== 2단계: 등록/해제 선택 ==========
 
         System.out.println();
         System.out.println("[ " + categoryName + " 카테고리 설정 ]");
@@ -249,13 +265,12 @@ public class Wholesaler {
 
         int actionChoice = Util.readInt(scanner);
 
-        if (actionChoice == 0) {
-            return;
-        } else if (actionChoice == 1) {
+        if (actionChoice == 1) {
+            // 자동주문 등록: 임계값을 입력받아 카테고리에 설정
+            // -> executeAutoOrder() 실행 시 이 카테고리의 모든 상품이 임계값 기준으로 자동 주문됨
             System.out.print("임계값 입력 (재고 몇 개 이하면 주문?) >> ");
             int threshold = Util.readInt(scanner);
 
-            // 카테고리별 정책 설정
             Category cat = catalog.allCategories[categoryChoice - 1];
             cat.autoOrderEnabled = true;
             cat.autoOrderThreshold = threshold;
@@ -263,18 +278,23 @@ public class Wholesaler {
             System.out.println("[OK] " + categoryName + " 카테고리 등록 완료 (임계값: " + threshold + "개)");
 
         } else if (actionChoice == 2) {
-            // 자동주문 해제
+            // 자동주문 해제: 카테고리의 자동주문 플래그를 끔
             Category cat = catalog.allCategories[categoryChoice - 1];
             cat.autoOrderEnabled = false;
 
             System.out.println("[OK] " + categoryName + " 카테고리 자동주문 해제됨");
         }
+
+        // actionChoice == 0 또는 그 외: 아무것도 안 하고 메서드 종료
     }
 
     /// <summary>
     /// 개별 상품 정책 설정
     /// </summary>
     private void setIndividualPolicy() {
+        // ========== 1단계: 카테고리 선택 ==========
+        // 개별 상품을 설정하려면 먼저 어떤 카테고리인지 좁혀야 함
+
         Util.clearScreen();
         System.out.println("========================================");
         System.out.println("       [ 개별 상품 설정 ]");
@@ -294,24 +314,30 @@ public class Wholesaler {
             return;
         }
 
+        // 범위 밖 입력 방어
         if (categoryChoice < 1 || categoryChoice > 10) {
             System.out.println("잘못된 입력입니다.");
             return;
         }
 
-        // 해당 카테고리 상품 목록 출력
+        // ========== 2단계: 상품 선택 ==========
+        // 카테고리 내 상품 목록을 보여주고, 번호로 선택
+
         System.out.println();
         printCategoryProductsForPolicy(categoryChoice);
 
         System.out.print("상품 번호 선택 >> ");
         int productNum = Util.readInt(scanner);
 
+        // 사용자 입력은 1번부터, 배열은 0번부터이므로 -1
         Product product = catalog.allCategories[categoryChoice - 1].getProductByNum(productNum);
 
         if (product == null) {
             System.out.println("[!!] 잘못된 상품 번호입니다.");
             return;
         }
+
+        // ========== 3단계: 등록/해제 선택 ==========
 
         System.out.println();
         System.out.println("[ " + product.name + " 설정 ]");
@@ -322,9 +348,10 @@ public class Wholesaler {
 
         int actionChoice = Util.readInt(scanner);
 
-        if (actionChoice == 0) {
-            return;
-        } else if (actionChoice == 1) {
+        if (actionChoice == 1) {
+            // 자동주문 등록: 임계값을 입력받아 개별 상품에 설정
+            // -> executeAutoOrder() 실행 시 이 상품이 임계값 기준으로 자동 주문됨
+            //    (단, 카테고리 정책이 등록된 경우 카테고리 정책이 우선)
             System.out.print("임계값 입력 (재고 몇 개 이하면 주문?) >> ");
             int threshold = Util.readInt(scanner);
 
@@ -334,17 +361,23 @@ public class Wholesaler {
             System.out.println("[OK] " + product.name + " 등록 완료 (임계값: " + threshold + "개)");
 
         } else if (actionChoice == 2) {
+            // 자동주문 해제: 상품의 자동주문 플래그를 끔
             product.autoOrderEnabled = false;
             System.out.println("[OK] " + product.name + " 자동주문 해제됨");
         }
+        // actionChoice == 0 또는 그 외: 아무것도 안 하고 메서드 종료
     }
 
     /// <summary>
     /// 정책 설정용 카테고리 상품 출력
+    /// 카테고리 내 상품을 번호와 함께 나열하여 선택할 수 있게 함
     /// </summary>
     private void printCategoryProductsForPolicy(int category) {
+        // 사용자 입력은 1번부터, 배열은 0번부터이므로 -1
         Category cat = catalog.allCategories[category - 1];
         System.out.println("[ " + cat.name + " ]");
+
+        // 상품 번호(1부터), 이름, 총 재고(창고+매대) 출력
         for (int i = 0; i < cat.products.length; i++) {
             Product p = cat.products[i];
             System.out.printf("%d. %s (재고: %d)%n", i + 1, p.name, inventory.getTotalStock(p));
@@ -419,9 +452,12 @@ public class Wholesaler {
         System.out.println("========================================");
         System.out.println();
 
+        // 이번 자동주문에서 사용한 총 금액 (정산 출력용)
         int totalCost = 0;
 
-        // 카테고리 정책 기반 주문
+        // ========== 1순위: 카테고리 정책 기반 주문 ==========
+        // 카테고리에 자동주문이 등록되어 있으면, 해당 카테고리의 모든 상품을
+        // 카테고리 임계값 기준으로 주문
         for (Category cat : catalog.allCategories) {
             if (cat.autoOrderEnabled) {
                 for (Product p : cat.products) {
@@ -430,7 +466,10 @@ public class Wholesaler {
             }
         }
 
-        // 개별 상품 정책 기반 주문 (카테고리 미등록 시)
+        // ========== 2순위: 개별 상품 정책 기반 주문 ==========
+        // 카테고리 정책이 없는 카테고리에서만, 개별 상품 정책이 등록된 상품을
+        // 상품별 임계값 기준으로 주문
+        // (카테고리 정책이 있으면 이미 1순위에서 처리됐으므로 건너뜀)
         for (Category cat : catalog.allCategories) {
             if (!cat.autoOrderEnabled) {
                 for (Product p : cat.products) {
@@ -441,6 +480,7 @@ public class Wholesaler {
             }
         }
 
+        // 정산 결과 출력
         System.out.println();
         System.out.println("----------------------------------------");
         System.out.printf("총 주문 금액: -%,d원%n", totalCost);
@@ -457,23 +497,25 @@ public class Wholesaler {
     /// 재고가 임계값 이하면 AUTO_ORDER_BOX_COUNT 박스 주문, 주문 금액 반환
     /// </summary>
     private int autoOrderProduct(Product product, int threshold) {
-        // 총 재고(창고+매대)가 임계값보다 많으면 주문 안 함
+        // 재고 확인: 총 재고(창고+매대)가 임계값 이하인지 체크
         int totalStock = inventory.getTotalStock(product);
         if (totalStock > threshold) {
+            // 재고 충분 -> 주문 불필요
             return 0;
         }
 
+        // 주문 수량 계산: 박스 단위 × 3박스 (약 1주일치)
         int boxSize = product.boxSize;
-        int orderAmount = boxSize * AUTO_ORDER_BOX_COUNT;  // 3박스
+        int orderAmount = boxSize * AUTO_ORDER_BOX_COUNT;
         int cost = product.buyPrice * orderAmount;
 
-        // 자본 체크
+        // 자본 부족 시 주문 불가
         if (cost > game.money) {
             System.out.printf(" - %s: 자본 부족 (필요: %,d원)%n", product.name, cost);
             return 0;
         }
 
-        // 주문 처리 (창고로 입고)
+        // 구매 처리: 자본 차감 + 창고 입고
         game.money = game.money - cost;
         inventory.warehouse.addStock(product, orderAmount);
 

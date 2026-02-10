@@ -10,7 +10,6 @@ public class Customer {
     public static final int TYPE_FAMILY = 0;   // 가족 - 고기, 음료 많이 구매
     public static final int TYPE_COUPLE = 1;   // 커플 - 술, 안주 위주
     public static final int TYPE_FRIENDS = 2;  // 친구들 - 다양하게 조금씩
-    public static final int TYPE_SOLO = 3;     // 혼자 - 라면, 맥주 간단히
 
     // 유형별 최대 구매 품목 수
     private static final int MAX_ITEMS_FAMILY = 8;

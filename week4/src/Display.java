@@ -55,11 +55,14 @@ public class Display {
     /// 실제 진열된 수량 반환
     /// </summary>
     public int displayFromWarehouse(Product product, Warehouse warehouse, int amount) {
-        // 창고에서 가져올 수 있는 양 확인
+        // ========== 실제 진열 수량 계산 ==========
+        // 요청량, 창고 재고, 슬롯 여유 중 가장 작은 값이 실제 진열량
+
+        // 창고에 있는 만큼만 가져올 수 있음
         int warehouseStock = warehouse.getStock(product);
         int actualFromWarehouse = Math.min(amount, warehouseStock);
 
-        // 매대에 놓을 수 있는 양 확인
+        // 슬롯당 최대 수량에서 현재 진열량을 뺀 만큼만 추가 가능
         int currentDisplay = getDisplayed(product);
         int roomInSlot = maxPerSlot - currentDisplay;
         int actualToDisplay = Math.min(actualFromWarehouse, roomInSlot);
@@ -68,19 +71,18 @@ public class Display {
             return 0;
         }
 
-        // 새 상품인 경우 슬롯 확인
+        // 매대에 처음 올리는 상품이면 빈 슬롯이 필요
         boolean isNewProduct = currentDisplay == 0;
         if (isNewProduct && !hasEmptySlot()) {
-            return 0;  // 빈 슬롯 없음
+            return 0;
         }
 
-        // 창고에서 제거
-        warehouse.removeStock(product, actualToDisplay);
+        // ========== 진열 처리 ==========
+        // 창고 차감 -> 매대 추가 -> 슬롯 카운트 갱신
 
-        // 매대에 추가
+        warehouse.removeStock(product, actualToDisplay);
         displayed.put(product, currentDisplay + actualToDisplay);
 
-        // 새 상품이면 슬롯 사용
         if (isNewProduct) {
             usedSlots++;
         }
@@ -93,6 +95,7 @@ public class Display {
     /// 실제 판매된 수량 반환
     /// </summary>
     public void sell(Product product, int amount) {
+        // 요청량과 현재 진열량 중 작은 쪽이 실제 판매량
         int current = getDisplayed(product);
         int actual = Math.min(current, amount);
 
@@ -100,10 +103,11 @@ public class Display {
             return;
         }
 
+        // 매대 수량 차감
         int remaining = current - actual;
         displayed.put(product, remaining);
 
-        // 재고가 0이 되면 슬롯 해제
+        // 해당 상품이 매대에서 완전히 소진되면 슬롯 반환
         if (remaining == 0) {
             usedSlots--;
         }
@@ -113,6 +117,7 @@ public class Display {
     /// 매대에서 창고로 상품 회수
     /// </summary>
     public int returnToWarehouse(Product product, Warehouse warehouse, int amount) {
+        // 요청량과 현재 진열량 중 작은 쪽이 실제 회수량
         int current = getDisplayed(product);
         int actual = Math.min(current, amount);
 
@@ -120,16 +125,17 @@ public class Display {
             return 0;
         }
 
-        // 매대에서 제거
+        // ========== 회수 처리 ==========
+        // 매대 차감 -> 슬롯 카운트 갱신 -> 창고 추가
+
         int remaining = current - actual;
         displayed.put(product, remaining);
 
-        // 재고가 0이 되면 슬롯 해제
+        // 해당 상품이 매대에서 완전히 소진되면 슬롯 반환
         if (remaining == 0) {
             usedSlots--;
         }
 
-        // 창고에 추가
         warehouse.addStock(product, actual);
 
         return actual;

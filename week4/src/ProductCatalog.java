@@ -125,13 +125,6 @@ public class ProductCatalog {
     }
 
     /// <summary>
-    /// 인덱스(0-based)로 카테고리 조회
-    /// </summary>
-    public Category getCategory(int index) {
-        return allCategories[index];
-    }
-
-    /// <summary>
     /// 카테고리에서 랜덤 상품 1개 선택
     /// </summary>
     public Product getRandomFromCategory(Category category) {
@@ -219,26 +212,16 @@ public class ProductCatalog {
         smokeBomb = new Product("연막탄", 4000, 10000 * priceMultiplier, 7, 10);
 
         // 카테고리 초기화 (이름, 박스단위, 상품배열, 인덱스)
-        categoryDrink = new Category("음료", "1박스=24개",
-            new Product[]{cola, cider, water, pocari, ipro, fanta, milkis}, 0);
-        categoryBeer = new Category("맥주", "1박스=24개",
-            new Product[]{cass, terra, hite, kloud, filgood}, 1);
-        categorySoju = new Category("소주", "1박스=20병",
-            new Product[]{chamisul, cheumcherum, jinro, goodday, saero}, 2);
-        categorySnack = new Category("간식/안주", "1박스=20개",
-            new Product[]{driedSquid, peanut, chip, jerky, sausageSnack}, 3);
-        categoryMeat = new Category("고기", "1판=10팩",
-            new Product[]{samgyupsal, moksal, sausage, galbi, hangjeongsal}, 4);
-        categoryBeach = new Category("해수욕용품", "1묶음=5개",
-            new Product[]{tube, sunscreen, beachBall, goggles, waterGun}, 5);
-        categoryGrocery = new Category("식재료", "1박스=10개",
-            new Product[]{ssamjang, lettuce, kimchi, onion, salt}, 6);
-        categoryRamen = new Category("라면", "1박스=40개",
-            new Product[]{shinRamen, jinRamen, neoguri, buldak, chapagetti}, 7);
-        categoryIcecream = new Category("아이스크림", "1박스=24개",
-            new Product[]{melona, screwBar, fishBread, jewelBar, watermelonBar}, 8);
-        categoryFirework = new Category("폭죽", "1박스=10개",
-            new Product[]{sparkler, romanCandle, fountain, fireworkSet, smokeBomb}, 9);
+        categoryDrink = new Category("음료", "1박스=24개", new Product[]{cola, cider, water, pocari, ipro, fanta, milkis}, 0);
+        categoryBeer = new Category("맥주", "1박스=24개", new Product[]{cass, terra, hite, kloud, filgood}, 1);
+        categorySoju = new Category("소주", "1박스=20병", new Product[]{chamisul, cheumcherum, jinro, goodday, saero}, 2);
+        categorySnack = new Category("간식/안주", "1박스=20개", new Product[]{driedSquid, peanut, chip, jerky, sausageSnack}, 3);
+        categoryMeat = new Category("고기", "1판=10팩", new Product[]{samgyupsal, moksal, sausage, galbi, hangjeongsal}, 4);
+        categoryBeach = new Category("해수욕용품", "1묶음=5개", new Product[]{tube, sunscreen, beachBall, goggles, waterGun}, 5);
+        categoryGrocery = new Category("식재료", "1박스=10개", new Product[]{ssamjang, lettuce, kimchi, onion, salt}, 6);
+        categoryRamen = new Category("라면", "1박스=40개", new Product[]{shinRamen, jinRamen, neoguri, buldak, chapagetti}, 7);
+        categoryIcecream = new Category("아이스크림", "1박스=24개", new Product[]{melona, screwBar, fishBread, jewelBar, watermelonBar}, 8);
+        categoryFirework = new Category("폭죽", "1박스=10개", new Product[]{sparkler, romanCandle, fountain, fireworkSet, smokeBomb}, 9);
 
         // 전체 카테고리 배열 초기화 (순회용)
         allCategories = new Category[]{

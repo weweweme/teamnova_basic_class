@@ -20,18 +20,8 @@ public class GameManager {
     public int day = 1;
     public int timeOfDay = TIME_MORNING;
 
-    private int priceMultiplier;
-    private Scanner scanner;
-
-    // ========== 협력 객체 ==========
-
-    private Market market;               // 가게 메뉴/UI
-    private ProductCatalog catalog;      // 상품/카테고리 데이터
-    private Inventory inventory;         // 재고 관리 (창고+매대)
-    private Wholesaler wholesaler;       // 도매상/구매/자동주문
-    private Cashier cashier;             // 영업/손님/판매
-
-    // ========== 생성자 ==========
+    private final int priceMultiplier;
+    private final Scanner scanner;
 
     /// <summary>
     /// GameManager 생성자
@@ -52,11 +42,16 @@ public class GameManager {
     /// </summary>
     public void run() {
         // 협력 객체 초기화
-        catalog = new ProductCatalog(priceMultiplier);
-        inventory = new Inventory(Market.MAX_SLOT, Market.MAX_DISPLAY_PER_SLOT, scanner);
-        wholesaler = new Wholesaler(this, inventory, catalog, scanner);
-        cashier = new Cashier(this, inventory, catalog, scanner);
-        market = new Market(this, inventory, catalog, scanner);
+        // 상품/카테고리 데이터
+        ProductCatalog catalog = new ProductCatalog(priceMultiplier);
+        // 재고 관리 (창고+매대)
+        Inventory inventory = new Inventory(Market.MAX_SLOT, Market.MAX_DISPLAY_PER_SLOT);
+        // 도매상/구매/자동주문
+        Wholesaler wholesaler = new Wholesaler(this, inventory, catalog, scanner);
+        // 영업/손님/판매
+        Cashier cashier = new Cashier(this, inventory, catalog, scanner);
+        // 가게 메뉴/UI
+        Market market = new Market(this, inventory, catalog, scanner);
 
         // ========== 게임 루프 ==========
 

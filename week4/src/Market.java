@@ -15,10 +15,10 @@ public class Market {
 
     // ========== 협력 객체 ==========
 
-    private GameManager game;            // 게임 상태 접근용 (money, day, timeOfDay)
-    private Inventory inventory;         // 재고 관리 (창고+매대)
-    private ProductCatalog catalog;      // 상품/카테고리 데이터
-    private Scanner scanner;
+    private final GameManager game;            // 게임 상태 접근용 (money, day, timeOfDay)
+    private final Inventory inventory;         // 재고 관리 (창고+매대)
+    private final ProductCatalog catalog;      // 상품/카테고리 데이터
+    private final Scanner scanner;
 
     // ========== 생성자 ==========
 
@@ -40,8 +40,9 @@ public class Market {
     /// </summary>
     public void printDailyMenu() {
         Util.clearScreen();
+
+        // ========== 헤더: 날짜 + 시간대 표시 ==========
         System.out.println("========================================");
-        // 시간대에 따른 표시
         switch (game.timeOfDay) {
             case GameManager.TIME_MORNING:
                 System.out.println("          [  " + game.day + "일차 - 아침  ]");
@@ -54,10 +55,13 @@ public class Market {
                 break;
         }
         System.out.println("========================================");
+
+        // 현재 자본과 매대 사용 현황
         System.out.println("현재 자본: " + String.format("%,d", game.money) + "원");
         System.out.println("매대 현황: " + inventory.display.getUsedSlots() + " / " + MAX_SLOT + "칸");
         System.out.println();
 
+        // ========== 메뉴 항목: 시간대별로 이용 가능한 메뉴가 다름 ==========
         switch (game.timeOfDay) {
             case GameManager.TIME_MORNING:
                 // 아침: 도매상, 영업, 재고/매대 모두 가능
@@ -66,13 +70,13 @@ public class Market {
                 System.out.println("[3] 재고/매대 관리");
                 break;
             case GameManager.TIME_AFTERNOON:
-                // 낮: 영업, 재고/매대만 가능
+                // 낮: 도매상 마감, 영업과 재고/매대만 가능
                 System.out.println("[1] (도매상 마감)");
                 System.out.println("[2] 영업 시작");
                 System.out.println("[3] 재고/매대 관리");
                 break;
             case GameManager.TIME_NIGHT:
-                // 밤: 영업, 재고/매대, 다음 날 가능
+                // 밤: 도매상 마감, 영업/재고/매대 + 다음 날 넘기기 가능
                 System.out.println("[1] (도매상 마감)");
                 System.out.println("[2] 영업 시작");
                 System.out.println("[3] 재고/매대 관리");
@@ -88,7 +92,9 @@ public class Market {
     /// 매대 슬롯이 최소 기준 미달이면 경고 출력 후 false 반환
     /// </summary>
     public boolean isBusinessReady() {
+        // 매대에 진열된 슬롯 수가 최소 기준(50%)에 미달하면 영업 불가
         if (inventory.display.getUsedSlots() < MIN_SLOT_FOR_BUSINESS) {
+            // 경고 메시지: 현재 슬롯 수와 최소 기준 안내
             System.out.println();
             System.out.println("[!!] 매대가 부족합니다!");
             System.out.printf("    현재: %d칸 / 최소: %d칸 (50%%)%n", inventory.display.getUsedSlots(), MIN_SLOT_FOR_BUSINESS);
@@ -98,6 +104,7 @@ public class Market {
             scanner.next();
             return false;
         }
+        // 기준 충족 -> 영업 가능
         return true;
     }
 
@@ -111,12 +118,14 @@ public class Market {
         System.out.println("           [ 영업 시작 ]");
         System.out.println("========================================");
         System.out.println();
+
+        // 영업 방식 선택: 직접(손님 한 명씩) vs 빠른(결과 요약)
         System.out.println("[1] 직접 영업 (손님 한 명씩 응대)");
         System.out.println("[2] 빠른 영업 (결과만 요약)");
         System.out.println("[0] 돌아가기");
         System.out.print(">> ");
 
-        // 잘못된 입력 시 돌아가기
+        // 사용자 입력 반환 (잘못된 입력 시 INVALID_INPUT -> GameManager에서 무시됨)
         return Util.readInt(scanner);
     }
 
@@ -124,6 +133,7 @@ public class Market {
     /// 재고/매대 관리 서브메뉴
     /// </summary>
     public void showInventoryMenu() {
+        // 0 혹은 아무거나 입력 전까지 반복 (여러 작업을 연속으로 할 수 있도록)
         boolean managing = true;
 
         while (managing) {
@@ -141,12 +151,14 @@ public class Market {
 
             switch (choice) {
                 case 1:
+                    // 매대에 진열된 상품과 수량 확인
                     inventory.showInventory(scanner, catalog);
                     break;
                 case 2:
+                    // 창고->매대 진열, 매대->창고 회수, 자동배정 등
                     inventory.manageDisplay(scanner, catalog);
                     break;
-                case 0:
+                default:
                     managing = false;
                     break;
             }

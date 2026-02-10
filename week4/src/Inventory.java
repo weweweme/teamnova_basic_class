@@ -11,18 +11,16 @@ public class Inventory {
     public Warehouse warehouse;    // 창고 (Wholesaler에서 inventory.warehouse로 접근)
     public Display display;        // 매대 (Market, Wholesaler, Cashier에서 접근)
     public int maxSlot;            // 매대 최대 슬롯 수 (Wholesaler에서 접근)
-    private int maxDisplayPerSlot;  // 슬롯당 최대 진열 수량
-    private Scanner scanner;        // 사용자 입력용
+
+    private final int maxDisplayPerSlot;  // 슬롯당 최대 진열 수량
 
     // ========== 재사용 배열 (메서드 내 반복 할당 방지) ==========
 
-    // autoArrangeDisplay()용 - 카테고리별 진열 대기 상품 버퍼
-    private Product[][] arrangeCategoriesBuffer = new Product[10][7];  // [카테고리][상품] - 창고->매대 진열 대기 버퍼
-    private int[] arrangeCategoryCounts = new int[10];                 // 각 카테고리별 버퍼 내 상품 수
-    private int[] arrangeCategoryIndex = new int[10];                  // 라운드 로빈 진열 시 현재 인덱스
+    // autoArrangeDisplay()용 - 라운드 로빈 진열 시 각 카테고리의 현재 탐색 위치
+    private int[] categoryIndex = new int[10];
 
     // getAvailableFromCategory()용 - 재고 있는 상품 필터링
-    private Product[] availableProducts = new Product[7];  // 카테고리 내 재고 있는 상품 임시 저장 (최대 7개 - 음료)
+    private final Product[] availableProducts = new Product[7];  // 카테고리 내 재고 있는 상품 임시 저장 (최대 7개 - 음료)
 
     // ========== 생성자 ==========
 
@@ -30,12 +28,11 @@ public class Inventory {
     /// Inventory 생성자
     /// 창고와 매대를 초기화하고, 매대 설정값과 스캐너를 저장
     /// </summary>
-    public Inventory(int maxSlot, int maxDisplayPerSlot, Scanner scanner) {
+    public Inventory(int maxSlot, int maxDisplayPerSlot) {
         this.warehouse = new Warehouse();
         this.display = new Display(maxSlot, maxDisplayPerSlot);
         this.maxSlot = maxSlot;
         this.maxDisplayPerSlot = maxDisplayPerSlot;
-        this.scanner = scanner;
     }
 
     // ========== 재고 조회 ==========
@@ -77,6 +74,7 @@ public class Inventory {
     /// 매대 관리
     /// </summary>
     public void manageDisplay(Scanner scanner, ProductCatalog catalog) {
+        // 0 입력 전까지 반복 (여러 작업을 연속으로 할 수 있도록)
         boolean managing = true;
 
         while (managing) {
@@ -97,15 +95,19 @@ public class Inventory {
 
             switch (choice) {
                 case 1:
+                    // 창고에서 상품을 골라 매대에 올림
                     displayProduct(scanner, catalog);
                     break;
                 case 2:
+                    // 매대에서 상품을 골라 창고로 되돌림
                     returnProduct(scanner, catalog);
                     break;
                 case 3:
+                    // 창고에 남아있는 재고 목록 확인
                     showWarehouse(scanner, catalog);
                     break;
                 case 4:
+                    // 기존 상품 보충 + 빈 슬롯에 카테고리 균형 배정
                     autoArrangeDisplay(scanner, catalog);
                     break;
                 case 0:
@@ -126,15 +128,15 @@ public class Inventory {
         System.out.printf("매대: %d / %d칸%n", display.getUsedSlots(), maxSlot);
         System.out.println();
 
-        // 매대가 꽉 찼으면 경고
+        // 매대가 꽉 찼으면 경고 (이미 진열 중인 상품에 수량 추가만 가능)
         if (!display.hasEmptySlot()) {
             System.out.println("[!!] 매대가 꽉 찼습니다! (이미 진열된 상품만 추가 가능)");
             System.out.println();
         }
 
-        // 창고에 재고가 있는 상품 목록 출력
-        // 이미 진열 중인 상품은 [진열중] 표시
-        // 번호 -> 상품 매핑용 배열 (번호로 선택하기 위해)
+        // ========== 창고 재고 목록 출력 ==========
+        // stockList: 번호로 상품을 선택하기 위한 매핑 배열
+        // 출력 시 이미 매대에 진열 중인 상품은 [진열중 n/15] 표시
         Product[] stockList = new Product[catalog.allProducts.length];
         System.out.println("--- 창고 재고 ---");
         int num = 0;
@@ -145,7 +147,6 @@ public class Inventory {
                 num++;
                 int displayed = display.getDisplayed(p);
                 if (displayed > 0) {
-                    // 이미 매대에 진열 중인 상품
                     System.out.printf("%d. %s (창고: %d개) [진열중 %d/%d]%n",
                         num, p.name, stock, displayed, maxDisplayPerSlot);
                 } else {
@@ -154,6 +155,7 @@ public class Inventory {
             }
         }
 
+        // 창고가 비어있으면 진열 불가
         if (num == 0) {
             System.out.println("  창고가 비어있습니다.");
             System.out.println();
@@ -162,6 +164,7 @@ public class Inventory {
             return;
         }
 
+        // ========== 상품 선택 ==========
         System.out.println();
         System.out.print("진열할 상품 번호 입력 (취소: 0): ");
         int productNum = Util.readInt(scanner);
@@ -170,17 +173,17 @@ public class Inventory {
             return;
         }
 
-        // 번호 범위 체크
         if (productNum < 1 || productNum > num) {
             System.out.println("[!!] 잘못된 번호입니다.");
             return;
         }
 
-        // 번호로 상품 찾기 (1번 -> stockList[0])
+        // 사용자 입력은 1번부터, 배열은 0번부터이므로 -1
         Product product = stockList[productNum - 1];
         int warehouseStock = warehouse.getStock(product);
 
-        // 새 상품이면 슬롯 체크
+        // ========== 슬롯/수량 체크 ==========
+        // 매대에 처음 올리는 상품이면 빈 슬롯이 필요
         int currentDisplay = display.getDisplayed(product);
         boolean isNewOnDisplay = (currentDisplay == 0);
         if (isNewOnDisplay && !display.hasEmptySlot()) {
@@ -188,13 +191,15 @@ public class Inventory {
             return;
         }
 
-        // 매대에 진열 가능한 최대 수량 계산
+        // 슬롯당 최대 수량에서 현재 진열량을 뺀 만큼만 추가 가능
         int maxCanDisplay = maxDisplayPerSlot - currentDisplay;
         if (maxCanDisplay <= 0) {
             System.out.printf("[!!] 매대가 가득 찼습니다. (최대 %d개)%n", maxDisplayPerSlot);
             return;
         }
 
+        // ========== 수량 입력 ==========
+        // 'a' 입력 시 가능한 최대 수량으로 자동 설정
         System.out.printf("수량 입력 (창고: %d개, 진열가능: %d개, 전체: a): ", warehouseStock, maxCanDisplay);
         String amountStr = scanner.next();
 
@@ -209,13 +214,14 @@ public class Inventory {
             return;
         }
 
-        // 슬롯당 최대 수량 제한 적용
+        // 입력 수량이 진열 가능량을 초과하면 자동 조정
         if (amount > maxCanDisplay) {
             System.out.printf("[!!] 매대 공간 제한으로 %d개만 진열합니다. (최대 %d개)%n", maxCanDisplay, maxDisplayPerSlot);
             amount = maxCanDisplay;
         }
 
-        // 진열 처리 (Display 클래스가 슬롯과 재고를 자동 관리)
+        // ========== 진열 처리 ==========
+        // Display 클래스가 창고 차감 + 매대 추가 + 슬롯 관리를 자동으로 처리
         int displayed = display.displayFromWarehouse(product, warehouse, amount);
 
         System.out.printf("[OK] %s %d개 매대에 진열! (매대: %d/%d개)%n", product.name, displayed, display.getDisplayed(product), maxDisplayPerSlot);
@@ -232,7 +238,7 @@ public class Inventory {
         System.out.printf("매대: %d / %d칸%n", display.getUsedSlots(), maxSlot);
         System.out.println();
 
-        // 매대에 진열된 상품 목록 출력
+        // ========== 매대 재고 목록 출력 ==========
         System.out.println("--- 매대 재고 ---");
         int num = 1;
         for (Product p : catalog.allProducts) {
@@ -242,6 +248,7 @@ public class Inventory {
             }
         }
 
+        // 매대가 비어있으면 회수 불가
         if (num == 1) {
             System.out.println("  매대가 비어있습니다.");
             System.out.println();
@@ -250,6 +257,7 @@ public class Inventory {
             return;
         }
 
+        // ========== 상품 선택 (이름으로 검색) ==========
         System.out.println();
         System.out.print("회수할 상품명 입력 (취소: 0): ");
         String productName = scanner.next();
@@ -258,7 +266,7 @@ public class Inventory {
             return;
         }
 
-        // 상품 찾기
+        // productMap에서 이름으로 상품 객체 조회
         Product product = catalog.getProductByName(productName);
 
         if (product == null) {
@@ -266,12 +274,15 @@ public class Inventory {
             return;
         }
 
+        // 매대에 해당 상품이 없으면 회수 불가
         int currentDisplay = display.getDisplayed(product);
         if (currentDisplay == 0) {
             System.out.println("[!!] 매대에 재고가 없습니다.");
             return;
         }
 
+        // ========== 수량 입력 ==========
+        // 'a' 입력 시 매대의 전체 수량을 회수
         System.out.printf("수량 입력 (매대: %d개, 전체: a): ", currentDisplay);
         String amountStr = scanner.next();
 
@@ -286,7 +297,8 @@ public class Inventory {
             return;
         }
 
-        // 회수 처리 (Display 클래스가 슬롯과 재고를 자동 관리)
+        // ========== 회수 처리 ==========
+        // Display 클래스가 매대 차감 + 창고 추가 + 슬롯 관리를 자동으로 처리
         int returned = display.returnToWarehouse(product, warehouse, amount);
 
         System.out.printf("[OK] %s %d개 창고로 회수!%n", product.name, returned);
@@ -339,59 +351,40 @@ public class Inventory {
             System.out.println(" (매대가 꽉 찼습니다)");
 
         } else {
-            // ──────────────────────────────────────────────
-            // [준비] 카테고리별 진열 대기 목록 만들기
-            // ──────────────────────────────────────────────
-            // 조건: 창고에 재고가 있고(O) + 매대에 아직 없는(X) 상품
-            //
-            // fillArrangeBuffer()가 각 카테고리를 순회하며 조건에 맞는 상품을
-            // arrangeCategoriesBuffer 2차원 배열에 채운다
-            //
-            // 결과 예시:
-            //   arrangeCategoriesBuffer[0] = [환타, 밀키스]  <- 음료 중 매대에 없는 것
-            //   arrangeCategoriesBuffer[1] = [클라우드]      <- 맥주 중 매대에 없는 것
-            //   arrangeCategoriesBuffer[2] = []              <- 소주는 전부 매대에 있음
-            //   ...
-            //   arrangeCategoryCounts[0] = 2  <- 음료 대기 상품 2개
-            //   arrangeCategoryCounts[1] = 1  <- 맥주 대기 상품 1개
-            //   arrangeCategoryCounts[2] = 0  <- 소주 대기 상품 0개
-            int totalAvailable = 0;
+            // categoryIndex[cat]: 각 카테고리의 products 배열에서 다음에 확인할 위치
+            // category.products를 직접 순회하면서 조건(창고O, 매대X)에 맞는 상품만 진열
             for (int i = 0; i < 10; i++) {
-                arrangeCategoryCounts[i] = 0;   // 버퍼 초기화
-                arrangeCategoryIndex[i] = 0;    // 진열 순서 인덱스 초기화
-                fillArrangeBuffer(i, catalog.allCategories[i]);
-                totalAvailable = totalAvailable + arrangeCategoryCounts[i];
+                categoryIndex[i] = 0;
             }
 
-            if (totalAvailable == 0) {
-                System.out.println(" (창고에 새로 진열할 상품 없음)");
-            } else {
-                // 한 카테고리에 몰아서 진열하지 않고, 돌아가며 1개씩 진열한다
-                // -> 매대 30칸을 특정 카테고리가 독점하는 것을 방지
-                //
-                // 동작 순서 (매대 빈 슬롯이 5칸인 경우):
-                //   1바퀴: 음료(환타) -> 맥주(클라우드) -> 간식(육포) -> 라면(불닭) -> 아이스크림(보석바) -> 5칸 다 참 -> 종료
-                //
-                // arrangeCategoryIndex[cat]가 각 카테고리에서 "다음에 진열할 상품" 위치를 추적
-                // 모든 카테고리의 인덱스가 끝까지 도달하면 hasMore = false -> while 종료
-                boolean hasMore = true;
+            // 한 카테고리에 몰아서 진열하지 않고, 돌아가며 1개씩 진열한다
+            // -> 매대 30칸을 특정 카테고리가 독점하는 것을 방지
+            //
+            // 동작 예시 (매대 빈 슬롯이 5칸인 경우):
+            //   1바퀴: 음료(환타) -> 맥주(클라우드) -> 간식(육포) -> 라면(불닭) -> 아이스크림(보석바) -> 5칸 다 참 -> 종료
+            boolean hasMore = true;
 
-                while (hasMore && display.hasEmptySlot()) {
-                    hasMore = false;  // 이번 바퀴에서 진열한 게 없으면 종료
+            while (hasMore && display.hasEmptySlot()) {
+                hasMore = false;  // 이번 바퀴에서 진열한 게 없으면 종료
 
-                    // 10개 카테고리를 순서대로 순회 (1바퀴)
-                    for (int cat = 0; cat < 10; cat++) {
+                // 10개 카테고리를 순서대로 순회 (1바퀴)
+                for (int cat = 0; cat < 10; cat++) {
+                    Category category = catalog.allCategories[cat];
 
-                        // 이 카테고리에 아직 진열할 상품이 남아있는가?
-                        if (arrangeCategoryIndex[cat] < arrangeCategoryCounts[cat]) {
+                    // 매대가 중간에 꽉 찰 수 있으므로 매번 체크
+                    if (!display.hasEmptySlot()) {
+                        break;
+                    }
 
-                            // 매대가 중간에 꽉 찰 수 있으므로 매번 체크
-                            if (!display.hasEmptySlot()) {
-                                break;
-                            }
+                    // 이 카테고리에서 조건에 맞는 다음 상품 찾기
+                    // 조건: 창고에 재고가 있고(O) + 매대에 아직 없는(X)
+                    // (이미 매대에 있는 상품은 1단계에서 보충됨)
+                    while (categoryIndex[cat] < category.products.length) {
+                        Product product = category.products[categoryIndex[cat]];
+                        categoryIndex[cat]++;
 
-                            // 현재 인덱스 위치의 상품을 매대에 진열
-                            Product product = arrangeCategoriesBuffer[cat][arrangeCategoryIndex[cat]];
+                        // 조건에 맞으면 진열하고 다음 카테고리로
+                        if (warehouse.getStock(product) > 0 && display.getDisplayed(product) == 0) {
                             int displayed = display.displayFromWarehouse(product, warehouse, maxDisplayPerSlot);
 
                             if (displayed > 0) {
@@ -399,19 +392,22 @@ public class Inventory {
 
                                 int remainInWarehouse = warehouse.getStock(product);
                                 if (remainInWarehouse > 0) {
-                                    System.out.printf(" - [%s] %s %d개 진열 (창고: %d개)%n", catalog.allCategories[cat].name, product.name, displayed, remainInWarehouse);
+                                    System.out.printf(" - [%s] %s %d개 진열 (창고: %d개)%n", category.name, product.name, displayed, remainInWarehouse);
                                 } else {
-                                    System.out.printf(" - [%s] %s %d개 진열%n", catalog.allCategories[cat].name, product.name, displayed);
+                                    System.out.printf(" - [%s] %s %d개 진열%n", category.name, product.name, displayed);
                                 }
                             }
 
-                            // 다음 상품으로 인덱스 이동
-                            arrangeCategoryIndex[cat]++;
-                            // 이번 바퀴에서 진열했으므로 다음 바퀴도 시도
                             hasMore = true;
+                            break;  // 라운드 로빈: 1개 진열했으면 다음 카테고리로
                         }
                     }
                 }
+            }
+
+            // 아무것도 진열하지 못한 경우
+            if (newDisplayCount == 0) {
+                System.out.println(" (창고에 새로 진열할 상품 없음)");
             }
         }
 
@@ -423,24 +419,6 @@ public class Inventory {
         System.out.println();
         System.out.println("아무 키나 입력하면 돌아갑니다...");
         scanner.next();
-    }
-
-    /// <summary>
-    /// 자동배정 헬퍼 - 카테고리별 진열 대기 버퍼 채우기
-    /// 조건: 창고에 재고가 있고(O) + 매대에 아직 없는(X) 상품
-    ///
-    /// 예시: 음료 카테고리(categoryIndex=0) 검사
-    ///       - 콜라: 창고 20개, 매대 0개 -> 버퍼에 추가 (새로 진열 가능)
-    ///       - 사이다: 창고 0개, 매대 5개 -> 스킵 (창고에 없음)
-    ///       - 물: 창고 10개, 매대 3개 -> 스킵 (이미 매대에 있음, 1단계에서 보충됨)
-    /// </summary>
-    private void fillArrangeBuffer(int categoryIndex, Category category) {
-        for (Product p : category.products) {
-            // 창고에 재고가 있고 매대에 진열되지 않은 상품
-            if (warehouse.getStock(p) > 0 && display.getDisplayed(p) == 0) {
-                arrangeCategoriesBuffer[categoryIndex][arrangeCategoryCounts[categoryIndex]++] = p;
-            }
-        }
     }
 
     // ========== 재고 출력 ==========
@@ -455,16 +433,18 @@ public class Inventory {
         System.out.println("========================================");
         System.out.println();
 
+        // 매대에 진열된 상품을 순회하며 이름과 수량 출력
         boolean hasStock = false;
         for (Product p : catalog.allProducts) {
             int stock = display.getDisplayed(p);
             if (stock > 0) {
+                // 상품명을 정렬하여 한 줄로 출력
                 printStockBar(p.name, stock);
                 hasStock = true;
             }
         }
 
-        // 매대가 비어있으면
+        // 매대가 비어있으면 안내 메시지
         if (!hasStock) {
             System.out.println("  매대가 비어있습니다.");
             System.out.println("  도매상에서 상품을 입고하세요!");
@@ -487,7 +467,7 @@ public class Inventory {
 
         boolean hasStock = false;
 
-        // 창고에 재고가 있는 상품만 출력
+        // 전체 상품을 순회하며 창고에 재고가 있는 것만 출력
         for (Product p : catalog.allProducts) {
             int stock = warehouse.getStock(p);
             if (stock > 0) {
@@ -496,6 +476,7 @@ public class Inventory {
             }
         }
 
+        // 창고가 비어있으면 안내 메시지
         if (!hasStock) {
             System.out.println("  창고가 비어있습니다.");
         }
@@ -510,7 +491,8 @@ public class Inventory {
     /// 상품명과 수량을 정렬하여 한 줄로 출력
     /// </summary>
     private void printStockBar(String name, int stock) {
-        // 상품명 출력 (한글 8글자 기준 = 화면 폭 16칸)
+        // 한글은 2칸, 영문은 1칸 차지하므로 getDisplayWidth()로 실제 폭 계산
+        // maxWidth(16칸)에서 이름 폭을 빼서 나머지를 공백으로 채움 -> 수량이 정렬됨
         int maxWidth = 16;
         int nameWidth = Util.getDisplayWidth(name);
         int padding = maxWidth - nameWidth;
@@ -520,7 +502,6 @@ public class Inventory {
             System.out.print(" ");
         }
 
-        // 수량 표시
         System.out.printf("%d개%n", stock);
     }
 }

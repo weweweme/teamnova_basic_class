@@ -14,7 +14,7 @@ public class Warehouse {
 
     // ========== 생성자 ==========
 
-    Warehouse() {
+    public Warehouse() {
         stock = new HashMap<>();
     }
 

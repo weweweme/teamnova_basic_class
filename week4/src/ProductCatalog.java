@@ -125,6 +125,26 @@ public class ProductCatalog {
     }
 
     /// <summary>
+    /// 카테고리 선택 메뉴 출력
+    /// allCategories의 이름을 사용하여 동적으로 메뉴 생성
+    /// </summary>
+    public void printCategoryMenu() {
+        for (int i = 0; i < allCategories.length; i++) {
+            // 3개씩 한 줄에 출력
+            System.out.printf("[%d] %-8s", i + 1, allCategories[i].name);
+            if ((i + 1) % 3 == 0) {
+                System.out.println();
+            }
+        }
+        // 3의 배수가 아닌 경우 줄바꿈
+        if (allCategories.length % 3 != 0) {
+            System.out.println();
+        }
+        System.out.println("[0] 돌아가기");
+        System.out.print(">> ");
+    }
+
+    /// <summary>
     /// 카테고리에서 랜덤 상품 1개 선택
     /// </summary>
     public Product getRandomFromCategory(Category category) {

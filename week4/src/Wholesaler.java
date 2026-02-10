@@ -86,12 +86,7 @@ public class Wholesaler {
             System.out.println("========================================");
             System.out.printf("현재 자본: %,d원 | 매대: %d / %d칸%n", game.money, market.display.getUsedSlots(), Market.MAX_SLOT);
             System.out.println();
-            System.out.println("[1] 음료        [2] 맥주        [3] 소주");
-            System.out.println("[4] 간식/안주   [5] 고기        [6] 해수욕용품");
-            System.out.println("[7] 식재료      [8] 라면        [9] 아이스크림");
-            System.out.println("[10] 폭죽");
-            System.out.println("[0] 돌아가기");
-            System.out.print(">> ");
+            catalog.printCategoryMenu();
 
             int categoryChoice = Util.readInt(scanner);
 
@@ -232,12 +227,7 @@ public class Wholesaler {
         System.out.println("      [ 카테고리 단위 설정 ]");
         System.out.println("========================================");
         System.out.println();
-        System.out.println("[1] 음료        [2] 맥주        [3] 소주");
-        System.out.println("[4] 간식/안주   [5] 고기        [6] 해수욕용품");
-        System.out.println("[7] 식재료      [8] 라면        [9] 아이스크림");
-        System.out.println("[10] 폭죽");
-        System.out.println("[0] 돌아가기");
-        System.out.print(">> ");
+        catalog.printCategoryMenu();
 
         int categoryChoice = Util.readInt(scanner);
 
@@ -301,12 +291,7 @@ public class Wholesaler {
         System.out.println("========================================");
         System.out.println("먼저 카테고리를 선택하세요.");
         System.out.println();
-        System.out.println("[1] 음료        [2] 맥주        [3] 소주");
-        System.out.println("[4] 간식/안주   [5] 고기        [6] 해수욕용품");
-        System.out.println("[7] 식재료      [8] 라면        [9] 아이스크림");
-        System.out.println("[10] 폭죽");
-        System.out.println("[0] 돌아가기");
-        System.out.print(">> ");
+        catalog.printCategoryMenu();
 
         int categoryChoice = Util.readInt(scanner);
 

@@ -231,13 +231,52 @@ Main (타이틀 화면 + 게임 모드 선택)
 | 빠른 영업 | 하루 결과만 요약 출력 (손님 상세 생략) |
 | 1주일 스킵 | 7일 자동 영업, 주간 요약만 확인 (빅 이벤트 발생 시 알림) |
 
-### 하루 흐름
+### 게임 플로우차트
 
-```
-1. 아침: 도매상에서 상품 입고 (구매)
-2. 낮: 영업 (손님 방문 → 판매)
-3. 저녁: 정산 (매출/순이익 확인)
-4. 선택: 다음 날 / 스킵 / 종료
+```mermaid
+flowchart TD
+    Start([게임 시작]) --> Title["타이틀 화면 + 모드 선택
+    Main"]
+    Title --> Loop["하루 시작
+    GameManager"]
+
+    Loop --> Morning["메뉴 표시
+    Market"]
+    Morning --> W["도매상 가기
+    Wholesaler"]
+    W --> Auto["자동주문 실행
+    Wholesaler"]
+    Auto --> Buy["상품 구매 → 창고 입고
+    Market → Warehouse"]
+    Buy --> Arrange["창고 → 매대 진열
+    Market → Display"]
+    Arrange --> Morning
+
+    Morning --> Biz["영업 시작
+    Market"]
+    Biz --> BizLoop["영업 진행
+    Market"]
+    BizLoop --> CustEnter["손님 입장 + 매대에서 상품 선택
+    Customer"]
+    CustEnter --> Checkout["캐셔 결제
+    Cashier"]
+    Checkout --> Event{빅 이벤트?}
+    Event -->|Yes| BigEvent["대량 판매
+    Market → Display"]
+    Event -->|No| NextCheck{손님 남음?}
+    BigEvent --> NextCheck
+    NextCheck -->|Yes| BizLoop
+    NextCheck -->|No| Settlement["영업 정산
+    Market"]
+
+    Morning --> Stock["재고 확인
+    Market"]
+    Stock --> Morning
+
+    Settlement --> Check{승리/패배?}
+    Check -->|목표 달성| Win([펜션 구매 성공!])
+    Check -->|파산| Lose([게임 오버])
+    Check -->|계속| Loop
 ```
 
 ### UI 예시 (아스키 아트 스타일)

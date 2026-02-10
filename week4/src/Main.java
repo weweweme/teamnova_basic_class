@@ -2208,21 +2208,49 @@ public class Main {
             customer.sayWant();
 
             Util.delay(500);  // 리스트 확인 후 처리
-            System.out.println();
-            System.out.println("판매 결과:");
 
-            // 손님의 쇼핑 리스트 처리
-            int customerSales = 0;
-            int customerProfit = 0;
+            // 같은 상품 합산을 위한 배열
+            // mergedProducts[i]: 상품, mergedWants[i]: 합산 수량
+            Product[] mergedProducts = new Product[customer.wantCount];
+            int[] mergedWants = new int[customer.wantCount];
+            int mergedCount = 0;
 
             for (int itemIndex = 0; itemIndex < customer.wantCount; itemIndex++) {
                 Product product = customer.wantProducts[itemIndex];
                 int wantAmount = customer.wantAmounts[itemIndex];
 
-                // 수량 0이면 스킵
                 if (wantAmount <= 0) {
                     continue;
                 }
+
+                // 이미 합산 목록에 있는지 확인
+                boolean found = false;
+                for (int m = 0; m < mergedCount; m++) {
+                    if (mergedProducts[m] == product) {
+                        mergedWants[m] = mergedWants[m] + wantAmount;
+                        found = true;
+                        break;
+                    }
+                }
+
+                // 없으면 새로 추가
+                if (!found) {
+                    mergedProducts[mergedCount] = product;
+                    mergedWants[mergedCount] = wantAmount;
+                    mergedCount++;
+                }
+            }
+
+            // 합산된 목록으로 판매 처리
+            System.out.println();
+            System.out.println("판매 결과:");
+
+            int customerSales = 0;
+            int customerProfit = 0;
+
+            for (int itemIndex = 0; itemIndex < mergedCount; itemIndex++) {
+                Product product = mergedProducts[itemIndex];
+                int wantAmount = mergedWants[itemIndex];
 
                 int currentStock = display.getDisplayed(product);
                 if (currentStock >= wantAmount) {
@@ -2239,7 +2267,7 @@ public class Main {
                     todayProfit = todayProfit + profitAmount;
                     successCount++;
 
-                    System.out.printf(" - %s: OK (+%,d원)%n", product.name, saleAmount);
+                    System.out.printf(" - %s %d개: OK (+%,d원)%n", product.name, wantAmount, saleAmount);
 
                 } else if (currentStock > 0) {
                     // 일부만 판매
@@ -2256,12 +2284,12 @@ public class Main {
                     successCount++;
                     failCount++;  // 일부 실패로 카운트
 
-                    System.out.printf(" - %s: %d개만 (+%,d원)%n", product.name, currentStock, saleAmount);
+                    System.out.printf(" - %s: %d/%d개만 (+%,d원)%n", product.name, currentStock, wantAmount, saleAmount);
 
                 } else {
                     // 재고 없음
                     failCount++;
-                    System.out.printf(" - %s: 재고 없음!%n", product.name);
+                    System.out.printf(" - %s %d개: 재고 없음!%n", product.name, wantAmount);
                 }
             }
 

@@ -13,7 +13,7 @@ public class GameManager {
     public static final int TIME_NIGHT = 2;      // 밤 (영업 후반부)
 
     // ========== 게임 상태 ==========
-    // Wholesaler, Cashier에서 game.money 등으로 직접 접근
+    // Wholesaler에서 game.money로 직접 접근, Market은 영업 매출을 반환
 
     public int money;
     public int goalMoney;
@@ -44,12 +44,10 @@ public class GameManager {
         // 협력 객체 초기화
         // 상품/카테고리 데이터
         ProductCatalog catalog = new ProductCatalog(priceMultiplier);
-        // 가게 (메뉴 UI + 창고 + 매대 + 재고 관리)
+        // 가게 (메뉴 UI + 창고 + 매대 + 캐셔 + 영업)
         Market market = new Market(this, catalog, scanner);
         // 도매상/구매/자동주문
         Wholesaler wholesaler = new Wholesaler(this, market, catalog, scanner);
-        // 계산대 (결제 처리 + 빅이벤트)
-        Cashier cashier = new Cashier(this, market, scanner);
 
         // ========== 게임 루프 ==========
 
@@ -88,13 +86,13 @@ public class GameManager {
                     int businessResult = market.showBusinessMenu();
                     switch (businessResult) {
                         case 1:
-                            // 직접 영업
-                            cashier.startBusiness();
+                            // 직접 영업 → 마켓이 영업 후 매출 반환
+                            money = money + market.startBusiness();
                             advanceTime();  // 아침->낮, 낮->밤
                             break;
                         case 2:
-                            // 빠른 영업
-                            cashier.startQuickBusiness();
+                            // 빠른 영업 → 마켓이 영업 후 매출 반환
+                            money = money + market.startQuickBusiness();
                             advanceTime();
                             break;
                         // case 0: 돌아가기 (아무것도 안 함)

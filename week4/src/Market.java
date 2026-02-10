@@ -2,7 +2,7 @@ import java.util.Scanner;
 
 /// <summary>
 /// 마켓(슈퍼마켓) 클래스
-/// 가게 전체를 관리: 메뉴 UI + 창고/매대 소유 + 재고 관리(진열/회수/자동배정) + 대량 판매
+/// 가게 전체를 관리: 메뉴 UI + 창고/매대 + 캐셔 + 영업(손님 응대) + 재고 관리
 /// 게임 루프와 게임 상태는 GameManager가 관리
 /// </summary>
 public class Market {
@@ -16,18 +16,19 @@ public class Market {
     // ========== 가게 시설 ==========
 
     public Warehouse warehouse;      // 창고 (Wholesaler에서 market.warehouse로 접근)
-    public Display display;          // 매대 (Wholesaler, Cashier에서 접근)
+    public Display display;          // 매대 (Wholesaler에서 접근)
+    private Cashier cashier;         // 계산대 (결제 처리 전용)
 
     // ========== 협력 객체 ==========
 
-    private final GameManager game;            // 게임 상태 접근용 (money, day, timeOfDay)
-    public final ProductCatalog catalog;       // 상품/카테고리 데이터 (Cashier에서 market.catalog로 접근)
+    private final GameManager game;            // 게임 상태 접근용 (day, timeOfDay, goalMoney)
+    public final ProductCatalog catalog;       // 상품/카테고리 데이터 (Wholesaler에서 접근)
     private final Scanner scanner;
 
     // ========== 재사용 배열 (메서드 내 반복 할당 방지) ==========
 
     // autoArrangeDisplay()용 - 라운드 로빈 진열 시 각 카테고리의 현재 탐색 위치
-    private int[] categoryIndex = new int[10];
+    private final int[] categoryIndex = new int[10];
 
     // ========== 생성자 ==========
 
@@ -41,6 +42,7 @@ public class Market {
         this.scanner = scanner;
         this.warehouse = new Warehouse();
         this.display = new Display(MAX_SLOT, MAX_DISPLAY_PER_SLOT);
+        this.cashier = new Cashier(display);
     }
 
     // ========== 재고 조회 ==========
@@ -648,5 +650,308 @@ public class Market {
         }
 
         System.out.printf("%d개%n", stock);
+    }
+
+    // ========== 영업 ==========
+
+    /// <summary>
+    /// 직접 영업 (손님 한 명씩 응대)
+    /// 손님 생성 → 매대에서 상품 선택 → 캐셔에게 결제 → 정산
+    /// 총 매출 반환 (GameManager가 money에 합산)
+    /// </summary>
+    public int startBusiness() {
+        Util.clearScreen();
+        System.out.println("========================================");
+        System.out.println("           [ 영업 시작 ]");
+        System.out.println("========================================");
+
+        // 하루 영업 변수
+        int todayCustomers = 10 + (int)(Math.random() * 11);  // 10~20명
+        int todaySales = 0;      // 오늘 매출
+        int todayProfit = 0;     // 오늘 순이익
+        int successCount = 0;    // 판매 성공 건수
+        int failCount = 0;       // 판매 실패 건수
+        int bigEventBonus = 0;   // 빅 이벤트 매출
+        boolean bigEventOccurred = false;
+
+        // 손님 응대 루프
+        for (int customerNum = 1; customerNum <= todayCustomers; customerNum++) {
+
+            // 손님 절반쯤 지났을 때 빅 이벤트 체크 (20% 확률)
+            if (!bigEventOccurred && customerNum == todayCustomers / 2) {
+                int bonus = checkBigEvent(20);
+                if (bonus > 0) {
+                    bigEventOccurred = true;
+                    bigEventBonus = bigEventBonus + bonus;
+                    Util.delay(1000);
+                }
+            }
+
+            // 랜덤 손님 유형 (0: 가족, 1: 커플, 2: 친구들, 3: 혼자)
+            int customerType = Util.rand(4);
+
+            // 손님 생성 + 매대에서 직접 상품 선택
+            Customer customer = createCustomer(customerType);
+
+            System.out.println();
+            System.out.println("----------------------------------------");
+            System.out.printf("[ 손님 %d/%d - %s ]%n", customerNum, todayCustomers, customer.typeName);
+            Util.delay(500);
+            customer.sayGreeting();
+            System.out.println();
+
+            // 쇼핑 리스트 출력
+            customer.sayWant();
+            Util.delay(500);
+
+            // 캐셔에게 결제 (verbose=true: 상세 출력)
+            int[] result = cashier.checkout(customer, true);
+            todaySales = todaySales + result[0];
+            todayProfit = todayProfit + result[1];
+            successCount = successCount + result[2];
+            failCount = failCount + result[3];
+
+            // 다음 손님 또는 스킵 선택 (마지막 손님이 아닌 경우)
+            if (customerNum < todayCustomers) {
+                System.out.println("(아무 키나 누르면 일시정지)");
+
+                // 1.5초 동안 입력 감지 - 입력 있으면 메뉴 표시
+                boolean interrupted = Util.waitForInput();
+
+                if (!interrupted) {
+                    // 입력 없음 -> 자동으로 다음 손님
+                    continue;
+                }
+
+                // 입력 감지됨 -> 메뉴 표시
+                System.out.println();
+                System.out.println("[1] 다음 손님  [2] 남은 손님 스킵  [0] 영업 중단");
+                System.out.print(">> ");
+                int choice = Util.readInt(scanner);
+
+                if (choice == 2) {
+                    // 남은 손님 자동 처리
+                    System.out.println();
+                    System.out.println("남은 손님을 빠르게 처리합니다...");
+                    Util.delay(500);
+
+                    for (int skipNum = customerNum + 1; skipNum <= todayCustomers; skipNum++) {
+                        Customer skipCustomer = createCustomer(Util.rand(4));
+
+                        // 캐셔에게 결제 (verbose=false: 출력 없이)
+                        int[] skipResult = cashier.checkout(skipCustomer, false);
+                        todaySales = todaySales + skipResult[0];
+                        todayProfit = todayProfit + skipResult[1];
+                        successCount = successCount + skipResult[2];
+                        failCount = failCount + skipResult[3];
+                    }
+                    System.out.printf("손님 %d명 처리 완료!%n", todayCustomers - customerNum);
+                    break;
+
+                } else if (choice == 0) {
+                    // 영업 중단
+                    System.out.println();
+                    System.out.println("영업을 중단합니다.");
+                    todayCustomers = customerNum;
+                    break;
+                }
+            }
+        }
+
+        // 총 매출 (일반 판매 + 빅 이벤트)
+        int totalEarnings = todaySales + bigEventBonus;
+
+        // 하루 정산
+        Util.delay(800);
+        printDailySettlement(game.day, todayCustomers, successCount, failCount,
+                todaySales, todayProfit, bigEventOccurred, bigEventBonus, totalEarnings);
+
+        System.out.println();
+        System.out.println("아무 키나 입력하면 계속...");
+        scanner.next();
+
+        return totalEarnings;
+    }
+
+    /// <summary>
+    /// 빠른 영업 (하루 요약)
+    /// 손님 상세 없이 결과만 출력
+    /// 총 매출 반환 (GameManager가 money에 합산)
+    /// </summary>
+    public int startQuickBusiness() {
+        Util.clearScreen();
+        System.out.println("========================================");
+        System.out.println("         [ 빠른 영업 - " + game.day + "일차 ]");
+        System.out.println("========================================");
+        System.out.println();
+        System.out.println("영업 중...");
+        Util.delay(1000);
+
+        int todayCustomers = 10 + Util.rand(11);
+        int todaySales = 0;
+        int todayProfit = 0;
+        int successCount = 0;
+        int failCount = 0;
+
+        // 빅 이벤트 체크 (10% 확률)
+        int bigEventBonus = checkBigEvent(10);
+        boolean bigEventOccurred = bigEventBonus > 0;
+
+        // 손님별 처리 (출력 없이)
+        for (int customerNum = 0; customerNum < todayCustomers; customerNum++) {
+            Customer customer = createCustomer(Util.rand(4));
+
+            int[] result = cashier.checkout(customer, false);
+            todaySales = todaySales + result[0];
+            todayProfit = todayProfit + result[1];
+            successCount = successCount + result[2];
+            failCount = failCount + result[3];
+        }
+
+        // 총 매출 (일반 판매 + 빅 이벤트)
+        int totalEarnings = todaySales + bigEventBonus;
+
+        // 결과 출력
+        printDailySettlement(game.day, todayCustomers, successCount, failCount,
+                             todaySales, todayProfit, bigEventOccurred, bigEventBonus, totalEarnings);
+
+        System.out.println();
+        System.out.println("아무 키나 입력하면 계속...");
+        scanner.next();
+
+        return totalEarnings;
+    }
+
+    // ========== 영업 헬퍼 ==========
+
+    /// <summary>
+    /// 손님 객체 생성 + 매대에서 상품 선택까지 처리
+    /// Customer가 유형별 쇼핑 패턴(카테고리+수량)을 자동 설정하고,
+    /// pickProducts()로 매대에서 직접 상품을 고름
+    /// </summary>
+    private Customer createCustomer(int type) {
+        Customer c = new Customer(type);
+
+        // 손님이 매대에서 직접 상품을 고름
+        c.pickProducts(display, catalog.allCategories);
+
+        // 멘트 조합: [손님 인사] + [시간대 멘트]
+        String greeting = Customer.TYPE_GREETINGS[type][Util.rand(5)];
+        String timeMsg = switch (game.timeOfDay) {
+            case GameManager.TIME_MORNING -> Customer.MORNING_GREETINGS[Util.rand(5)];
+            case GameManager.TIME_NIGHT -> Customer.NIGHT_GREETINGS[Util.rand(5)];
+            default -> Customer.AFTERNOON_GREETINGS[Util.rand(5)];
+        };
+        c.greeting = greeting + " " + timeMsg;
+
+        return c;
+    }
+
+    /// <summary>
+    /// 빅 이벤트 체크 및 처리
+    /// 단체 주문, 펜션 배달, 축제 시즌 중 하나 발생
+    /// 발생한 이벤트의 매출 반환 (미발생 시 0)
+    /// </summary>
+    private int checkBigEvent(int chance) {
+        // chance% 확률로 이벤트 발생
+        if (Util.rand(100) >= chance) {
+            return 0;
+        }
+
+        int eventType = Util.rand(3);
+
+        if (eventType == 0) {
+            // 단체 주문: 음료, 안주 대량 판매
+            System.out.println();
+            System.out.println("========================================");
+            System.out.println("      *** 전화가 왔습니다! ***");
+            System.out.println("========================================");
+            System.out.println("\"여기 수련회인데요, 대량 주문할게요!\"");
+            System.out.println();
+            int bonus = sellBulk(Category.INDEX_DRINK, 10 + Util.rand(10));
+            bonus = bonus + sellBulk(Category.INDEX_SNACK, 5 + Util.rand(5));
+            if (bonus > 0) {
+                System.out.printf(">> 단체 주문 매출: %,d원%n", bonus);
+            } else {
+                System.out.println(">> 재고 부족으로 주문 처리 실패...");
+            }
+            return bonus;
+        } else if (eventType == 1) {
+            // 펜션 배달: 고기, 음료, 식재료 판매
+            System.out.println();
+            System.out.println("========================================");
+            System.out.println("      *** 전화가 왔습니다! ***");
+            System.out.println("========================================");
+            System.out.println("\"펜션에서 바베큐 세트 배달 부탁드려요!\"");
+            System.out.println();
+            int bonus = sellBulk(Category.INDEX_MEAT, 5 + Util.rand(5));
+            bonus = bonus + sellBulk(Category.INDEX_DRINK, 5 + Util.rand(5));
+            bonus = bonus + sellBulk(Category.INDEX_GROCERY, 3 + Util.rand(3));
+            if (bonus > 0) {
+                System.out.printf(">> 펜션 배달 매출: %,d원%n", bonus);
+            } else {
+                System.out.println(">> 재고 부족으로 배달 실패...");
+            }
+            return bonus;
+        } else {
+            // 축제 시즌: 폭죽, 맥주 대량 판매
+            System.out.println();
+            System.out.println("========================================");
+            System.out.println("    *** 불꽃축제 시즌입니다! ***");
+            System.out.println("========================================");
+            System.out.println("\"축제 준비물 사러 왔어요!\"");
+            System.out.println();
+            int bonus = sellBulk(Category.INDEX_FIREWORK, 5 + Util.rand(10));
+            bonus = bonus + sellBulk(Category.INDEX_BEER, 10 + Util.rand(10));
+            if (bonus > 0) {
+                System.out.printf(">> 축제 시즌 매출: %,d원%n", bonus);
+            } else {
+                System.out.println(">> 재고 부족으로 판매 실패...");
+            }
+            return bonus;
+        }
+    }
+
+    /// <summary>
+    /// 일일 정산 출력
+    /// </summary>
+    private void printDailySettlement(int dayNum, int customers, int success, int fail,
+                                      int sales, int profit, boolean bigEvent,
+                                      int bigEventBonus, int totalEarnings) {
+        // 시간대 문자열
+        String timeName;
+        switch (game.timeOfDay) {
+            case GameManager.TIME_MORNING:
+                timeName = "아침";
+                break;
+            case GameManager.TIME_NIGHT:
+                timeName = "밤";
+                break;
+            default:
+                timeName = "낮";
+                break;
+        }
+
+        // 영업 후 예상 잔액 (GameManager가 실제 합산하기 전이므로 계산)
+        int newBalance = game.money + totalEarnings;
+
+        System.out.println();
+        System.out.println("========================================");
+        System.out.printf("       [ %d일차 %s 영업 정산 ]%n", dayNum, timeName);
+        System.out.println("========================================");
+        if (bigEvent) {
+            System.out.printf("★ 빅 이벤트 매출: %,d원%n", bigEventBonus);
+        }
+        System.out.printf("오늘 방문 손님: %d명%n", customers);
+        System.out.printf("판매 성공: %d건%n", success);
+        System.out.printf("판매 실패: %d건%n", fail);
+        System.out.println();
+        System.out.println("----------------------------------------");
+        System.out.printf("  오늘 매출:    %,d원%n", sales + bigEventBonus);
+        System.out.printf("  순이익:      +%,d원%n", profit);
+        System.out.println("----------------------------------------");
+        System.out.printf("  현재 총 자본: %,d원%n", newBalance);
+        System.out.printf("  목표까지:     %,d원%n", game.goalMoney - newBalance);
+        System.out.println("========================================");
     }
 }

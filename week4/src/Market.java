@@ -691,7 +691,7 @@ public class Market {
             int customerType = Util.rand(4);
 
             // 손님 생성 + 매대에서 직접 상품 선택
-            Customer customer = createCustomer(customerType);
+            Customer customer = customerEntered(customerType);
 
             System.out.println();
             System.out.println("----------------------------------------");
@@ -736,7 +736,7 @@ public class Market {
                     Util.delay(500);
 
                     for (int skipNum = customerNum + 1; skipNum <= todayCustomers; skipNum++) {
-                        Customer skipCustomer = createCustomer(Util.rand(4));
+                        Customer skipCustomer = customerEntered(Util.rand(4));
 
                         // 캐셔에게 결제 (verbose=false: 출력 없이)
                         int[] skipResult = cashier.checkout(skipCustomer, false);
@@ -763,8 +763,7 @@ public class Market {
 
         // 하루 정산
         Util.delay(800);
-        printDailySettlement(game.day, todayCustomers, successCount, failCount,
-                todaySales, todayProfit, bigEventOccurred, bigEventBonus, totalEarnings);
+        printDailySettlement(game.day, todayCustomers, successCount, failCount, todaySales, todayProfit, bigEventOccurred, bigEventBonus, totalEarnings);
 
         System.out.println();
         System.out.println("아무 키나 입력하면 계속...");
@@ -799,7 +798,7 @@ public class Market {
 
         // 손님별 처리 (출력 없이)
         for (int customerNum = 0; customerNum < todayCustomers; customerNum++) {
-            Customer customer = createCustomer(Util.rand(4));
+            Customer customer = customerEntered(Util.rand(4));
 
             int[] result = cashier.checkout(customer, false);
             todaySales = todaySales + result[0];
@@ -825,11 +824,11 @@ public class Market {
     // ========== 영업 헬퍼 ==========
 
     /// <summary>
-    /// 손님 객체 생성 + 매대에서 상품 선택까지 처리
-    /// Customer가 유형별 쇼핑 패턴(카테고리+수량)을 자동 설정하고,
-    /// pickProducts()로 매대에서 직접 상품을 고름
+    /// 손님이 가게에 들어옴
+    /// 유형별 쇼핑 패턴(카테고리+수량)을 자동 설정하고,
+    /// 매대에서 직접 상품을 고름
     /// </summary>
-    private Customer createCustomer(int type) {
+    private Customer customerEntered(int type) {
         Customer c = new Customer(type);
 
         // 손님이 매대에서 직접 상품을 고름
@@ -919,18 +918,11 @@ public class Market {
                                       int sales, int profit, boolean bigEvent,
                                       int bigEventBonus, int totalEarnings) {
         // 시간대 문자열
-        String timeName;
-        switch (game.timeOfDay) {
-            case GameManager.TIME_MORNING:
-                timeName = "아침";
-                break;
-            case GameManager.TIME_NIGHT:
-                timeName = "밤";
-                break;
-            default:
-                timeName = "낮";
-                break;
-        }
+        String timeName = switch (game.timeOfDay) {
+            case GameManager.TIME_MORNING -> "아침";
+            case GameManager.TIME_NIGHT -> "밤";
+            default -> "낮";
+        };
 
         // 영업 후 예상 잔액 (GameManager가 실제 합산하기 전이므로 계산)
         int newBalance = game.money + totalEarnings;

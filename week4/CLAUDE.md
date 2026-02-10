@@ -158,7 +158,7 @@ java -cp out Main
 
 - **손님이 직접 고른다**: Customer가 매대(Display)에서 상품을 직접 선택 (`pickProducts`)
 - **캐셔는 계산만**: Cashier는 손님이 가져온 상품의 결제만 처리 (`checkout`)
-- **가게가 영업**: Market이 영업 주관 (손님 생성 → 매대 선택 → 캐셔 결제 → 매출 반환)
+- **가게가 영업**: Market이 영업 주관 (손님 입장 → 매대에서 상품 선택 → 캐셔 결제 → 매출 반환)
 - **돈은 반환 방식**: Market이 영업 후 매출을 GameManager에게 반환 (`money += market.startBusiness()`)
 
 ### 클래스 구조

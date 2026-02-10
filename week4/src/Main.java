@@ -8,9 +8,9 @@ public class Main {
 
     static final int INIT_MONEY = 50000000;           // 초기 자본 5000만원
     static final int GOAL_MONEY = 300000000;          // 목표 금액 3억원
-    static final int MAX_SLOT = 20;                   // 매대 최대 슬롯 (상품 30개 중 20개만 진열 가능)
+    static final int MAX_SLOT = 30;                   // 매대 최대 슬롯 (상품 50개 중 30개만 진열 가능)
     static final int MAX_DISPLAY_PER_SLOT = 15;      // 슬롯당 최대 진열 수량
-    static final int MIN_SLOT_FOR_BUSINESS = 10;     // 영업 시작 최소 슬롯 (50%)
+    static final int MIN_SLOT_FOR_BUSINESS = 15;     // 영업 시작 최소 슬롯 (50%)
     static final int DEFAULT_PRICE_MULTIPLIER = 3;   // 기본 가격 배율
     static final int AUTO_ORDER_BOX_COUNT = 3;       // 자동주문 시 박스 수 (약 1주일치)
 
@@ -65,51 +65,71 @@ public class Main {
     static Product water;
     static Product pocari;
     static Product ipro;
+    static Product fanta;
+    static Product milkis;
 
     // 맥주
     static Product cass;
     static Product terra;
     static Product hite;
+    static Product kloud;
+    static Product filgood;
 
     // 소주
     static Product chamisul;
     static Product cheumcherum;
     static Product jinro;
+    static Product goodday;
+    static Product saero;
 
     // 간식/안주
     static Product driedSquid;
     static Product peanut;
     static Product chip;
+    static Product jerky;
+    static Product sausageSnack;
 
     // 고기
     static Product samgyupsal;
     static Product moksal;
     static Product sausage;
+    static Product galbi;
+    static Product hangjeongsal;
 
     // 해수욕 용품
     static Product tube;
     static Product sunscreen;
     static Product beachBall;
+    static Product goggles;
+    static Product waterGun;
 
     // 식재료
     static Product ssamjang;
     static Product lettuce;
     static Product kimchi;
+    static Product onion;
+    static Product salt;
 
     // 라면
     static Product shinRamen;
     static Product jinRamen;
     static Product neoguri;
+    static Product buldak;
+    static Product chapagetti;
 
     // 아이스크림
     static Product melona;
     static Product screwBar;
     static Product fishBread;
+    static Product jewelBar;
+    static Product watermelonBar;
 
     // 기타 (폭죽)
     static Product sparkler;      // 불꽃막대
     static Product romanCandle;   // 로만캔들
     static Product fountain;      // 분수폭죽
+    static Product fireworkSet;   // 폭죽세트
+    static Product smokeBomb;     // 연막탄
 
     // ========== 카테고리별 상품 배열 ==========
     // initProducts() 이후에 초기화됨
@@ -139,7 +159,7 @@ public class Main {
     // ========== 재사용 배열 (메서드 내 반복 할당 방지) ==========
 
     // autoArrangeDisplay()용 - 카테고리별 진열 대기 상품 버퍼
-    static Product[][] arrangeCategoriesBuffer = new Product[10][5];  // [카테고리][상품] - 창고→매대 진열 대기 버퍼
+    static Product[][] arrangeCategoriesBuffer = new Product[10][7];  // [카테고리][상품] - 창고→매대 진열 대기 버퍼
     static int[] arrangeCategoryCounts = new int[10];                 // 각 카테고리별 버퍼 내 상품 수
     static int[] arrangeCategoryIndex = new int[10];                  // 라운드 로빈 진열 시 현재 인덱스
     static String[] categoryNames = {"음료", "맥주", "소주", "간식", "고기", "해수욕", "식재료", "라면", "아이스크림", "폭죽"};
@@ -974,6 +994,8 @@ public class Main {
                 System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", water.name, water.buyPrice, water.sellPrice, getTotalStock(water));
                 System.out.printf("4. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", pocari.name, pocari.buyPrice, pocari.sellPrice, getTotalStock(pocari));
                 System.out.printf("5. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", ipro.name, ipro.buyPrice, ipro.sellPrice, getTotalStock(ipro));
+                System.out.printf("6. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", fanta.name, fanta.buyPrice, fanta.sellPrice, getTotalStock(fanta));
+                System.out.printf("7. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", milkis.name, milkis.buyPrice, milkis.sellPrice, getTotalStock(milkis));
             } else if (category == 2) {
                 // 맥주
                 System.out.println("========================================");
@@ -982,6 +1004,8 @@ public class Main {
                 System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", cass.name, cass.buyPrice, cass.sellPrice, getTotalStock(cass));
                 System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", terra.name, terra.buyPrice, terra.sellPrice, getTotalStock(terra));
                 System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", hite.name, hite.buyPrice, hite.sellPrice, getTotalStock(hite));
+                System.out.printf("4. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", kloud.name, kloud.buyPrice, kloud.sellPrice, getTotalStock(kloud));
+                System.out.printf("5. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", filgood.name, filgood.buyPrice, filgood.sellPrice, getTotalStock(filgood));
             } else if (category == 3) {
                 // 소주
                 System.out.println("========================================");
@@ -990,6 +1014,8 @@ public class Main {
                 System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", chamisul.name, chamisul.buyPrice, chamisul.sellPrice, getTotalStock(chamisul));
                 System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", cheumcherum.name, cheumcherum.buyPrice, cheumcherum.sellPrice, getTotalStock(cheumcherum));
                 System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", jinro.name, jinro.buyPrice, jinro.sellPrice, getTotalStock(jinro));
+                System.out.printf("4. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", goodday.name, goodday.buyPrice, goodday.sellPrice, getTotalStock(goodday));
+                System.out.printf("5. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", saero.name, saero.buyPrice, saero.sellPrice, getTotalStock(saero));
             } else if (category == 4) {
                 // 간식/안주
                 System.out.println("========================================");
@@ -998,6 +1024,8 @@ public class Main {
                 System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", driedSquid.name, driedSquid.buyPrice, driedSquid.sellPrice, getTotalStock(driedSquid));
                 System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", peanut.name, peanut.buyPrice, peanut.sellPrice, getTotalStock(peanut));
                 System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", chip.name, chip.buyPrice, chip.sellPrice, getTotalStock(chip));
+                System.out.printf("4. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", jerky.name, jerky.buyPrice, jerky.sellPrice, getTotalStock(jerky));
+                System.out.printf("5. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", sausageSnack.name, sausageSnack.buyPrice, sausageSnack.sellPrice, getTotalStock(sausageSnack));
             } else if (category == 5) {
                 // 고기
                 System.out.println("========================================");
@@ -1006,6 +1034,8 @@ public class Main {
                 System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", samgyupsal.name, samgyupsal.buyPrice, samgyupsal.sellPrice, getTotalStock(samgyupsal));
                 System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", moksal.name, moksal.buyPrice, moksal.sellPrice, getTotalStock(moksal));
                 System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", sausage.name, sausage.buyPrice, sausage.sellPrice, getTotalStock(sausage));
+                System.out.printf("4. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", galbi.name, galbi.buyPrice, galbi.sellPrice, getTotalStock(galbi));
+                System.out.printf("5. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", hangjeongsal.name, hangjeongsal.buyPrice, hangjeongsal.sellPrice, getTotalStock(hangjeongsal));
             } else if (category == 6) {
                 // 해수욕 용품
                 System.out.println("========================================");
@@ -1014,6 +1044,8 @@ public class Main {
                 System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", tube.name, tube.buyPrice, tube.sellPrice, getTotalStock(tube));
                 System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", sunscreen.name, sunscreen.buyPrice, sunscreen.sellPrice, getTotalStock(sunscreen));
                 System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", beachBall.name, beachBall.buyPrice, beachBall.sellPrice, getTotalStock(beachBall));
+                System.out.printf("4. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", goggles.name, goggles.buyPrice, goggles.sellPrice, getTotalStock(goggles));
+                System.out.printf("5. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", waterGun.name, waterGun.buyPrice, waterGun.sellPrice, getTotalStock(waterGun));
             } else if (category == 7) {
                 // 식재료
                 System.out.println("========================================");
@@ -1022,6 +1054,8 @@ public class Main {
                 System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", ssamjang.name, ssamjang.buyPrice, ssamjang.sellPrice, getTotalStock(ssamjang));
                 System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", lettuce.name, lettuce.buyPrice, lettuce.sellPrice, getTotalStock(lettuce));
                 System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", kimchi.name, kimchi.buyPrice, kimchi.sellPrice, getTotalStock(kimchi));
+                System.out.printf("4. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", onion.name, onion.buyPrice, onion.sellPrice, getTotalStock(onion));
+                System.out.printf("5. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", salt.name, salt.buyPrice, salt.sellPrice, getTotalStock(salt));
             } else if (category == 8) {
                 // 라면
                 System.out.println("========================================");
@@ -1030,6 +1064,8 @@ public class Main {
                 System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", shinRamen.name, shinRamen.buyPrice, shinRamen.sellPrice, getTotalStock(shinRamen));
                 System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", jinRamen.name, jinRamen.buyPrice, jinRamen.sellPrice, getTotalStock(jinRamen));
                 System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", neoguri.name, neoguri.buyPrice, neoguri.sellPrice, getTotalStock(neoguri));
+                System.out.printf("4. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", buldak.name, buldak.buyPrice, buldak.sellPrice, getTotalStock(buldak));
+                System.out.printf("5. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", chapagetti.name, chapagetti.buyPrice, chapagetti.sellPrice, getTotalStock(chapagetti));
             } else if (category == 9) {
                 // 아이스크림
                 System.out.println("========================================");
@@ -1038,6 +1074,8 @@ public class Main {
                 System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", melona.name, melona.buyPrice, melona.sellPrice, getTotalStock(melona));
                 System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", screwBar.name, screwBar.buyPrice, screwBar.sellPrice, getTotalStock(screwBar));
                 System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", fishBread.name, fishBread.buyPrice, fishBread.sellPrice, getTotalStock(fishBread));
+                System.out.printf("4. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", jewelBar.name, jewelBar.buyPrice, jewelBar.sellPrice, getTotalStock(jewelBar));
+                System.out.printf("5. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", watermelonBar.name, watermelonBar.buyPrice, watermelonBar.sellPrice, getTotalStock(watermelonBar));
             } else if (category == 10) {
                 // 폭죽
                 System.out.println("========================================");
@@ -1046,6 +1084,8 @@ public class Main {
                 System.out.printf("1. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", sparkler.name, sparkler.buyPrice, sparkler.sellPrice, getTotalStock(sparkler));
                 System.out.printf("2. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", romanCandle.name, romanCandle.buyPrice, romanCandle.sellPrice, getTotalStock(romanCandle));
                 System.out.printf("3. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", fountain.name, fountain.buyPrice, fountain.sellPrice, getTotalStock(fountain));
+                System.out.printf("4. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", fireworkSet.name, fireworkSet.buyPrice, fireworkSet.sellPrice, getTotalStock(fireworkSet));
+                System.out.printf("5. %-8s | 매입 %,6d원 | 판매 %,6d원 | 재고: %d개%n", smokeBomb.name, smokeBomb.buyPrice, smokeBomb.sellPrice, getTotalStock(smokeBomb));
             }
 
             System.out.println();
@@ -1105,51 +1145,71 @@ public class Main {
             if (num == 3) return water;
             if (num == 4) return pocari;
             if (num == 5) return ipro;
+            if (num == 6) return fanta;
+            if (num == 7) return milkis;
         } else if (category == 2) {
             // 맥주
             if (num == 1) return cass;
             if (num == 2) return terra;
             if (num == 3) return hite;
+            if (num == 4) return kloud;
+            if (num == 5) return filgood;
         } else if (category == 3) {
             // 소주
             if (num == 1) return chamisul;
             if (num == 2) return cheumcherum;
             if (num == 3) return jinro;
+            if (num == 4) return goodday;
+            if (num == 5) return saero;
         } else if (category == 4) {
             // 간식/안주
             if (num == 1) return driedSquid;
             if (num == 2) return peanut;
             if (num == 3) return chip;
+            if (num == 4) return jerky;
+            if (num == 5) return sausageSnack;
         } else if (category == 5) {
             // 고기
             if (num == 1) return samgyupsal;
             if (num == 2) return moksal;
             if (num == 3) return sausage;
+            if (num == 4) return galbi;
+            if (num == 5) return hangjeongsal;
         } else if (category == 6) {
             // 해수욕 용품
             if (num == 1) return tube;
             if (num == 2) return sunscreen;
             if (num == 3) return beachBall;
+            if (num == 4) return goggles;
+            if (num == 5) return waterGun;
         } else if (category == 7) {
             // 식재료
             if (num == 1) return ssamjang;
             if (num == 2) return lettuce;
             if (num == 3) return kimchi;
+            if (num == 4) return onion;
+            if (num == 5) return salt;
         } else if (category == 8) {
             // 라면
             if (num == 1) return shinRamen;
             if (num == 2) return jinRamen;
             if (num == 3) return neoguri;
+            if (num == 4) return buldak;
+            if (num == 5) return chapagetti;
         } else if (category == 9) {
             // 아이스크림
             if (num == 1) return melona;
             if (num == 2) return screwBar;
             if (num == 3) return fishBread;
+            if (num == 4) return jewelBar;
+            if (num == 5) return watermelonBar;
         } else if (category == 10) {
             // 폭죽
             if (num == 1) return sparkler;
             if (num == 2) return romanCandle;
             if (num == 3) return fountain;
+            if (num == 4) return fireworkSet;
+            if (num == 5) return smokeBomb;
         }
         return null;
     }
@@ -1423,60 +1483,80 @@ public class Main {
                 System.out.printf("3. %s (재고: %d)%n", water.name, getTotalStock(water));
                 System.out.printf("4. %s (재고: %d)%n", pocari.name, getTotalStock(pocari));
                 System.out.printf("5. %s (재고: %d)%n", ipro.name, getTotalStock(ipro));
+                System.out.printf("6. %s (재고: %d)%n", fanta.name, getTotalStock(fanta));
+                System.out.printf("7. %s (재고: %d)%n", milkis.name, getTotalStock(milkis));
                 break;
             case 2:
                 System.out.println("[ 맥주 ]");
                 System.out.printf("1. %s (재고: %d)%n", cass.name, getTotalStock(cass));
                 System.out.printf("2. %s (재고: %d)%n", terra.name, getTotalStock(terra));
                 System.out.printf("3. %s (재고: %d)%n", hite.name, getTotalStock(hite));
+                System.out.printf("4. %s (재고: %d)%n", kloud.name, getTotalStock(kloud));
+                System.out.printf("5. %s (재고: %d)%n", filgood.name, getTotalStock(filgood));
                 break;
             case 3:
                 System.out.println("[ 소주 ]");
                 System.out.printf("1. %s (재고: %d)%n", chamisul.name, getTotalStock(chamisul));
                 System.out.printf("2. %s (재고: %d)%n", cheumcherum.name, getTotalStock(cheumcherum));
                 System.out.printf("3. %s (재고: %d)%n", jinro.name, getTotalStock(jinro));
+                System.out.printf("4. %s (재고: %d)%n", goodday.name, getTotalStock(goodday));
+                System.out.printf("5. %s (재고: %d)%n", saero.name, getTotalStock(saero));
                 break;
             case 4:
                 System.out.println("[ 간식/안주 ]");
                 System.out.printf("1. %s (재고: %d)%n", driedSquid.name, getTotalStock(driedSquid));
                 System.out.printf("2. %s (재고: %d)%n", peanut.name, getTotalStock(peanut));
                 System.out.printf("3. %s (재고: %d)%n", chip.name, getTotalStock(chip));
+                System.out.printf("4. %s (재고: %d)%n", jerky.name, getTotalStock(jerky));
+                System.out.printf("5. %s (재고: %d)%n", sausageSnack.name, getTotalStock(sausageSnack));
                 break;
             case 5:
                 System.out.println("[ 고기 ]");
                 System.out.printf("1. %s (재고: %d)%n", samgyupsal.name, getTotalStock(samgyupsal));
                 System.out.printf("2. %s (재고: %d)%n", moksal.name, getTotalStock(moksal));
                 System.out.printf("3. %s (재고: %d)%n", sausage.name, getTotalStock(sausage));
+                System.out.printf("4. %s (재고: %d)%n", galbi.name, getTotalStock(galbi));
+                System.out.printf("5. %s (재고: %d)%n", hangjeongsal.name, getTotalStock(hangjeongsal));
                 break;
             case 6:
                 System.out.println("[ 해수욕용품 ]");
                 System.out.printf("1. %s (재고: %d)%n", tube.name, getTotalStock(tube));
                 System.out.printf("2. %s (재고: %d)%n", sunscreen.name, getTotalStock(sunscreen));
                 System.out.printf("3. %s (재고: %d)%n", beachBall.name, getTotalStock(beachBall));
+                System.out.printf("4. %s (재고: %d)%n", goggles.name, getTotalStock(goggles));
+                System.out.printf("5. %s (재고: %d)%n", waterGun.name, getTotalStock(waterGun));
                 break;
             case 7:
                 System.out.println("[ 식재료 ]");
                 System.out.printf("1. %s (재고: %d)%n", ssamjang.name, getTotalStock(ssamjang));
                 System.out.printf("2. %s (재고: %d)%n", lettuce.name, getTotalStock(lettuce));
                 System.out.printf("3. %s (재고: %d)%n", kimchi.name, getTotalStock(kimchi));
+                System.out.printf("4. %s (재고: %d)%n", onion.name, getTotalStock(onion));
+                System.out.printf("5. %s (재고: %d)%n", salt.name, getTotalStock(salt));
                 break;
             case 8:
                 System.out.println("[ 라면 ]");
                 System.out.printf("1. %s (재고: %d)%n", shinRamen.name, getTotalStock(shinRamen));
                 System.out.printf("2. %s (재고: %d)%n", jinRamen.name, getTotalStock(jinRamen));
                 System.out.printf("3. %s (재고: %d)%n", neoguri.name, getTotalStock(neoguri));
+                System.out.printf("4. %s (재고: %d)%n", buldak.name, getTotalStock(buldak));
+                System.out.printf("5. %s (재고: %d)%n", chapagetti.name, getTotalStock(chapagetti));
                 break;
             case 9:
                 System.out.println("[ 아이스크림 ]");
                 System.out.printf("1. %s (재고: %d)%n", melona.name, getTotalStock(melona));
                 System.out.printf("2. %s (재고: %d)%n", screwBar.name, getTotalStock(screwBar));
                 System.out.printf("3. %s (재고: %d)%n", fishBread.name, getTotalStock(fishBread));
+                System.out.printf("4. %s (재고: %d)%n", jewelBar.name, getTotalStock(jewelBar));
+                System.out.printf("5. %s (재고: %d)%n", watermelonBar.name, getTotalStock(watermelonBar));
                 break;
             case 10:
                 System.out.println("[ 폭죽 ]");
                 System.out.printf("1. %s (재고: %d)%n", sparkler.name, getTotalStock(sparkler));
                 System.out.printf("2. %s (재고: %d)%n", romanCandle.name, getTotalStock(romanCandle));
                 System.out.printf("3. %s (재고: %d)%n", fountain.name, getTotalStock(fountain));
+                System.out.printf("4. %s (재고: %d)%n", fireworkSet.name, getTotalStock(fireworkSet));
+                System.out.printf("5. %s (재고: %d)%n", smokeBomb.name, getTotalStock(smokeBomb));
                 break;
         }
     }
@@ -1575,6 +1655,14 @@ public class Main {
             System.out.println(" - " + ipro.name + ": 임계값 " + ipro.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
         }
+        if (fanta.autoOrderEnabled) {
+            System.out.println(" - " + fanta.name + ": 임계값 " + fanta.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (milkis.autoOrderEnabled) {
+            System.out.println(" - " + milkis.name + ": 임계값 " + milkis.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
         if (cass.autoOrderEnabled) {
             System.out.println(" - " + cass.name + ": 임계값 " + cass.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
@@ -1585,6 +1673,14 @@ public class Main {
         }
         if (hite.autoOrderEnabled) {
             System.out.println(" - " + hite.name + ": 임계값 " + hite.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (kloud.autoOrderEnabled) {
+            System.out.println(" - " + kloud.name + ": 임계값 " + kloud.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (filgood.autoOrderEnabled) {
+            System.out.println(" - " + filgood.name + ": 임계값 " + filgood.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
         }
         if (chamisul.autoOrderEnabled) {
@@ -1599,6 +1695,14 @@ public class Main {
             System.out.println(" - " + jinro.name + ": 임계값 " + jinro.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
         }
+        if (goodday.autoOrderEnabled) {
+            System.out.println(" - " + goodday.name + ": 임계값 " + goodday.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (saero.autoOrderEnabled) {
+            System.out.println(" - " + saero.name + ": 임계값 " + saero.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
         if (driedSquid.autoOrderEnabled) {
             System.out.println(" - " + driedSquid.name + ": 임계값 " + driedSquid.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
@@ -1609,6 +1713,14 @@ public class Main {
         }
         if (chip.autoOrderEnabled) {
             System.out.println(" - " + chip.name + ": 임계값 " + chip.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (jerky.autoOrderEnabled) {
+            System.out.println(" - " + jerky.name + ": 임계값 " + jerky.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (sausageSnack.autoOrderEnabled) {
+            System.out.println(" - " + sausageSnack.name + ": 임계값 " + sausageSnack.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
         }
         if (samgyupsal.autoOrderEnabled) {
@@ -1623,6 +1735,14 @@ public class Main {
             System.out.println(" - " + sausage.name + ": 임계값 " + sausage.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
         }
+        if (galbi.autoOrderEnabled) {
+            System.out.println(" - " + galbi.name + ": 임계값 " + galbi.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (hangjeongsal.autoOrderEnabled) {
+            System.out.println(" - " + hangjeongsal.name + ": 임계값 " + hangjeongsal.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
         if (tube.autoOrderEnabled) {
             System.out.println(" - " + tube.name + ": 임계값 " + tube.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
@@ -1633,6 +1753,14 @@ public class Main {
         }
         if (beachBall.autoOrderEnabled) {
             System.out.println(" - " + beachBall.name + ": 임계값 " + beachBall.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (goggles.autoOrderEnabled) {
+            System.out.println(" - " + goggles.name + ": 임계값 " + goggles.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (waterGun.autoOrderEnabled) {
+            System.out.println(" - " + waterGun.name + ": 임계값 " + waterGun.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
         }
         if (ssamjang.autoOrderEnabled) {
@@ -1647,6 +1775,14 @@ public class Main {
             System.out.println(" - " + kimchi.name + ": 임계값 " + kimchi.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
         }
+        if (onion.autoOrderEnabled) {
+            System.out.println(" - " + onion.name + ": 임계값 " + onion.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (salt.autoOrderEnabled) {
+            System.out.println(" - " + salt.name + ": 임계값 " + salt.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
         if (shinRamen.autoOrderEnabled) {
             System.out.println(" - " + shinRamen.name + ": 임계값 " + shinRamen.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
@@ -1657,6 +1793,14 @@ public class Main {
         }
         if (neoguri.autoOrderEnabled) {
             System.out.println(" - " + neoguri.name + ": 임계값 " + neoguri.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (buldak.autoOrderEnabled) {
+            System.out.println(" - " + buldak.name + ": 임계값 " + buldak.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (chapagetti.autoOrderEnabled) {
+            System.out.println(" - " + chapagetti.name + ": 임계값 " + chapagetti.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
         }
         if (melona.autoOrderEnabled) {
@@ -1671,6 +1815,14 @@ public class Main {
             System.out.println(" - " + fishBread.name + ": 임계값 " + fishBread.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
         }
+        if (jewelBar.autoOrderEnabled) {
+            System.out.println(" - " + jewelBar.name + ": 임계값 " + jewelBar.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (watermelonBar.autoOrderEnabled) {
+            System.out.println(" - " + watermelonBar.name + ": 임계값 " + watermelonBar.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
         if (sparkler.autoOrderEnabled) {
             System.out.println(" - " + sparkler.name + ": 임계값 " + sparkler.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
@@ -1681,6 +1833,14 @@ public class Main {
         }
         if (fountain.autoOrderEnabled) {
             System.out.println(" - " + fountain.name + ": 임계값 " + fountain.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (fireworkSet.autoOrderEnabled) {
+            System.out.println(" - " + fireworkSet.name + ": 임계값 " + fireworkSet.autoOrderThreshold + "개");
+            hasIndividualPolicy = true;
+        }
+        if (smokeBomb.autoOrderEnabled) {
+            System.out.println(" - " + smokeBomb.name + ": 임계값 " + smokeBomb.autoOrderThreshold + "개");
             hasIndividualPolicy = true;
         }
 
@@ -1712,6 +1872,8 @@ public class Main {
             totalCost = totalCost + autoOrderProduct(water, thresholdDrink);
             totalCost = totalCost + autoOrderProduct(pocari, thresholdDrink);
             totalCost = totalCost + autoOrderProduct(ipro, thresholdDrink);
+            totalCost = totalCost + autoOrderProduct(fanta, thresholdDrink);
+            totalCost = totalCost + autoOrderProduct(milkis, thresholdDrink);
         }
 
         // 맥주
@@ -1719,6 +1881,8 @@ public class Main {
             totalCost = totalCost + autoOrderProduct(cass, thresholdBeer);
             totalCost = totalCost + autoOrderProduct(terra, thresholdBeer);
             totalCost = totalCost + autoOrderProduct(hite, thresholdBeer);
+            totalCost = totalCost + autoOrderProduct(kloud, thresholdBeer);
+            totalCost = totalCost + autoOrderProduct(filgood, thresholdBeer);
         }
 
         // 소주
@@ -1726,6 +1890,8 @@ public class Main {
             totalCost = totalCost + autoOrderProduct(chamisul, thresholdSoju);
             totalCost = totalCost + autoOrderProduct(cheumcherum, thresholdSoju);
             totalCost = totalCost + autoOrderProduct(jinro, thresholdSoju);
+            totalCost = totalCost + autoOrderProduct(goodday, thresholdSoju);
+            totalCost = totalCost + autoOrderProduct(saero, thresholdSoju);
         }
 
         // 간식/안주
@@ -1733,6 +1899,8 @@ public class Main {
             totalCost = totalCost + autoOrderProduct(driedSquid, thresholdSnack);
             totalCost = totalCost + autoOrderProduct(peanut, thresholdSnack);
             totalCost = totalCost + autoOrderProduct(chip, thresholdSnack);
+            totalCost = totalCost + autoOrderProduct(jerky, thresholdSnack);
+            totalCost = totalCost + autoOrderProduct(sausageSnack, thresholdSnack);
         }
 
         // 고기
@@ -1740,6 +1908,8 @@ public class Main {
             totalCost = totalCost + autoOrderProduct(samgyupsal, thresholdMeat);
             totalCost = totalCost + autoOrderProduct(moksal, thresholdMeat);
             totalCost = totalCost + autoOrderProduct(sausage, thresholdMeat);
+            totalCost = totalCost + autoOrderProduct(galbi, thresholdMeat);
+            totalCost = totalCost + autoOrderProduct(hangjeongsal, thresholdMeat);
         }
 
         // 해수욕용품
@@ -1747,6 +1917,8 @@ public class Main {
             totalCost = totalCost + autoOrderProduct(tube, thresholdBeach);
             totalCost = totalCost + autoOrderProduct(sunscreen, thresholdBeach);
             totalCost = totalCost + autoOrderProduct(beachBall, thresholdBeach);
+            totalCost = totalCost + autoOrderProduct(goggles, thresholdBeach);
+            totalCost = totalCost + autoOrderProduct(waterGun, thresholdBeach);
         }
 
         // 식재료
@@ -1754,6 +1926,8 @@ public class Main {
             totalCost = totalCost + autoOrderProduct(ssamjang, thresholdGrocery);
             totalCost = totalCost + autoOrderProduct(lettuce, thresholdGrocery);
             totalCost = totalCost + autoOrderProduct(kimchi, thresholdGrocery);
+            totalCost = totalCost + autoOrderProduct(onion, thresholdGrocery);
+            totalCost = totalCost + autoOrderProduct(salt, thresholdGrocery);
         }
 
         // 라면
@@ -1761,6 +1935,8 @@ public class Main {
             totalCost = totalCost + autoOrderProduct(shinRamen, thresholdRamen);
             totalCost = totalCost + autoOrderProduct(jinRamen, thresholdRamen);
             totalCost = totalCost + autoOrderProduct(neoguri, thresholdRamen);
+            totalCost = totalCost + autoOrderProduct(buldak, thresholdRamen);
+            totalCost = totalCost + autoOrderProduct(chapagetti, thresholdRamen);
         }
 
         // 아이스크림
@@ -1768,6 +1944,8 @@ public class Main {
             totalCost = totalCost + autoOrderProduct(melona, thresholdIcecream);
             totalCost = totalCost + autoOrderProduct(screwBar, thresholdIcecream);
             totalCost = totalCost + autoOrderProduct(fishBread, thresholdIcecream);
+            totalCost = totalCost + autoOrderProduct(jewelBar, thresholdIcecream);
+            totalCost = totalCost + autoOrderProduct(watermelonBar, thresholdIcecream);
         }
 
         // 폭죽
@@ -1775,6 +1953,8 @@ public class Main {
             totalCost = totalCost + autoOrderProduct(sparkler, thresholdEtc);
             totalCost = totalCost + autoOrderProduct(romanCandle, thresholdEtc);
             totalCost = totalCost + autoOrderProduct(fountain, thresholdEtc);
+            totalCost = totalCost + autoOrderProduct(fireworkSet, thresholdEtc);
+            totalCost = totalCost + autoOrderProduct(smokeBomb, thresholdEtc);
         }
 
         // 개별 상품 정책 기반 주문 (카테고리에 없는 것만)
@@ -1784,51 +1964,71 @@ public class Main {
             if (water.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(water, water.autoOrderThreshold);
             if (pocari.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(pocari, pocari.autoOrderThreshold);
             if (ipro.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(ipro, ipro.autoOrderThreshold);
+            if (fanta.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(fanta, fanta.autoOrderThreshold);
+            if (milkis.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(milkis, milkis.autoOrderThreshold);
         }
         if (!autoOrderBeer) {
             if (cass.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(cass, cass.autoOrderThreshold);
             if (terra.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(terra, terra.autoOrderThreshold);
             if (hite.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(hite, hite.autoOrderThreshold);
+            if (kloud.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(kloud, kloud.autoOrderThreshold);
+            if (filgood.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(filgood, filgood.autoOrderThreshold);
         }
         if (!autoOrderSoju) {
             if (chamisul.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(chamisul, chamisul.autoOrderThreshold);
             if (cheumcherum.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(cheumcherum, cheumcherum.autoOrderThreshold);
             if (jinro.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(jinro, jinro.autoOrderThreshold);
+            if (goodday.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(goodday, goodday.autoOrderThreshold);
+            if (saero.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(saero, saero.autoOrderThreshold);
         }
         if (!autoOrderSnack) {
             if (driedSquid.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(driedSquid, driedSquid.autoOrderThreshold);
             if (peanut.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(peanut, peanut.autoOrderThreshold);
             if (chip.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(chip, chip.autoOrderThreshold);
+            if (jerky.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(jerky, jerky.autoOrderThreshold);
+            if (sausageSnack.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(sausageSnack, sausageSnack.autoOrderThreshold);
         }
         if (!autoOrderMeat) {
             if (samgyupsal.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(samgyupsal, samgyupsal.autoOrderThreshold);
             if (moksal.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(moksal, moksal.autoOrderThreshold);
             if (sausage.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(sausage, sausage.autoOrderThreshold);
+            if (galbi.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(galbi, galbi.autoOrderThreshold);
+            if (hangjeongsal.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(hangjeongsal, hangjeongsal.autoOrderThreshold);
         }
         if (!autoOrderBeach) {
             if (tube.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(tube, tube.autoOrderThreshold);
             if (sunscreen.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(sunscreen, sunscreen.autoOrderThreshold);
             if (beachBall.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(beachBall, beachBall.autoOrderThreshold);
+            if (goggles.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(goggles, goggles.autoOrderThreshold);
+            if (waterGun.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(waterGun, waterGun.autoOrderThreshold);
         }
         if (!autoOrderGrocery) {
             if (ssamjang.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(ssamjang, ssamjang.autoOrderThreshold);
             if (lettuce.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(lettuce, lettuce.autoOrderThreshold);
             if (kimchi.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(kimchi, kimchi.autoOrderThreshold);
+            if (onion.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(onion, onion.autoOrderThreshold);
+            if (salt.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(salt, salt.autoOrderThreshold);
         }
         if (!autoOrderRamen) {
             if (shinRamen.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(shinRamen, shinRamen.autoOrderThreshold);
             if (jinRamen.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(jinRamen, jinRamen.autoOrderThreshold);
             if (neoguri.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(neoguri, neoguri.autoOrderThreshold);
+            if (buldak.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(buldak, buldak.autoOrderThreshold);
+            if (chapagetti.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(chapagetti, chapagetti.autoOrderThreshold);
         }
         if (!autoOrderIcecream) {
             if (melona.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(melona, melona.autoOrderThreshold);
             if (screwBar.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(screwBar, screwBar.autoOrderThreshold);
             if (fishBread.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(fishBread, fishBread.autoOrderThreshold);
+            if (jewelBar.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(jewelBar, jewelBar.autoOrderThreshold);
+            if (watermelonBar.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(watermelonBar, watermelonBar.autoOrderThreshold);
         }
         if (!autoOrderEtc) {
             if (sparkler.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(sparkler, sparkler.autoOrderThreshold);
             if (romanCandle.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(romanCandle, romanCandle.autoOrderThreshold);
             if (fountain.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(fountain, fountain.autoOrderThreshold);
+            if (fireworkSet.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(fireworkSet, fireworkSet.autoOrderThreshold);
+            if (smokeBomb.autoOrderEnabled) totalCost = totalCost + autoOrderProduct(smokeBomb, smokeBomb.autoOrderThreshold);
         }
 
         System.out.println();
@@ -2083,24 +2283,8 @@ public class Main {
 
         // 하루 정산
         Util.delay(800);  // 정산 준비 연출
-        System.out.println();
-        System.out.println("========================================");
-        System.out.printf("          [ %d일차 정산 ]%n", day);
-        System.out.println("========================================");
-        if (bigEventOccurred) {
-            System.out.println("★ 빅 이벤트 발생!");
-        }
-        System.out.printf("오늘 방문 손님: %d명%n", todayCustomers);
-        System.out.printf("판매 성공: %d건%n", successCount);
-        System.out.printf("판매 실패: %d건%n", failCount);
-        System.out.println();
-        System.out.println("----------------------------------------");
-        System.out.printf("  오늘 매출:    %,d원%n", todaySales);
-        System.out.printf("  순이익:      +%,d원%n", todayProfit);
-        System.out.println("----------------------------------------");
-        System.out.printf("  현재 총 자본: %,d원%n", money);
-        System.out.printf("  목표까지:     %,d원%n", goalMoney - money);
-        System.out.println("========================================");
+        printDailySettlement(day, todayCustomers, successCount, failCount,
+                             todaySales, todayProfit, bigEventOccurred);
 
         System.out.println();
         System.out.println("아무 키나 입력하면 계속...");
@@ -2130,55 +2314,33 @@ public class Main {
         // 빅 이벤트 체크 (10% 확률)
         boolean eventOccurred = checkBigEvent(10);
 
-        // 손님별 간략 처리 (재사용 배열 사용)
-        for (int i = 0; i < todayCustomers; i++) {
+        // 손님별 간략 처리
+        for (int customerNum = 0; customerNum < todayCustomers; customerNum++) {
             int customerType = Util.rand(4);
 
-            // 카테고리별 랜덤 판매 시뮬레이션
-            targetsCount = 3;
-            if (customerType == 0) {
-                targets[0] = getRandomFromCategory(categoryMeat);
-                targets[1] = getRandomFromCategory(categoryGrocery);
-                targets[2] = getRandomFromCategory(categoryDrink);
-            } else if (customerType == 1) {
-                targets[0] = getRandomFromCategory(categorySoju);
-                targets[1] = getRandomFromCategory(categoryBeer);
-                targets[2] = getRandomFromCategory(categorySnack);
-            } else if (customerType == 2) {
-                targets[0] = getRandomFromCategory(categoryBeer);
-                targets[1] = getRandomFromCategory(categorySoju);
-                targets[2] = getRandomFromCategory(categorySnack);
-            } else {
-                targets[0] = getRandomFromCategory(categoryRamen);
-                targets[1] = getRandomFromCategory(categoryBeer);
-                targets[2] = getRandomFromCategory(categoryIcecream);
-            }
+            // 손님 타입에 따라 targets 배열 설정
+            setTargetsByCustomerType(customerType);
 
             // 각 상품 판매 시도
-            for (int j = 0; j < targetsCount; j++) {
-                Product p = targets[j];
-                int want = 1 + Util.rand(3);
-                int stock = display.getDisplayed(p);
+            for (int itemIndex = 0; itemIndex < targetsCount; itemIndex++) {
+                Product product = targets[itemIndex];
+                int wantAmount = 1 + Util.rand(3);
 
-                if (stock >= want) {
-                    int sale = p.sellPrice * want;
-                    int profit = (p.sellPrice - p.buyPrice) * want;
-                    display.sell(p, want);
+                int[] result = sellProduct(product, wantAmount);
+                int saleAmount = result[0];
+                int profitAmount = result[1];
+                int soldAmount = result[2];
 
-                    money = money + sale;
-                    todaySales = todaySales + sale;
-                    todayProfit = todayProfit + profit;
+                if (soldAmount > 0) {
+                    money = money + saleAmount;
+                    todaySales = todaySales + saleAmount;
+                    todayProfit = todayProfit + profitAmount;
                     successCount++;
-                } else if (stock > 0) {
-                    int sale = p.sellPrice * stock;
-                    int profit = (p.sellPrice - p.buyPrice) * stock;
-                    display.sell(p, stock);
 
-                    money = money + sale;
-                    todaySales = todaySales + sale;
-                    todayProfit = todayProfit + profit;
-                    successCount++;
-                    failCount++;
+                    // 일부만 판매된 경우 실패도 카운트
+                    if (soldAmount < wantAmount) {
+                        failCount++;
+                    }
                 } else {
                     failCount++;
                 }
@@ -2186,24 +2348,8 @@ public class Main {
         }
 
         // 결과 출력
-        System.out.println();
-        System.out.println("========================================");
-        System.out.printf("          [ %d일차 정산 ]%n", day);
-        System.out.println("========================================");
-        System.out.printf("오늘 방문 손님: %d명%n", todayCustomers);
-        System.out.printf("판매 성공: %d건%n", successCount);
-        System.out.printf("판매 실패: %d건%n", failCount);
-        if (eventOccurred) {
-            System.out.println(">> 빅 이벤트 발생!");
-        }
-        System.out.println();
-        System.out.println("----------------------------------------");
-        System.out.printf("  오늘 매출:    %,d원%n", todaySales);
-        System.out.printf("  순이익:      +%,d원%n", todayProfit);
-        System.out.println("----------------------------------------");
-        System.out.printf("  현재 총 자본: %,d원%n", money);
-        System.out.printf("  목표까지:     %,d원%n", goalMoney - money);
-        System.out.println("========================================");
+        printDailySettlement(day, todayCustomers, successCount, failCount,
+                             todaySales, todayProfit, eventOccurred);
 
         System.out.println();
         System.out.println("아무 키나 입력하면 계속...");
@@ -2240,50 +2386,25 @@ public class Main {
                 System.out.print(" [이벤트!]");
             }
 
-            // 손님별 간략 처리 (재사용 배열 사용)
-            for (int i = 0; i < todayCustomers; i++) {
+            // 손님별 간략 처리
+            for (int customerNum = 0; customerNum < todayCustomers; customerNum++) {
                 int customerType = Util.rand(4);
-                targetsCount = 3;
 
-                if (customerType == 0) {
-                    targets[0] = getRandomFromCategory(categoryMeat);
-                    targets[1] = getRandomFromCategory(categoryGrocery);
-                    targets[2] = getRandomFromCategory(categoryDrink);
-                } else if (customerType == 1) {
-                    targets[0] = getRandomFromCategory(categorySoju);
-                    targets[1] = getRandomFromCategory(categoryBeer);
-                    targets[2] = getRandomFromCategory(categorySnack);
-                } else if (customerType == 2) {
-                    targets[0] = getRandomFromCategory(categoryBeer);
-                    targets[1] = getRandomFromCategory(categorySoju);
-                    targets[2] = getRandomFromCategory(categorySnack);
-                } else {
-                    targets[0] = getRandomFromCategory(categoryRamen);
-                    targets[1] = getRandomFromCategory(categoryBeer);
-                    targets[2] = getRandomFromCategory(categoryIcecream);
-                }
+                // 손님 타입에 따라 targets 배열 설정
+                setTargetsByCustomerType(customerType);
 
-                for (int j = 0; j < targetsCount; j++) {
-                    Product p = targets[j];
-                    int want = 1 + Util.rand(3);
-                    int stock = display.getDisplayed(p);
+                for (int itemIndex = 0; itemIndex < targetsCount; itemIndex++) {
+                    Product product = targets[itemIndex];
+                    int wantAmount = 1 + Util.rand(3);
 
-                    if (stock >= want) {
-                        int sale = p.sellPrice * want;
-                        int profit = (p.sellPrice - p.buyPrice) * want;
-                        display.sell(p, want);
+                    int[] result = sellProduct(product, wantAmount);
+                    int saleAmount = result[0];
+                    int profitAmount = result[1];
 
-                        money = money + sale;
-                        todaySales = todaySales + sale;
-                        todayProfit = todayProfit + profit;
-                    } else if (stock > 0) {
-                        int sale = p.sellPrice * stock;
-                        int profit = (p.sellPrice - p.buyPrice) * stock;
-                        display.sell(p, stock);
-
-                        money = money + sale;
-                        todaySales = todaySales + sale;
-                        todayProfit = todayProfit + profit;
+                    if (saleAmount > 0) {
+                        money = money + saleAmount;
+                        todaySales = todaySales + saleAmount;
+                        todayProfit = todayProfit + profitAmount;
                     }
                 }
             }
@@ -2296,22 +2417,7 @@ public class Main {
         }
 
         // 주간 요약
-        System.out.println();
-        System.out.println("========================================");
-        System.out.println("         [ 주간 요약 ]");
-        System.out.println("========================================");
-        System.out.printf("기간: %d일 영업%n", 7);
-        if (eventCount > 0) {
-            System.out.printf("빅 이벤트: %d회 발생%n", eventCount);
-        }
-        System.out.println();
-        System.out.println("----------------------------------------");
-        System.out.printf("  주간 매출:    %,d원%n", weekSales);
-        System.out.printf("  주간 순이익: +%,d원%n", weekProfit);
-        System.out.println("----------------------------------------");
-        System.out.printf("  현재 총 자본: %,d원%n", money);
-        System.out.printf("  목표까지:     %,d원%n", goalMoney - money);
-        System.out.println("========================================");
+        printWeeklySettlement(7, eventCount, weekSales, weekProfit);
 
         System.out.println();
         System.out.println("아무 키나 입력하면 계속...");
@@ -2378,6 +2484,114 @@ public class Main {
     }
 
     /// <summary>
+    /// 손님 타입에 따라 targets 배열에 상품 설정
+    /// - 0: 가족 (고기, 식재료, 음료)
+    /// - 1: 커플 (소주, 맥주, 안주)
+    /// - 2: 친구들 (맥주, 소주, 안주)
+    /// - 3: 혼자 (라면, 맥주, 아이스크림)
+    /// </summary>
+    private static void setTargetsByCustomerType(int customerType) {
+        targetsCount = 3;
+        switch (customerType) {
+            case 0:
+                targets[0] = getRandomFromCategory(categoryMeat);
+                targets[1] = getRandomFromCategory(categoryGrocery);
+                targets[2] = getRandomFromCategory(categoryDrink);
+                break;
+            case 1:
+                targets[0] = getRandomFromCategory(categorySoju);
+                targets[1] = getRandomFromCategory(categoryBeer);
+                targets[2] = getRandomFromCategory(categorySnack);
+                break;
+            case 2:
+                targets[0] = getRandomFromCategory(categoryBeer);
+                targets[1] = getRandomFromCategory(categorySoju);
+                targets[2] = getRandomFromCategory(categorySnack);
+                break;
+            default:
+                targets[0] = getRandomFromCategory(categoryRamen);
+                targets[1] = getRandomFromCategory(categoryBeer);
+                targets[2] = getRandomFromCategory(categoryIcecream);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// 상품 판매 처리
+    /// 매대 재고에서 판매하고 결과 반환
+    /// </summary>
+    /// <returns>int[3] = {판매액, 이익, 실제판매수량} (재고 없으면 모두 0)</returns>
+    private static int[] sellProduct(Product product, int wantAmount) {
+        int[] result = new int[3];  // [판매액, 이익, 실제판매수량]
+
+        int stock = display.getDisplayed(product);
+
+        if (stock >= wantAmount) {
+            // 전부 판매 가능
+            result[0] = product.sellPrice * wantAmount;
+            result[1] = (product.sellPrice - product.buyPrice) * wantAmount;
+            result[2] = wantAmount;
+            display.sell(product, wantAmount);
+        } else if (stock > 0) {
+            // 일부만 판매
+            result[0] = product.sellPrice * stock;
+            result[1] = (product.sellPrice - product.buyPrice) * stock;
+            result[2] = stock;
+            display.sell(product, stock);
+        }
+        // else: 재고 없음 - result는 이미 0으로 초기화됨
+
+        return result;
+    }
+
+    /// <summary>
+    /// 일일 정산 출력
+    /// </summary>
+    private static void printDailySettlement(int dayNum, int customers, int success, int fail,
+                                              int sales, int profit, boolean bigEvent) {
+        System.out.println();
+        System.out.println("========================================");
+        System.out.printf("          [ %d일차 정산 ]%n", dayNum);
+        System.out.println("========================================");
+        if (bigEvent) {
+            System.out.println("★ 빅 이벤트 발생!");
+        }
+        System.out.printf("오늘 방문 손님: %d명%n", customers);
+        System.out.printf("판매 성공: %d건%n", success);
+        System.out.printf("판매 실패: %d건%n", fail);
+        System.out.println();
+        System.out.println("----------------------------------------");
+        System.out.printf("  오늘 매출:    %,d원%n", sales);
+        System.out.printf("  순이익:      +%,d원%n", profit);
+        System.out.println("----------------------------------------");
+        System.out.printf("  현재 총 자본: %,d원%n", money);
+        System.out.printf("  목표까지:     %,d원%n", goalMoney - money);
+        System.out.println("========================================");
+    }
+
+    /// <summary>
+    /// 주간 정산 출력
+    /// </summary>
+    private static void printWeeklySettlement(int days, int eventCount, int sales, int profit) {
+        System.out.println();
+        System.out.println("========================================");
+        System.out.println("         [ 주간 요약 ]");
+        System.out.println("========================================");
+        System.out.printf("기간: %d일 영업%n", days);
+        if (eventCount > 0) {
+            System.out.printf("빅 이벤트: %d회 발생%n", eventCount);
+        }
+        System.out.println();
+        System.out.println("----------------------------------------");
+        System.out.printf("  주간 매출:    %,d원%n", sales);
+        System.out.printf("  주간 순이익: +%,d원%n", profit);
+        System.out.println("----------------------------------------");
+        System.out.printf("  현재 총 자본: %,d원%n", money);
+        System.out.printf("  목표까지:     %,d원%n", goalMoney - money);
+        System.out.println("========================================");
+    }
+
+    /// <summary>
     /// 상품 초기화 메서드
     /// 배율을 적용하여 상품 객체 생성
     /// </summary>
@@ -2388,63 +2602,83 @@ public class Main {
         water = new Product("삼다수", 400, 1000 * priceMultiplier, 5, 24);
         pocari = new Product("포카리스웨트", 1200, 2000 * priceMultiplier, 6, 24);
         ipro = new Product("이프로", 1000, 1800 * priceMultiplier, 5, 24);
+        fanta = new Product("환타", 900, 1600 * priceMultiplier, 6, 24);
+        milkis = new Product("밀키스", 900, 1600 * priceMultiplier, 5, 24);
 
         // 맥주 (1박스 = 24개)
         cass = new Product("카스", 1500, 3000 * priceMultiplier, 8, 24);
         terra = new Product("테라", 1600, 3200 * priceMultiplier, 8, 24);
         hite = new Product("하이트", 1400, 2800 * priceMultiplier, 7, 24);
+        kloud = new Product("클라우드", 1700, 3400 * priceMultiplier, 7, 24);
+        filgood = new Product("필굿", 1300, 2600 * priceMultiplier, 6, 24);
 
         // 소주 (1박스 = 20병)
         chamisul = new Product("참이슬", 1200, 2500 * priceMultiplier, 9, 20);
         cheumcherum = new Product("처음처럼", 1200, 2500 * priceMultiplier, 8, 20);
         jinro = new Product("진로", 1300, 2600 * priceMultiplier, 7, 20);
+        goodday = new Product("좋은데이", 1100, 2400 * priceMultiplier, 7, 20);
+        saero = new Product("새로", 1200, 2500 * priceMultiplier, 8, 20);
 
         // 간식/안주 (1박스 = 20개)
         driedSquid = new Product("마른오징어", 3000, 6000 * priceMultiplier, 6, 20);
         peanut = new Product("땅콩", 2000, 4000 * priceMultiplier, 5, 20);
         chip = new Product("감자칩", 1500, 3000 * priceMultiplier, 6, 20);
+        jerky = new Product("육포", 4000, 8000 * priceMultiplier, 7, 20);
+        sausageSnack = new Product("소시지안주", 2500, 5000 * priceMultiplier, 5, 20);
 
         // 고기 (1판 = 10팩)
         samgyupsal = new Product("삼겹살", 8000, 15000 * priceMultiplier, 10, 10);
         moksal = new Product("목살", 9000, 16000 * priceMultiplier, 9, 10);
         sausage = new Product("소세지", 3000, 6000 * priceMultiplier, 7, 10);
+        galbi = new Product("갈비", 12000, 22000 * priceMultiplier, 9, 10);
+        hangjeongsal = new Product("항정살", 10000, 18000 * priceMultiplier, 8, 10);
 
         // 해수욕 용품 (1묶음 = 5개)
         tube = new Product("튜브", 5000, 15000 * priceMultiplier, 7, 5);
         sunscreen = new Product("선크림", 8000, 20000 * priceMultiplier, 8, 5);
         beachBall = new Product("비치볼", 3000, 8000 * priceMultiplier, 5, 5);
+        goggles = new Product("수경", 4000, 12000 * priceMultiplier, 6, 5);
+        waterGun = new Product("물총", 3000, 10000 * priceMultiplier, 7, 5);
 
         // 식재료 (1박스 = 10개)
         ssamjang = new Product("쌈장", 2000, 4000 * priceMultiplier, 6, 10);
         lettuce = new Product("상추", 2000, 4000 * priceMultiplier, 7, 10);
         kimchi = new Product("김치", 3000, 6000 * priceMultiplier, 5, 10);
+        onion = new Product("양파", 1500, 3000 * priceMultiplier, 5, 10);
+        salt = new Product("소금", 1000, 2000 * priceMultiplier, 4, 10);
 
         // 라면 (1박스 = 40개)
         shinRamen = new Product("신라면", 800, 1500 * priceMultiplier, 8, 40);
         jinRamen = new Product("진라면", 700, 1400 * priceMultiplier, 7, 40);
         neoguri = new Product("너구리", 800, 1500 * priceMultiplier, 6, 40);
+        buldak = new Product("불닭볶음면", 900, 1700 * priceMultiplier, 8, 40);
+        chapagetti = new Product("짜파게티", 800, 1500 * priceMultiplier, 7, 40);
 
         // 아이스크림 (1박스 = 24개)
         melona = new Product("메로나", 500, 1200 * priceMultiplier, 7, 24);
         screwBar = new Product("스크류바", 600, 1300 * priceMultiplier, 6, 24);
         fishBread = new Product("붕어싸만코", 800, 1500 * priceMultiplier, 6, 24);
+        jewelBar = new Product("보석바", 500, 1200 * priceMultiplier, 6, 24);
+        watermelonBar = new Product("수박바", 500, 1200 * priceMultiplier, 7, 24);
 
         // 기타 - 폭죽 (1박스 = 10개)
         sparkler = new Product("불꽃막대", 3000, 8000 * priceMultiplier, 8, 10);
         romanCandle = new Product("로만캔들", 5000, 15000 * priceMultiplier, 9, 10);
         fountain = new Product("분수폭죽", 7000, 20000 * priceMultiplier, 8, 10);
+        fireworkSet = new Product("폭죽세트", 10000, 25000 * priceMultiplier, 9, 10);
+        smokeBomb = new Product("연막탄", 4000, 10000 * priceMultiplier, 7, 10);
 
         // 카테고리별 상품 배열 초기화
-        categoryDrink = new Product[]{cola, cider, water, pocari, ipro};
-        categoryBeer = new Product[]{cass, terra, hite};
-        categorySoju = new Product[]{chamisul, cheumcherum, jinro};
-        categorySnack = new Product[]{driedSquid, peanut, chip};
-        categoryMeat = new Product[]{samgyupsal, moksal, sausage};
-        categoryBeach = new Product[]{tube, sunscreen, beachBall};
-        categoryGrocery = new Product[]{ssamjang, lettuce, kimchi};
-        categoryRamen = new Product[]{shinRamen, jinRamen, neoguri};
-        categoryIcecream = new Product[]{melona, screwBar, fishBread};
-        categoryFirework = new Product[]{sparkler, romanCandle, fountain};
+        categoryDrink = new Product[]{cola, cider, water, pocari, ipro, fanta, milkis};
+        categoryBeer = new Product[]{cass, terra, hite, kloud, filgood};
+        categorySoju = new Product[]{chamisul, cheumcherum, jinro, goodday, saero};
+        categorySnack = new Product[]{driedSquid, peanut, chip, jerky, sausageSnack};
+        categoryMeat = new Product[]{samgyupsal, moksal, sausage, galbi, hangjeongsal};
+        categoryBeach = new Product[]{tube, sunscreen, beachBall, goggles, waterGun};
+        categoryGrocery = new Product[]{ssamjang, lettuce, kimchi, onion, salt};
+        categoryRamen = new Product[]{shinRamen, jinRamen, neoguri, buldak, chapagetti};
+        categoryIcecream = new Product[]{melona, screwBar, fishBread, jewelBar, watermelonBar};
+        categoryFirework = new Product[]{sparkler, romanCandle, fountain, fireworkSet, smokeBomb};
 
         // 전체 카테고리 배열 초기화 (순회용)
         allCategories = new Product[][]{
@@ -2454,16 +2688,16 @@ public class Main {
 
         // 전체 상품 배열 초기화 (순회용)
         allProducts = new Product[]{
-            cola, cider, water, pocari, ipro,
-            cass, terra, hite,
-            chamisul, cheumcherum, jinro,
-            driedSquid, peanut, chip,
-            samgyupsal, moksal, sausage,
-            tube, sunscreen, beachBall,
-            ssamjang, lettuce, kimchi,
-            shinRamen, jinRamen, neoguri,
-            melona, screwBar, fishBread,
-            sparkler, romanCandle, fountain
+            cola, cider, water, pocari, ipro, fanta, milkis,
+            cass, terra, hite, kloud, filgood,
+            chamisul, cheumcherum, jinro, goodday, saero,
+            driedSquid, peanut, chip, jerky, sausageSnack,
+            samgyupsal, moksal, sausage, galbi, hangjeongsal,
+            tube, sunscreen, beachBall, goggles, waterGun,
+            ssamjang, lettuce, kimchi, onion, salt,
+            shinRamen, jinRamen, neoguri, buldak, chapagetti,
+            melona, screwBar, fishBread, jewelBar, watermelonBar,
+            sparkler, romanCandle, fountain, fireworkSet, smokeBomb
         };
 
         // 상품 이름 맵 초기화 (O(1) 조회용)
@@ -2487,16 +2721,22 @@ public class Main {
         productMap.put("포카리스웨트", pocari);
         productMap.put("포카리", pocari);
         productMap.put("이프로", ipro);
+        productMap.put("환타", fanta);
+        productMap.put("밀키스", milkis);
 
         // 맥주
         productMap.put("카스", cass);
         productMap.put("테라", terra);
         productMap.put("하이트", hite);
+        productMap.put("클라우드", kloud);
+        productMap.put("필굿", filgood);
 
         // 소주
         productMap.put("참이슬", chamisul);
         productMap.put("처음처럼", cheumcherum);
         productMap.put("진로", jinro);
+        productMap.put("좋은데이", goodday);
+        productMap.put("새로", saero);
 
         // 간식/안주
         productMap.put("마른오징어", driedSquid);
@@ -2505,37 +2745,52 @@ public class Main {
         productMap.put("감자칩", chip);
         productMap.put("과자", chip);
         productMap.put("칩", chip);
+        productMap.put("육포", jerky);
+        productMap.put("소시지안주", sausageSnack);
 
         // 고기
         productMap.put("삼겹살", samgyupsal);
         productMap.put("목살", moksal);
         productMap.put("소세지", sausage);
+        productMap.put("갈비", galbi);
+        productMap.put("항정살", hangjeongsal);
 
         // 해수욕 용품
         productMap.put("튜브", tube);
         productMap.put("선크림", sunscreen);
         productMap.put("비치볼", beachBall);
+        productMap.put("수경", goggles);
+        productMap.put("물총", waterGun);
 
         // 식재료
         productMap.put("쌈장", ssamjang);
         productMap.put("상추", lettuce);
         productMap.put("김치", kimchi);
+        productMap.put("양파", onion);
+        productMap.put("소금", salt);
 
         // 라면
         productMap.put("신라면", shinRamen);
         productMap.put("진라면", jinRamen);
         productMap.put("너구리", neoguri);
+        productMap.put("불닭볶음면", buldak);
+        productMap.put("불닭", buldak);
+        productMap.put("짜파게티", chapagetti);
 
         // 아이스크림
         productMap.put("메로나", melona);
         productMap.put("스크류바", screwBar);
         productMap.put("붕어싸만코", fishBread);
         productMap.put("붕어", fishBread);
+        productMap.put("보석바", jewelBar);
+        productMap.put("수박바", watermelonBar);
 
         // 폭죽
         productMap.put("불꽃막대", sparkler);
         productMap.put("로만캔들", romanCandle);
         productMap.put("분수폭죽", fountain);
+        productMap.put("폭죽세트", fireworkSet);
+        productMap.put("연막탄", smokeBomb);
     }
 
     /// <summary>

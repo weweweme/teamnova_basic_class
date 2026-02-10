@@ -2089,17 +2089,16 @@ public class Main {
         int failCount = 0;       // 판매 실패 건수
         boolean bigEventOccurred = false;  // 빅 이벤트 발생 여부
 
-        // 빅 이벤트 체크 (직접 영업: 20% 확률)
-        if (checkBigEvent(20)) {
-            bigEventOccurred = true;
-            System.out.println();
-            System.out.println("★★★ 빅 이벤트 발생! ★★★");
-            System.out.println("대량 주문이 들어왔습니다!");
-            Util.delay(1000);
-        }
-
         // 손님 응대 루프
         for (int customerNum = 1; customerNum <= todayCustomers; customerNum++) {
+
+            // 손님 절반쯤 지났을 때 빅 이벤트 체크 (20% 확률)
+            if (!bigEventOccurred && customerNum == todayCustomers / 2) {
+                if (checkBigEvent(20)) {
+                    bigEventOccurred = true;
+                    Util.delay(1000);
+                }
+            }
 
             // 랜덤 손님 유형 (0: 가족, 1: 커플, 2: 친구들, 3: 혼자)
             int customerType = Util.rand(4);
@@ -2438,19 +2437,52 @@ public class Main {
 
         if (eventType == 0) {
             // 단체 주문: 음료, 안주 대량 판매
+            System.out.println();
+            System.out.println("========================================");
+            System.out.println("      *** 전화가 왔습니다! ***");
+            System.out.println("========================================");
+            System.out.println("\"여기 수련회인데요, 대량 주문할게요!\"");
+            System.out.println();
             int bonus = sellBulk(categoryDrink, 10 + Util.rand(10));
             bonus = bonus + sellBulk(categorySnack, 5 + Util.rand(5));
+            if (bonus > 0) {
+                System.out.printf(">> 단체 주문 매출: %,d원%n", bonus);
+            } else {
+                System.out.println(">> 재고 부족으로 주문 처리 실패...");
+            }
             return bonus > 0;
         } else if (eventType == 1) {
             // 펜션 배달: 고기, 음료, 식재료 판매
+            System.out.println();
+            System.out.println("========================================");
+            System.out.println("      *** 전화가 왔습니다! ***");
+            System.out.println("========================================");
+            System.out.println("\"펜션에서 바베큐 세트 배달 부탁드려요!\"");
+            System.out.println();
             int bonus = sellBulk(categoryMeat, 5 + Util.rand(5));
             bonus = bonus + sellBulk(categoryDrink, 5 + Util.rand(5));
             bonus = bonus + sellBulk(categoryGrocery, 3 + Util.rand(3));
+            if (bonus > 0) {
+                System.out.printf(">> 펜션 배달 매출: %,d원%n", bonus);
+            } else {
+                System.out.println(">> 재고 부족으로 배달 실패...");
+            }
             return bonus > 0;
         } else {
             // 축제 시즌: 폭죽, 맥주 대량 판매
+            System.out.println();
+            System.out.println("========================================");
+            System.out.println("    *** 불꽃축제 시즌입니다! ***");
+            System.out.println("========================================");
+            System.out.println("\"축제 준비물 사러 왔어요!\"");
+            System.out.println();
             int bonus = sellBulk(categoryFirework, 5 + Util.rand(10));
             bonus = bonus + sellBulk(categoryBeer, 10 + Util.rand(10));
+            if (bonus > 0) {
+                System.out.printf(">> 축제 시즌 매출: %,d원%n", bonus);
+            } else {
+                System.out.println(">> 재고 부족으로 판매 실패...");
+            }
             return bonus > 0;
         }
     }

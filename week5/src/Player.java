@@ -34,4 +34,10 @@ public abstract class Player {
     /// null 반환 시 게임 종료 요청
     /// </summary>
     public abstract Move chooseMove(Board board);
+
+    /// <summary>
+    /// 폰 프로모션 시 승격할 기물 선택
+    /// 1: 퀸, 2: 룩, 3: 비숍, 4: 나이트
+    /// </summary>
+    public abstract int choosePromotion(Board board);
 }

@@ -58,6 +58,12 @@ public class Game {
             // 이동 실행
             board.executeMove(move);
 
+            // 프로모션 확인 (폰이 끝 줄에 도착하면 승격)
+            if (board.isPromotion(move)) {
+                int choice = currentPlayer.choosePromotion(board);
+                board.promote(move.toRow, move.toCol, choice);
+            }
+
             // 상대 색상
             int opponentColor = (currentPlayer.color == Piece.RED) ? Piece.BLUE : Piece.RED;
 
@@ -72,10 +78,15 @@ public class Game {
                 break;
             }
 
-            // 체크 알림
-            if (board.isInCheck(opponentColor)) {
-                // 다음 턴에서 체크 상태 표시를 위해 기록
-                // (화면은 다음 chooseMove에서 다시 그려짐)
+            // 스테일메이트 확인 (무승부)
+            if (board.isStalemate(opponentColor)) {
+                Util.clearScreen();
+                board.print();
+                System.out.println();
+                System.out.println("========================================");
+                System.out.println("  스테일메이트! 무승부!");
+                System.out.println("========================================");
+                break;
             }
 
             // 턴 교대

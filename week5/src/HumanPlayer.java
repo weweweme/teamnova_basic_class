@@ -159,6 +159,29 @@ public class HumanPlayer extends Player {
         return new int[]{newRow, newCol};
     }
 
+    // ========== 프로모션 ==========
+
+    /// <summary>
+    /// 폰 프로모션 시 승격할 기물을 선택
+    /// 숫자 키(1~4)로 선택
+    /// </summary>
+    @Override
+    public int choosePromotion(Board board) {
+        Util.clearScreen();
+        board.print();
+        System.out.println();
+        System.out.println("프로모션! 승격할 기물을 선택하세요:");
+        System.out.println("[1] 퀸  [2] 룩  [3] 비숍  [4] 나이트");
+
+        // 유효한 키가 입력될 때까지 반복
+        while (true) {
+            int key = Util.readInt();
+            if (key >= 1 && key <= 4) {
+                return key;
+            }
+        }
+    }
+
     // ========== 유틸 ==========
 
     /// <summary>

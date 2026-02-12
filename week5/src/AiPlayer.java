@@ -113,6 +113,16 @@ public class AiPlayer extends Player {
         return allMoves[Util.rand(allMoves.length)];
     }
 
+    // ========== 프로모션 ==========
+
+    /// <summary>
+    /// AI는 항상 퀸으로 승격 (가장 강한 기물)
+    /// </summary>
+    @Override
+    public int choosePromotion(Board board) {
+        return 1;
+    }
+
     // ========== 시뮬레이션 ==========
 
     /// <summary>

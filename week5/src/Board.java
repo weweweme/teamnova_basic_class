@@ -16,6 +16,9 @@ public class Board {
     // 8x8 격자 (빈 칸은 null)
     public Piece[][] grid;
 
+    // 마지막으로 실행된 수 (앙파상 판정에 사용)
+    private Move lastMove;
+
     // ========== 생성자 ==========
 
     /// <summary>
@@ -23,6 +26,7 @@ public class Board {
     /// </summary>
     public Board() {
         grid = new Piece[SIZE][SIZE];
+        lastMove = null;
         initPieces();
     }
 
@@ -188,10 +192,23 @@ public class Board {
 
     /// <summary>
     /// 이동 실행 (기물 옮기기 + 잡기 처리)
-    /// 기물의 위치 정보와 hasMoved 상태도 갱신
+    /// 캐슬링, 앙파상 등 특수 이동도 자동 감지하여 처리
     /// </summary>
     public void executeMove(Move move) {
         Piece piece = grid[move.fromRow][move.fromCol];
+
+        // 캐슬링 감지 (킹이 2칸 이동)
+        if (piece instanceof King && Math.abs(move.toCol - move.fromCol) == 2) {
+            executeCastling(move);
+            lastMove = move;
+            return;
+        }
+
+        // 앙파상 감지 (폰이 대각선으로 빈 칸에 이동)
+        if (piece instanceof Pawn && move.fromCol != move.toCol && grid[move.toRow][move.toCol] == null) {
+            // 잡힌 폰 제거 (이동 전 행, 도착 열에 있는 상대 폰)
+            grid[move.fromRow][move.toCol] = null;
+        }
 
         // 도착 칸에 기물 배치 (적군이 있으면 잡기)
         grid[move.toRow][move.toCol] = piece;
@@ -201,13 +218,90 @@ public class Board {
         piece.row = move.toRow;
         piece.col = move.toCol;
         piece.hasMoved = true;
+
+        lastMove = move;
+    }
+
+    /// <summary>
+    /// 캐슬링 실행 (킹과 룩을 동시에 이동)
+    /// 킹사이드: 킹 e→g, 룩 h→f
+    /// 퀸사이드: 킹 e→c, 룩 a→d
+    /// </summary>
+    private void executeCastling(Move move) {
+        Piece king = grid[move.fromRow][move.fromCol];
+
+        // 킹 이동
+        grid[move.toRow][move.toCol] = king;
+        grid[move.fromRow][move.fromCol] = null;
+        king.row = move.toRow;
+        king.col = move.toCol;
+        king.hasMoved = true;
+
+        if (move.toCol > move.fromCol) {
+            // 킹사이드: 룩 h열(7) → f열(5)
+            Piece rook = grid[move.fromRow][7];
+            grid[move.fromRow][5] = rook;
+            grid[move.fromRow][7] = null;
+            rook.row = move.fromRow;
+            rook.col = 5;
+            rook.hasMoved = true;
+        } else {
+            // 퀸사이드: 룩 a열(0) → d열(3)
+            Piece rook = grid[move.fromRow][0];
+            grid[move.fromRow][3] = rook;
+            grid[move.fromRow][0] = null;
+            rook.row = move.fromRow;
+            rook.col = 3;
+            rook.hasMoved = true;
+        }
+    }
+
+    // ========== 프로모션 ==========
+
+    /// <summary>
+    /// 마지막 이동이 프로모션 대상인지 확인
+    /// 폰이 상대편 끝 줄에 도착하면 프로모션
+    /// </summary>
+    public boolean isPromotion(Move move) {
+        Piece piece = grid[move.toRow][move.toCol];
+        if (!(piece instanceof Pawn)) {
+            return false;
+        }
+        // 빨간팀은 0행(8번 줄), 파란팀은 7행(1번 줄)이 끝
+        return (piece.color == Piece.RED && move.toRow == 0) ||
+               (piece.color == Piece.BLUE && move.toRow == 7);
+    }
+
+    /// <summary>
+    /// 폰을 선택한 기물로 승격
+    /// 1: 퀸, 2: 룩, 3: 비숍, 4: 나이트
+    /// </summary>
+    public void promote(int row, int col, int choice) {
+        int color = grid[row][col].color;
+        switch (choice) {
+            case 1:
+                grid[row][col] = new Queen(color, row, col);
+                break;
+            case 2:
+                grid[row][col] = new Rook(color, row, col);
+                break;
+            case 3:
+                grid[row][col] = new Bishop(color, row, col);
+                break;
+            case 4:
+                grid[row][col] = new Knight(color, row, col);
+                break;
+        }
+        // 승격된 기물은 이미 이동한 상태
+        grid[row][col].hasMoved = true;
     }
 
     // ========== 이동 유효성 ==========
 
     /// <summary>
-    /// 특정 기물의 이동 가능한 칸 중 자기 킹이 위험해지지 않는 수만 반환
-    /// 실제로 플레이어가 선택할 수 있는 합법적인 수 목록
+    /// 특정 기물의 합법적인 이동 가능 칸 목록 반환
+    /// 기본 이동 규칙 + 특수 규칙(캐슬링, 앙파상) 포함
+    /// 자기 킹이 위험해지는 수는 제외
     /// </summary>
     public int[][] getFilteredMoves(int row, int col) {
         Piece piece = grid[row][col];
@@ -226,12 +320,22 @@ public class Board {
             }
         }
 
+        // 캐슬링 (킹이 아직 움직이지 않았을 때만)
+        if (piece instanceof King && !piece.hasMoved) {
+            addCastlingMoves(piece, filtered);
+        }
+
+        // 앙파상 (폰일 때만)
+        if (piece instanceof Pawn) {
+            addEnPassantMoves(piece, row, col, filtered);
+        }
+
         return filtered.toArray(new int[0][]);
     }
 
     /// <summary>
     /// 특정 색상의 모든 합법적인 수 목록 반환
-    /// 각 기물의 이동 가능한 수 중 자기 킹이 위험해지지 않는 수만 포함
+    /// 캐슬링, 앙파상 등 특수 규칙도 포함
     /// </summary>
     public Move[] getAllValidMoves(int color) {
         ArrayList<Move> allMoves = new ArrayList<>();
@@ -243,12 +347,10 @@ public class Board {
                     continue;
                 }
 
-                int[][] pieceMoves = piece.getValidMoves(grid);
-                for (int[] dest : pieceMoves) {
-                    Move move = new Move(r, c, dest[0], dest[1]);
-                    if (!wouldBeInCheck(move, color)) {
-                        allMoves.add(move);
-                    }
+                // getFilteredMoves가 캐슬링, 앙파상도 포함하여 반환
+                int[][] moves = getFilteredMoves(r, c);
+                for (int[] dest : moves) {
+                    allMoves.add(new Move(r, c, dest[0], dest[1]));
                 }
             }
         }
@@ -285,7 +387,146 @@ public class Board {
         return inCheck;
     }
 
-    // ========== 체크 / 체크메이트 ==========
+    // ========== 캐슬링 ==========
+
+    /// <summary>
+    /// 캐슬링 가능한 수를 목록에 추가
+    /// 조건: 킹/룩 미이동, 사이에 기물 없음, 체크 아님, 경유 칸 공격 안 받음
+    /// </summary>
+    private void addCastlingMoves(Piece king, ArrayList<int[]> moves) {
+        int row = king.row;
+        int opponentColor = (king.color == Piece.RED) ? Piece.BLUE : Piece.RED;
+
+        // 현재 체크 상태면 캐슬링 불가
+        if (isInCheck(king.color)) {
+            return;
+        }
+
+        // 킹사이드 캐슬링 (킹: e→g, 룩: h→f)
+        Piece kingsideRook = grid[row][7];
+        if (kingsideRook instanceof Rook && !kingsideRook.hasMoved) {
+            // f열, g열이 비어있는지 확인
+            if (grid[row][5] == null && grid[row][6] == null) {
+                // f열, g열이 공격받지 않는지 확인
+                if (!isSquareAttacked(row, 5, opponentColor) &&
+                    !isSquareAttacked(row, 6, opponentColor)) {
+                    moves.add(new int[]{row, 6});
+                }
+            }
+        }
+
+        // 퀸사이드 캐슬링 (킹: e→c, 룩: a→d)
+        Piece queensideRook = grid[row][0];
+        if (queensideRook instanceof Rook && !queensideRook.hasMoved) {
+            // b열, c열, d열이 비어있는지 확인
+            if (grid[row][1] == null && grid[row][2] == null && grid[row][3] == null) {
+                // c열, d열이 공격받지 않는지 확인
+                if (!isSquareAttacked(row, 2, opponentColor) &&
+                    !isSquareAttacked(row, 3, opponentColor)) {
+                    moves.add(new int[]{row, 2});
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 특정 칸이 상대 기물에게 공격받고 있는지 확인
+    /// 캐슬링 경유 칸 검증에 사용
+    /// </summary>
+    private boolean isSquareAttacked(int row, int col, int attackerColor) {
+        for (int r = 0; r < SIZE; r++) {
+            for (int c = 0; c < SIZE; c++) {
+                Piece piece = grid[r][c];
+                if (piece == null || piece.color != attackerColor) {
+                    continue;
+                }
+
+                // 해당 기물의 이동 가능한 칸에 목표 칸이 포함되면 공격받는 것
+                int[][] pieceMoves = piece.getValidMoves(grid);
+                for (int[] move : pieceMoves) {
+                    if (move[0] == row && move[1] == col) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    // ========== 앙파상 ==========
+
+    /// <summary>
+    /// 앙파상 가능한 수를 목록에 추가
+    /// 상대 폰이 바로 직전에 2칸 전진했고, 이 폰이 옆에 있으면 앙파상 가능
+    /// </summary>
+    private void addEnPassantMoves(Piece pawn, int row, int col, ArrayList<int[]> moves) {
+        if (lastMove == null) {
+            return;
+        }
+
+        // 마지막으로 이동한 기물이 폰인지 확인
+        Piece lastPiece = grid[lastMove.toRow][lastMove.toCol];
+        if (!(lastPiece instanceof Pawn)) {
+            return;
+        }
+
+        // 상대 폰이 2칸 전진했는지 확인
+        if (Math.abs(lastMove.toRow - lastMove.fromRow) != 2) {
+            return;
+        }
+
+        // 같은 행에 있고 인접한 열에 있는지 확인
+        if (lastMove.toRow != row) {
+            return;
+        }
+        if (Math.abs(lastMove.toCol - col) != 1) {
+            return;
+        }
+
+        // 앙파상 도착 칸 (상대 폰이 지나온 빈 칸)
+        int direction = (pawn.color == Piece.RED) ? -1 : 1;
+        int enPassantRow = row + direction;
+        int enPassantCol = lastMove.toCol;
+
+        // 자기 킹이 위험해지지 않는지 확인 (앙파상은 잡히는 위치가 다르므로 별도 확인)
+        Move enPassantMove = new Move(row, col, enPassantRow, enPassantCol);
+        if (!wouldBeInCheckEnPassant(enPassantMove, pawn.color, lastMove.toRow, lastMove.toCol)) {
+            moves.add(new int[]{enPassantRow, enPassantCol});
+        }
+    }
+
+    /// <summary>
+    /// 앙파상 수를 두면 자기 킹이 체크 상태가 되는지 시뮬레이션
+    /// 일반 이동과 다르게 잡히는 폰이 도착 칸이 아닌 옆 칸에 있으므로 별도 처리
+    /// </summary>
+    private boolean wouldBeInCheckEnPassant(Move move, int color, int capturedRow, int capturedCol) {
+        // 원래 상태 저장
+        Piece movingPiece = grid[move.fromRow][move.fromCol];
+        Piece capturedPiece = grid[capturedRow][capturedCol];
+        int origRow = movingPiece.row;
+        int origCol = movingPiece.col;
+
+        // 임시로 이동 + 잡힌 폰 제거
+        grid[move.toRow][move.toCol] = movingPiece;
+        grid[move.fromRow][move.fromCol] = null;
+        grid[capturedRow][capturedCol] = null;
+        movingPiece.row = move.toRow;
+        movingPiece.col = move.toCol;
+
+        // 체크 상태 확인
+        boolean inCheck = isInCheck(color);
+
+        // 원래 상태로 복원
+        grid[move.fromRow][move.fromCol] = movingPiece;
+        grid[move.toRow][move.toCol] = null;
+        grid[capturedRow][capturedCol] = capturedPiece;
+        movingPiece.row = origRow;
+        movingPiece.col = origCol;
+
+        return inCheck;
+    }
+
+    // ========== 체크 / 체크메이트 / 스테일메이트 ==========
 
     /// <summary>
     /// 특정 색상의 킹이 체크 상태인지 확인
@@ -327,6 +568,17 @@ public class Board {
     /// </summary>
     public boolean isCheckmate(int color) {
         if (!isInCheck(color)) {
+            return false;
+        }
+        return getAllValidMoves(color).length == 0;
+    }
+
+    /// <summary>
+    /// 특정 색상이 스테일메이트(무승부) 상태인지 확인
+    /// 체크가 아닌데 합법적인 수가 하나도 없으면 스테일메이트
+    /// </summary>
+    public boolean isStalemate(int color) {
+        if (isInCheck(color)) {
             return false;
         }
         return getAllValidMoves(color).length == 0;

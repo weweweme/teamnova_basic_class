@@ -32,6 +32,10 @@ public class HumanPlayer extends Player {
             board.print(cursorRow, cursorCol);
             System.out.println();
             System.out.println(name + "의 차례 (" + getColorName() + ")");
+            // 체크 상태 경고
+            if (board.isInCheck(color)) {
+                System.out.println(">> 체크! 킹을 보호하세요!");
+            }
             System.out.println("방향키: 이동 | Enter: 선택 | q: 종료");
 
             int key = Util.readKey();

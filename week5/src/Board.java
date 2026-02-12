@@ -19,6 +19,9 @@ public class Board {
     // 마지막으로 실행된 수 (앙파상 판정에 사용)
     private Move lastMove;
 
+    // 잡힌 기물 목록 (잡은 기물 표시에 사용)
+    private ArrayList<Piece> capturedPieces;
+
     // ========== 생성자 ==========
 
     /// <summary>
@@ -27,6 +30,7 @@ public class Board {
     public Board() {
         grid = new Piece[SIZE][SIZE];
         lastMove = null;
+        capturedPieces = new ArrayList<>();
         initPieces();
     }
 
@@ -112,6 +116,44 @@ public class Board {
 
         // 하단 열 표시
         System.out.println("     a   b   c   d   e   f   g   h");
+
+        // 잡은 기물 표시
+        printCapturedPieces();
+    }
+
+    /// <summary>
+    /// 잡힌 기물을 팀별로 표시
+    /// 가치 높은 순으로 정렬하여 보여줌
+    /// </summary>
+    private void printCapturedPieces() {
+        if (capturedPieces.isEmpty()) {
+            return;
+        }
+
+        // 복사본을 만들어 가치 높은 순으로 정렬
+        ArrayList<Piece> sorted = new ArrayList<>(capturedPieces);
+        sorted.sort((a, b) -> b.value - a.value);
+
+        StringBuilder redCaptures = new StringBuilder();   // 빨간팀이 잡은 기물 (파란색)
+        StringBuilder blueCaptures = new StringBuilder();  // 파란팀이 잡은 기물 (빨간색)
+
+        for (Piece p : sorted) {
+            if (p.color == Piece.BLUE) {
+                // 파란 기물이 잡힘 → 빨간팀이 잡은 것
+                redCaptures.append(Util.BLUE).append(p.symbol).append(Util.RESET).append(" ");
+            } else {
+                // 빨간 기물이 잡힘 → 파란팀이 잡은 것
+                blueCaptures.append(Util.RED).append(p.symbol).append(Util.RESET).append(" ");
+            }
+        }
+
+        System.out.println();
+        if (redCaptures.length() > 0) {
+            System.out.println("  " + Util.RED + "빨간팀" + Util.RESET + " 획득: " + redCaptures.toString().trim());
+        }
+        if (blueCaptures.length() > 0) {
+            System.out.println("  " + Util.BLUE + "파란팀" + Util.RESET + " 획득: " + blueCaptures.toString().trim());
+        }
     }
 
     /// <summary>
@@ -206,11 +248,18 @@ public class Board {
 
         // 앙파상 감지 (폰이 대각선으로 빈 칸에 이동)
         if (piece instanceof Pawn && move.fromCol != move.toCol && grid[move.toRow][move.toCol] == null) {
-            // 잡힌 폰 제거 (이동 전 행, 도착 열에 있는 상대 폰)
+            // 잡힌 폰 기록 및 제거
+            capturedPieces.add(grid[move.fromRow][move.toCol]);
             grid[move.fromRow][move.toCol] = null;
         }
 
-        // 도착 칸에 기물 배치 (적군이 있으면 잡기)
+        // 일반 잡기 기록
+        Piece captured = grid[move.toRow][move.toCol];
+        if (captured != null) {
+            capturedPieces.add(captured);
+        }
+
+        // 도착 칸에 기물 배치
         grid[move.toRow][move.toCol] = piece;
         grid[move.fromRow][move.fromCol] = null;
 

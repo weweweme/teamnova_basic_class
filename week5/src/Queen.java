@@ -11,6 +11,7 @@ public class Queen extends Piece {
         super(color, row, col);
         this.name = "퀸";
         this.symbol = (color == RED) ? "Q" : "q";
+        this.value = 9;
     }
 
     // ========== 이동 규칙 ==========

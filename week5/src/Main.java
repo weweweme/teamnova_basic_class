@@ -30,11 +30,17 @@ public class Main {
                 case 2:
                     // AI 대전 - 색상 선택
                     int color = selectColor();
-                    if (color != 0) {
-                        Util.clearScreen();
-                        startGame();
-                        running = false;
+                    if (color == 0) {
+                        break;
                     }
+                    // 난이도 선택 (-1이면 돌아가기)
+                    int difficulty = selectDifficulty();
+                    if (difficulty == -1) {
+                        break;
+                    }
+                    Util.clearScreen();
+                    startAiGame(color, difficulty);
+                    running = false;
                     break;
                 default:
                     // 0 → 종료
@@ -57,6 +63,29 @@ public class Main {
     private static void startGame() {
         Player red = new HumanPlayer(Piece.RED, "플레이어 1");
         Player blue = new HumanPlayer(Piece.BLUE, "플레이어 2");
+        Game game = new Game(red, blue);
+        game.run();
+    }
+
+    /// <summary>
+    /// AI 대전 게임 시작
+    /// 선택한 색상에 따라 사람/AI 배치
+    /// 1: 플레이어가 빨간팀(선공), 2: 플레이어가 파란팀(후공)
+    /// </summary>
+    private static void startAiGame(int playerColor, int difficulty) {
+        Player red;
+        Player blue;
+
+        if (playerColor == 1) {
+            // 플레이어가 빨간팀(선공), AI가 파란팀
+            red = new HumanPlayer(Piece.RED, "플레이어");
+            blue = new AiPlayer(Piece.BLUE, "AI", difficulty);
+        } else {
+            // AI가 빨간팀(선공), 플레이어가 파란팀
+            red = new AiPlayer(Piece.RED, "AI", difficulty);
+            blue = new HumanPlayer(Piece.BLUE, "플레이어");
+        }
+
         Game game = new Game(red, blue);
         game.run();
     }
@@ -99,6 +128,33 @@ public class Main {
             int key = Util.readInt();
             if (key == 0 || key == 1 || key == 2) {
                 return key;
+            }
+        }
+    }
+
+    /// <summary>
+    /// AI 난이도 선택
+    /// 1: 쉬움(랜덤), 2: 보통(전략), 0: 돌아가기
+    /// 유효한 키가 눌릴 때까지 대기
+    /// </summary>
+    private static int selectDifficulty() {
+        System.out.println();
+        System.out.println("난이도를 선택하세요:");
+        System.out.println("[1] 쉬움");
+        System.out.println("[2] 보통");
+        System.out.println("[0] 돌아가기");
+
+        // 유효한 키가 입력될 때까지 반복
+        while (true) {
+            int key = Util.readInt();
+            if (key == 0) {
+                return -1;  // 돌아가기
+            }
+            if (key == 1) {
+                return AiPlayer.EASY;
+            }
+            if (key == 2) {
+                return AiPlayer.NORMAL;
             }
         }
     }

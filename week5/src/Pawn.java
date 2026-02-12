@@ -12,6 +12,7 @@ public class Pawn extends Piece {
         super(color, row, col);
         this.name = "폰";
         this.symbol = (color == RED) ? "P" : "p";
+        this.value = 1;
     }
 
     // ========== 이동 규칙 ==========

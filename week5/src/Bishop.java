@@ -11,6 +11,7 @@ public class Bishop extends Piece {
         super(color, row, col);
         this.name = "비숍";
         this.symbol = (color == RED) ? "B" : "b";
+        this.value = 3;
     }
 
     // ========== 이동 규칙 ==========

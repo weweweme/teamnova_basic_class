@@ -21,6 +21,7 @@ public class Knight extends Piece {
         super(color, row, col);
         this.name = "나이트";
         this.symbol = (color == RED) ? "N" : "n";
+        this.value = 3;
     }
 
     // ========== 이동 규칙 ==========

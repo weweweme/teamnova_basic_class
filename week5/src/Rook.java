@@ -12,6 +12,7 @@ public class Rook extends Piece {
         this.name = "룩";
         // 빨간팀은 대문자, 파란팀은 소문자
         this.symbol = (color == RED) ? "R" : "r";
+        this.value = 5;
     }
 
     // ========== 이동 규칙 ==========

@@ -20,6 +20,7 @@ public class King extends Piece {
         super(color, row, col);
         this.name = "킹";
         this.symbol = (color == RED) ? "K" : "k";
+        this.value = 0;
     }
 
     // ========== 이동 규칙 ==========

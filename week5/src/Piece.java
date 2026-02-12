@@ -35,6 +35,10 @@ public abstract class Piece {
     // 이 기물이 한 번이라도 움직였는지 (캐슬링, 폰 첫 이동 판정에 사용)
     public boolean hasMoved;
 
+    // 기물의 가치 (AI가 기물 잡기 우선순위를 정할 때 사용)
+    // 퀸9 > 룩5 > 비숍3 = 나이트3 > 폰1, 킹은 0 (잡을 수 없음)
+    public int value;
+
     // 이동 가능한 칸 목록 (매번 새로 만들지 않고 재사용)
     protected ArrayList<int[]> moves = new ArrayList<>();
 

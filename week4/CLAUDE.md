@@ -166,9 +166,10 @@ java -cp out Main
 
 ### 설계 원칙
 
-- **손님이 직접 고른다**: Customer가 매대(Display)에서 상품을 직접 선택 (`pickProducts`)
-- **캐셔는 계산만**: Cashier는 손님이 가져온 상품의 결제만 처리 (`checkout`)
-- **가게가 영업**: Market이 영업 주관 (손님 입장 → 매대에서 상품 선택 → 캐셔 결제 → 매출 반환)
+- **손님이 직접 고른다**: Customer가 매대(Display)에서 상품을 바구니(basket)에 직접 담음 (`pickProducts`)
+- **바구니 흐름**: Market이 바구니 보유 → 손님에게 전달 → 손님이 물건 담음 → 바구니째 캐셔에게 전달
+- **캐셔는 계산만**: Cashier는 바구니를 받아 금액만 계산 (`checkout`), 재고 확인/차감 하지 않음
+- **가게가 영업**: Market이 영업 주관 (손님 입장 → 바구니에 상품 담기 → 캐셔 결제 → 매출 반환)
 - **돈은 반환 방식**: Market이 영업 후 매출을 GameManager에게 반환 (`money += market.startBusiness()`)
 
 ### 클래스 구조
@@ -188,13 +189,13 @@ Main (타이틀 화면 + 게임 모드 선택)
 |--------|------|
 | `Main` | 타이틀 화면 + 게임 모드(기본/커스텀) 선택 → GameManager 생성 |
 | `GameManager` | 게임 루프, 시간 관리(아침/낮/밤), 승리/패배 판정, 게임 상태(money/day) 보유 |
-| `Market` | 가게 전체: 영업(손님→캐셔→매출 반환) + 메뉴 UI + 창고/매대/캐셔 소유 + 재고 관리 + 빅이벤트 |
-| `ProductCatalog` | 상품 50개 + 카테고리 10개 데이터, 상품명 검색(Map) |
+| `Market` | 가게 전체: 영업(손님→바구니→캐셔→매출 반환) + 메뉴 UI + 창고/매대/캐셔/바구니 소유 + 재고 관리 + 빅이벤트 |
+| `ProductCatalog` | 상품 50개 + 카테고리 10개 데이터, 상품명 검색(Map), 카테고리 메뉴 출력 |
 | `Wholesaler` | 도매상 카테고리별 구매, 자동주문 정책 설정/실행 |
-| `Cashier` | 결제 전용: 상품 합산 → 매대 재고 차감 → 결과(매출/이익/성공/실패) 반환 |
-| `Customer` | 손님 데이터 + 유형별 쇼핑 패턴 + 매대에서 직접 상품 선택(pickProducts), 인사말 상수 |
-| `Product` | 상품 데이터 (이름, 매입가, 판매가, 인기도, 박스크기) |
-| `Category` | 카테고리 데이터 (이름, 상품 배열, 자동주문 정책, 인덱스 상수) |
+| `Cashier` | 결제 전용: 바구니(Map)를 받아 금액 계산 → 결과(매출/이익) 반환 |
+| `Customer` | 손님 데이터 + 유형별 쇼핑 패턴 + 매대에서 바구니에 상품 담기(pickProducts), 인사말 상수 |
+| `Product` | 상품 데이터 (이름, 매입가, 판매가, 인기도, 박스당수량) |
+| `Category` | 카테고리 데이터 (이름, 포장이름, 수량접미사, 상품 배열, 자동주문 정책, 인덱스 상수) |
 | `Warehouse` | 창고 재고 관리 (HashMap 기반) |
 | `Display` | 매대 슬롯 관리 (진열/판매/회수) |
 | `Util` | 유틸리티 (입력, 랜덤, 딜레이, 화면 클리어 등) |
@@ -266,9 +267,9 @@ flowchart TD
     Market"]
     Biz --> BizLoop["영업 진행
     Market"]
-    BizLoop --> CustEnter["손님 입장 + 매대에서 상품 선택
+    BizLoop --> CustEnter["손님 입장 + 바구니에 상품 담기
     Customer"]
-    CustEnter --> Checkout["캐셔 결제
+    CustEnter --> Checkout["바구니 결제
     Cashier"]
     Checkout --> Event{빅 이벤트?}
     Event -->|Yes| BigEvent["대량 판매

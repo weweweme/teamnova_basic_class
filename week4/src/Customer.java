@@ -1,3 +1,5 @@
+import java.util.Map;
+
 /// <summary>
 /// 손님 클래스
 /// 유형(가족, 커플, 친구, 혼자)에 따라 구매 패턴이 다름
@@ -246,7 +248,7 @@ public class Customer {
     /// verbose=false: 출력 없이 처리 (빠른 영업용)
     /// </summary>
     /// <returns>int[2] = {성공건수, 실패건수}</returns>
-    public int[] pickProducts(Display display, Category[] allCategories, boolean verbose) {
+    public int[] pickProducts(Display display, Category[] allCategories, Map<Product, Integer> basket, boolean verbose) {
         int successCount = 0;
         int failCount = 0;
 
@@ -264,23 +266,22 @@ public class Customer {
                 if (verbose) {
                     System.out.printf(" - %s 쪽은 다 떨어졌네...%n", cat.name);
                 }
-                wantAmounts[i] = 0;
                 failCount++;
                 continue;
             }
 
-            wantProducts[i] = product;
             int stock = display.getDisplayed(product);
             int wanted = wantAmounts[i];
 
             if (stock >= wanted) {
                 // 원하는 만큼 전부 가져감
                 display.sell(product, wanted);
+                basket.put(product, basket.getOrDefault(product, 0) + wanted);
                 successCount++;
             } else {
                 // 있는 만큼만 가져감
                 display.sell(product, stock);
-                wantAmounts[i] = stock;
+                basket.put(product, basket.getOrDefault(product, 0) + stock);
                 successCount++;
                 failCount++;
                 if (verbose) {
@@ -289,9 +290,9 @@ public class Customer {
             }
         }
 
-        // 고른 상품 목록 출력
+        // 바구니에 담은 상품 목록 출력
         if (verbose) {
-            showPickedProducts();
+            showPickedProducts(basket);
         }
 
         return new int[]{successCount, failCount};
@@ -338,14 +339,12 @@ public class Customer {
     }
 
     /// <summary>
-    /// 매대에서 고른 상품 목록 출력
+    /// 바구니에 담은 상품 목록 출력
     /// </summary>
-    public void showPickedProducts() {
+    private void showPickedProducts(Map<Product, Integer> basket) {
         System.out.println("고른 상품:");
-        for (int i = 0; i < wantCount; i++) {
-            if (wantAmounts[i] > 0 && wantProducts[i] != null) {
-                System.out.println(" - " + wantProducts[i].name + " " + wantAmounts[i] + "개");
-            }
+        for (Map.Entry<Product, Integer> entry : basket.entrySet()) {
+            System.out.println(" - " + entry.getKey().name + " " + entry.getValue() + "개");
         }
     }
 }

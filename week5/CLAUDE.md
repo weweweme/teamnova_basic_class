@@ -250,3 +250,9 @@ Player (abstract)
 
 - 이동 가능한 칸: `·` 표시
 - 선택된 기물: `[K]` 형태로 표시
+
+**조작 방식**: IntelliJ 콘솔 기준 (WASD + Enter)
+- `w`(위) `a`(왼) `s`(아래) `d`(오른) + Enter → 커서 이동
+- Enter (빈 입력) → 기물 선택 / 이동 확정
+- `q` + Enter → 취소 / 뒤로가기
+- 매 입력마다 `/clear` → 보드 다시 그리기 (Grep Console 플러그인)

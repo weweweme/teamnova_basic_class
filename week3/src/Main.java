@@ -1,3 +1,4 @@
+import java.util.Random;
 import java.util.Scanner;
 
 public class Main {
@@ -478,20 +479,33 @@ public class Main {
                      *
                      * 1. 기준: n = 격자 크기 (n×n에 0~n-1 배치)
                      *
-                     * 2. 아이디어: 각 행의 시작 숫자를 1씩 늘리면 자연스럽게 중복이 사라짐
+                     * 2. 아이디어: 기본 격자를 만든 뒤 3단계 셔플로 랜덤화
                      *
                      * 3. 규칙
-                     * value = (row + col) % n
-                     * row + col: 행 번호만큼 시작점이 밀림
-                     * % n: 끝에 도달하면 다시 0으로 돌아감
-                     * n=3일 때: 0행 => "0 1 2", 1행 => "1 2 0", 2행 => "2 0 1"
+                     * - 각 행에 0~n-1이 한 번씩만 등장
+                     * - 각 열에 0~n-1이 한 번씩만 등장
+                     * - 매 실행마다 다른 결과
                      *
-                     * 4. 구현
+                     * 4. 알고리즘 (셔플)
+                     * [1단계] 기본 격자 생성: grid[row][col] = (row + col) % n
+                     *   => 이 상태에서 이미 행/열 중복 없음
+                     * [2단계] 숫자 라벨 셔플: 0~n-1을 랜덤 치환
+                     *   => 예: 0→3, 1→0, 2→1 처럼 숫자 자체를 바꿈
+                     *   => 같은 숫자끼리 동시에 바뀌니 중복 성질 유지
+                     * [3단계] 행 순서 셔플: 행 전체를 통째로 섞음
+                     *   => 행 내부 숫자는 그대로이므로 행 중복 없음 유지
+                     *   => 열 입장에서도 같은 숫자들이 순서만 바뀌므로 열 중복 없음 유지
+                     * [4단계] 열 순서 셔플: 열 전체를 통째로 섞음
+                     *   => 3단계와 같은 원리
+                     *
+                     * 왜 중복이 안 생기는가?
+                     * - 숫자 치환: "전부 다른 숫자"를 "전부 다른 다른 숫자"로 바꾸는 것
+                     * - 행/열 셔플: 행(또는 열)을 통째로 옮기므로 내부 구성이 안 변함
+                     *
+                     * 5. 구현
                      * [입력] 사용자로부터 n 입력
-                     * [처리]
-                     * 2중 for문으로 row, col 순회 (0~n-1)
-                     * 각 칸의 값 = (row + col) % n 계산
-                     * [출력] 각 칸의 값 출력
+                     * [처리] 기본 격자 생성 → 숫자 셔플 → 행 셔플 → 열 셔플
+                     * [출력] 완성된 격자 출력
                      */
 
                     System.out.println("\n=== 유사 스도쿠 ===");
@@ -523,11 +537,96 @@ public class Main {
                         int n = Integer.parseInt(inputStr);
                         System.out.println();
 
+                        Random random = new Random();
+
+                        // [1단계] 기본 격자 생성: (row + col) % n
+                        // 이 공식만으로도 행/열 중복이 없는 유효한 격자
+                        // n=3 예시:
+                        //   col: 0  1  2
+                        //  row0: 0  1  2   ← (0+0)%3, (0+1)%3, (0+2)%3
+                        //  row1: 1  2  0   ← (1+0)%3, (1+1)%3, (1+2)%3
+                        //  row2: 2  0  1   ← (2+0)%3, (2+1)%3, (2+2)%3
+                        // 각 행: 0,1,2가 한 번씩 / 각 열: 0,1,2가 한 번씩
+                        int[][] grid = new int[n][n];
                         for (int row = 0; row < n; row++) {
                             for (int col = 0; col < n; col++) {
-                                // row만큼 시작점이 밀리고, n을 넘으면 0으로 돌아감
-                                int value = (row + col) % n;
-                                System.out.print(value + " ");
+                                grid[row][col] = (row + col) % n;
+                            }
+                        }
+
+                        // [2단계] 숫자 라벨 셔플: 0~n-1을 랜덤하게 재배정
+                        // n=3 예시: 셔플 결과 numberMap = [2, 0, 1] 이면
+                        //   치환 규칙: 0→2, 1→0, 2→1
+                        //
+                        //   변환 전:       변환 후:
+                        //   0 1 2          2 0 1
+                        //   1 2 0    →     0 1 2
+                        //   2 0 1          1 2 0
+                        //
+                        // 모든 0이 동시에 2로, 모든 1이 동시에 0으로 바뀌므로
+                        // "전부 다른 숫자" → "전부 다른 다른 숫자"로 유지됨
+                        int[] numberMap = new int[n];
+                        for (int i = 0; i < n; i++) {
+                            numberMap[i] = i;
+                        }
+                        // 앞에서부터 랜덤 위치의 값과 교환하여 섞기
+                        // 예시 (n=3): [0,1,2] → i=0: 1번과 교환 → [1,0,2] → i=1: 2번과 교환 → [1,2,0]
+                        for (int i = 0; i < n - 1; i++) {
+                            int swapIdx = i + random.nextInt(n - i);
+                            int temp = numberMap[i];
+                            numberMap[i] = numberMap[swapIdx];
+                            numberMap[swapIdx] = temp;
+                        }
+                        // 치환표에 따라 격자의 모든 숫자를 변환
+                        // grid[row][col]의 현재 값을 numberMap의 인덱스로 사용
+                        // 예: grid[0][0]=0 → numberMap[0]=2 → grid[0][0]=2
+                        for (int row = 0; row < n; row++) {
+                            for (int col = 0; col < n; col++) {
+                                grid[row][col] = numberMap[grid[row][col]];
+                            }
+                        }
+
+                        // [3단계] 행 순서 셔플: 행 전체를 통째로 랜덤 재배치
+                        // n=3 예시: 행 순서가 [row2, row0, row1]로 섞이면
+                        //
+                        //   셔플 전:       셔플 후:
+                        //   2 0 1          1 2 0   ← 원래 row2
+                        //   0 1 2    →     2 0 1   ← 원래 row0
+                        //   1 2 0          0 1 2   ← 원래 row1
+                        //
+                        // 행을 통째로 옮기므로 행 내부 숫자 구성은 변하지 않음
+                        // 열도 같은 3개 숫자가 순서만 바뀌므로 중복 없음 유지
+                        for (int i = 0; i < n - 1; i++) {
+                            int swapIdx = i + random.nextInt(n - i);
+                            // 두 행의 배열 참조를 통째로 교환
+                            int[] tempRow = grid[i];
+                            grid[i] = grid[swapIdx];
+                            grid[swapIdx] = tempRow;
+                        }
+
+                        // [4단계] 열 순서 셔플: 열 전체를 통째로 랜덤 재배치
+                        // n=3 예시: col0과 col2를 교환하면
+                        //
+                        //   셔플 전:       셔플 후:
+                        //   1 2 0          0 2 1   ← col0과 col2가 교환됨
+                        //   2 0 1    →     1 0 2
+                        //   0 1 2          2 1 0
+                        //
+                        // 3단계와 같은 원리: 열을 통째로 옮기므로 내부 구성 불변
+                        for (int i = 0; i < n - 1; i++) {
+                            int swapIdx = i + random.nextInt(n - i);
+                            // 모든 행에서 i번째 열과 swapIdx번째 열의 값을 교환
+                            for (int row = 0; row < n; row++) {
+                                int temp = grid[row][i];
+                                grid[row][i] = grid[row][swapIdx];
+                                grid[row][swapIdx] = temp;
+                            }
+                        }
+
+                        // 결과 출력
+                        for (int row = 0; row < n; row++) {
+                            for (int col = 0; col < n; col++) {
+                                System.out.print(grid[row][col] + " ");
                             }
                             System.out.println();
                         }

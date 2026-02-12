@@ -22,15 +22,16 @@ public class Main {
             switch (mode) {
                 case 1:
                     // 2인 대전
-                    System.out.println("\n[2인 대전] 모드 선택됨 (준비 중...)");
+                    Util.clearScreen();
+                    startGame(scanner);
                     running = false;
                     break;
                 case 2:
                     // AI 대전 - 색상 선택
                     int color = selectColor(scanner);
                     if (color != 0) {
-                        String teamName = (color == 1) ? "빨간팀" : "파란팀";
-                        System.out.println("\n[AI 대전] " + teamName + " 선택됨 (준비 중...)");
+                        Util.clearScreen();
+                        startGame(scanner);
                         running = false;
                     }
                     break;
@@ -43,6 +44,19 @@ public class Main {
         }
 
         scanner.close();
+    }
+
+    // ========== 게임 시작 ==========
+
+    /// <summary>
+    /// 2인 대전 게임 시작
+    /// 빨간팀, 파란팀 모두 사람 플레이어
+    /// </summary>
+    private static void startGame(Scanner scanner) {
+        Player red = new HumanPlayer(Piece.RED, "플레이어 1", scanner);
+        Player blue = new HumanPlayer(Piece.BLUE, "플레이어 2", scanner);
+        Game game = new Game(red, blue);
+        game.run();
     }
 
     // ========== 화면 ==========

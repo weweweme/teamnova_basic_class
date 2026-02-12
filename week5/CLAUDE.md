@@ -25,6 +25,12 @@ javac -d out src/*.java
 java -cp out Main
 ```
 
+**주의: "Emulate terminal in output console" 옵션은 이 프로젝트에서 사용하지 않음 (동작 안 함)**
+
+**화면 클리어**: Grep Console 플러그인 사용
+- `/clear` 텍스트 출력 시 콘솔 자동 비움
+- Filtering에 `/clear` 패턴 등록, Action=REMOVE, Clear console 체크
+
 ## 프로젝트 구조
 
 - `src/` - Java 소스 파일 (진입점: `Main.java`)

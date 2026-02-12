@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(javac:*)"
+      "Bash(javac:*)",
+      "Bash(java:*)"
     ]
   }
 }

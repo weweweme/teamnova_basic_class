@@ -134,15 +134,11 @@ public class ProductCatalog {
     /// </summary>
     public void printCategoryMenu() {
         for (int i = 0; i < allCategories.length; i++) {
-            // 3개씩 한 줄에 출력
+            // 3개씩 한 줄에 출력, 마지막 항목 뒤에도 줄바꿈
             System.out.printf("[%d] %-8s", i + 1, allCategories[i].name);
-            if ((i + 1) % 3 == 0) {
+            if ((i + 1) % 3 == 0 || i == allCategories.length - 1) {
                 System.out.println();
             }
-        }
-        // 3의 배수가 아닌 경우 줄바꿈
-        if (allCategories.length % 3 != 0) {
-            System.out.println();
         }
         System.out.println("[0] 돌아가기");
         System.out.print(">> ");

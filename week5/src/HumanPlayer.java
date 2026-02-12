@@ -1,22 +1,20 @@
-import java.util.Scanner;
-
 /// <summary>
 /// 사람 플레이어
-/// WASD로 커서를 이동하고 Enter로 기물을 선택/이동
+/// 화살표 키로 커서를 이동하고 Enter로 기물을 선택/이동
 /// 매 입력마다 화면을 지우고 보드를 다시 그림
 /// </summary>
 public class HumanPlayer extends Player {
 
     // ========== 생성자 ==========
 
-    public HumanPlayer(int color, String name, Scanner scanner) {
-        super(color, name, scanner);
+    public HumanPlayer(int color, String name) {
+        super(color, name);
     }
 
     // ========== 수 선택 ==========
 
     /// <summary>
-    /// WASD 커서 조작으로 수를 선택
+    /// 화살표 키 조작으로 수를 선택
     /// 1단계: 보드에서 자기 기물을 선택 (탐색 모드)
     /// 2단계: 선택한 기물의 이동 가능한 칸 중 도착지 선택 (이동 모드)
     /// q 입력 시 null 반환 (게임 종료)
@@ -34,13 +32,12 @@ public class HumanPlayer extends Player {
             board.print(cursorRow, cursorCol);
             System.out.println();
             System.out.println(name + "의 차례 (" + getColorName() + ")");
-            System.out.println("WASD: 이동 | Enter: 선택 | q: 종료");
-            System.out.print(">> ");
+            System.out.println("방향키: 이동 | Enter: 선택 | q: 종료");
 
-            String input = scanner.nextLine().trim().toLowerCase();
+            int key = Util.readKey();
 
             // 커서 이동
-            int[] moved = moveCursor(cursorRow, cursorCol, input);
+            int[] moved = moveCursor(cursorRow, cursorCol, key);
             if (moved != null) {
                 cursorRow = moved[0];
                 cursorCol = moved[1];
@@ -48,12 +45,12 @@ public class HumanPlayer extends Player {
             }
 
             // 게임 종료
-            if (input.equals("q")) {
+            if (key == Util.KEY_QUIT) {
                 return null;
             }
 
-            // Enter (빈 입력) → 기물 선택 시도
-            if (input.isEmpty()) {
+            // Enter → 기물 선택 시도
+            if (key == Util.KEY_ENTER) {
                 Piece piece = board.getPiece(cursorRow, cursorCol);
 
                 // 자기 기물이 있는 칸인지 확인
@@ -84,7 +81,7 @@ public class HumanPlayer extends Player {
     // ========== 도착지 선택 ==========
 
     /// <summary>
-    /// 선택한 기물의 이동 가능한 칸 중 도착지를 WASD로 선택
+    /// 선택한 기물의 이동 가능한 칸 중 도착지를 화살표 키로 선택
     /// q 입력 시 null 반환 (선택 취소, 1단계로 돌아감)
     /// </summary>
     private Move chooseDest(Board board, int selectedRow, int selectedCol, int[][] validMoves) {
@@ -98,13 +95,12 @@ public class HumanPlayer extends Player {
             System.out.println();
             Piece piece = board.getPiece(selectedRow, selectedCol);
             System.out.println(piece.name + " 선택됨 (" + Util.toNotation(selectedRow, selectedCol) + ")");
-            System.out.println("WASD: 이동 | Enter: 확정 | q: 취소");
-            System.out.print(">> ");
+            System.out.println("방향키: 이동 | Enter: 확정 | q: 취소");
 
-            String input = scanner.nextLine().trim().toLowerCase();
+            int key = Util.readKey();
 
             // 커서 이동
-            int[] moved = moveCursor(cursorRow, cursorCol, input);
+            int[] moved = moveCursor(cursorRow, cursorCol, key);
             if (moved != null) {
                 cursorRow = moved[0];
                 cursorCol = moved[1];
@@ -112,12 +108,12 @@ public class HumanPlayer extends Player {
             }
 
             // 선택 취소
-            if (input.equals("q")) {
+            if (key == Util.KEY_QUIT) {
                 return null;
             }
 
-            // Enter (빈 입력) → 도착지 확정 시도
-            if (input.isEmpty()) {
+            // Enter → 도착지 확정 시도
+            if (key == Util.KEY_ENTER) {
                 // 이동 가능한 칸인지 확인
                 if (board.isInArray(cursorRow, cursorCol, validMoves)) {
                     return new Move(selectedRow, selectedCol, cursorRow, cursorCol);
@@ -130,29 +126,29 @@ public class HumanPlayer extends Player {
     // ========== 커서 이동 ==========
 
     /// <summary>
-    /// WASD 입력에 따라 커서를 한 칸 이동
+    /// 화살표 키 입력에 따라 커서를 한 칸 이동
     /// 보드 범위(0~7)를 벗어나지 않도록 제한
-    /// 이동했으면 새 좌표 반환, WASD가 아니면 null 반환
+    /// 이동했으면 새 좌표 반환, 화살표 키가 아니면 null 반환
     /// </summary>
-    private int[] moveCursor(int row, int col, String input) {
+    private int[] moveCursor(int row, int col, int key) {
         int newRow = row;
         int newCol = col;
 
-        switch (input) {
-            case "w":
+        switch (key) {
+            case Util.KEY_UP:
                 newRow = row - 1;  // 위로 (행 감소)
                 break;
-            case "s":
+            case Util.KEY_DOWN:
                 newRow = row + 1;  // 아래로 (행 증가)
                 break;
-            case "a":
+            case Util.KEY_LEFT:
                 newCol = col - 1;  // 왼쪽 (열 감소)
                 break;
-            case "d":
+            case Util.KEY_RIGHT:
                 newCol = col + 1;  // 오른쪽 (열 증가)
                 break;
             default:
-                return null;  // WASD가 아닌 입력
+                return null;  // 화살표 키가 아닌 입력
         }
 
         // 보드 범위 확인

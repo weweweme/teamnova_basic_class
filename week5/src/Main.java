@@ -1,15 +1,16 @@
-import java.util.Scanner;
-
 /// <summary>
 /// 메인 클래스
 /// 타이틀 화면 출력, 게임 모드 선택, 게임 시작
 /// </summary>
 public class Main {
 
+    // 실행 명령어 java -cp out Main
+
     // ========== 진입점 ==========
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+        // 터미널 raw 모드 활성화 (키 입력을 즉시 읽기 위해)
+        Util.enableRawMode();
 
         // 타이틀 화면 출력
         printTitleScreen();
@@ -17,33 +18,34 @@ public class Main {
         // 게임 모드 선택 루프
         boolean running = true;
         while (running) {
-            int mode = selectMode(scanner);
+            int mode = selectMode();
 
             switch (mode) {
                 case 1:
                     // 2인 대전
                     Util.clearScreen();
-                    startGame(scanner);
+                    startGame();
                     running = false;
                     break;
                 case 2:
                     // AI 대전 - 색상 선택
-                    int color = selectColor(scanner);
+                    int color = selectColor();
                     if (color != 0) {
                         Util.clearScreen();
-                        startGame(scanner);
+                        startGame();
                         running = false;
                     }
                     break;
                 default:
-                    // 0 또는 잘못된 입력 → 종료
+                    // 0 → 종료
                     System.out.println("\n게임을 종료합니다.");
                     running = false;
                     break;
             }
         }
 
-        scanner.close();
+        // 터미널 원래 모드로 복원
+        Util.disableRawMode();
     }
 
     // ========== 게임 시작 ==========
@@ -52,9 +54,9 @@ public class Main {
     /// 2인 대전 게임 시작
     /// 빨간팀, 파란팀 모두 사람 플레이어
     /// </summary>
-    private static void startGame(Scanner scanner) {
-        Player red = new HumanPlayer(Piece.RED, "플레이어 1", scanner);
-        Player blue = new HumanPlayer(Piece.BLUE, "플레이어 2", scanner);
+    private static void startGame() {
+        Player red = new HumanPlayer(Piece.RED, "플레이어 1");
+        Player blue = new HumanPlayer(Piece.BLUE, "플레이어 2");
         Game game = new Game(red, blue);
         game.run();
     }
@@ -84,27 +86,41 @@ public class Main {
     /// <summary>
     /// 게임 모드 선택 메뉴 출력 및 입력 받기
     /// 1: 2인 대전, 2: AI 대전, 0: 종료
+    /// 유효한 키가 눌릴 때까지 대기
     /// </summary>
-    private static int selectMode(Scanner scanner) {
+    private static int selectMode() {
         System.out.println();
         System.out.println("[1] 2인 대전");
         System.out.println("[2] AI 대전");
         System.out.println("[0] 종료");
-        System.out.print(">> ");
-        return Util.readInt(scanner);
+
+        // 유효한 키가 입력될 때까지 반복
+        while (true) {
+            int key = Util.readInt();
+            if (key == 0 || key == 1 || key == 2) {
+                return key;
+            }
+        }
     }
 
     /// <summary>
     /// AI 대전 시 플레이어 색상 선택
     /// 1: 빨간팀(선공), 2: 파란팀(후공), 0: 돌아가기
+    /// 유효한 키가 눌릴 때까지 대기
     /// </summary>
-    private static int selectColor(Scanner scanner) {
+    private static int selectColor() {
         System.out.println();
         System.out.println("팀을 선택하세요:");
         System.out.println("[1] " + Util.RED + "빨간팀" + Util.RESET + " (선공)");
         System.out.println("[2] " + Util.BLUE + "파란팀" + Util.RESET + " (후공)");
         System.out.println("[0] 돌아가기");
-        System.out.print(">> ");
-        return Util.readInt(scanner);
+
+        // 유효한 키가 입력될 때까지 반복
+        while (true) {
+            int key = Util.readInt();
+            if (key == 0 || key == 1 || key == 2) {
+                return key;
+            }
+        }
     }
 }

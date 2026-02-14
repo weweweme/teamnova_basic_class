@@ -1,4 +1,7 @@
+package skill;
+
 import java.util.ArrayList;
+import core.Board;
 
 /// <summary>
 /// 스킬 추상 클래스
@@ -10,16 +13,16 @@ public abstract class Skill {
     // ========== 필드 ==========
 
     // 스킬 이름 ("파괴", "방패", "부활")
-    protected String name;
+    public String name;
 
     // 스킬 설명 (메뉴에 표시)
-    protected String description;
+    public String description;
 
     // 최대 사용 횟수
     protected int maxUses;
 
     // 남은 사용 횟수
-    protected int remainingUses;
+    public int remainingUses;
 
     // ========== 생성자 ==========
 

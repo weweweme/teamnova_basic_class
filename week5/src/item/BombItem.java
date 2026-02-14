@@ -1,3 +1,9 @@
+package item;
+
+import core.Board;
+import piece.Piece;
+import piece.King;
+
 /// <summary>
 /// 폭탄 아이템
 /// 빈 칸에 설치. 상대 기물이 밟으면 해당 기물을 즉시 제거

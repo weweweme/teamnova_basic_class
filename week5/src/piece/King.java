@@ -1,3 +1,5 @@
+package piece;
+
 /// <summary>
 /// 킹 기물
 /// 전방향 1칸 이동 (8방향)

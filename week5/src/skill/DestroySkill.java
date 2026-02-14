@@ -1,4 +1,8 @@
+package skill;
+
 import java.util.ArrayList;
+import core.Board;
+import piece.Piece;
 
 /// <summary>
 /// 파괴 스킬

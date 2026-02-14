@@ -1,3 +1,10 @@
+package player;
+
+import core.*;
+import piece.*;
+import skill.Skill;
+import item.Item;
+
 /// <summary>
 /// AI 플레이어
 /// 난이도에 따라 다른 전략으로 수를 선택

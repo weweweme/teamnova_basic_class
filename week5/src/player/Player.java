@@ -1,3 +1,10 @@
+package player;
+
+import core.*;
+import piece.Piece;
+import skill.Skill;
+import item.Item;
+
 /// <summary>
 /// 플레이어 추상 클래스
 /// 모든 플레이어(사람, AI)의 공통 필드와 메서드를 정의

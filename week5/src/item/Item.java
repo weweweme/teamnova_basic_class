@@ -1,3 +1,8 @@
+package item;
+
+import core.Board;
+import piece.Piece;
+
 /// <summary>
 /// 아이템 추상 클래스
 /// 빈 칸에 설치하여 상대 기물이 밟으면 효과 발동
@@ -9,25 +14,25 @@ public abstract class Item {
     // ========== 필드 ==========
 
     // 아이템 이름 ("폭탄", "함정")
-    protected String name;
+    public String name;
 
     // 아이템 설명 (메뉴에 표시)
-    protected String description;
+    public String description;
 
     // 설치한 플레이어의 색상
-    protected int ownerColor;
+    public int ownerColor;
 
     // 설치된 위치 (행)
-    protected int row;
+    public int row;
 
     // 설치된 위치 (열)
-    protected int col;
+    public int col;
 
     // 최대 설치 횟수 (이 아이템 종류를 몇 개까지 설치할 수 있는지)
     protected int maxUses;
 
     // 남은 설치 횟수
-    protected int remainingUses;
+    public int remainingUses;
 
     // ========== 생성자 ==========
 

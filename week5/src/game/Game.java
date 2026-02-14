@@ -1,3 +1,9 @@
+package game;
+
+import core.*;
+import piece.Piece;
+import player.Player;
+
 /// <summary>
 /// 게임 추상 클래스 (템플릿 메서드 패턴)
 /// 게임 루프의 전체 흐름을 정의하고, 턴 처리 방식은 하위 클래스가 구현

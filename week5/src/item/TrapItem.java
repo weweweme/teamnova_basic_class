@@ -1,3 +1,8 @@
+package item;
+
+import core.Board;
+import piece.Piece;
+
 /// <summary>
 /// 함정 아이템
 /// 빈 칸에 설치. 상대 기물이 밟으면 1턴 동결 (다음 턴에 이동 불가)

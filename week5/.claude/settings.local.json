@@ -3,7 +3,10 @@
     "allow": [
       "Bash(javac:*)",
       "Bash(java:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git mv:*)",
+      "Bash(for d in core piece player game skill item)",
+      "Bash(done)"
     ]
   }
 }

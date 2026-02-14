@@ -1,3 +1,8 @@
+package game;
+
+import core.*;
+import player.Player;
+
 /// <summary>
 /// 일반 체스 게임
 /// 기존 체스 규칙 그대로 진행 (이동 → 프로모션 → 승패 확인)

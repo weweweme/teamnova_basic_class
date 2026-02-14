@@ -1,3 +1,8 @@
+import core.Util;
+import piece.Piece;
+import player.*;
+import game.*;
+
 /// <summary>
 /// 메인 클래스
 /// 타이틀 화면 출력, 게임 모드 선택, 게임 시작

@@ -1,4 +1,8 @@
+package core;
+
 import java.util.ArrayList;
+import piece.*;
+import item.Item;
 
 /// <summary>
 /// 체스판 클래스
@@ -14,16 +18,16 @@ public class Board {
     // ========== 필드 ==========
 
     // 8x8 격자 (빈 칸은 null)
-    public Piece[][] grid;
+    public final Piece[][] grid;
 
     // 마지막으로 실행된 수 (앙파상 판정에 사용)
     private Move lastMove;
 
     // 잡힌 기물 목록 (잡은 기물 표시에 사용)
-    private ArrayList<Piece> capturedPieces;
+    private final ArrayList<Piece> capturedPieces;
 
     // 아이템 격자 (빈 칸은 null, 아이템이 설치된 칸에만 값 존재)
-    private Item[][] itemGrid;
+    private final Item[][] itemGrid;
 
     // ========== 생성자 ==========
 

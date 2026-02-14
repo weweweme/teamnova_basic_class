@@ -1,3 +1,10 @@
+package player;
+
+import core.*;
+import piece.Piece;
+import skill.Skill;
+import item.Item;
+
 /// <summary>
 /// 사람 플레이어
 /// 화살표 키로 커서를 이동하고 Enter로 기물을 선택/이동

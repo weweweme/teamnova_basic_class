@@ -1,3 +1,11 @@
+package game;
+
+import core.*;
+import piece.Piece;
+import player.Player;
+import skill.*;
+import item.*;
+
 /// <summary>
 /// 스킬 모드 게임
 /// 일반 체스에 스킬과 아이템 시스템을 추가

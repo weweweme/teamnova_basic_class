@@ -22,6 +22,9 @@ public class Board {
     // 잡힌 기물 목록 (잡은 기물 표시에 사용)
     private ArrayList<Piece> capturedPieces;
 
+    // 아이템 격자 (빈 칸은 null, 아이템이 설치된 칸에만 값 존재)
+    private Item[][] itemGrid;
+
     // ========== 생성자 ==========
 
     /// <summary>
@@ -31,6 +34,7 @@ public class Board {
         grid = new Piece[SIZE][SIZE];
         lastMove = null;
         capturedPieces = new ArrayList<>();
+        itemGrid = new Item[SIZE][SIZE];
         initPieces();
     }
 
@@ -119,6 +123,81 @@ public class Board {
 
         // 잡은 기물 표시
         printCapturedPieces();
+    }
+
+    /// <summary>
+    /// 보드 출력 (스킬 모드용, 자기 아이템/효과 표시)
+    /// viewerColor: 이 색상의 플레이어에게만 자기 아이템이 보임
+    /// </summary>
+    public void print(int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves, int viewerColor) {
+        // 상단 열 표시
+        System.out.println("     a   b   c   d   e   f   g   h");
+        System.out.println("   +---+---+---+---+---+---+---+---+");
+
+        for (int r = 0; r < SIZE; r++) {
+            int rank = 8 - r;
+            StringBuilder line = new StringBuilder();
+            line.append(String.format(" %d |", rank));
+
+            for (int c = 0; c < SIZE; c++) {
+                String cell = renderCellSkill(r, c, cursorRow, cursorCol, selectedRow, selectedCol, validMoves, viewerColor);
+                line.append(cell).append("|");
+            }
+
+            line.append(String.format(" %d", rank));
+            System.out.println(line.toString());
+            System.out.println("   +---+---+---+---+---+---+---+---+");
+        }
+
+        // 하단 열 표시
+        System.out.println("     a   b   c   d   e   f   g   h");
+
+        // 잡은 기물 표시
+        printCapturedPieces();
+    }
+
+    /// <summary>
+    /// 한 칸의 표시 문자열 결정 (스킬 모드용)
+    /// 기존 표시 + 방패(!), 동결(~), 자기 아이템 표시 추가
+    /// </summary>
+    private String renderCellSkill(int r, int c, int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves, int viewerColor) {
+        Piece piece = grid[r][c];
+        boolean isCursor = (r == cursorRow && c == cursorCol);
+        boolean isSelected = (r == selectedRow && c == selectedCol);
+        boolean isValidMove = isInArray(r, c, validMoves);
+
+        // 1순위: 커서 또는 선택된 기물 → 대괄호로 감싸기
+        if (isCursor || isSelected) {
+            if (piece != null) {
+                String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
+                return "[" + colorCode + piece.symbol + Util.RESET + "]";
+            }
+            return "[ ]";
+        }
+
+        // 2순위: 이동 가능한 칸 → · 표시
+        if (isValidMove) {
+            return " · ";
+        }
+
+        // 3순위: 기물이 있는 칸 (방패/동결 효과 표시)
+        if (piece != null) {
+            String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
+            // 방패 표시: 기호 앞에 ! 표시
+            String prefix = piece.shielded ? "!" : " ";
+            // 동결 표시: 기호 뒤에 ~ 표시
+            String suffix = piece.frozen ? "~" : " ";
+            return prefix + colorCode + piece.symbol + Util.RESET + suffix;
+        }
+
+        // 4순위: 자기 아이템이 설치된 빈 칸 (설치자에게만 보임)
+        Item item = itemGrid[r][c];
+        if (item != null && item.ownerColor == viewerColor) {
+            String colorCode = (item.ownerColor == Piece.RED) ? Util.RED : Util.BLUE;
+            return " " + colorCode + item.getSymbol() + Util.RESET + " ";
+        }
+
+        return "   ";
     }
 
     /// <summary>
@@ -228,6 +307,140 @@ public class Board {
             }
         }
         return null;
+    }
+
+    // ========== 아이템 관리 ==========
+
+    /// <summary>
+    /// 보드에 아이템을 설치
+    /// </summary>
+    public void placeItem(Item item) {
+        itemGrid[item.row][item.col] = item;
+    }
+
+    /// <summary>
+    /// 지정한 칸의 아이템 반환 (없으면 null)
+    /// </summary>
+    public Item getItem(int row, int col) {
+        if (row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
+            return null;
+        }
+        return itemGrid[row][col];
+    }
+
+    /// <summary>
+    /// 이동 후 도착 칸에 상대 아이템이 있으면 발동
+    /// 자기 아이템 위에는 발동하지 않음 (설치자는 자기 아이템을 밟아도 안전)
+    /// 발동 후 아이템 제거
+    /// 반환값: 발동된 아이템 이름 (없으면 null, 화면 표시용)
+    /// </summary>
+    public String triggerItem(int row, int col) {
+        Item item = itemGrid[row][col];
+        Piece steppedPiece = grid[row][col];
+
+        // 아이템이 없거나 기물이 없거나 자기 아이템이면 무시
+        if (item == null || steppedPiece == null || item.ownerColor == steppedPiece.color) {
+            return null;
+        }
+
+        // 아이템 효과 발동
+        String itemName = item.name;
+        item.trigger(this, steppedPiece);
+
+        // 발동된 아이템 제거
+        itemGrid[row][col] = null;
+
+        return itemName;
+    }
+
+    // ========== 효과 관리 ==========
+
+    /// <summary>
+    /// 특정 색상의 모든 기물에서 방패 상태 해제
+    /// 자기 턴 시작 시 호출 (지난 턴에 건 방패를 해제)
+    /// </summary>
+    public void clearShields(int color) {
+        for (int r = 0; r < SIZE; r++) {
+            for (int c = 0; c < SIZE; c++) {
+                Piece piece = grid[r][c];
+                if (piece != null && piece.color == color && piece.shielded) {
+                    piece.shielded = false;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 특정 색상의 모든 기물에서 동결 상태 해제
+    /// 동결된 플레이어의 턴 시작 시 호출
+    /// </summary>
+    public void clearFreezes(int color) {
+        for (int r = 0; r < SIZE; r++) {
+            for (int c = 0; c < SIZE; c++) {
+                Piece piece = grid[r][c];
+                if (piece != null && piece.color == color && piece.frozen) {
+                    piece.frozen = false;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 특정 색상에 동결되지 않은 기물이 있는지 확인
+    /// 모든 기물이 동결되면 턴을 넘겨야 함
+    /// </summary>
+    public boolean hasUnfrozenPieces(int color) {
+        for (int r = 0; r < SIZE; r++) {
+            for (int c = 0; c < SIZE; c++) {
+                Piece piece = grid[r][c];
+                if (piece != null && piece.color == color && !piece.frozen) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // ========== 기물 제거/부활 ==========
+
+    /// <summary>
+    /// 지정한 칸의 기물을 제거하고 잡힌 기물 목록에 추가
+    /// 파괴 스킬, 폭탄 아이템에서 사용
+    /// </summary>
+    public void removePiece(int row, int col) {
+        Piece piece = grid[row][col];
+        if (piece != null) {
+            capturedPieces.add(piece);
+            grid[row][col] = null;
+        }
+    }
+
+    /// <summary>
+    /// 잡힌 기물 중 특정 색상의 기물 목록 반환 (킹 제외)
+    /// 부활 스킬에서 부활 대상 선택 시 사용
+    /// </summary>
+    public Piece[] getCapturedPieces(int color) {
+        ArrayList<Piece> result = new ArrayList<>();
+        for (Piece p : capturedPieces) {
+            if (p.color == color && !(p instanceof King)) {
+                result.add(p);
+            }
+        }
+        return result.toArray(new Piece[0]);
+    }
+
+    /// <summary>
+    /// 잡힌 기물을 지정한 위치에 부활
+    /// 잡힌 기물 목록에서 제거하고 보드에 배치
+    /// </summary>
+    public void revivePiece(Piece piece, int row, int col) {
+        capturedPieces.remove(piece);
+        grid[row][col] = piece;
+        piece.row = row;
+        piece.col = col;
+        piece.hasMoved = true;  // 부활한 기물은 이동한 것으로 처리
+        piece.shielded = false;
+        piece.frozen = false;
     }
 
     // ========== 이동 실행 ==========
@@ -358,10 +571,21 @@ public class Board {
             return new int[0][];
         }
 
+        // 동결된 기물은 이동 불가
+        if (piece.frozen) {
+            return new int[0][];
+        }
+
         int[][] rawMoves = piece.getValidMoves(grid);
         ArrayList<int[]> filtered = new ArrayList<>();
 
         for (int[] dest : rawMoves) {
+            // 방패가 걸린 상대 기물은 잡을 수 없음
+            Piece target = grid[dest[0]][dest[1]];
+            if (target != null && target.shielded && target.color != piece.color) {
+                continue;
+            }
+
             Move move = new Move(row, col, dest[0], dest[1]);
             // 이 수를 두면 자기 킹이 체크되는지 확인
             if (!wouldBeInCheck(move, piece.color)) {
@@ -529,6 +753,11 @@ public class Board {
             return;
         }
         if (Math.abs(lastMove.toCol - col) != 1) {
+            return;
+        }
+
+        // 방패가 걸린 폰은 앙파상으로 잡을 수 없음
+        if (lastPiece.shielded) {
             return;
         }
 

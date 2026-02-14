@@ -29,17 +29,37 @@ public class Main {
                     break;
                 case 2:
                     // AI 대전 - 색상 선택
-                    int color = selectColor();
-                    if (color == 0) {
+                    int color2 = selectColor();
+                    if (color2 == 0) {
                         break;
                     }
                     // 난이도 선택 (-1이면 돌아가기)
-                    int difficulty = selectDifficulty();
-                    if (difficulty == -1) {
+                    int diff2 = selectDifficulty();
+                    if (diff2 == -1) {
                         break;
                     }
                     Util.clearScreen();
-                    startAiGame(color, difficulty);
+                    startAiGame(color2, diff2);
+                    running = false;
+                    break;
+                case 3:
+                    // 스킬 모드 2인 대전
+                    Util.clearScreen();
+                    startSkillGame();
+                    running = false;
+                    break;
+                case 4:
+                    // 스킬 모드 AI 대전
+                    int color4 = selectColor();
+                    if (color4 == 0) {
+                        break;
+                    }
+                    int diff4 = selectDifficulty();
+                    if (diff4 == -1) {
+                        break;
+                    }
+                    Util.clearScreen();
+                    startSkillAiGame(color4, diff4);
                     running = false;
                     break;
                 default:
@@ -63,7 +83,7 @@ public class Main {
     private static void startGame() {
         Player red = new HumanPlayer(Piece.RED, "플레이어 1");
         Player blue = new HumanPlayer(Piece.BLUE, "플레이어 2");
-        Game game = new Game(red, blue);
+        Game game = new StandardGame(red, blue);
         game.run();
     }
 
@@ -86,7 +106,38 @@ public class Main {
             blue = new HumanPlayer(Piece.BLUE, "플레이어");
         }
 
-        Game game = new Game(red, blue);
+        Game game = new StandardGame(red, blue);
+        game.run();
+    }
+
+    /// <summary>
+    /// 스킬 모드 2인 대전 게임 시작
+    /// 스킬과 아이템을 사용할 수 있는 모드
+    /// </summary>
+    private static void startSkillGame() {
+        Player red = new HumanPlayer(Piece.RED, "플레이어 1");
+        Player blue = new HumanPlayer(Piece.BLUE, "플레이어 2");
+        Game game = new SkillGame(red, blue);
+        game.run();
+    }
+
+    /// <summary>
+    /// 스킬 모드 AI 대전 게임 시작
+    /// 스킬과 아이템을 사용할 수 있는 AI 대전 모드
+    /// </summary>
+    private static void startSkillAiGame(int playerColor, int difficulty) {
+        Player red;
+        Player blue;
+
+        if (playerColor == 1) {
+            red = new HumanPlayer(Piece.RED, "플레이어");
+            blue = new AiPlayer(Piece.BLUE, "AI", difficulty);
+        } else {
+            red = new AiPlayer(Piece.RED, "AI", difficulty);
+            blue = new HumanPlayer(Piece.BLUE, "플레이어");
+        }
+
+        Game game = new SkillGame(red, blue);
         game.run();
     }
 
@@ -121,12 +172,14 @@ public class Main {
         System.out.println();
         System.out.println("[1] 2인 대전");
         System.out.println("[2] AI 대전");
+        System.out.println("[3] 스킬 모드 (2인)");
+        System.out.println("[4] 스킬 모드 (AI)");
         System.out.println("[0] 종료");
 
         // 유효한 키가 입력될 때까지 반복
         while (true) {
             int key = Util.readInt();
-            if (key == 0 || key == 1 || key == 2) {
+            if (key >= 0 && key <= 4) {
                 return key;
             }
         }

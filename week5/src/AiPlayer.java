@@ -123,6 +123,189 @@ public class AiPlayer extends Player {
         return 1;
     }
 
+    // ========== 스킬/아이템 AI 전략 ==========
+
+    /// <summary>
+    /// AI 행동 선택 전략
+    /// 1순위: 파괴 스킬로 상대 퀸 제거 가능하면 스킬 사용
+    /// 2순위: 가치 5 이상인 잡힌 기물이 있고 부활 가능하면 스킬 사용
+    /// 3순위: 20% 확률로 방패 스킬 사용
+    /// 4순위: 30% 확률로 아이템 설치
+    /// 5순위: 일반 이동
+    /// </summary>
+    @Override
+    public int chooseAction(Board board, Skill[] skills, Item[] items) {
+        int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
+
+        // 파괴 스킬 확인 (인덱스 0): 상대 퀸이 있으면 파괴 우선
+        if (skills[0].hasUses() && skills[0].canUse(board, color)) {
+            for (int r = 0; r < Board.SIZE; r++) {
+                for (int c = 0; c < Board.SIZE; c++) {
+                    Piece piece = board.getPiece(r, c);
+                    if (piece instanceof Queen && piece.color == opponentColor) {
+                        return 1;  // 스킬
+                    }
+                }
+            }
+        }
+
+        // 부활 스킬 확인 (인덱스 2): 가치 높은 잡힌 기물이 있으면 부활
+        if (skills[2].hasUses() && skills[2].canUse(board, color)) {
+            Piece[] captured = board.getCapturedPieces(color);
+            for (Piece p : captured) {
+                if (p.value >= 5) {
+                    return 1;  // 스킬
+                }
+            }
+        }
+
+        // 방패 스킬 확인 (인덱스 1): 20% 확률로 사용
+        if (skills[1].hasUses() && skills[1].canUse(board, color) && Util.rand(5) == 0) {
+            return 1;  // 스킬
+        }
+
+        // 아이템 설치: 30% 확률로 사용
+        boolean hasItem = false;
+        for (Item item : items) {
+            if (item.hasUses()) {
+                hasItem = true;
+                break;
+            }
+        }
+        if (hasItem && Util.rand(10) < 3) {
+            return 2;  // 아이템
+        }
+
+        return 0;  // 이동
+    }
+
+    /// <summary>
+    /// AI 스킬 선택
+    /// 우선순위: 파괴(퀸 대상) > 부활(가치 높은 기물) > 방패(가치 높은 기물)
+    /// </summary>
+    @Override
+    public int chooseSkill(Board board, Skill[] skills) {
+        // 파괴 스킬 (인덱스 0)
+        if (skills[0].hasUses() && skills[0].canUse(board, color)) {
+            return 0;
+        }
+
+        // 부활 스킬 (인덱스 2)
+        if (skills[2].hasUses() && skills[2].canUse(board, color)) {
+            return 2;
+        }
+
+        // 방패 스킬 (인덱스 1)
+        if (skills[1].hasUses() && skills[1].canUse(board, color)) {
+            return 1;
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// AI 스킬 대상 선택 (가장 가치 높은 기물이 있는 칸 우선)
+    /// 기물이 없는 대상(빈 칸)이면 랜덤 선택
+    /// </summary>
+    @Override
+    public int[] chooseSkillTarget(Board board, int[][] targets) {
+        if (targets.length == 0) {
+            return null;
+        }
+
+        // 가치가 가장 높은 기물이 있는 칸 선택
+        int bestIndex = 0;
+        int bestValue = 0;
+
+        for (int i = 0; i < targets.length; i++) {
+            Piece piece = board.getPiece(targets[i][0], targets[i][1]);
+            if (piece != null && piece.value > bestValue) {
+                bestValue = piece.value;
+                bestIndex = i;
+            }
+        }
+
+        // 기물이 없는 대상(빈 칸, 부활 위치 등)이면 랜덤 선택
+        if (bestValue == 0) {
+            bestIndex = Util.rand(targets.length);
+        }
+
+        return targets[bestIndex];
+    }
+
+    /// <summary>
+    /// AI 아이템 종류 선택 (사용 가능한 것 중 랜덤)
+    /// </summary>
+    @Override
+    public int chooseItemType(Board board, Item[] items) {
+        java.util.ArrayList<Integer> available = new java.util.ArrayList<>();
+        for (int i = 0; i < items.length; i++) {
+            if (items[i].hasUses()) {
+                available.add(i);
+            }
+        }
+        if (available.isEmpty()) {
+            return -1;
+        }
+        return available.get(Util.rand(available.size()));
+    }
+
+    /// <summary>
+    /// AI 아이템 설치 위치 선택 (중앙 근처의 빈 칸에 랜덤 설치)
+    /// 중앙에 빈 칸이 없으면 전체에서 탐색
+    /// </summary>
+    @Override
+    public int[] chooseItemTarget(Board board) {
+        // 보드 중앙 4x4 영역(2~5행, 2~5열)에서 빈 칸 탐색
+        java.util.ArrayList<int[]> candidates = new java.util.ArrayList<>();
+        for (int r = 2; r <= 5; r++) {
+            for (int c = 2; c <= 5; c++) {
+                if (board.getPiece(r, c) == null && board.getItem(r, c) == null) {
+                    candidates.add(new int[]{r, c});
+                }
+            }
+        }
+
+        // 중앙에 빈 칸이 없으면 전체에서 탐색
+        if (candidates.isEmpty()) {
+            for (int r = 0; r < Board.SIZE; r++) {
+                for (int c = 0; c < Board.SIZE; c++) {
+                    if (board.getPiece(r, c) == null && board.getItem(r, c) == null) {
+                        candidates.add(new int[]{r, c});
+                    }
+                }
+            }
+        }
+
+        if (candidates.isEmpty()) {
+            return null;
+        }
+
+        return candidates.get(Util.rand(candidates.size()));
+    }
+
+    /// <summary>
+    /// AI 부활 대상 선택 (가치가 가장 높은 기물 우선)
+    /// </summary>
+    @Override
+    public int chooseReviveTarget(Board board, Piece[] captured) {
+        if (captured.length == 0) {
+            return -1;
+        }
+
+        int bestIndex = 0;
+        int bestValue = 0;
+
+        for (int i = 0; i < captured.length; i++) {
+            if (captured[i].value > bestValue) {
+                bestValue = captured[i].value;
+                bestIndex = i;
+            }
+        }
+
+        return bestIndex;
+    }
+
     // ========== 시뮬레이션 ==========
 
     /// <summary>

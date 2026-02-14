@@ -39,6 +39,12 @@ public abstract class Piece {
     // 퀸9 > 룩5 > 비숍3 = 나이트3 > 폰1, 킹은 0 (잡을 수 없음)
     public int value;
 
+    // 방패 상태 (true이면 상대가 이 기물을 잡을 수 없음, 스킬 모드에서 사용)
+    public boolean shielded;
+
+    // 동결 상태 (true이면 이번 턴에 이동할 수 없음, 스킬 모드에서 사용)
+    public boolean frozen;
+
     // 이동 가능한 칸 목록 (매번 새로 만들지 않고 재사용)
     protected ArrayList<int[]> moves = new ArrayList<>();
 
@@ -54,6 +60,8 @@ public abstract class Piece {
         this.row = row;
         this.col = col;
         this.hasMoved = false;
+        this.shielded = false;
+        this.frozen = false;
     }
 
     // ========== 이동 규칙 ==========

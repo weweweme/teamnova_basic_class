@@ -1,25 +1,26 @@
 /// <summary>
-/// 게임 클래스
-/// 게임 루프, 턴 관리, 체크/체크메이트 판정
+/// 게임 추상 클래스 (템플릿 메서드 패턴)
+/// 게임 루프의 전체 흐름을 정의하고, 턴 처리 방식은 하위 클래스가 구현
+/// StandardGame: 일반 체스, SkillGame: 스킬+아이템 모드
 /// </summary>
-public class Game {
+public abstract class Game {
 
     // ========== 필드 ==========
 
     // 체스판
-    private Board board;
+    protected Board board;
 
     // 빨간팀 플레이어 (선공)
-    private Player redPlayer;
+    protected Player redPlayer;
 
     // 파란팀 플레이어 (후공)
-    private Player bluePlayer;
+    protected Player bluePlayer;
 
     // 현재 턴의 플레이어
-    private Player currentPlayer;
+    protected Player currentPlayer;
 
     // 턴 수
-    private int turnCount;
+    protected int turnCount;
 
     // ========== 생성자 ==========
 
@@ -36,56 +37,33 @@ public class Game {
         this.turnCount = 1;
     }
 
-    // ========== 게임 루프 ==========
+    // ========== 게임 루프 (템플릿 메서드) ==========
 
     /// <summary>
     /// 게임 시작 (메인 루프)
-    /// 보드 출력 → 수 선택 → 이동 실행 → 승패 확인 → 턴 교대
+    /// 전체 흐름을 정의하고, 턴 처리는 하위 클래스의 processTurn()에 위임
     /// </summary>
     public void run() {
         while (true) {
-            // 현재 플레이어가 수를 선택
-            Move move = currentPlayer.chooseMove(board);
-
-            // null이면 게임 종료 요청
-            if (move == null) {
-                Util.clearScreen();
-                board.print();
-                System.out.println("\n게임을 종료합니다.");
+            // 턴 처리 (하위 클래스마다 다른 방식)
+            // true 반환 시 게임 종료 요청
+            boolean quit = processTurn();
+            if (quit) {
                 break;
             }
 
-            // 이동 실행
-            board.executeMove(move);
-
-            // 프로모션 확인 (폰이 끝 줄에 도착하면 승격)
-            if (board.isPromotion(move)) {
-                int choice = currentPlayer.choosePromotion(board);
-                board.promote(move.toRow, move.toCol, choice);
-            }
-
             // 상대 색상
-            int opponentColor = (currentPlayer.color == Piece.RED) ? Piece.BLUE : Piece.RED;
+            int opponentColor = getOpponentColor();
 
             // 체크메이트 확인
             if (board.isCheckmate(opponentColor)) {
-                Util.clearScreen();
-                board.print();
-                System.out.println();
-                System.out.println("========================================");
-                System.out.println("  체크메이트! " + currentPlayer.name + " 승리!");
-                System.out.println("========================================");
+                showCheckmate();
                 break;
             }
 
             // 스테일메이트 확인 (무승부)
             if (board.isStalemate(opponentColor)) {
-                Util.clearScreen();
-                board.print();
-                System.out.println();
-                System.out.println("========================================");
-                System.out.println("  스테일메이트! 무승부!");
-                System.out.println("========================================");
+                showStalemate();
                 break;
             }
 
@@ -94,17 +72,62 @@ public class Game {
         }
     }
 
-    // ========== 턴 관리 ==========
+    // ========== 추상 메서드 ==========
+
+    /// <summary>
+    /// 한 턴의 처리를 수행
+    /// 각 하위 클래스가 자기만의 턴 진행 방식으로 구현 (메서드 오버라이딩)
+    /// StandardGame: 수 선택 → 이동 → 프로모션
+    /// SkillGame: 효과 정리 → 행동 선택(이동/스킬/아이템) → 아이템 트리거 → 효과 정리
+    /// true 반환 시 게임 종료 요청
+    /// </summary>
+    protected abstract boolean processTurn();
+
+    // ========== 공통 메서드 ==========
+
+    /// <summary>
+    /// 상대 팀의 색상 반환
+    /// </summary>
+    protected int getOpponentColor() {
+        if (currentPlayer.color == Piece.RED) {
+            return Piece.BLUE;
+        }
+        return Piece.RED;
+    }
 
     /// <summary>
     /// 턴 교대 (빨간팀 ↔ 파란팀)
     /// </summary>
-    private void switchTurn() {
+    protected void switchTurn() {
         if (currentPlayer == redPlayer) {
             currentPlayer = bluePlayer;
         } else {
             currentPlayer = redPlayer;
         }
         turnCount++;
+    }
+
+    /// <summary>
+    /// 체크메이트 결과 출력
+    /// </summary>
+    protected void showCheckmate() {
+        Util.clearScreen();
+        board.print();
+        System.out.println();
+        System.out.println("========================================");
+        System.out.println("  체크메이트! " + currentPlayer.name + " 승리!");
+        System.out.println("========================================");
+    }
+
+    /// <summary>
+    /// 스테일메이트 결과 출력
+    /// </summary>
+    protected void showStalemate() {
+        Util.clearScreen();
+        board.print();
+        System.out.println();
+        System.out.println("========================================");
+        System.out.println("  스테일메이트! 무승부!");
+        System.out.println("========================================");
     }
 }

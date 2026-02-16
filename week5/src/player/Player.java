@@ -74,7 +74,7 @@ public abstract class Player {
     /// targets: 선택 가능한 좌표 목록
     /// 반환: {행, 열} 또는 null(취소)
     /// </summary>
-    public int[] chooseSkillTarget(Board board, int[][] targets) {
+    public int[] chooseSkillTarget(Board board, int[][] targets, int targetCount) {
         return null;
     }
 

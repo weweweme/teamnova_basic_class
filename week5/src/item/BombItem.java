@@ -1,6 +1,7 @@
 package item;
 
 import core.Board;
+import core.SkillBoard;
 import piece.Piece;
 import piece.King;
 
@@ -40,7 +41,7 @@ public class BombItem extends Item {
         if (steppedPiece instanceof King) {
             return;
         }
-        board.removePiece(steppedPiece.row, steppedPiece.col);
+        ((SkillBoard) board).removePiece(steppedPiece.row, steppedPiece.col);
     }
 
     /// <summary>

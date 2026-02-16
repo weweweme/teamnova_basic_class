@@ -205,7 +205,7 @@ public class HumanPlayer extends Player {
         // 사용 가능한 스킬이 있는지 확인
         boolean hasSkill = false;
         for (Skill skill : skills) {
-            if (skill.hasUses() && skill.canUse(board, color)) {
+            if (skill.hasUses() && skill.canUse(board.grid, color)) {
                 hasSkill = true;
                 break;
             }
@@ -225,8 +225,9 @@ public class HumanPlayer extends Player {
             return 0;
         }
 
+        SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        board.print(-1, -1, -1, -1, null, color);
+        skillBoard.print(-1, -1, -1, -1, null, color);
         System.out.println();
         System.out.println(name + "의 차례 (" + getColorName() + ")");
         if (board.isInCheck(color)) {
@@ -260,14 +261,15 @@ public class HumanPlayer extends Player {
     /// </summary>
     @Override
     public int chooseSkill(Board board, Skill[] skills) {
+        SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        board.print(-1, -1, -1, -1, null, color);
+        skillBoard.print(-1, -1, -1, -1, null, color);
         System.out.println();
         System.out.println("스킬을 선택하세요:");
 
         for (int i = 0; i < skills.length; i++) {
             Skill skill = skills[i];
-            String available = (skill.hasUses() && skill.canUse(board, color)) ? "" : " (사용 불가)";
+            String available = (skill.hasUses() && skill.canUse(board.grid, color)) ? "" : " (사용 불가)";
             System.out.println("[" + (i + 1) + "] " + skill.name + " - " + skill.description
                     + " (남은 " + skill.remainingUses + "회)" + available);
         }
@@ -280,7 +282,7 @@ public class HumanPlayer extends Player {
             }
             if (key >= 1 && key <= skills.length) {
                 int index = key - 1;
-                if (skills[index].hasUses() && skills[index].canUse(board, color)) {
+                if (skills[index].hasUses() && skills[index].canUse(board.grid, color)) {
                     return index;
                 }
             }
@@ -292,14 +294,15 @@ public class HumanPlayer extends Player {
     /// targets 배열에 포함된 칸만 선택 가능 (· 표시)
     /// </summary>
     @Override
-    public int[] chooseSkillTarget(Board board, int[][] targets) {
+    public int[] chooseSkillTarget(Board board, int[][] targets, int targetCount) {
+        SkillBoard skillBoard = (SkillBoard) board;
         // 첫 번째 대상으로 커서 초기화
         int cursorRow = targets[0][0];
         int cursorCol = targets[0][1];
 
         while (true) {
             Util.clearScreen();
-            board.print(cursorRow, cursorCol, -1, -1, targets, color);
+            skillBoard.print(cursorRow, cursorCol, -1, -1, targets, targetCount, color);
             System.out.println();
             System.out.println("대상을 선택하세요 (· 표시된 칸)");
             System.out.println("방향키: 이동 | Enter: 확정 | q: 취소");
@@ -318,7 +321,7 @@ public class HumanPlayer extends Player {
             }
 
             if (key == Util.KEY_ENTER) {
-                if (board.isInArray(cursorRow, cursorCol, targets)) {
+                if (board.isInArray(cursorRow, cursorCol, targets, targetCount)) {
                     return new int[]{cursorRow, cursorCol};
                 }
             }
@@ -330,8 +333,9 @@ public class HumanPlayer extends Player {
     /// </summary>
     @Override
     public int chooseItemType(Board board, Item[] items) {
+        SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        board.print(-1, -1, -1, -1, null, color);
+        skillBoard.print(-1, -1, -1, -1, null, color);
         System.out.println();
         System.out.println("아이템을 선택하세요:");
 
@@ -362,13 +366,14 @@ public class HumanPlayer extends Player {
     /// </summary>
     @Override
     public int[] chooseItemTarget(Board board) {
+        SkillBoard skillBoard = (SkillBoard) board;
         // 보드 중앙 근처에서 커서 시작
         int cursorRow = 3;
         int cursorCol = 3;
 
         while (true) {
             Util.clearScreen();
-            board.print(cursorRow, cursorCol, -1, -1, null, color);
+            skillBoard.print(cursorRow, cursorCol, -1, -1, null, color);
             System.out.println();
             System.out.println("아이템을 설치할 빈 칸을 선택하세요");
             System.out.println("방향키: 이동 | Enter: 확정 | q: 취소");
@@ -388,7 +393,7 @@ public class HumanPlayer extends Player {
 
             if (key == Util.KEY_ENTER) {
                 // 빈 칸이고 아이템이 없는 칸만 선택 가능
-                if (board.getPiece(cursorRow, cursorCol) == null && board.getItem(cursorRow, cursorCol) == null) {
+                if (board.getPiece(cursorRow, cursorCol) == null && skillBoard.getItem(cursorRow, cursorCol) == null) {
                     return new int[]{cursorRow, cursorCol};
                 }
             }
@@ -401,8 +406,9 @@ public class HumanPlayer extends Player {
     /// </summary>
     @Override
     public int chooseReviveTarget(Board board, Piece[] captured) {
+        SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        board.print(-1, -1, -1, -1, null, color);
+        skillBoard.print(-1, -1, -1, -1, null, color);
         System.out.println();
         System.out.println("부활할 기물을 선택하세요:");
 

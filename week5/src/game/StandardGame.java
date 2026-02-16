@@ -15,6 +15,16 @@ public class StandardGame extends Game {
         super(redPlayer, bluePlayer);
     }
 
+    // ========== 보드 생성 ==========
+
+    /// <summary>
+    /// 일반 체스용 StandardBoard 생성
+    /// </summary>
+    @Override
+    protected Board createBoard() {
+        return new StandardBoard();
+    }
+
     // ========== 턴 처리 ==========
 
     /// <summary>

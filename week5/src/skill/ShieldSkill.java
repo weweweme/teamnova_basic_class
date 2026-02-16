@@ -1,7 +1,7 @@
 package skill;
 
-import java.util.ArrayList;
 import core.Board;
+import piece.King;
 import piece.Piece;
 
 /// <summary>
@@ -20,17 +20,18 @@ public class ShieldSkill extends Skill {
     // ========== 스킬 로직 ==========
 
     /// <summary>
-    /// 사용 가능 여부: 아군 기물(킹 제외)이 보드에 하나라도 있으면 사용 가능
+    /// 사용 가능 여부: 아군 기물(킹 제외)이 격자에 하나라도 있으면 사용 가능
+    /// 격자를 직접 순회하며 조기 반환
     /// </summary>
     @Override
-    public boolean canUse(Board board, int color) {
+    public boolean canUse(Piece[][] grid, int color) {
         if (!hasUses()) {
             return false;
         }
 
         for (int r = 0; r < Board.SIZE; r++) {
             for (int c = 0; c < Board.SIZE; c++) {
-                Piece piece = board.getPiece(r, c);
+                Piece piece = grid[r][c];
                 if (piece != null && piece.color == color && !(piece instanceof King)) {
                     return true;
                 }
@@ -40,21 +41,23 @@ public class ShieldSkill extends Skill {
     }
 
     /// <summary>
-    /// 대상: 보드 위의 아군 기물 위치 (킹 제외)
+    /// 대상 찾기: 격자 위의 아군 기물 위치 (킹 제외)
+    /// 결과를 버퍼(targets, targetCount)에 저장하여 메모리 재사용
     /// </summary>
     @Override
-    public int[][] getTargets(Board board, int color) {
-        ArrayList<int[]> targets = new ArrayList<>();
+    public void findTargets(Piece[][] grid, int color) {
+        targetCount = 0;
 
         for (int r = 0; r < Board.SIZE; r++) {
             for (int c = 0; c < Board.SIZE; c++) {
-                Piece piece = board.getPiece(r, c);
+                Piece piece = grid[r][c];
                 if (piece != null && piece.color == color && !(piece instanceof King)) {
-                    targets.add(new int[]{r, c});
+                    targets[targetCount][0] = r;
+                    targets[targetCount][1] = c;
+                    targetCount++;
                 }
             }
         }
-        return targets.toArray(new int[0][]);
     }
 
     /// <summary>

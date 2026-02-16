@@ -15,6 +15,9 @@ public class SkillGame extends Game {
 
     // ========== 필드 ==========
 
+    // 스킬 보드 (스킬 전용 메서드 호출용)
+    private SkillBoard skillBoard;
+
     // 빨간팀 스킬 (파괴, 방패, 부활)
     private Skill[] redSkills;
 
@@ -41,6 +44,17 @@ public class SkillGame extends Game {
         blueItems = new Item[]{new BombItem(), new TrapItem()};
     }
 
+    // ========== 보드 생성 ==========
+
+    /// <summary>
+    /// 스킬 모드용 SkillBoard 생성
+    /// </summary>
+    @Override
+    protected Board createBoard() {
+        skillBoard = new SkillBoard();
+        return skillBoard;
+    }
+
     // ========== 게임 루프 오버라이드 ==========
 
     /// <summary>
@@ -59,7 +73,7 @@ public class SkillGame extends Game {
             int opponentColor = getOpponentColor();
 
             // 체크메이트/스테일메이트 판정 전에 상대 동결 해제
-            board.clearFreezes(opponentColor);
+            skillBoard.clearFreezes(opponentColor);
 
             if (board.isCheckmate(opponentColor)) {
                 showCheckmate();
@@ -81,8 +95,8 @@ public class SkillGame extends Game {
     /// 스킬 모드 턴 처리
     /// 1. 지난 턴에 건 방패 해제
     /// 2. 지난 턴에 걸린 동결 해제
-    /// 3. 행동 선택 (이동/스킬/아이템)
-    /// 4. 이동 시 아이템 트리거 확인
+    /// 3. 부활 스킬의 잡힌 기물 수 갱신
+    /// 4. 행동 선택 (이동/스킬/아이템)
     /// </summary>
     @Override
     protected boolean processTurn() {
@@ -91,22 +105,27 @@ public class SkillGame extends Game {
         Item[] items = (currentPlayer.color == Piece.RED) ? redItems : blueItems;
 
         // 1단계: 지난 턴에 건 방패 해제
-        board.clearShields(currentPlayer.color);
+        skillBoard.clearShields(currentPlayer.color);
 
         // 2단계: 지난 턴에 걸린 동결 해제
-        board.clearFreezes(currentPlayer.color);
+        skillBoard.clearFreezes(currentPlayer.color);
 
         // 모든 기물이 동결되어 있으면 턴 스킵
-        if (!board.hasUnfrozenPieces(currentPlayer.color)) {
+        if (!skillBoard.hasUnfrozenPieces(currentPlayer.color)) {
             Util.clearScreen();
-            board.print(-1, -1, -1, -1, null, currentPlayer.color);
+            skillBoard.print(-1, -1, -1, -1, null, currentPlayer.color);
             System.out.println();
             System.out.println(currentPlayer.name + "의 모든 기물이 동결되어 턴을 넘깁니다.");
             Util.delay(2000);
             return false;
         }
 
-        // 3단계: 행동 선택
+        // 3단계: 부활 스킬의 잡힌 기물 수 갱신 (격자에 없는 정보)
+        ((ReviveSkill) skills[2]).setCapturedCount(
+            skillBoard.getCapturedCount(currentPlayer.color)
+        );
+
+        // 4단계: 행동 선택
         int action = currentPlayer.chooseAction(board, skills, items);
 
         switch (action) {
@@ -160,10 +179,10 @@ public class SkillGame extends Game {
         board.executeMove(move);
 
         // 아이템 트리거 확인 (이동한 칸에 상대 아이템이 있으면 발동)
-        String triggeredItem = board.triggerItem(move.toRow, move.toCol);
+        String triggeredItem = skillBoard.triggerItem(move.toRow, move.toCol);
         if (triggeredItem != null) {
             Util.clearScreen();
-            board.print(-1, -1, -1, -1, null, currentPlayer.color);
+            skillBoard.print(-1, -1, -1, -1, null, currentPlayer.color);
             System.out.println();
             System.out.println(triggeredItem + "에 걸렸습니다!");
             Util.delay(2000);
@@ -196,13 +215,13 @@ public class SkillGame extends Game {
             return handleRevive(skill);
         }
 
-        // 대상 선택
-        int[][] targets = skill.getTargets(board, currentPlayer.color);
-        if (targets.length == 0) {
+        // 대상 찾기 (버퍼에 저장)
+        skill.findTargets(board.grid, currentPlayer.color);
+        if (skill.targetCount == 0) {
             return false;
         }
 
-        int[] target = currentPlayer.chooseSkillTarget(board, targets);
+        int[] target = currentPlayer.chooseSkillTarget(board, skill.targets, skill.targetCount);
         if (target == null) {
             return false;
         }
@@ -212,7 +231,7 @@ public class SkillGame extends Game {
 
         // 결과 표시
         Util.clearScreen();
-        board.print(-1, -1, -1, -1, null, currentPlayer.color);
+        skillBoard.print(-1, -1, -1, -1, null, currentPlayer.color);
         System.out.println();
         System.out.println(skill.name + " 스킬 사용! (" + Util.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
@@ -226,7 +245,7 @@ public class SkillGame extends Game {
     /// </summary>
     private boolean handleRevive(Skill skill) {
         // 잡힌 아군 기물 목록
-        Piece[] captured = board.getCapturedPieces(currentPlayer.color);
+        Piece[] captured = skillBoard.getCapturedPieces(currentPlayer.color);
         if (captured.length == 0) {
             return false;
         }
@@ -237,25 +256,25 @@ public class SkillGame extends Game {
             return false;
         }
 
-        // 배치 위치 선택 (뒷줄의 빈 칸)
-        int[][] targets = skill.getTargets(board, currentPlayer.color);
-        if (targets.length == 0) {
+        // 배치 위치 찾기 (버퍼에 저장)
+        skill.findTargets(board.grid, currentPlayer.color);
+        if (skill.targetCount == 0) {
             return false;
         }
 
-        int[] target = currentPlayer.chooseSkillTarget(board, targets);
+        int[] target = currentPlayer.chooseSkillTarget(board, skill.targets, skill.targetCount);
         if (target == null) {
             return false;
         }
 
         // 부활 실행
         Piece revived = captured[pieceIndex];
-        board.revivePiece(revived, target[0], target[1]);
+        skillBoard.revivePiece(revived, target[0], target[1]);
         skill.useCharge();
 
         // 결과 표시
         Util.clearScreen();
-        board.print(-1, -1, -1, -1, null, currentPlayer.color);
+        skillBoard.print(-1, -1, -1, -1, null, currentPlayer.color);
         System.out.println();
         System.out.println(revived.name + " 부활! (" + Util.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
@@ -289,12 +308,12 @@ public class SkillGame extends Game {
         } else {
             placed = new TrapItem(currentPlayer.color, target[0], target[1]);
         }
-        board.placeItem(placed);
+        skillBoard.placeItem(placed);
         item.useCharge();
 
         // 결과 표시
         Util.clearScreen();
-        board.print(-1, -1, -1, -1, null, currentPlayer.color);
+        skillBoard.print(-1, -1, -1, -1, null, currentPlayer.color);
         System.out.println();
         System.out.println(item.name + " 설치 완료! (" + Util.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);

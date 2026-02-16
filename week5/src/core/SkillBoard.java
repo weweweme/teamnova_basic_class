@@ -1,0 +1,264 @@
+package core;
+
+import java.util.ArrayList;
+import piece.*;
+import item.Item;
+
+/// <summary>
+/// 스킬 모드 보드
+/// 일반 체스 규칙 + 아이템/스킬 시스템 추가
+/// 방패, 동결, 기물 제거/부활, 아이템 설치/발동 기능 제공
+/// </summary>
+public class SkillBoard extends Board {
+
+    // ========== 필드 ==========
+
+    // 아이템 격자 (빈 칸은 null, 아이템이 설치된 칸에만 값 존재)
+    private final Item[][] itemGrid;
+
+    // 현재 보드를 보고 있는 플레이어 색상 (-1이면 일반 표시)
+    private int currentViewerColor;
+
+    // ========== 생성자 ==========
+
+    public SkillBoard() {
+        super();
+        itemGrid = new Item[SIZE][SIZE];
+        currentViewerColor = -1;
+    }
+
+    // ========== 보드 출력 (스킬 모드) ==========
+
+    /// <summary>
+    /// 보드 출력 (스킬 모드용, 자기 아이템/효과 표시)
+    /// viewerColor: 이 색상의 플레이어에게만 자기 아이템이 보임
+    /// </summary>
+    public void print(int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves, int viewerColor) {
+        // 렌더링 시 사용할 플레이어 색상 설정
+        currentViewerColor = viewerColor;
+        // 부모의 print가 renderCell을 호출 → 오버라이드된 버전이 스킬 렌더링 수행
+        super.print(cursorRow, cursorCol, selectedRow, selectedCol, validMoves);
+        // 렌더링 완료 후 초기화
+        currentViewerColor = -1;
+    }
+
+    /// <summary>
+    /// 보드 출력 (스킬 모드용, 유효 대상 수 직접 지정)
+    /// 버퍼 배열에서 유효한 범위만 표시할 때 사용
+    /// </summary>
+    public void print(int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves, int validMoveCount, int viewerColor) {
+        // 유효 대상 수를 먼저 설정 (부모 print에서 덮어쓰지 않음)
+        this.validMoveCount = validMoveCount;
+        currentViewerColor = viewerColor;
+        super.print(cursorRow, cursorCol, selectedRow, selectedCol, validMoves);
+        currentViewerColor = -1;
+    }
+
+    /// <summary>
+    /// 한 칸의 표시 문자열 결정 (스킬 모드 확장)
+    /// 스킬 모드 표시가 활성화되면 방패(!), 동결(~), 아이템 표시 추가
+    /// 비활성화 상태면 기본 렌더링 사용
+    /// </summary>
+    @Override
+    protected String renderCell(int r, int c, int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves) {
+        // 일반 표시 모드 (스킬 모드 비활성화 시)
+        if (currentViewerColor == -1) {
+            return super.renderCell(r, c, cursorRow, cursorCol, selectedRow, selectedCol, validMoves);
+        }
+
+        // 스킬 모드 렌더링
+        return renderCellSkill(r, c, cursorRow, cursorCol, selectedRow, selectedCol, validMoves, currentViewerColor);
+    }
+
+    /// <summary>
+    /// 한 칸의 표시 문자열 결정 (스킬 모드 전용)
+    /// 기존 표시 + 방패(!), 동결(~), 자기 아이템 표시 추가
+    /// </summary>
+    private String renderCellSkill(int r, int c, int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves, int viewerColor) {
+        Piece piece = grid[r][c];
+        boolean isCursor = (r == cursorRow && c == cursorCol);
+        boolean isSelected = (r == selectedRow && c == selectedCol);
+        boolean isValidMove = isInArray(r, c, validMoves, validMoveCount);
+
+        // 1순위: 커서 또는 선택된 기물 → 대괄호로 감싸기
+        if (isCursor || isSelected) {
+            if (piece != null) {
+                String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
+                return "[" + colorCode + piece.symbol + Util.RESET + "]";
+            }
+            return "[ ]";
+        }
+
+        // 2순위: 이동 가능한 칸 → · 표시
+        if (isValidMove) {
+            return " · ";
+        }
+
+        // 3순위: 기물이 있는 칸 (방패/동결 효과 표시)
+        if (piece != null) {
+            String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
+            // 방패 표시: 기호 앞에 ! 표시
+            String prefix = piece.shielded ? "!" : " ";
+            // 동결 표시: 기호 뒤에 ~ 표시
+            String suffix = piece.frozen ? "~" : " ";
+            return prefix + colorCode + piece.symbol + Util.RESET + suffix;
+        }
+
+        // 4순위: 자기 아이템이 설치된 빈 칸 (설치자에게만 보임)
+        Item item = itemGrid[r][c];
+        if (item != null && item.ownerColor == viewerColor) {
+            String colorCode = (item.ownerColor == Piece.RED) ? Util.RED : Util.BLUE;
+            return " " + colorCode + item.getSymbol() + Util.RESET + " ";
+        }
+
+        return "   ";
+    }
+
+    // ========== 아이템 관리 ==========
+
+    /// <summary>
+    /// 보드에 아이템을 설치
+    /// </summary>
+    public void placeItem(Item item) {
+        itemGrid[item.row][item.col] = item;
+    }
+
+    /// <summary>
+    /// 지정한 칸의 아이템 반환 (없으면 null)
+    /// </summary>
+    public Item getItem(int row, int col) {
+        if (row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
+            return null;
+        }
+        return itemGrid[row][col];
+    }
+
+    /// <summary>
+    /// 이동 후 도착 칸에 상대 아이템이 있으면 발동
+    /// 자기 아이템 위에는 발동하지 않음 (설치자는 자기 아이템을 밟아도 안전)
+    /// 발동 후 아이템 제거
+    /// 반환값: 발동된 아이템 이름 (없으면 null, 화면 표시용)
+    /// </summary>
+    public String triggerItem(int row, int col) {
+        Item item = itemGrid[row][col];
+        Piece steppedPiece = grid[row][col];
+
+        // 아이템이 없거나 기물이 없거나 자기 아이템이면 무시
+        if (item == null || steppedPiece == null || item.ownerColor == steppedPiece.color) {
+            return null;
+        }
+
+        // 아이템 효과 발동
+        String itemName = item.name;
+        item.trigger(this, steppedPiece);
+
+        // 발동된 아이템 제거
+        itemGrid[row][col] = null;
+
+        return itemName;
+    }
+
+    // ========== 효과 관리 ==========
+
+    /// <summary>
+    /// 특정 색상의 모든 기물에서 방패 상태 해제
+    /// 자기 턴 시작 시 호출 (지난 턴에 건 방패를 해제)
+    /// </summary>
+    public void clearShields(int color) {
+        for (int r = 0; r < SIZE; r++) {
+            for (int c = 0; c < SIZE; c++) {
+                Piece piece = grid[r][c];
+                if (piece != null && piece.color == color && piece.shielded) {
+                    piece.shielded = false;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 특정 색상의 모든 기물에서 동결 상태 해제
+    /// 동결된 플레이어의 턴 시작 시 호출
+    /// </summary>
+    public void clearFreezes(int color) {
+        for (int r = 0; r < SIZE; r++) {
+            for (int c = 0; c < SIZE; c++) {
+                Piece piece = grid[r][c];
+                if (piece != null && piece.color == color && piece.frozen) {
+                    piece.frozen = false;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 특정 색상에 동결되지 않은 기물이 있는지 확인
+    /// 모든 기물이 동결되면 턴을 넘겨야 함
+    /// </summary>
+    public boolean hasUnfrozenPieces(int color) {
+        for (int r = 0; r < SIZE; r++) {
+            for (int c = 0; c < SIZE; c++) {
+                Piece piece = grid[r][c];
+                if (piece != null && piece.color == color && !piece.frozen) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // ========== 기물 제거/부활 ==========
+
+    /// <summary>
+    /// 지정한 칸의 기물을 제거하고 잡힌 기물 목록에 추가
+    /// 파괴 스킬, 폭탄 아이템에서 사용
+    /// </summary>
+    public void removePiece(int row, int col) {
+        Piece piece = grid[row][col];
+        if (piece != null) {
+            capturedPieces.add(piece);
+            grid[row][col] = null;
+        }
+    }
+
+    /// <summary>
+    /// 잡힌 기물 중 특정 색상의 기물 수 반환 (킹 제외)
+    /// 배열을 생성하지 않고 수만 세어 반환
+    /// </summary>
+    public int getCapturedCount(int color) {
+        int count = 0;
+        for (Piece p : capturedPieces) {
+            if (p.color == color && !(p instanceof King)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /// <summary>
+    /// 잡힌 기물 중 특정 색상의 기물 목록 반환 (킹 제외)
+    /// 부활 스킬에서 부활 대상 선택 시 사용
+    /// </summary>
+    public Piece[] getCapturedPieces(int color) {
+        ArrayList<Piece> result = new ArrayList<>();
+        for (Piece p : capturedPieces) {
+            if (p.color == color && !(p instanceof King)) {
+                result.add(p);
+            }
+        }
+        return result.toArray(new Piece[0]);
+    }
+
+    /// <summary>
+    /// 잡힌 기물을 지정한 위치에 부활
+    /// 잡힌 기물 목록에서 제거하고 보드에 배치
+    /// </summary>
+    public void revivePiece(Piece piece, int row, int col) {
+        capturedPieces.remove(piece);
+        grid[row][col] = piece;
+        piece.row = row;
+        piece.col = col;
+        piece.hasMoved = true;  // 부활한 기물은 이동한 것으로 처리
+        piece.shielded = false;
+        piece.frozen = false;
+    }
+}

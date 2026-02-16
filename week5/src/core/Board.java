@@ -2,18 +2,24 @@ package core;
 
 import java.util.ArrayList;
 import piece.*;
-import item.Item;
 
 /// <summary>
-/// 체스판 클래스
+/// 체스판 추상 클래스
 /// 8x8 격자, 기물 배치, 이동 실행, 보드 출력, 체크/체크메이트 판정
+/// StandardBoard: 일반 체스, SkillBoard: 스킬+아이템 모드
 /// </summary>
-public class Board {
+public abstract class Board {
 
     // ========== 상수 ==========
 
     // 체스판 크기
     public static final int SIZE = 8;
+
+    // 한 팀의 최대 기물 수
+    public static final int MAX_PIECES_PER_SIDE = 16;
+
+    // 좌표 구성 요소 수 (행, 열)
+    public static final int COORD_SIZE = 2;
 
     // ========== 필드 ==========
 
@@ -23,11 +29,12 @@ public class Board {
     // 마지막으로 실행된 수 (앙파상 판정에 사용)
     private Move lastMove;
 
-    // 잡힌 기물 목록 (잡은 기물 표시에 사용)
-    private final ArrayList<Piece> capturedPieces;
+    // 잡힌 기물 목록 (잡은 기물 표시에 사용, 하위 클래스에서 접근 가능)
+    protected final ArrayList<Piece> capturedPieces;
 
-    // 아이템 격자 (빈 칸은 null, 아이템이 설치된 칸에만 값 존재)
-    private final Item[][] itemGrid;
+    // 현재 print에서 사용 중인 유효 이동/대상 칸 수 (-1이면 미설정)
+    // 스킬 대상 버퍼처럼 배열 일부만 유효한 경우, 외부에서 먼저 설정
+    protected int validMoveCount = -1;
 
     // ========== 생성자 ==========
 
@@ -38,7 +45,6 @@ public class Board {
         grid = new Piece[SIZE][SIZE];
         lastMove = null;
         capturedPieces = new ArrayList<>();
-        itemGrid = new Item[SIZE][SIZE];
         initPieces();
     }
 
@@ -49,35 +55,51 @@ public class Board {
     /// 파란팀(상단 0~1행), 빨간팀(하단 6~7행)
     /// </summary>
     private void initPieces() {
-        // 파란팀 주요 기물 (0행 = 8번 줄)
-        grid[0][0] = new Rook(Piece.BLUE, 0, 0);
-        grid[0][1] = new Knight(Piece.BLUE, 0, 1);
-        grid[0][2] = new Bishop(Piece.BLUE, 0, 2);
-        grid[0][3] = new Queen(Piece.BLUE, 0, 3);
-        grid[0][4] = new King(Piece.BLUE, 0, 4);
-        grid[0][5] = new Bishop(Piece.BLUE, 0, 5);
-        grid[0][6] = new Knight(Piece.BLUE, 0, 6);
-        grid[0][7] = new Rook(Piece.BLUE, 0, 7);
+        // 행 위치 상수
+        final int BLUE_BACK_ROW = 0;   // 파란팀 주요 기물 행 (8번 줄)
+        final int BLUE_PAWN_ROW = 1;   // 파란팀 폰 행 (7번 줄)
+        final int RED_PAWN_ROW = 6;    // 빨간팀 폰 행 (2번 줄)
+        final int RED_BACK_ROW = 7;    // 빨간팀 주요 기물 행 (1번 줄)
 
-        // 파란팀 폰 (1행 = 7번 줄)
+        // 열 위치 상수 (체스 표준 배치 순서)
+        final int ROOK_LEFT = 0;       // a열 - 룩
+        final int KNIGHT_LEFT = 1;     // b열 - 나이트
+        final int BISHOP_LEFT = 2;     // c열 - 비숍
+        final int QUEEN_COL = 3;       // d열 - 퀸
+        final int KING_COL = 4;        // e열 - 킹
+        final int BISHOP_RIGHT = 5;    // f열 - 비숍
+        final int KNIGHT_RIGHT = 6;    // g열 - 나이트
+        final int ROOK_RIGHT = 7;      // h열 - 룩
+
+        // 파란팀 주요 기물
+        grid[BLUE_BACK_ROW][ROOK_LEFT] = new Rook(Piece.BLUE, BLUE_BACK_ROW, ROOK_LEFT);
+        grid[BLUE_BACK_ROW][KNIGHT_LEFT] = new Knight(Piece.BLUE, BLUE_BACK_ROW, KNIGHT_LEFT);
+        grid[BLUE_BACK_ROW][BISHOP_LEFT] = new Bishop(Piece.BLUE, BLUE_BACK_ROW, BISHOP_LEFT);
+        grid[BLUE_BACK_ROW][QUEEN_COL] = new Queen(Piece.BLUE, BLUE_BACK_ROW, QUEEN_COL);
+        grid[BLUE_BACK_ROW][KING_COL] = new King(Piece.BLUE, BLUE_BACK_ROW, KING_COL);
+        grid[BLUE_BACK_ROW][BISHOP_RIGHT] = new Bishop(Piece.BLUE, BLUE_BACK_ROW, BISHOP_RIGHT);
+        grid[BLUE_BACK_ROW][KNIGHT_RIGHT] = new Knight(Piece.BLUE, BLUE_BACK_ROW, KNIGHT_RIGHT);
+        grid[BLUE_BACK_ROW][ROOK_RIGHT] = new Rook(Piece.BLUE, BLUE_BACK_ROW, ROOK_RIGHT);
+
+        // 파란팀 폰
         for (int c = 0; c < SIZE; c++) {
-            grid[1][c] = new Pawn(Piece.BLUE, 1, c);
+            grid[BLUE_PAWN_ROW][c] = new Pawn(Piece.BLUE, BLUE_PAWN_ROW, c);
         }
 
-        // 빨간팀 폰 (6행 = 2번 줄)
+        // 빨간팀 폰
         for (int c = 0; c < SIZE; c++) {
-            grid[6][c] = new Pawn(Piece.RED, 6, c);
+            grid[RED_PAWN_ROW][c] = new Pawn(Piece.RED, RED_PAWN_ROW, c);
         }
 
-        // 빨간팀 주요 기물 (7행 = 1번 줄)
-        grid[7][0] = new Rook(Piece.RED, 7, 0);
-        grid[7][1] = new Knight(Piece.RED, 7, 1);
-        grid[7][2] = new Bishop(Piece.RED, 7, 2);
-        grid[7][3] = new Queen(Piece.RED, 7, 3);
-        grid[7][4] = new King(Piece.RED, 7, 4);
-        grid[7][5] = new Bishop(Piece.RED, 7, 5);
-        grid[7][6] = new Knight(Piece.RED, 7, 6);
-        grid[7][7] = new Rook(Piece.RED, 7, 7);
+        // 빨간팀 주요 기물
+        grid[RED_BACK_ROW][ROOK_LEFT] = new Rook(Piece.RED, RED_BACK_ROW, ROOK_LEFT);
+        grid[RED_BACK_ROW][KNIGHT_LEFT] = new Knight(Piece.RED, RED_BACK_ROW, KNIGHT_LEFT);
+        grid[RED_BACK_ROW][BISHOP_LEFT] = new Bishop(Piece.RED, RED_BACK_ROW, BISHOP_LEFT);
+        grid[RED_BACK_ROW][QUEEN_COL] = new Queen(Piece.RED, RED_BACK_ROW, QUEEN_COL);
+        grid[RED_BACK_ROW][KING_COL] = new King(Piece.RED, RED_BACK_ROW, KING_COL);
+        grid[RED_BACK_ROW][BISHOP_RIGHT] = new Bishop(Piece.RED, RED_BACK_ROW, BISHOP_RIGHT);
+        grid[RED_BACK_ROW][KNIGHT_RIGHT] = new Knight(Piece.RED, RED_BACK_ROW, KNIGHT_RIGHT);
+        grid[RED_BACK_ROW][ROOK_RIGHT] = new Rook(Piece.RED, RED_BACK_ROW, ROOK_RIGHT);
     }
 
     // ========== 보드 출력 ==========
@@ -103,6 +125,11 @@ public class Board {
     /// validMoves: 이동 가능한 칸 목록 (null이면 표시 안 함)
     /// </summary>
     public void print(int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves) {
+        // 외부에서 validMoveCount가 설정되지 않았으면 배열 길이 사용
+        if (validMoveCount == -1) {
+            validMoveCount = (validMoves != null) ? validMoves.length : 0;
+        }
+
         // 상단 열 표시
         System.out.println("     a   b   c   d   e   f   g   h");
         System.out.println("   +---+---+---+---+---+---+---+---+");
@@ -118,7 +145,7 @@ public class Board {
             }
 
             line.append(String.format(" %d", rank));
-            System.out.println(line.toString());
+            System.out.println(line);
             System.out.println("   +---+---+---+---+---+---+---+---+");
         }
 
@@ -127,88 +154,16 @@ public class Board {
 
         // 잡은 기물 표시
         printCapturedPieces();
-    }
 
-    /// <summary>
-    /// 보드 출력 (스킬 모드용, 자기 아이템/효과 표시)
-    /// viewerColor: 이 색상의 플레이어에게만 자기 아이템이 보임
-    /// </summary>
-    public void print(int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves, int viewerColor) {
-        // 상단 열 표시
-        System.out.println("     a   b   c   d   e   f   g   h");
-        System.out.println("   +---+---+---+---+---+---+---+---+");
-
-        for (int r = 0; r < SIZE; r++) {
-            int rank = 8 - r;
-            StringBuilder line = new StringBuilder();
-            line.append(String.format(" %d |", rank));
-
-            for (int c = 0; c < SIZE; c++) {
-                String cell = renderCellSkill(r, c, cursorRow, cursorCol, selectedRow, selectedCol, validMoves, viewerColor);
-                line.append(cell).append("|");
-            }
-
-            line.append(String.format(" %d", rank));
-            System.out.println(line.toString());
-            System.out.println("   +---+---+---+---+---+---+---+---+");
-        }
-
-        // 하단 열 표시
-        System.out.println("     a   b   c   d   e   f   g   h");
-
-        // 잡은 기물 표시
-        printCapturedPieces();
-    }
-
-    /// <summary>
-    /// 한 칸의 표시 문자열 결정 (스킬 모드용)
-    /// 기존 표시 + 방패(!), 동결(~), 자기 아이템 표시 추가
-    /// </summary>
-    private String renderCellSkill(int r, int c, int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves, int viewerColor) {
-        Piece piece = grid[r][c];
-        boolean isCursor = (r == cursorRow && c == cursorCol);
-        boolean isSelected = (r == selectedRow && c == selectedCol);
-        boolean isValidMove = isInArray(r, c, validMoves);
-
-        // 1순위: 커서 또는 선택된 기물 → 대괄호로 감싸기
-        if (isCursor || isSelected) {
-            if (piece != null) {
-                String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
-                return "[" + colorCode + piece.symbol + Util.RESET + "]";
-            }
-            return "[ ]";
-        }
-
-        // 2순위: 이동 가능한 칸 → · 표시
-        if (isValidMove) {
-            return " · ";
-        }
-
-        // 3순위: 기물이 있는 칸 (방패/동결 효과 표시)
-        if (piece != null) {
-            String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
-            // 방패 표시: 기호 앞에 ! 표시
-            String prefix = piece.shielded ? "!" : " ";
-            // 동결 표시: 기호 뒤에 ~ 표시
-            String suffix = piece.frozen ? "~" : " ";
-            return prefix + colorCode + piece.symbol + Util.RESET + suffix;
-        }
-
-        // 4순위: 자기 아이템이 설치된 빈 칸 (설치자에게만 보임)
-        Item item = itemGrid[r][c];
-        if (item != null && item.ownerColor == viewerColor) {
-            String colorCode = (item.ownerColor == Piece.RED) ? Util.RED : Util.BLUE;
-            return " " + colorCode + item.getSymbol() + Util.RESET + " ";
-        }
-
-        return "   ";
+        // 렌더링 완료 후 초기화
+        validMoveCount = -1;
     }
 
     /// <summary>
     /// 잡힌 기물을 팀별로 표시
     /// 가치 높은 순으로 정렬하여 보여줌
     /// </summary>
-    private void printCapturedPieces() {
+    protected void printCapturedPieces() {
         if (capturedPieces.isEmpty()) {
             return;
         }
@@ -231,10 +186,10 @@ public class Board {
         }
 
         System.out.println();
-        if (redCaptures.length() > 0) {
+        if (!redCaptures.isEmpty()) {
             System.out.println("  " + Util.RED + "빨간팀" + Util.RESET + " 획득: " + redCaptures.toString().trim());
         }
-        if (blueCaptures.length() > 0) {
+        if (!blueCaptures.isEmpty()) {
             System.out.println("  " + Util.BLUE + "파란팀" + Util.RESET + " 획득: " + blueCaptures.toString().trim());
         }
     }
@@ -242,12 +197,13 @@ public class Board {
     /// <summary>
     /// 한 칸의 표시 문자열을 결정
     /// 우선순위: 커서/선택 > 이동 가능 칸 > 일반
+    /// 하위 클래스에서 오버라이드하여 추가 표시 가능
     /// </summary>
-    private String renderCell(int r, int c, int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves) {
+    protected String renderCell(int r, int c, int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves) {
         Piece piece = grid[r][c];
         boolean isCursor = (r == cursorRow && c == cursorCol);
         boolean isSelected = (r == selectedRow && c == selectedCol);
-        boolean isValidMove = isInArray(r, c, validMoves);
+        boolean isValidMove = isInArray(r, c, validMoves, validMoveCount);
 
         // 1순위: 커서 또는 선택된 기물 → 대괄호로 감싸기
         if (isCursor || isSelected) {
@@ -273,13 +229,22 @@ public class Board {
 
     /// <summary>
     /// 특정 좌표가 배열에 포함되어 있는지 확인
+    /// 배열 전체를 검사
     /// </summary>
     public boolean isInArray(int row, int col, int[][] array) {
+        return isInArray(row, col, array, (array != null) ? array.length : 0);
+    }
+
+    /// <summary>
+    /// 특정 좌표가 배열의 처음 count개 항목에 포함되어 있는지 확인
+    /// 버퍼 배열에서 유효한 범위만 검사할 때 사용
+    /// </summary>
+    public boolean isInArray(int row, int col, int[][] array, int count) {
         if (array == null) {
             return false;
         }
-        for (int[] pos : array) {
-            if (pos[0] == row && pos[1] == col) {
+        for (int i = 0; i < count; i++) {
+            if (array[i][0] == row && array[i][1] == col) {
                 return true;
             }
         }
@@ -311,140 +276,6 @@ public class Board {
             }
         }
         return null;
-    }
-
-    // ========== 아이템 관리 ==========
-
-    /// <summary>
-    /// 보드에 아이템을 설치
-    /// </summary>
-    public void placeItem(Item item) {
-        itemGrid[item.row][item.col] = item;
-    }
-
-    /// <summary>
-    /// 지정한 칸의 아이템 반환 (없으면 null)
-    /// </summary>
-    public Item getItem(int row, int col) {
-        if (row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            return null;
-        }
-        return itemGrid[row][col];
-    }
-
-    /// <summary>
-    /// 이동 후 도착 칸에 상대 아이템이 있으면 발동
-    /// 자기 아이템 위에는 발동하지 않음 (설치자는 자기 아이템을 밟아도 안전)
-    /// 발동 후 아이템 제거
-    /// 반환값: 발동된 아이템 이름 (없으면 null, 화면 표시용)
-    /// </summary>
-    public String triggerItem(int row, int col) {
-        Item item = itemGrid[row][col];
-        Piece steppedPiece = grid[row][col];
-
-        // 아이템이 없거나 기물이 없거나 자기 아이템이면 무시
-        if (item == null || steppedPiece == null || item.ownerColor == steppedPiece.color) {
-            return null;
-        }
-
-        // 아이템 효과 발동
-        String itemName = item.name;
-        item.trigger(this, steppedPiece);
-
-        // 발동된 아이템 제거
-        itemGrid[row][col] = null;
-
-        return itemName;
-    }
-
-    // ========== 효과 관리 ==========
-
-    /// <summary>
-    /// 특정 색상의 모든 기물에서 방패 상태 해제
-    /// 자기 턴 시작 시 호출 (지난 턴에 건 방패를 해제)
-    /// </summary>
-    public void clearShields(int color) {
-        for (int r = 0; r < SIZE; r++) {
-            for (int c = 0; c < SIZE; c++) {
-                Piece piece = grid[r][c];
-                if (piece != null && piece.color == color && piece.shielded) {
-                    piece.shielded = false;
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// 특정 색상의 모든 기물에서 동결 상태 해제
-    /// 동결된 플레이어의 턴 시작 시 호출
-    /// </summary>
-    public void clearFreezes(int color) {
-        for (int r = 0; r < SIZE; r++) {
-            for (int c = 0; c < SIZE; c++) {
-                Piece piece = grid[r][c];
-                if (piece != null && piece.color == color && piece.frozen) {
-                    piece.frozen = false;
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// 특정 색상에 동결되지 않은 기물이 있는지 확인
-    /// 모든 기물이 동결되면 턴을 넘겨야 함
-    /// </summary>
-    public boolean hasUnfrozenPieces(int color) {
-        for (int r = 0; r < SIZE; r++) {
-            for (int c = 0; c < SIZE; c++) {
-                Piece piece = grid[r][c];
-                if (piece != null && piece.color == color && !piece.frozen) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    // ========== 기물 제거/부활 ==========
-
-    /// <summary>
-    /// 지정한 칸의 기물을 제거하고 잡힌 기물 목록에 추가
-    /// 파괴 스킬, 폭탄 아이템에서 사용
-    /// </summary>
-    public void removePiece(int row, int col) {
-        Piece piece = grid[row][col];
-        if (piece != null) {
-            capturedPieces.add(piece);
-            grid[row][col] = null;
-        }
-    }
-
-    /// <summary>
-    /// 잡힌 기물 중 특정 색상의 기물 목록 반환 (킹 제외)
-    /// 부활 스킬에서 부활 대상 선택 시 사용
-    /// </summary>
-    public Piece[] getCapturedPieces(int color) {
-        ArrayList<Piece> result = new ArrayList<>();
-        for (Piece p : capturedPieces) {
-            if (p.color == color && !(p instanceof King)) {
-                result.add(p);
-            }
-        }
-        return result.toArray(new Piece[0]);
-    }
-
-    /// <summary>
-    /// 잡힌 기물을 지정한 위치에 부활
-    /// 잡힌 기물 목록에서 제거하고 보드에 배치
-    /// </summary>
-    public void revivePiece(Piece piece, int row, int col) {
-        capturedPieces.remove(piece);
-        grid[row][col] = piece;
-        piece.row = row;
-        piece.col = col;
-        piece.hasMoved = true;  // 부활한 기물은 이동한 것으로 처리
-        piece.shielded = false;
-        piece.frozen = false;
     }
 
     // ========== 이동 실행 ==========

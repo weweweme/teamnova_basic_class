@@ -35,7 +35,7 @@ public abstract class Game {
     /// 보드와 두 플레이어를 받아 초기화
     /// </summary>
     public Game(Player redPlayer, Player bluePlayer) {
-        this.board = new Board();
+        this.board = createBoard();
         this.redPlayer = redPlayer;
         this.bluePlayer = bluePlayer;
         // 빨간팀(RED)이 선공
@@ -79,6 +79,12 @@ public abstract class Game {
     }
 
     // ========== 추상 메서드 ==========
+
+    /// <summary>
+    /// 게임에 맞는 보드를 생성하여 반환
+    /// StandardGame: StandardBoard, SkillGame: SkillBoard
+    /// </summary>
+    protected abstract Board createBoard();
 
     /// <summary>
     /// 한 턴의 처리를 수행

@@ -145,7 +145,7 @@ public class AiPlayer extends Player {
         int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
 
         // 파괴 스킬 확인 (인덱스 0): 상대 퀸이 있으면 파괴 우선
-        if (skills[0].hasUses() && skills[0].canUse(board, color)) {
+        if (skills[0].hasUses() && skills[0].canUse(board.grid, color)) {
             for (int r = 0; r < Board.SIZE; r++) {
                 for (int c = 0; c < Board.SIZE; c++) {
                     Piece piece = board.getPiece(r, c);
@@ -157,8 +157,9 @@ public class AiPlayer extends Player {
         }
 
         // 부활 스킬 확인 (인덱스 2): 가치 높은 잡힌 기물이 있으면 부활
-        if (skills[2].hasUses() && skills[2].canUse(board, color)) {
-            Piece[] captured = board.getCapturedPieces(color);
+        if (skills[2].hasUses() && skills[2].canUse(board.grid, color)) {
+            SkillBoard skillBoard = (SkillBoard) board;
+            Piece[] captured = skillBoard.getCapturedPieces(color);
             for (Piece p : captured) {
                 if (p.value >= 5) {
                     return 1;  // 스킬
@@ -167,7 +168,7 @@ public class AiPlayer extends Player {
         }
 
         // 방패 스킬 확인 (인덱스 1): 20% 확률로 사용
-        if (skills[1].hasUses() && skills[1].canUse(board, color) && Util.rand(5) == 0) {
+        if (skills[1].hasUses() && skills[1].canUse(board.grid, color) && Util.rand(5) == 0) {
             return 1;  // 스킬
         }
 
@@ -193,17 +194,17 @@ public class AiPlayer extends Player {
     @Override
     public int chooseSkill(Board board, Skill[] skills) {
         // 파괴 스킬 (인덱스 0)
-        if (skills[0].hasUses() && skills[0].canUse(board, color)) {
+        if (skills[0].hasUses() && skills[0].canUse(board.grid, color)) {
             return 0;
         }
 
         // 부활 스킬 (인덱스 2)
-        if (skills[2].hasUses() && skills[2].canUse(board, color)) {
+        if (skills[2].hasUses() && skills[2].canUse(board.grid, color)) {
             return 2;
         }
 
         // 방패 스킬 (인덱스 1)
-        if (skills[1].hasUses() && skills[1].canUse(board, color)) {
+        if (skills[1].hasUses() && skills[1].canUse(board.grid, color)) {
             return 1;
         }
 
@@ -215,8 +216,8 @@ public class AiPlayer extends Player {
     /// 기물이 없는 대상(빈 칸)이면 랜덤 선택
     /// </summary>
     @Override
-    public int[] chooseSkillTarget(Board board, int[][] targets) {
-        if (targets.length == 0) {
+    public int[] chooseSkillTarget(Board board, int[][] targets, int targetCount) {
+        if (targetCount == 0) {
             return null;
         }
 
@@ -224,7 +225,7 @@ public class AiPlayer extends Player {
         int bestIndex = 0;
         int bestValue = 0;
 
-        for (int i = 0; i < targets.length; i++) {
+        for (int i = 0; i < targetCount; i++) {
             Piece piece = board.getPiece(targets[i][0], targets[i][1]);
             if (piece != null && piece.value > bestValue) {
                 bestValue = piece.value;
@@ -234,7 +235,7 @@ public class AiPlayer extends Player {
 
         // 기물이 없는 대상(빈 칸, 부활 위치 등)이면 랜덤 선택
         if (bestValue == 0) {
-            bestIndex = Util.rand(targets.length);
+            bestIndex = Util.rand(targetCount);
         }
 
         return targets[bestIndex];
@@ -263,11 +264,12 @@ public class AiPlayer extends Player {
     /// </summary>
     @Override
     public int[] chooseItemTarget(Board board) {
+        SkillBoard skillBoard = (SkillBoard) board;
         // 보드 중앙 4x4 영역(2~5행, 2~5열)에서 빈 칸 탐색
         java.util.ArrayList<int[]> candidates = new java.util.ArrayList<>();
         for (int r = 2; r <= 5; r++) {
             for (int c = 2; c <= 5; c++) {
-                if (board.getPiece(r, c) == null && board.getItem(r, c) == null) {
+                if (board.getPiece(r, c) == null && skillBoard.getItem(r, c) == null) {
                     candidates.add(new int[]{r, c});
                 }
             }
@@ -277,7 +279,7 @@ public class AiPlayer extends Player {
         if (candidates.isEmpty()) {
             for (int r = 0; r < Board.SIZE; r++) {
                 for (int c = 0; c < Board.SIZE; c++) {
-                    if (board.getPiece(r, c) == null && board.getItem(r, c) == null) {
+                    if (board.getPiece(r, c) == null && skillBoard.getItem(r, c) == null) {
                         candidates.add(new int[]{r, c});
                     }
                 }

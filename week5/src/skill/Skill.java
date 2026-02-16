@@ -1,7 +1,7 @@
 package skill;
 
-import java.util.ArrayList;
 import core.Board;
+import piece.Piece;
 
 /// <summary>
 /// 스킬 추상 클래스
@@ -23,6 +23,12 @@ public abstract class Skill {
 
     // 남은 사용 횟수
     public int remainingUses;
+
+    // 대상 좌표 버퍼 (매번 새로 만들지 않고 재사용)
+    public final int[][] targets = new int[Board.MAX_PIECES_PER_SIDE][Board.COORD_SIZE];
+
+    // 현재 유효한 대상 수 (targets 배열에서 이 수만큼만 유효)
+    public int targetCount = 0;
 
     // ========== 생성자 ==========
 
@@ -56,21 +62,24 @@ public abstract class Skill {
     // ========== 추상 메서드 ==========
 
     /// <summary>
-    /// 현재 보드에서 이 스킬을 사용할 수 있는지 판단
+    /// 현재 격자에서 이 스킬을 사용할 수 있는지 판단
     /// 남은 횟수와 별개로, 유효한 대상이 있는지 확인
+    /// Board가 아닌 격자 배열만 받아 최소한의 정보로 판단
     /// 각 하위 클래스가 자기만의 조건으로 구현 (메서드 오버라이딩)
     /// </summary>
-    public abstract boolean canUse(Board board, int color);
+    public abstract boolean canUse(Piece[][] grid, int color);
 
     /// <summary>
-    /// 스킬 대상이 될 수 있는 칸들의 좌표 목록 반환
-    /// 플레이어가 이 중 하나를 선택하여 스킬을 사용
+    /// 스킬 대상이 될 수 있는 칸들을 찾아 버퍼에 저장
+    /// 결과는 targets 배열과 targetCount 필드에 기록
+    /// 매번 새 배열을 만들지 않고 기존 버퍼를 재사용
     /// 각 하위 클래스가 자기만의 대상 조건으로 구현 (메서드 오버라이딩)
     /// </summary>
-    public abstract int[][] getTargets(Board board, int color);
+    public abstract void findTargets(Piece[][] grid, int color);
 
     /// <summary>
     /// 선택한 대상에게 스킬 효과를 적용
+    /// 기물 제거/부활 등 보드 상태 변경이 필요하므로 Board를 받음
     /// 각 하위 클래스가 자기만의 효과로 구현 (메서드 오버라이딩)
     /// </summary>
     public abstract void execute(Board board, int targetRow, int targetCol, int color);

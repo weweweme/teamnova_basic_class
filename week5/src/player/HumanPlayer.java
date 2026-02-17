@@ -2,6 +2,7 @@ package player;
 
 import board.*;
 import core.*;
+import piece.King;
 import piece.Piece;
 import skill.Skill;
 import item.Item;
@@ -30,9 +31,9 @@ public class HumanPlayer extends Player {
     @Override
     public Move chooseMove(Board board) {
         // 커서 시작 위치 (자기 팀 킹 위치)
-        int[] kingPos = board.findKing(color);
-        int cursorRow = kingPos[0];
-        int cursorCol = kingPos[1];
+        King king = board.getKing(color);
+        int cursorRow = king.row;
+        int cursorCol = king.col;
 
         // 1단계: 기물 선택 (탐색 모드)
         while (true) {

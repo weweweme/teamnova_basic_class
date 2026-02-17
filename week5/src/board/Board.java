@@ -84,6 +84,12 @@ public abstract class Board {
     // 잡힌 기물 목록 (잡은 기물 표시에 사용, 하위 클래스에서 접근 가능)
     protected final ArrayList<Piece> capturedPieces;
 
+    // 빨간팀 킹 참조 (체크 판정, 커서 초기 위치 등에 사용)
+    private King redKing;
+
+    // 파란팀 킹 참조
+    private King blueKing;
+
     // 현재 print에서 사용 중인 유효 이동/대상 칸 수
     protected int validMoveCount;
 
@@ -92,6 +98,17 @@ public abstract class Board {
 
     // 현재 유효한 필터링된 이동 칸 수
     private int filteredCount;
+
+    /// <summary>
+    /// 잡힌 기물을 가치순으로 정렬하여 표시할 때 사용하는 목록
+    /// capturedPieces의 내용을 복사해서 정렬 (원본 순서를 바꾸지 않기 위해)
+    /// 매번 새로 만들지 않고 재사용
+    /// </summary>
+    private final ArrayList<Piece> sortedCapturedPieces = new ArrayList<>();
+
+    // 잡힌 기물 표시용 문자열 조립기 (매번 새로 만들지 않고 재사용)
+    private final StringBuilder redCaptures = new StringBuilder();
+    private final StringBuilder blueCaptures = new StringBuilder();
 
     // ========== 생성자 ==========
 
@@ -149,7 +166,8 @@ public abstract class Board {
         grid[BLUE_BACK_ROW][KNIGHT_LEFT].setPiece(new Knight(Piece.BLUE, BLUE_BACK_ROW, KNIGHT_LEFT));
         grid[BLUE_BACK_ROW][BISHOP_LEFT].setPiece(new Bishop(Piece.BLUE, BLUE_BACK_ROW, BISHOP_LEFT));
         grid[BLUE_BACK_ROW][QUEEN_COL].setPiece(new Queen(Piece.BLUE, BLUE_BACK_ROW, QUEEN_COL));
-        grid[BLUE_BACK_ROW][KING_COL].setPiece(new King(Piece.BLUE, BLUE_BACK_ROW, KING_COL));
+        blueKing = new King(Piece.BLUE, BLUE_BACK_ROW, KING_COL);
+        grid[BLUE_BACK_ROW][KING_COL].setPiece(blueKing);
         grid[BLUE_BACK_ROW][BISHOP_RIGHT].setPiece(new Bishop(Piece.BLUE, BLUE_BACK_ROW, BISHOP_RIGHT));
         grid[BLUE_BACK_ROW][KNIGHT_RIGHT].setPiece(new Knight(Piece.BLUE, BLUE_BACK_ROW, KNIGHT_RIGHT));
         grid[BLUE_BACK_ROW][ROOK_RIGHT].setPiece(new Rook(Piece.BLUE, BLUE_BACK_ROW, ROOK_RIGHT));
@@ -169,7 +187,8 @@ public abstract class Board {
         grid[RED_BACK_ROW][KNIGHT_LEFT].setPiece(new Knight(Piece.RED, RED_BACK_ROW, KNIGHT_LEFT));
         grid[RED_BACK_ROW][BISHOP_LEFT].setPiece(new Bishop(Piece.RED, RED_BACK_ROW, BISHOP_LEFT));
         grid[RED_BACK_ROW][QUEEN_COL].setPiece(new Queen(Piece.RED, RED_BACK_ROW, QUEEN_COL));
-        grid[RED_BACK_ROW][KING_COL].setPiece(new King(Piece.RED, RED_BACK_ROW, KING_COL));
+        redKing = new King(Piece.RED, RED_BACK_ROW, KING_COL);
+        grid[RED_BACK_ROW][KING_COL].setPiece(redKing);
         grid[RED_BACK_ROW][BISHOP_RIGHT].setPiece(new Bishop(Piece.RED, RED_BACK_ROW, BISHOP_RIGHT));
         grid[RED_BACK_ROW][KNIGHT_RIGHT].setPiece(new Knight(Piece.RED, RED_BACK_ROW, KNIGHT_RIGHT));
         grid[RED_BACK_ROW][ROOK_RIGHT].setPiece(new Rook(Piece.RED, RED_BACK_ROW, ROOK_RIGHT));
@@ -244,14 +263,16 @@ public abstract class Board {
             return;
         }
 
-        // 복사본을 만들어 가치 높은 순으로 정렬
-        ArrayList<Piece> sorted = new ArrayList<>(capturedPieces);
-        sorted.sort((a, b) -> b.value - a.value);
+        // 정렬용 목록에 복사 후 가치가 높은 기물이 앞에 오도록 정렬
+        sortedCapturedPieces.clear();
+        sortedCapturedPieces.addAll(capturedPieces);
+        sortedCapturedPieces.sort((a, b) -> b.value - a.value);
 
-        StringBuilder redCaptures = new StringBuilder();   // 빨간팀이 잡은 기물 (파란색)
-        StringBuilder blueCaptures = new StringBuilder();  // 파란팀이 잡은 기물 (빨간색)
+        // 문자열 조립기 초기화
+        redCaptures.setLength(0);
+        blueCaptures.setLength(0);
 
-        for (Piece p : sorted) {
+        for (Piece p : sortedCapturedPieces) {
             if (p.color == Piece.BLUE) {
                 // 파란 기물이 잡힘 → 빨간팀이 잡은 것
                 redCaptures.append(Util.BLUE).append(p.symbol).append(Util.RESET).append(" ");
@@ -331,18 +352,10 @@ public abstract class Board {
     }
 
     /// <summary>
-    /// 특정 색상의 킹 위치를 {행, 열} 배열로 반환
+    /// 특정 색상의 킹 반환
     /// </summary>
-    public int[] findKing(int color) {
-        for (int r = 0; r < SIZE; r++) {
-            for (int c = 0; c < SIZE; c++) {
-                Piece piece = grid[r][c].getPiece();
-                if (piece instanceof King && piece.color == color) {
-                    return new int[]{r, c};
-                }
-            }
-        }
-        return null;
+    public King getKing(int color) {
+        return (color == Piece.RED) ? redKing : blueKing;
     }
 
     // ========== 이동 실행 ==========
@@ -747,13 +760,9 @@ public abstract class Board {
     /// 상대 기물 중 하나라도 킹의 위치를 공격할 수 있으면 체크
     /// </summary>
     public boolean isInCheck(int color) {
-        int[] kingPos = findKing(color);
-        if (kingPos == null) {
-            return false;
-        }
-
-        int kingRow = kingPos[ROW];
-        int kingCol = kingPos[COL];
+        King king = getKing(color);
+        int kingRow = king.row;
+        int kingCol = king.col;
 
         // 모든 상대 기물을 순회하며 킹을 공격할 수 있는지 확인
         for (int r = 0; r < SIZE; r++) {

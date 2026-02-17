@@ -1,6 +1,6 @@
 package item;
 
-import board.Board;
+import board.SimpleBoard;
 import board.SkillBoard;
 import piece.Piece;
 import piece.King;
@@ -36,7 +36,7 @@ public class BombItem extends Item {
     /// 킹이 밟으면 제거하지 않음 (아이템 소모만 됨)
     /// </summary>
     @Override
-    public void trigger(Board board, Piece steppedPiece) {
+    public void trigger(SimpleBoard board, Piece steppedPiece) {
         // 킹은 폭탄으로 제거할 수 없음
         if (steppedPiece instanceof King) {
             return;

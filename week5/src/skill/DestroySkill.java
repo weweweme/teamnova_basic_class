@@ -1,6 +1,6 @@
 package skill;
 
-import board.Board;
+import board.SimpleBoard;
 import board.SkillBoard;
 import cell.Cell;
 import piece.King;
@@ -33,8 +33,8 @@ public class DestroySkill extends Skill {
 
         int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
 
-        for (int r = 0; r < Board.SIZE; r++) {
-            for (int c = 0; c < Board.SIZE; c++) {
+        for (int r = 0; r < SimpleBoard.SIZE; r++) {
+            for (int c = 0; c < SimpleBoard.SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
                     Piece piece = grid[r][c].getPiece();
                     if (piece.color == opponentColor && !(piece instanceof King)) {
@@ -55,8 +55,8 @@ public class DestroySkill extends Skill {
         int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
         targetCount = 0;
 
-        for (int r = 0; r < Board.SIZE; r++) {
-            for (int c = 0; c < Board.SIZE; c++) {
+        for (int r = 0; r < SimpleBoard.SIZE; r++) {
+            for (int c = 0; c < SimpleBoard.SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
                     Piece piece = grid[r][c].getPiece();
                     if (piece.color == opponentColor && !(piece instanceof King)) {
@@ -73,7 +73,7 @@ public class DestroySkill extends Skill {
     /// 효과: 지정한 칸의 상대 기물을 제거하고 잡힌 기물 목록에 추가
     /// </summary>
     @Override
-    public void execute(Board board, int targetRow, int targetCol, int color) {
+    public void execute(SimpleBoard board, int targetRow, int targetCol, int color) {
         ((SkillBoard) board).removePiece(targetRow, targetCol);
         useCharge();
     }

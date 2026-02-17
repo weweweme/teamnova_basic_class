@@ -51,7 +51,7 @@ public class SkillGame extends Game {
     /// 스킬 모드용 SkillBoard 생성
     /// </summary>
     @Override
-    protected Board createBoard() {
+    protected SimpleBoard createBoard() {
         skillBoard = new SkillBoard();
         return skillBoard;
     }
@@ -114,7 +114,7 @@ public class SkillGame extends Game {
         // 모든 기물이 동결되어 있으면 턴 스킵
         if (!skillBoard.hasUnfrozenPieces(currentPlayer.color)) {
             Util.clearScreen();
-            skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, Board.EMPTY_MOVES, 0, currentPlayer.color);
+            skillBoard.print(SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.EMPTY_MOVES, 0, currentPlayer.color);
             System.out.println();
             System.out.println(currentPlayer.name + "의 모든 기물이 동결되어 턴을 넘깁니다.");
             Util.delay(2000);
@@ -183,16 +183,16 @@ public class SkillGame extends Game {
         String triggeredItem = skillBoard.triggerItem(move.toRow, move.toCol);
         if (!triggeredItem.isEmpty()) {
             Util.clearScreen();
-            skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, Board.EMPTY_MOVES, 0, currentPlayer.color);
+            skillBoard.print(SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.EMPTY_MOVES, 0, currentPlayer.color);
             System.out.println();
             System.out.println(triggeredItem + "에 걸렸습니다!");
             Util.delay(2000);
         }
 
         // 프로모션 확인
-        if (board.isPromotion(move)) {
+        if (skillBoard.isPromotion(move)) {
             int choice = currentPlayer.choosePromotion(board);
-            board.promote(move.toRow, move.toCol, choice);
+            skillBoard.promote(move.toRow, move.toCol, choice);
         }
 
         return true;
@@ -232,7 +232,7 @@ public class SkillGame extends Game {
 
         // 결과 표시
         Util.clearScreen();
-        skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, Board.EMPTY_MOVES, 0, currentPlayer.color);
+        skillBoard.print(SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.EMPTY_MOVES, 0, currentPlayer.color);
         System.out.println();
         System.out.println(skill.name + " 스킬 사용! (" + Util.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
@@ -275,7 +275,7 @@ public class SkillGame extends Game {
 
         // 결과 표시
         Util.clearScreen();
-        skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, Board.EMPTY_MOVES, 0, currentPlayer.color);
+        skillBoard.print(SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.EMPTY_MOVES, 0, currentPlayer.color);
         System.out.println();
         System.out.println(revived.name + " 부활! (" + Util.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
@@ -314,7 +314,7 @@ public class SkillGame extends Game {
 
         // 결과 표시
         Util.clearScreen();
-        skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, Board.EMPTY_MOVES, 0, currentPlayer.color);
+        skillBoard.print(SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.EMPTY_MOVES, 0, currentPlayer.color);
         System.out.println();
         System.out.println(item.name + " 설치 완료! (" + Util.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);

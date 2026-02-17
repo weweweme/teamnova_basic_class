@@ -27,34 +27,33 @@ public class Main {
 
             switch (mode) {
                 case 1:
-                    // 2인 대전
+                    // 기본 체스 2인 대전
                     Util.clearScreen();
-                    startGame();
+                    startBasicGame();
                     running = false;
                     break;
                 case 2:
-                    // AI 대전 - 색상 선택
+                    // 기본 체스 AI 대전
                     int color2 = selectColor();
                     if (color2 == 0) {
                         break;
                     }
-                    // 난이도 선택 (-1이면 돌아가기)
                     int diff2 = selectDifficulty();
                     if (diff2 == -1) {
                         break;
                     }
                     Util.clearScreen();
-                    startAiGame(color2, diff2);
+                    startBasicAiGame(color2, diff2);
                     running = false;
                     break;
                 case 3:
-                    // 스킬 모드 2인 대전
+                    // 공식 체스 2인 대전
                     Util.clearScreen();
-                    startSkillGame();
+                    startStandardGame();
                     running = false;
                     break;
                 case 4:
-                    // 스킬 모드 AI 대전
+                    // 공식 체스 AI 대전
                     int color4 = selectColor();
                     if (color4 == 0) {
                         break;
@@ -64,7 +63,27 @@ public class Main {
                         break;
                     }
                     Util.clearScreen();
-                    startSkillAiGame(color4, diff4);
+                    startStandardAiGame(color4, diff4);
+                    running = false;
+                    break;
+                case 5:
+                    // 스킬 모드 2인 대전
+                    Util.clearScreen();
+                    startSkillGame();
+                    running = false;
+                    break;
+                case 6:
+                    // 스킬 모드 AI 대전
+                    int color6 = selectColor();
+                    if (color6 == 0) {
+                        break;
+                    }
+                    int diff6 = selectDifficulty();
+                    if (diff6 == -1) {
+                        break;
+                    }
+                    Util.clearScreen();
+                    startSkillAiGame(color6, diff6);
                     running = false;
                     break;
                 default:
@@ -82,10 +101,40 @@ public class Main {
     // ========== 게임 시작 ==========
 
     /// <summary>
-    /// 2인 대전 게임 시작
-    /// 빨간팀, 파란팀 모두 사람 플레이어
+    /// 기본 체스 2인 대전 시작
+    /// 기물의 기본 이동만 사용 (캐슬링/앙파상/프로모션 없음)
     /// </summary>
-    private static void startGame() {
+    private static void startBasicGame() {
+        Player red = new HumanPlayer(Piece.RED, "플레이어 1");
+        Player blue = new HumanPlayer(Piece.BLUE, "플레이어 2");
+        Game game = new BasicGame(red, blue);
+        game.run();
+    }
+
+    /// <summary>
+    /// 기본 체스 AI 대전 시작
+    /// </summary>
+    private static void startBasicAiGame(int playerColor, int difficulty) {
+        Player red;
+        Player blue;
+
+        if (playerColor == 1) {
+            red = new HumanPlayer(Piece.RED, "플레이어");
+            blue = new AiPlayer(Piece.BLUE, "AI", difficulty);
+        } else {
+            red = new AiPlayer(Piece.RED, "AI", difficulty);
+            blue = new HumanPlayer(Piece.BLUE, "플레이어");
+        }
+
+        Game game = new BasicGame(red, blue);
+        game.run();
+    }
+
+    /// <summary>
+    /// 공식 체스 2인 대전 시작
+    /// 캐슬링, 앙파상, 프로모션 포함
+    /// </summary>
+    private static void startStandardGame() {
         Player red = new HumanPlayer(Piece.RED, "플레이어 1");
         Player blue = new HumanPlayer(Piece.BLUE, "플레이어 2");
         Game game = new StandardGame(red, blue);
@@ -93,20 +142,16 @@ public class Main {
     }
 
     /// <summary>
-    /// AI 대전 게임 시작
-    /// 선택한 색상에 따라 사람/AI 배치
-    /// 1: 플레이어가 빨간팀(선공), 2: 플레이어가 파란팀(후공)
+    /// 공식 체스 AI 대전 시작
     /// </summary>
-    private static void startAiGame(int playerColor, int difficulty) {
+    private static void startStandardAiGame(int playerColor, int difficulty) {
         Player red;
         Player blue;
 
         if (playerColor == 1) {
-            // 플레이어가 빨간팀(선공), AI가 파란팀
             red = new HumanPlayer(Piece.RED, "플레이어");
             blue = new AiPlayer(Piece.BLUE, "AI", difficulty);
         } else {
-            // AI가 빨간팀(선공), 플레이어가 파란팀
             red = new AiPlayer(Piece.RED, "AI", difficulty);
             blue = new HumanPlayer(Piece.BLUE, "플레이어");
         }
@@ -116,7 +161,7 @@ public class Main {
     }
 
     /// <summary>
-    /// 스킬 모드 2인 대전 게임 시작
+    /// 스킬 모드 2인 대전 시작
     /// 스킬과 아이템을 사용할 수 있는 모드
     /// </summary>
     private static void startSkillGame() {
@@ -127,8 +172,7 @@ public class Main {
     }
 
     /// <summary>
-    /// 스킬 모드 AI 대전 게임 시작
-    /// 스킬과 아이템을 사용할 수 있는 AI 대전 모드
+    /// 스킬 모드 AI 대전 시작
     /// </summary>
     private static void startSkillAiGame(int playerColor, int difficulty) {
         Player red;
@@ -170,21 +214,22 @@ public class Main {
 
     /// <summary>
     /// 게임 모드 선택 메뉴 출력 및 입력 받기
-    /// 1: 2인 대전, 2: AI 대전, 0: 종료
     /// 유효한 키가 눌릴 때까지 대기
     /// </summary>
     private static int selectMode() {
         System.out.println();
-        System.out.println("[1] 2인 대전");
-        System.out.println("[2] AI 대전");
-        System.out.println("[3] 스킬 모드 (2인)");
-        System.out.println("[4] 스킬 모드 (AI)");
+        System.out.println("[1] 기본 체스 (2인)");
+        System.out.println("[2] 기본 체스 (AI)");
+        System.out.println("[3] 공식 체스 (2인)");
+        System.out.println("[4] 공식 체스 (AI)");
+        System.out.println("[5] 스킬 모드 (2인)");
+        System.out.println("[6] 스킬 모드 (AI)");
         System.out.println("[0] 종료");
 
         // 유효한 키가 입력될 때까지 반복
         while (true) {
             int key = Util.readInt();
-            if (key >= 0 && key <= 4) {
+            if (key >= 0 && key <= 6) {
                 return key;
             }
         }

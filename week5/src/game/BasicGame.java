@@ -5,38 +5,32 @@ import core.*;
 import player.Player;
 
 /// <summary>
-/// 공식 체스 게임
-/// 공식 체스 규칙으로 진행 (이동 → 프로모션 → 승패 확인)
+/// 기본 체스 게임
+/// 기물의 기본 이동만 사용 (캐슬링, 앙파상, 프로모션 없음)
 /// </summary>
-public class StandardGame extends Game {
-
-    // ========== 필드 ==========
-
-    // 공식 체스 보드 (프로모션 등 공식 규칙 메서드 호출용)
-    private ClassicBoard classicBoard;
+public class BasicGame extends Game {
 
     // ========== 생성자 ==========
 
-    public StandardGame(Player redPlayer, Player bluePlayer) {
+    public BasicGame(Player redPlayer, Player bluePlayer) {
         super(redPlayer, bluePlayer);
     }
 
     // ========== 보드 생성 ==========
 
     /// <summary>
-    /// 공식 체스용 ClassicBoard 생성
+    /// 기본 체스용 SimpleBoard 생성
     /// </summary>
     @Override
     protected SimpleBoard createBoard() {
-        classicBoard = new ClassicBoard();
-        return classicBoard;
+        return new SimpleBoard();
     }
 
     // ========== 턴 처리 ==========
 
     /// <summary>
-    /// 공식 체스 턴 처리
-    /// 수 선택 → 이동 실행 → 프로모션 확인
+    /// 기본 체스 턴 처리
+    /// 수 선택 → 이동 실행 (프로모션 없음)
     /// true 반환 시 게임 종료 요청
     /// </summary>
     @Override
@@ -52,14 +46,8 @@ public class StandardGame extends Game {
             return true;
         }
 
-        // 이동 실행
+        // 이동 실행 (기본 이동만, 캐슬링/앙파상 없음)
         board.executeMove(move);
-
-        // 프로모션 확인 (폰이 끝 줄에 도착하면 승격)
-        if (classicBoard.isPromotion(move)) {
-            int choice = currentPlayer.choosePromotion(board);
-            classicBoard.promote(move.toRow, move.toCol, choice);
-        }
 
         return false;
     }

@@ -41,7 +41,7 @@ public class AiPlayer extends Player {
     /// 난이도에 따라 쉬움(랜덤) 또는 보통(우선순위 전략) 사용
     /// </summary>
     @Override
-    public Move chooseMove(Board board) {
+    public Move chooseMove(SimpleBoard board) {
         // AI 턴에도 현재 보드를 보여줌
         Util.clearScreen();
         board.print();
@@ -81,7 +81,7 @@ public class AiPlayer extends Player {
     /// 보통: 우선순위 기반 전략
     /// 체크메이트 > 기물 잡기(가치 높은 순) > 체크 > 랜덤
     /// </summary>
-    private Move chooseNormal(Board board, java.util.ArrayList<Move> allMoves) {
+    private Move chooseNormal(SimpleBoard board, java.util.ArrayList<Move> allMoves) {
         // 상대 색상
         int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
 
@@ -128,7 +128,7 @@ public class AiPlayer extends Player {
     /// AI는 항상 퀸으로 승격 (가장 강한 기물)
     /// </summary>
     @Override
-    public int choosePromotion(Board board) {
+    public int choosePromotion(SimpleBoard board) {
         return 1;
     }
 
@@ -143,13 +143,13 @@ public class AiPlayer extends Player {
     /// 5순위: 일반 이동
     /// </summary>
     @Override
-    public int chooseAction(Board board, Skill[] skills, Item[] items) {
+    public int chooseAction(SimpleBoard board, Skill[] skills, Item[] items) {
         int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
 
         // 파괴 스킬 확인 (인덱스 0): 상대 퀸이 있으면 파괴 우선
         if (skills[0].hasUses() && skills[0].canUse(board.grid, color)) {
-            for (int r = 0; r < Board.SIZE; r++) {
-                for (int c = 0; c < Board.SIZE; c++) {
+            for (int r = 0; r < SimpleBoard.SIZE; r++) {
+                for (int c = 0; c < SimpleBoard.SIZE; c++) {
                     if (board.grid[r][c].isEmpty()) {
                         continue;
                     }
@@ -197,7 +197,7 @@ public class AiPlayer extends Player {
     /// 우선순위: 파괴(퀸 대상) > 부활(가치 높은 기물) > 방패(가치 높은 기물)
     /// </summary>
     @Override
-    public int chooseSkill(Board board, Skill[] skills) {
+    public int chooseSkill(SimpleBoard board, Skill[] skills) {
         // 파괴 스킬 (인덱스 0)
         if (skills[0].hasUses() && skills[0].canUse(board.grid, color)) {
             return 0;
@@ -221,7 +221,7 @@ public class AiPlayer extends Player {
     /// 기물이 없는 대상(빈 칸)이면 랜덤 선택
     /// </summary>
     @Override
-    public int[] chooseSkillTarget(Board board, int[][] targets, int targetCount) {
+    public int[] chooseSkillTarget(SimpleBoard board, int[][] targets, int targetCount) {
         if (targetCount == 0) {
             return null;
         }
@@ -253,7 +253,7 @@ public class AiPlayer extends Player {
     /// AI 아이템 종류 선택 (사용 가능한 것 중 랜덤)
     /// </summary>
     @Override
-    public int chooseItemType(Board board, Item[] items) {
+    public int chooseItemType(SimpleBoard board, Item[] items) {
         java.util.ArrayList<Integer> available = new java.util.ArrayList<>();
         for (int i = 0; i < items.length; i++) {
             if (items[i].hasUses()) {
@@ -271,7 +271,7 @@ public class AiPlayer extends Player {
     /// 중앙에 빈 칸이 없으면 전체에서 탐색
     /// </summary>
     @Override
-    public int[] chooseItemTarget(Board board) {
+    public int[] chooseItemTarget(SimpleBoard board) {
         SkillBoard skillBoard = (SkillBoard) board;
         // 보드 중앙 4x4 영역(2~5행, 2~5열)에서 빈 칸 탐색
         java.util.ArrayList<int[]> candidates = new java.util.ArrayList<>();
@@ -285,8 +285,8 @@ public class AiPlayer extends Player {
 
         // 중앙에 빈 칸이 없으면 전체에서 탐색
         if (candidates.isEmpty()) {
-            for (int r = 0; r < Board.SIZE; r++) {
-                for (int c = 0; c < Board.SIZE; c++) {
+            for (int r = 0; r < SimpleBoard.SIZE; r++) {
+                for (int c = 0; c < SimpleBoard.SIZE; c++) {
                     if (board.grid[r][c].isEmpty() && skillBoard.getItem(r, c) == null) {
                         candidates.add(new int[]{r, c});
                     }
@@ -305,7 +305,7 @@ public class AiPlayer extends Player {
     /// AI 부활 대상 선택 (가치가 가장 높은 기물 우선)
     /// </summary>
     @Override
-    public int chooseReviveTarget(Board board, Piece[] captured) {
+    public int chooseReviveTarget(SimpleBoard board, Piece[] captured) {
         if (captured.length == 0) {
             return -1;
         }
@@ -329,7 +329,7 @@ public class AiPlayer extends Player {
     /// 이 수를 두면 상대가 체크메이트가 되는지 시뮬레이션
     /// 임시로 이동했다가 되돌리는 방식
     /// </summary>
-    private boolean wouldCheckmate(Board board, Move move, int opponentColor) {
+    private boolean wouldCheckmate(SimpleBoard board, Move move, int opponentColor) {
         // 원래 상태 저장
         Piece movingPiece = board.grid[move.fromRow][move.fromCol].getPiece();
         Piece capturedPiece = board.grid[move.toRow][move.toCol].getPiece();
@@ -361,7 +361,7 @@ public class AiPlayer extends Player {
     /// 이 수를 두면 상대가 체크 상태가 되는지 시뮬레이션
     /// 임시로 이동했다가 되돌리는 방식
     /// </summary>
-    private boolean wouldCheck(Board board, Move move, int opponentColor) {
+    private boolean wouldCheck(SimpleBoard board, Move move, int opponentColor) {
         // 원래 상태 저장
         Piece movingPiece = board.grid[move.fromRow][move.fromCol].getPiece();
         Piece capturedPiece = board.grid[move.toRow][move.toCol].getPiece();

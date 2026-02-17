@@ -1,6 +1,6 @@
 package skill;
 
-import board.Board;
+import board.SimpleBoard;
 import cell.Cell;
 import piece.Piece;
 
@@ -26,7 +26,7 @@ public abstract class Skill {
     public int remainingUses;
 
     // 대상 좌표 버퍼 (매번 새로 만들지 않고 재사용)
-    public final int[][] targets = new int[Board.MAX_PIECES_PER_SIDE][Board.COORD_SIZE];
+    public final int[][] targets = new int[SimpleBoard.MAX_PIECES_PER_SIDE][SimpleBoard.COORD_SIZE];
 
     // 현재 유효한 대상 수 (targets 배열에서 이 수만큼만 유효)
     public int targetCount = 0;
@@ -83,5 +83,5 @@ public abstract class Skill {
     /// 기물 제거/부활 등 보드 상태 변경이 필요하므로 Board를 받음
     /// 각 하위 클래스가 자기만의 효과로 구현 (메서드 오버라이딩)
     /// </summary>
-    public abstract void execute(Board board, int targetRow, int targetCol, int color);
+    public abstract void execute(SimpleBoard board, int targetRow, int targetCol, int color);
 }

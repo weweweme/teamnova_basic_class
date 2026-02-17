@@ -1,6 +1,6 @@
 package skill;
 
-import board.Board;
+import board.SimpleBoard;
 import board.SkillBoard;
 import cell.Cell;
 import piece.Piece;
@@ -15,7 +15,7 @@ public class ReviveSkill extends Skill {
     // ========== 필드 ==========
 
     // 잡힌 아군 기물 수 (SkillGame이 매 턴 갱신)
-    // canUse에서 Board 없이 판단하기 위해 외부에서 주입
+    // canUse에서 보드 객체 없이 판단하기 위해 외부에서 주입
     private int capturedCount = 0;
 
     // ========== 생성자 ==========
@@ -53,7 +53,7 @@ public class ReviveSkill extends Skill {
 
         // 뒷줄에 빈 칸이 하나라도 있는지 확인
         int backRow = (color == Piece.RED) ? 7 : 0;
-        for (int c = 0; c < Board.SIZE; c++) {
+        for (int c = 0; c < SimpleBoard.SIZE; c++) {
             if (grid[backRow][c].isEmpty()) {
                 return true;
             }
@@ -71,7 +71,7 @@ public class ReviveSkill extends Skill {
         int backRow = (color == Piece.RED) ? 7 : 0;
         targetCount = 0;
 
-        for (int c = 0; c < Board.SIZE; c++) {
+        for (int c = 0; c < SimpleBoard.SIZE; c++) {
             if (grid[backRow][c].isEmpty()) {
                 targets[targetCount][0] = backRow;
                 targets[targetCount][1] = c;
@@ -85,7 +85,7 @@ public class ReviveSkill extends Skill {
     /// 부활할 기물 선택은 Player.chooseReviveTarget()으로 별도 처리
     /// </summary>
     @Override
-    public void execute(Board board, int targetRow, int targetCol, int color) {
+    public void execute(SimpleBoard board, int targetRow, int targetCol, int color) {
         // 이 메서드는 직접 호출되지 않음
         // SkillGame에서 부활 기물 선택 → 위치 선택 → board.revivePiece() 순서로 처리
         useCharge();

@@ -1,6 +1,6 @@
 package skill;
 
-import board.Board;
+import board.SimpleBoard;
 import cell.Cell;
 import piece.King;
 import piece.Piece;
@@ -30,8 +30,8 @@ public class ShieldSkill extends Skill {
             return false;
         }
 
-        for (int r = 0; r < Board.SIZE; r++) {
-            for (int c = 0; c < Board.SIZE; c++) {
+        for (int r = 0; r < SimpleBoard.SIZE; r++) {
+            for (int c = 0; c < SimpleBoard.SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
                     Piece piece = grid[r][c].getPiece();
                     if (piece.color == color && !(piece instanceof King)) {
@@ -51,8 +51,8 @@ public class ShieldSkill extends Skill {
     public void findTargets(Cell[][] grid, int color) {
         targetCount = 0;
 
-        for (int r = 0; r < Board.SIZE; r++) {
-            for (int c = 0; c < Board.SIZE; c++) {
+        for (int r = 0; r < SimpleBoard.SIZE; r++) {
+            for (int c = 0; c < SimpleBoard.SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
                     Piece piece = grid[r][c].getPiece();
                     if (piece.color == color && !(piece instanceof King)) {
@@ -69,7 +69,7 @@ public class ShieldSkill extends Skill {
     /// 효과: 지정한 기물에 방패 상태 부여
     /// </summary>
     @Override
-    public void execute(Board board, int targetRow, int targetCol, int color) {
+    public void execute(SimpleBoard board, int targetRow, int targetCol, int color) {
         if (board.grid[targetRow][targetCol].hasPiece()) {
             board.grid[targetRow][targetCol].getPiece().shielded = true;
         }

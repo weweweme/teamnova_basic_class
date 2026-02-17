@@ -1,6 +1,6 @@
 package item;
 
-import board.Board;
+import board.SimpleBoard;
 import piece.Piece;
 
 /// <summary>
@@ -88,7 +88,7 @@ public abstract class Item {
     /// 각 하위 클래스가 자기만의 효과로 구현 (메서드 오버라이딩)
     /// BombItem: 기물 제거, TrapItem: 기물 동결
     /// </summary>
-    public abstract void trigger(Board board, Piece steppedPiece);
+    public abstract void trigger(SimpleBoard board, Piece steppedPiece);
 
     /// <summary>
     /// 보드에 표시할 기호 반환 (설치자에게만 보임)

@@ -41,13 +41,13 @@ public abstract class Player {
     /// AiPlayer: 알고리즘으로 결정
     /// null 반환 시 게임 종료 요청
     /// </summary>
-    public abstract Move chooseMove(Board board);
+    public abstract Move chooseMove(SimpleBoard board);
 
     /// <summary>
     /// 폰 프로모션 시 승격할 기물 선택
     /// 1: 퀸, 2: 룩, 3: 비숍, 4: 나이트
     /// </summary>
-    public abstract int choosePromotion(Board board);
+    public abstract int choosePromotion(SimpleBoard board);
 
     // ========== 스킬/아이템 메서드 (기본 구현) ==========
     // 스킬 모드에서만 사용. 기본값은 "아무것도 안 함"
@@ -58,7 +58,7 @@ public abstract class Player {
     /// 0: 이동, 1: 스킬, 2: 아이템
     /// 기본값: 항상 이동 (일반 모드에서는 이 메서드를 호출하지 않음)
     /// </summary>
-    public int chooseAction(Board board, Skill[] skills, Item[] items) {
+    public int chooseAction(SimpleBoard board, Skill[] skills, Item[] items) {
         return 0;
     }
 
@@ -66,7 +66,7 @@ public abstract class Player {
     /// 사용할 스킬을 선택 (스킬 번호 반환, -1이면 취소)
     /// 기본값: 취소
     /// </summary>
-    public int chooseSkill(Board board, Skill[] skills) {
+    public int chooseSkill(SimpleBoard board, Skill[] skills) {
         return -1;
     }
 
@@ -75,14 +75,14 @@ public abstract class Player {
     /// targets: 선택 가능한 좌표 목록
     /// 반환: {행, 열} 또는 null(취소)
     /// </summary>
-    public int[] chooseSkillTarget(Board board, int[][] targets, int targetCount) {
+    public int[] chooseSkillTarget(SimpleBoard board, int[][] targets, int targetCount) {
         return null;
     }
 
     /// <summary>
     /// 사용할 아이템 종류를 선택 (인덱스 반환, -1이면 취소)
     /// </summary>
-    public int chooseItemType(Board board, Item[] items) {
+    public int chooseItemType(SimpleBoard board, Item[] items) {
         return -1;
     }
 
@@ -90,7 +90,7 @@ public abstract class Player {
     /// 아이템 설치 칸을 선택 (빈 칸 좌표)
     /// 반환: {행, 열} 또는 null(취소)
     /// </summary>
-    public int[] chooseItemTarget(Board board) {
+    public int[] chooseItemTarget(SimpleBoard board) {
         return null;
     }
 
@@ -99,7 +99,7 @@ public abstract class Player {
     /// captured: 부활 가능한 기물 목록
     /// 반환: 선택한 인덱스 또는 -1(취소)
     /// </summary>
-    public int chooseReviveTarget(Board board, Piece[] captured) {
+    public int chooseReviveTarget(SimpleBoard board, Piece[] captured) {
         return -1;
     }
 }

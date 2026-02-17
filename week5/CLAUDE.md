@@ -219,23 +219,49 @@ Player (abstract)
  └── AiPlayer      (알고리즘으로 수 선택)
 ```
 
-- `Player`에 추상 메서드 `chooseMove(Board board)` 선언
+- `Player`에 추상 메서드 `chooseMove(SimpleBoard board)` 선언
 - `Game`이 `currentPlayer.chooseMove()` 호출 → 다형성
+
+**3차 상속: SimpleBoard 계층 (체스판)**
+
+```
+SimpleBoard (기본 이동, 체크, 체크메이트)
+ └── ClassicBoard  (캐슬링, 앙파상, 프로모션 추가)
+      └── SkillBoard (스킬, 아이템 추가)
+```
+
+- `SimpleBoard`에 `addSpecialMoves()` 훅 메서드 정의 (기본: 빈 메서드)
+- `ClassicBoard`가 오버라이드하여 캐슬링/앙파상 추가
+- `SimpleBoard.executeMove()`는 기본 이동만, `ClassicBoard`가 오버라이드하여 특수 이동 처리
+
+**4차 상속: Game 계층**
+
+```
+Game (abstract - 게임 루프, 턴 관리)
+ ├── BasicGame     (SimpleBoard, 프로모션 없음)
+ ├── StandardGame  (ClassicBoard, 프로모션 처리)
+ └── SkillGame     (SkillBoard, 스킬/아이템 + 프로모션)
+```
 
 ### 클래스 구조
 
 | 파일 | 역할 |
 |------|------|
-| `Main` | 타이틀 화면, 모드 선택 (2인/AI), 게임 시작 |
-| `Game` | 게임 루프, 턴 관리, 체크/체크메이트 판정 |
-| `Board` | 8x8 격자, 기물 배치, 이동 실행, 보드 출력, 체크 판정 |
+| `Main` | 타이틀 화면, 모드 선택 (기본/공식/스킬 × 2인/AI), 게임 시작 |
+| `Game` | **추상 클래스** - 게임 루프, 턴 관리, 체크/체크메이트 판정 |
+| `BasicGame` | 기본 체스 게임 (이동만, 프로모션 없음) |
+| `StandardGame` | 공식 체스 게임 (이동 + 프로모션) |
+| `SkillGame` | 스킬 모드 게임 (이동 + 프로모션 + 스킬/아이템) |
+| `SimpleBoard` | 8x8 격자, 기본 이동, 체크 판정, `addSpecialMoves()` 훅 |
+| `ClassicBoard` | 공식 체스판 (캐슬링, 앙파상, 프로모션 추가) |
+| `SkillBoard` | 스킬 모드 체스판 (ClassicBoard + 스킬/아이템) |
 | `Piece` | **추상 클래스** - 기물 공통 필드/메서드, abstract getValidMoves() |
-| `King` | 킹 - 1칸 전방향 (+ 캐슬링) |
+| `King` | 킹 - 1칸 전방향 |
 | `Queen` | 퀸 - 8방향 slideMoves |
 | `Rook` | 룩 - 상하좌우 slideMoves |
 | `Bishop` | 비숍 - 대각선 slideMoves |
 | `Knight` | 나이트 - L자 8칸 |
-| `Pawn` | 폰 - 전진, 대각선 잡기 (+ 프로모션, 앙파상) |
+| `Pawn` | 폰 - 전진, 대각선 잡기 |
 | `Move` | 이동 데이터 (출발/도착 좌표) |
 | `Player` | **추상 클래스** - 플레이어 공통, abstract chooseMove() |
 | `HumanPlayer` | 사람 플레이어 - 콘솔 입력 |
@@ -258,7 +284,7 @@ Player (abstract)
 
 1. **Phase 1**: 기초 뼈대 (Main, Util, Move)
 2. **Phase 2**: 기물 상속 계층 (Piece + 6개 하위 클래스)
-3. **Phase 3**: 체스판 (Board)
+3. **Phase 3**: 체스판 (SimpleBoard)
 4. **Phase 4**: 플레이어 + 게임 루프 (Player, HumanPlayer, Game)
 5. **Phase 5**: AI 플레이어 (AiPlayer)
 6. **Phase 6**: 특수 규칙 (프로모션 → 캐슬링 → 앙파상 → 스테일메이트)

@@ -1,6 +1,6 @@
 package item;
 
-import board.Board;
+import board.SimpleBoard;
 import piece.Piece;
 
 /// <summary>
@@ -32,7 +32,7 @@ public class TrapItem extends Item {
     /// 발동 효과: 밟은 기물을 동결 상태로 만듦 (다음 턴에 이동 불가)
     /// </summary>
     @Override
-    public void trigger(Board board, Piece steppedPiece) {
+    public void trigger(SimpleBoard board, Piece steppedPiece) {
         steppedPiece.frozen = true;
     }
 

@@ -1,6 +1,6 @@
 package piece;
 
-import board.Board;
+import board.SimpleBoard;
 import cell.Cell;
 
 /// <summary>
@@ -63,7 +63,7 @@ public abstract class Piece {
     public static final int MAX_MOVES = 28;
 
     // 이동 가능한 칸 버퍼 (매번 새로 만들지 않고 재사용)
-    public final int[][] moveBuffer = new int[MAX_MOVES][Board.COORD_SIZE];
+    public final int[][] moveBuffer = new int[MAX_MOVES][SimpleBoard.COORD_SIZE];
 
     // 현재 유효한 이동 가능 칸 수 (moveBuffer에서 이 수만큼만 유효)
     public int moveCount;

@@ -9,10 +9,10 @@ import item.Item;
 
 /// <summary>
 /// 스킬 모드 보드
-/// 일반 체스 규칙 + 아이템/스킬 시스템 추가
+/// 공식 체스 규칙(ClassicBoard) + 아이템/스킬 시스템 추가
 /// 방패, 동결, 기물 제거/부활, 아이템 설치/발동 기능 제공
 /// </summary>
-public class SkillBoard extends Board {
+public class SkillBoard extends ClassicBoard {
 
     // ========== 상수 ==========
 

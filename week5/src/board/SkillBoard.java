@@ -14,6 +14,13 @@ import item.Item;
 /// </summary>
 public class SkillBoard extends Board {
 
+    // ========== 상수 ==========
+
+    /// <summary>
+    /// 아이템이 발동되지 않았음을 나타내는 반환값
+    /// </summary>
+    public static final String NOT_TRIGGERED = "";
+
     // ========== 필드 ==========
 
     // 현재 보드를 보고 있는 플레이어 색상 (NONE이면 일반 표시)
@@ -165,11 +172,11 @@ public class SkillBoard extends Board {
 
         // 아이템이 없거나 기물이 없거나 자기 아이템이면 무시
         if (!cell.hasItem() || cell.isEmpty()) {
-            return "";
+            return NOT_TRIGGERED;
         }
         Item item = cell.getItem();
         if (item.ownerColor == cell.getPiece().color) {
-            return "";
+            return NOT_TRIGGERED;
         }
 
         // 아이템 효과 발동

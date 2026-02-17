@@ -32,14 +32,4 @@ public class Move {
         this.toRow = toRow;
         this.toCol = toCol;
     }
-
-    // ========== 메서드 ==========
-
-    /// <summary>
-    /// 이동 정보를 체스 표기법으로 변환
-    /// 예: "e2 → e4"
-    /// </summary>
-    public String toNotation() {
-        return Util.toNotation(fromRow, fromCol) + " → " + Util.toNotation(toRow, toCol);
-    }
 }

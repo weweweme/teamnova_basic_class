@@ -70,7 +70,7 @@ public class Util {
         }
 
         // 프로그램이 비정상 종료(Ctrl+C 등)되어도 터미널 복원
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> disableRawMode()));
+        Runtime.getRuntime().addShutdownHook(new Thread(Util::disableRawMode));
     }
 
     /// <summary>
@@ -96,15 +96,23 @@ public class Util {
     /// 그 외 키는 문자 코드 그대로 반환
     /// </summary>
     public static int readKey() {
+        // ESC 키의 아스키 코드 (화살표 키가 이 코드로 시작됨)
+        final int ESC_KEY = 27;
+        // Enter 키의 아스키 코드 (운영체제마다 다른 코드를 보냄)
+        final int ENTER_UNIX = 10;
+        final int ENTER_WINDOWS = 13;
+        // 화살표 키 후속 바이트 대기 시간 (밀리초)
+        final int ARROW_KEY_DELAY = 10;
+
         // 주의: System.in.read()와 Thread.sleep()은 checked exception이라 try-catch 필수 (컴파일러 요구)
         try {
             int ch = System.in.read();
 
             // ESC (화살표 키의 시작 바이트)
-            if (ch == 27) {
+            if (ch == ESC_KEY) {
                 // 화살표 키는 ESC + [ + 방향 문자가 연속으로 전송됨
                 // 잠깐 대기하여 후속 바이트가 도착하도록 함
-                Thread.sleep(10);
+                Thread.sleep(ARROW_KEY_DELAY);
 
                 if (System.in.available() > 0) {
                     int next = System.in.read();
@@ -126,8 +134,8 @@ public class Util {
                 return INVALID_INPUT;
             }
 
-            // Enter (CR 또는 LF)
-            if (ch == 10 || ch == 13) {
+            // Enter 키 (운영체제에 따라 다른 코드가 올 수 있음)
+            if (ch == ENTER_UNIX || ch == ENTER_WINDOWS) {
                 return KEY_ENTER;
             }
 
@@ -171,32 +179,6 @@ public class Util {
         // 행 번호(0~7)를 체스 줄 번호(8~1)로 변환
         int rank = 8 - row;
         return "" + file + rank;
-    }
-
-    /// <summary>
-    /// 체스 표기법을 내부 좌표로 변환
-    /// 예: "e2" → {6, 4}
-    /// 잘못된 형식이면 null 반환
-    /// </summary>
-    public static int[] fromNotation(String notation) {
-        // 정확히 2글자여야 함 (예: "e2")
-        if (notation == null || notation.length() != 2) {
-            return null;
-        }
-
-        char file = notation.charAt(0);  // 열 알파벳 (a~h)
-        char rank = notation.charAt(1);  // 줄 숫자 (1~8)
-
-        // 유효 범위 확인
-        if (file < 'a' || file > 'h' || rank < '1' || rank > '8') {
-            return null;
-        }
-
-        // 알파벳을 열 번호로, 숫자를 행 번호로 변환
-        int col = file - 'a';
-        int row = 8 - (rank - '0');
-
-        return new int[]{row, col};
     }
 
     // ========== 콘솔 관련 ==========

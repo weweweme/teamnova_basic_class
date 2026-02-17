@@ -636,9 +636,9 @@ public abstract class Board {
     /// </summary>
     private void addEnPassantMoves(Piece pawn, int row, int col, ArrayList<int[]> moves) {
         // 폰이 첫 이동 시 전진하는 행 수
-        final int pawnDoubleStep = 2;
+        final int PAWN_DOUBLE_STEP = 2;
         // 인접한 열 거리 (바로 옆 1칸)
-        final int adjacentColDistance = 1;
+        final int ADJACENT_COL_DISTANCE = 1;
 
         if (lastMove == null) {
             return;
@@ -651,7 +651,7 @@ public abstract class Board {
         }
 
         // 상대 폰이 2칸 전진했는지 확인
-        if (Math.abs(lastMove.toRow - lastMove.fromRow) != pawnDoubleStep) {
+        if (Math.abs(lastMove.toRow - lastMove.fromRow) != PAWN_DOUBLE_STEP) {
             return;
         }
 
@@ -659,7 +659,7 @@ public abstract class Board {
         if (lastMove.toRow != row) {
             return;
         }
-        if (Math.abs(lastMove.toCol - col) != adjacentColDistance) {
+        if (Math.abs(lastMove.toCol - col) != ADJACENT_COL_DISTANCE) {
             return;
         }
 

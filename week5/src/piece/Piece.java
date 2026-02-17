@@ -245,7 +245,8 @@ public class Piece {
         int c = col + dCol;
 
         // 보드 범위 안에서 계속 전진
-        while (r >= 0 && r < Util.BOARD_SIZE && c >= 0 && c < Util.BOARD_SIZE) {
+        boolean inBounds = r >= 0 && r < Util.BOARD_SIZE && c >= 0 && c < Util.BOARD_SIZE;
+        while (inBounds) {
             if (board[r][c].isEmpty()) {
                 // 빈 칸 → 이동 가능, 계속 전진
                 addMove(r, c);
@@ -261,6 +262,7 @@ public class Piece {
 
             r += dRow;
             c += dCol;
+            inBounds = r >= 0 && r < Util.BOARD_SIZE && c >= 0 && c < Util.BOARD_SIZE;
         }
     }
 }

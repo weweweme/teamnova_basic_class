@@ -3,7 +3,7 @@ package item;
 import board.SimpleBoard;
 import board.SkillBoard;
 import piece.Piece;
-import piece.King;
+import piece.PieceType;
 
 /// <summary>
 /// 폭탄 아이템
@@ -38,7 +38,7 @@ public class BombItem extends Item {
     @Override
     public void trigger(SimpleBoard board, Piece steppedPiece) {
         // 킹은 폭탄으로 제거할 수 없음
-        if (steppedPiece instanceof King) {
+        if (steppedPiece.type == PieceType.KING) {
             return;
         }
         ((SkillBoard) board).removePiece(steppedPiece.row, steppedPiece.col);

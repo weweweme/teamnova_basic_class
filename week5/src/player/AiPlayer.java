@@ -154,7 +154,7 @@ public class AiPlayer extends Player {
                         continue;
                     }
                     Piece piece = board.grid[r][c].getPiece();
-                    if (piece instanceof Queen && piece.color == opponentColor) {
+                    if (piece.type == PieceType.QUEEN && piece.color == opponentColor) {
                         return 1;  // 스킬
                     }
                 }

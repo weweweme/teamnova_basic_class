@@ -44,7 +44,7 @@ public class ClassicBoard extends SimpleBoard {
         Piece piece = grid[move.fromRow][move.fromCol].getPiece();
 
         // 캐슬링 감지 (킹이 2칸 옆으로 이동)
-        boolean isKing = piece instanceof King;                          // 이동한 기물이 킹인지
+        boolean isKing = piece.type == PieceType.KING;                     // 이동한 기물이 킹인지
         boolean movedTwoColumns = Math.abs(move.toCol - move.fromCol) == 2;  // 2칸 옆으로 이동했는지
         boolean isCastling = isKing && movedTwoColumns;
 
@@ -55,7 +55,7 @@ public class ClassicBoard extends SimpleBoard {
         }
 
         // 앙파상 감지 (폰이 대각선으로 빈 칸에 이동)
-        boolean isPawn = piece instanceof Pawn;                          // 이동한 기물이 폰인지
+        boolean isPawn = piece.type == PieceType.PAWN;                    // 이동한 기물이 폰인지
         boolean movedDiagonally = move.fromCol != move.toCol;           // 열이 바뀌었는지 (대각선 이동)
         boolean destEmpty = grid[move.toRow][move.toCol].isEmpty();     // 도착 칸이 비어있는지
         boolean isEnPassant = isPawn && movedDiagonally && destEmpty;
@@ -126,7 +126,7 @@ public class ClassicBoard extends SimpleBoard {
     /// </summary>
     public boolean isPromotion(Move move) {
         Piece piece = grid[move.toRow][move.toCol].getPiece();
-        if (!(piece instanceof Pawn)) {
+        if (piece.type != PieceType.PAWN) {
             return false;
         }
         // 빨간팀은 0행(8번 줄), 파란팀은 7행(1번 줄)이 끝
@@ -140,23 +140,21 @@ public class ClassicBoard extends SimpleBoard {
     /// 1: 퀸, 2: 룩, 3: 비숍, 4: 나이트
     /// </summary>
     public void promote(int row, int col, int choice) {
-        int color = grid[row][col].getPiece().color;
+        Piece piece = grid[row][col].getPiece();
         switch (choice) {
             case 1:
-                grid[row][col].setPiece(new Queen(color, row, col));
+                PieceFactory.configure(piece, PieceType.QUEEN);
                 break;
             case 2:
-                grid[row][col].setPiece(new Rook(color, row, col));
+                PieceFactory.configure(piece, PieceType.ROOK);
                 break;
             case 3:
-                grid[row][col].setPiece(new Bishop(color, row, col));
+                PieceFactory.configure(piece, PieceType.BISHOP);
                 break;
             case 4:
-                grid[row][col].setPiece(new Knight(color, row, col));
+                PieceFactory.configure(piece, PieceType.KNIGHT);
                 break;
         }
-        // 승격된 기물은 이미 이동한 상태
-        grid[row][col].getPiece().hasMoved = true;
     }
 
     // ========== 특수 규칙 이동 추가 (훅 메서드 오버라이드) ==========
@@ -168,12 +166,12 @@ public class ClassicBoard extends SimpleBoard {
     @Override
     protected void addSpecialMoves(Piece piece, int row, int col) {
         // 캐슬링 (킹이 아직 움직이지 않았을 때만)
-        if (piece instanceof King && !piece.hasMoved) {
+        if (piece.type == PieceType.KING && !piece.hasMoved) {
             addCastlingMoves(piece);
         }
 
         // 앙파상 (폰일 때만)
-        if (piece instanceof Pawn) {
+        if (piece.type == PieceType.PAWN) {
             addEnPassantMoves(piece, row, col);
         }
     }
@@ -197,7 +195,7 @@ public class ClassicBoard extends SimpleBoard {
         Piece kingsideRook = grid[row][KINGSIDE_ROOK_COL].getPiece();
 
         // h열에 룩이 있고 한 번도 움직이지 않았는지
-        boolean kingsideRookReady = kingsideRook instanceof Rook && !kingsideRook.hasMoved;
+        boolean kingsideRookReady = kingsideRook != null && kingsideRook.type == PieceType.ROOK && !kingsideRook.hasMoved;
         // 킹과 룩 사이 칸(f열, g열)이 비어있는지
         boolean kingsidePathClear = grid[row][KINGSIDE_ROOK_DEST].isEmpty() && grid[row][KINGSIDE_KING_DEST].isEmpty();
         // 킹이 지나가는 칸(f열, g열)이 상대에게 공격받지 않는지
@@ -213,7 +211,7 @@ public class ClassicBoard extends SimpleBoard {
         Piece queensideRook = grid[row][QUEENSIDE_ROOK_COL].getPiece();
 
         // a열에 룩이 있고 한 번도 움직이지 않았는지
-        boolean queensideRookReady = queensideRook instanceof Rook && !queensideRook.hasMoved;
+        boolean queensideRookReady = queensideRook != null && queensideRook.type == PieceType.ROOK && !queensideRook.hasMoved;
         // 킹과 룩 사이 칸(b열, c열, d열)이 비어있는지
         boolean queensidePathClear = grid[row][QUEENSIDE_PATH_COL].isEmpty() && grid[row][QUEENSIDE_KING_DEST].isEmpty() && grid[row][QUEENSIDE_ROOK_DEST].isEmpty();
         // 킹이 지나가는 칸(c열, d열)이 상대에게 공격받지 않는지
@@ -271,7 +269,7 @@ public class ClassicBoard extends SimpleBoard {
 
         // 마지막으로 이동한 기물이 폰인지 확인
         Piece lastPiece = grid[lastMove.toRow][lastMove.toCol].getPiece();
-        if (!(lastPiece instanceof Pawn)) {
+        if (lastPiece == null || lastPiece.type != PieceType.PAWN) {
             return;
         }
 

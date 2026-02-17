@@ -2,7 +2,6 @@ package player;
 
 import board.*;
 import core.*;
-import piece.King;
 import piece.Piece;
 import skill.Skill;
 import item.Item;
@@ -38,7 +37,7 @@ public class HumanPlayer extends Player {
     @Override
     public Move chooseMove(SimpleBoard board) {
         // 커서 시작 위치 (자기 팀 킹 위치)
-        King king = board.getKing(color);
+        Piece king = board.getKing(color);
         int cursorRow = king.row;
         int cursorCol = king.col;
 

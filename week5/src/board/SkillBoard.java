@@ -253,7 +253,7 @@ public class SkillBoard extends ClassicBoard {
     public int getCapturedCount(int color) {
         int count = 0;
         for (Piece p : capturedPieces) {
-            if (p.color == color && !(p instanceof King)) {
+            if (p.color == color && p.type != PieceType.KING) {
                 count++;
             }
         }
@@ -267,7 +267,7 @@ public class SkillBoard extends ClassicBoard {
     public Piece[] getCapturedPieces(int color) {
         ArrayList<Piece> result = new ArrayList<>();
         for (Piece p : capturedPieces) {
-            if (p.color == color && !(p instanceof King)) {
+            if (p.color == color && p.type != PieceType.KING) {
                 result.add(p);
             }
         }

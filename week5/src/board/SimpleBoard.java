@@ -67,10 +67,10 @@ public class SimpleBoard {
     protected final ArrayList<Piece> capturedPieces;
 
     // 빨간팀 킹 참조 (체크 판정, 커서 초기 위치 등에 사용)
-    private King redKing;
+    private Piece redKing;
 
     // 파란팀 킹 참조
-    private King blueKing;
+    private Piece blueKing;
 
     // 현재 print에서 사용 중인 유효 이동/대상 칸 수
     protected int validMoveCount;
@@ -161,36 +161,36 @@ public class SimpleBoard {
         final int ROOK_RIGHT = 7;      // h열 - 룩
 
         // 파란팀 주요 기물
-        grid[BLUE_BACK_ROW][ROOK_LEFT].setPiece(new Rook(Piece.BLUE, BLUE_BACK_ROW, ROOK_LEFT));
-        grid[BLUE_BACK_ROW][KNIGHT_LEFT].setPiece(new Knight(Piece.BLUE, BLUE_BACK_ROW, KNIGHT_LEFT));
-        grid[BLUE_BACK_ROW][BISHOP_LEFT].setPiece(new Bishop(Piece.BLUE, BLUE_BACK_ROW, BISHOP_LEFT));
-        grid[BLUE_BACK_ROW][QUEEN_COL].setPiece(new Queen(Piece.BLUE, BLUE_BACK_ROW, QUEEN_COL));
-        blueKing = new King(Piece.BLUE, BLUE_BACK_ROW, KING_COL);
+        grid[BLUE_BACK_ROW][ROOK_LEFT].setPiece(new Piece(PieceType.ROOK, Piece.BLUE, BLUE_BACK_ROW, ROOK_LEFT));
+        grid[BLUE_BACK_ROW][KNIGHT_LEFT].setPiece(new Piece(PieceType.KNIGHT, Piece.BLUE, BLUE_BACK_ROW, KNIGHT_LEFT));
+        grid[BLUE_BACK_ROW][BISHOP_LEFT].setPiece(new Piece(PieceType.BISHOP, Piece.BLUE, BLUE_BACK_ROW, BISHOP_LEFT));
+        grid[BLUE_BACK_ROW][QUEEN_COL].setPiece(new Piece(PieceType.QUEEN, Piece.BLUE, BLUE_BACK_ROW, QUEEN_COL));
+        blueKing = new Piece(PieceType.KING, Piece.BLUE, BLUE_BACK_ROW, KING_COL);
         grid[BLUE_BACK_ROW][KING_COL].setPiece(blueKing);
-        grid[BLUE_BACK_ROW][BISHOP_RIGHT].setPiece(new Bishop(Piece.BLUE, BLUE_BACK_ROW, BISHOP_RIGHT));
-        grid[BLUE_BACK_ROW][KNIGHT_RIGHT].setPiece(new Knight(Piece.BLUE, BLUE_BACK_ROW, KNIGHT_RIGHT));
-        grid[BLUE_BACK_ROW][ROOK_RIGHT].setPiece(new Rook(Piece.BLUE, BLUE_BACK_ROW, ROOK_RIGHT));
+        grid[BLUE_BACK_ROW][BISHOP_RIGHT].setPiece(new Piece(PieceType.BISHOP, Piece.BLUE, BLUE_BACK_ROW, BISHOP_RIGHT));
+        grid[BLUE_BACK_ROW][KNIGHT_RIGHT].setPiece(new Piece(PieceType.KNIGHT, Piece.BLUE, BLUE_BACK_ROW, KNIGHT_RIGHT));
+        grid[BLUE_BACK_ROW][ROOK_RIGHT].setPiece(new Piece(PieceType.ROOK, Piece.BLUE, BLUE_BACK_ROW, ROOK_RIGHT));
 
         // 파란팀 폰
         for (int c = 0; c < SIZE; c++) {
-            grid[BLUE_PAWN_ROW][c].setPiece(new Pawn(Piece.BLUE, BLUE_PAWN_ROW, c));
+            grid[BLUE_PAWN_ROW][c].setPiece(new Piece(PieceType.PAWN, Piece.BLUE, BLUE_PAWN_ROW, c));
         }
 
         // 빨간팀 폰
         for (int c = 0; c < SIZE; c++) {
-            grid[RED_PAWN_ROW][c].setPiece(new Pawn(Piece.RED, RED_PAWN_ROW, c));
+            grid[RED_PAWN_ROW][c].setPiece(new Piece(PieceType.PAWN, Piece.RED, RED_PAWN_ROW, c));
         }
 
         // 빨간팀 주요 기물
-        grid[RED_BACK_ROW][ROOK_LEFT].setPiece(new Rook(Piece.RED, RED_BACK_ROW, ROOK_LEFT));
-        grid[RED_BACK_ROW][KNIGHT_LEFT].setPiece(new Knight(Piece.RED, RED_BACK_ROW, KNIGHT_LEFT));
-        grid[RED_BACK_ROW][BISHOP_LEFT].setPiece(new Bishop(Piece.RED, RED_BACK_ROW, BISHOP_LEFT));
-        grid[RED_BACK_ROW][QUEEN_COL].setPiece(new Queen(Piece.RED, RED_BACK_ROW, QUEEN_COL));
-        redKing = new King(Piece.RED, RED_BACK_ROW, KING_COL);
+        grid[RED_BACK_ROW][ROOK_LEFT].setPiece(new Piece(PieceType.ROOK, Piece.RED, RED_BACK_ROW, ROOK_LEFT));
+        grid[RED_BACK_ROW][KNIGHT_LEFT].setPiece(new Piece(PieceType.KNIGHT, Piece.RED, RED_BACK_ROW, KNIGHT_LEFT));
+        grid[RED_BACK_ROW][BISHOP_LEFT].setPiece(new Piece(PieceType.BISHOP, Piece.RED, RED_BACK_ROW, BISHOP_LEFT));
+        grid[RED_BACK_ROW][QUEEN_COL].setPiece(new Piece(PieceType.QUEEN, Piece.RED, RED_BACK_ROW, QUEEN_COL));
+        redKing = new Piece(PieceType.KING, Piece.RED, RED_BACK_ROW, KING_COL);
         grid[RED_BACK_ROW][KING_COL].setPiece(redKing);
-        grid[RED_BACK_ROW][BISHOP_RIGHT].setPiece(new Bishop(Piece.RED, RED_BACK_ROW, BISHOP_RIGHT));
-        grid[RED_BACK_ROW][KNIGHT_RIGHT].setPiece(new Knight(Piece.RED, RED_BACK_ROW, KNIGHT_RIGHT));
-        grid[RED_BACK_ROW][ROOK_RIGHT].setPiece(new Rook(Piece.RED, RED_BACK_ROW, ROOK_RIGHT));
+        grid[RED_BACK_ROW][BISHOP_RIGHT].setPiece(new Piece(PieceType.BISHOP, Piece.RED, RED_BACK_ROW, BISHOP_RIGHT));
+        grid[RED_BACK_ROW][KNIGHT_RIGHT].setPiece(new Piece(PieceType.KNIGHT, Piece.RED, RED_BACK_ROW, KNIGHT_RIGHT));
+        grid[RED_BACK_ROW][ROOK_RIGHT].setPiece(new Piece(PieceType.ROOK, Piece.RED, RED_BACK_ROW, ROOK_RIGHT));
     }
 
     // ========== 보드 출력 ==========
@@ -343,7 +343,7 @@ public class SimpleBoard {
     /// <summary>
     /// 특정 색상의 킹 반환
     /// </summary>
-    public King getKing(int color) {
+    public Piece getKing(int color) {
         return (color == Piece.RED) ? redKing : blueKing;
     }
 
@@ -500,7 +500,7 @@ public class SimpleBoard {
     /// 상대 기물 중 하나라도 킹의 위치를 공격할 수 있으면 체크
     /// </summary>
     public boolean isInCheck(int color) {
-        King king = getKing(color);
+        Piece king = getKing(color);
         int kingRow = king.row;
         int kingCol = king.col;
 

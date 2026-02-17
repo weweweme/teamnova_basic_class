@@ -2,8 +2,8 @@ package skill;
 
 import board.SimpleBoard;
 import cell.Cell;
-import piece.King;
 import piece.Piece;
+import piece.PieceType;
 
 /// <summary>
 /// 방패 스킬
@@ -34,7 +34,7 @@ public class ShieldSkill extends Skill {
             for (int c = 0; c < SimpleBoard.SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
                     Piece piece = grid[r][c].getPiece();
-                    if (piece.color == color && !(piece instanceof King)) {
+                    if (piece.color == color && piece.type != PieceType.KING) {
                         return true;
                     }
                 }
@@ -55,7 +55,7 @@ public class ShieldSkill extends Skill {
             for (int c = 0; c < SimpleBoard.SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
                     Piece piece = grid[r][c].getPiece();
-                    if (piece.color == color && !(piece instanceof King)) {
+                    if (piece.color == color && piece.type != PieceType.KING) {
                         targets[targetCount][0] = r;
                         targets[targetCount][1] = c;
                         targetCount++;

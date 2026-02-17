@@ -342,16 +342,6 @@ public abstract class Board {
     // ========== 기물 조회 ==========
 
     /// <summary>
-    /// 지정한 칸의 기물 반환 (빈 칸이면 null)
-    /// </summary>
-    public Piece getPiece(int row, int col) {
-        if (row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
-            return null;
-        }
-        return grid[row][col].getPiece();
-    }
-
-    /// <summary>
     /// 특정 색상의 킹 반환
     /// </summary>
     public King getKing(int color) {

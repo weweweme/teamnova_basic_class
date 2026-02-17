@@ -97,12 +97,13 @@ public class AiPlayer extends Player {
         int bestValue = 0;
 
         for (Move move : allMoves) {
-            Piece target = board.getPiece(move.toRow, move.toCol);
-            if (target != null && target.color != color) {
-                if (target.value > bestValue) {
-                    bestValue = target.value;
-                    bestCapture = move;
-                }
+            if (board.grid[move.toRow][move.toCol].isEmpty()) {
+                continue;
+            }
+            Piece target = board.grid[move.toRow][move.toCol].getPiece();
+            if (target.color != color && target.value > bestValue) {
+                bestValue = target.value;
+                bestCapture = move;
             }
         }
 
@@ -149,7 +150,10 @@ public class AiPlayer extends Player {
         if (skills[0].hasUses() && skills[0].canUse(board.grid, color)) {
             for (int r = 0; r < Board.SIZE; r++) {
                 for (int c = 0; c < Board.SIZE; c++) {
-                    Piece piece = board.getPiece(r, c);
+                    if (board.grid[r][c].isEmpty()) {
+                        continue;
+                    }
+                    Piece piece = board.grid[r][c].getPiece();
                     if (piece instanceof Queen && piece.color == opponentColor) {
                         return 1;  // 스킬
                     }
@@ -227,8 +231,11 @@ public class AiPlayer extends Player {
         int bestValue = 0;
 
         for (int i = 0; i < targetCount; i++) {
-            Piece piece = board.getPiece(targets[i][0], targets[i][1]);
-            if (piece != null && piece.value > bestValue) {
+            if (board.grid[targets[i][0]][targets[i][1]].isEmpty()) {
+                continue;
+            }
+            Piece piece = board.grid[targets[i][0]][targets[i][1]].getPiece();
+            if (piece.value > bestValue) {
                 bestValue = piece.value;
                 bestIndex = i;
             }
@@ -270,7 +277,7 @@ public class AiPlayer extends Player {
         java.util.ArrayList<int[]> candidates = new java.util.ArrayList<>();
         for (int r = 2; r <= 5; r++) {
             for (int c = 2; c <= 5; c++) {
-                if (board.getPiece(r, c) == null && skillBoard.getItem(r, c) == null) {
+                if (board.grid[r][c].isEmpty() && skillBoard.getItem(r, c) == null) {
                     candidates.add(new int[]{r, c});
                 }
             }
@@ -280,7 +287,7 @@ public class AiPlayer extends Player {
         if (candidates.isEmpty()) {
             for (int r = 0; r < Board.SIZE; r++) {
                 for (int c = 0; c < Board.SIZE; c++) {
-                    if (board.getPiece(r, c) == null && skillBoard.getItem(r, c) == null) {
+                    if (board.grid[r][c].isEmpty() && skillBoard.getItem(r, c) == null) {
                         candidates.add(new int[]{r, c});
                     }
                 }

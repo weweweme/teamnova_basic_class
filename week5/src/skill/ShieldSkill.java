@@ -70,9 +70,8 @@ public class ShieldSkill extends Skill {
     /// </summary>
     @Override
     public void execute(Board board, int targetRow, int targetCol, int color) {
-        Piece piece = board.getPiece(targetRow, targetCol);
-        if (piece != null) {
-            piece.shielded = true;
+        if (board.grid[targetRow][targetCol].hasPiece()) {
+            board.grid[targetRow][targetCol].getPiece().shielded = true;
         }
         useCharge();
     }

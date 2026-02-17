@@ -64,10 +64,12 @@ public class HumanPlayer extends Player {
 
             // Enter → 기물 선택 시도
             if (key == Util.KEY_ENTER) {
-                Piece piece = board.getPiece(cursorRow, cursorCol);
-
                 // 자기 기물이 있는 칸인지 확인
-                if (piece == null || piece.color != color) {
+                if (board.grid[cursorRow][cursorCol].isEmpty()) {
+                    continue;
+                }
+                Piece piece = board.grid[cursorRow][cursorCol].getPiece();
+                if (piece.color != color) {
                     continue;
                 }
 
@@ -79,9 +81,7 @@ public class HumanPlayer extends Player {
                 int[][] validMoves = board.getFilteredBuffer();
 
                 // 2단계: 도착지 선택 (이동 모드)
-                int selectedRow = cursorRow;
-                int selectedCol = cursorCol;
-                Move result = chooseDest(board, selectedRow, selectedCol, validMoves, validMoveCount);
+                Move result = chooseDest(board, cursorRow, cursorCol, validMoves, validMoveCount);
 
                 if (result != null) {
                     // 이동 확정
@@ -107,7 +107,7 @@ public class HumanPlayer extends Player {
             Util.clearScreen();
             board.print(cursorRow, cursorCol, selectedRow, selectedCol, validMoves, validMoveCount);
             System.out.println();
-            Piece piece = board.getPiece(selectedRow, selectedCol);
+            Piece piece = board.grid[selectedRow][selectedCol].getPiece();
             System.out.println(piece.name + " 선택됨 (" + Util.toNotation(selectedRow, selectedCol) + ")");
             System.out.println("방향키: 이동 | Enter: 확정 | q: 취소");
 
@@ -396,7 +396,7 @@ public class HumanPlayer extends Player {
 
             if (key == Util.KEY_ENTER) {
                 // 빈 칸이고 아이템이 없는 칸만 선택 가능
-                if (board.getPiece(cursorRow, cursorCol) == null && skillBoard.getItem(cursorRow, cursorCol) == null) {
+                if (board.grid[cursorRow][cursorCol].isEmpty() && skillBoard.getItem(cursorRow, cursorCol) == null) {
                     return new int[]{cursorRow, cursorCol};
                 }
             }

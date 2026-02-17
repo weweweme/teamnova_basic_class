@@ -158,6 +158,16 @@ java -cp out Main
   }
   Piece piece = cell.getPiece();
   ```
+- **Cell 접근 일관성**: 칸의 상태를 확인할 때는 항상 Cell의 메서드(`isEmpty()`, `hasPiece()`, `getPiece()`)를 사용
+  ```java
+  // 나쁜 예: Board의 래퍼 메서드로 null 반환에 의존
+  Piece piece = board.getPiece(row, col);
+  if (piece == null) { ... }
+
+  // 좋은 예: Cell의 상태 확인 메서드를 직접 사용
+  if (board.grid[row][col].isEmpty()) { ... }
+  Piece piece = board.grid[row][col].getPiece();
+  ```
 - **null 대신 의미 있는 메서드 사용**: `setter(null)`로 제거하지 말고 전용 remove 메서드 사용
   ```java
   // 나쁜 예: null이 "제거"를 의미하는지 알 수 없음

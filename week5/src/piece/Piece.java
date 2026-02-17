@@ -1,6 +1,6 @@
 package piece;
 
-import core.Cell;
+import cell.Cell;
 import java.util.ArrayList;
 
 /// <summary>

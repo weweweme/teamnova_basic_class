@@ -1,5 +1,8 @@
-package core;
+package board;
 
+import cell.Cell;
+import core.Move;
+import core.Util;
 import java.util.ArrayList;
 import piece.*;
 

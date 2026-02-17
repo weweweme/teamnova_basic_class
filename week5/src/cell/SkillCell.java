@@ -1,4 +1,4 @@
-package core;
+package cell;
 
 import item.Item;
 

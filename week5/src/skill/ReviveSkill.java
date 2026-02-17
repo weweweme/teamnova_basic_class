@@ -1,8 +1,8 @@
 package skill;
 
-import core.Board;
-import core.Cell;
-import core.SkillBoard;
+import board.Board;
+import board.SkillBoard;
+import cell.Cell;
 import piece.Piece;
 
 /// <summary>

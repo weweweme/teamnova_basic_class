@@ -1,7 +1,7 @@
 package item;
 
-import core.Board;
-import core.SkillBoard;
+import board.Board;
+import board.SkillBoard;
 import piece.Piece;
 import piece.King;
 

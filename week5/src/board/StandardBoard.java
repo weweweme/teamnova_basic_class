@@ -1,4 +1,4 @@
-package core;
+package board;
 
 /// <summary>
 /// 일반 체스 보드

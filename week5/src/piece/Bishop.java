@@ -1,6 +1,6 @@
 package piece;
 
-import core.Cell;
+import cell.Cell;
 
 /// <summary>
 /// 비숍 기물

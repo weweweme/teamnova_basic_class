@@ -1,6 +1,6 @@
 package piece;
 
-import core.Cell;
+import cell.Cell;
 
 /// <summary>
 /// 룩 기물

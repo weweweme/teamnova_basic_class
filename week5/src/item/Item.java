@@ -1,6 +1,6 @@
 package item;
 
-import core.Board;
+import board.Board;
 import piece.Piece;
 
 /// <summary>

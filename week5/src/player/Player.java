@@ -1,5 +1,6 @@
 package player;
 
+import board.*;
 import core.*;
 import piece.Piece;
 import skill.Skill;

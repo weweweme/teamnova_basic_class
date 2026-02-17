@@ -1,7 +1,7 @@
 package skill;
 
-import core.Board;
-import core.Cell;
+import board.Board;
+import cell.Cell;
 import piece.Piece;
 
 /// <summary>

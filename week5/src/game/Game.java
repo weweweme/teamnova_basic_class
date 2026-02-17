@@ -1,5 +1,6 @@
 package game;
 
+import board.*;
 import core.*;
 import piece.Piece;
 import player.Player;

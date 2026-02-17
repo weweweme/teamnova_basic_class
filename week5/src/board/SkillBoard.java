@@ -158,18 +158,18 @@ public class SkillBoard extends Board {
     /// 이동 후 도착 칸에 상대 아이템이 있으면 발동
     /// 자기 아이템 위에는 발동하지 않음 (설치자는 자기 아이템을 밟아도 안전)
     /// 발동 후 아이템 제거
-    /// 반환값: 발동된 아이템 이름 (없으면 null, 화면 표시용)
+    /// 반환값: 발동된 아이템 이름 (발동되지 않았으면 빈 문자열)
     /// </summary>
     public String triggerItem(int row, int col) {
         SkillCell cell = skillCell(row, col);
 
         // 아이템이 없거나 기물이 없거나 자기 아이템이면 무시
         if (!cell.hasItem() || cell.isEmpty()) {
-            return null;
+            return "";
         }
         Item item = cell.getItem();
         if (item.ownerColor == cell.getPiece().color) {
-            return null;
+            return "";
         }
 
         // 아이템 효과 발동
@@ -177,7 +177,7 @@ public class SkillBoard extends Board {
         item.trigger(this, cell.getPiece());
 
         // 발동된 아이템 제거
-        cell.setItem(null);
+        cell.removeItem();
 
         return itemName;
     }
@@ -245,7 +245,7 @@ public class SkillBoard extends Board {
     public void removePiece(int row, int col) {
         if (grid[row][col].hasPiece()) {
             capturedPieces.add(grid[row][col].getPiece());
-            grid[row][col].setPiece(null);
+            grid[row][col].removePiece();
         }
     }
 

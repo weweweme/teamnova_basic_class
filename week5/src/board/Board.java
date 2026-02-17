@@ -356,7 +356,7 @@ public abstract class Board {
         if (piece instanceof Pawn && move.fromCol != move.toCol && grid[move.toRow][move.toCol].isEmpty()) {
             // 잡힌 폰 기록 및 제거
             capturedPieces.add(grid[move.fromRow][move.toCol].getPiece());
-            grid[move.fromRow][move.toCol].setPiece(null);
+            grid[move.fromRow][move.toCol].removePiece();
         }
 
         // 일반 잡기 기록
@@ -366,7 +366,7 @@ public abstract class Board {
 
         // 도착 칸에 기물 배치
         grid[move.toRow][move.toCol].setPiece(piece);
-        grid[move.fromRow][move.fromCol].setPiece(null);
+        grid[move.fromRow][move.fromCol].removePiece();
 
         // 기물의 위치 정보 갱신
         piece.row = move.toRow;
@@ -386,7 +386,7 @@ public abstract class Board {
 
         // 킹 이동
         grid[move.toRow][move.toCol].setPiece(king);
-        grid[move.fromRow][move.fromCol].setPiece(null);
+        grid[move.fromRow][move.fromCol].removePiece();
         king.row = move.toRow;
         king.col = move.toCol;
         king.hasMoved = true;
@@ -395,7 +395,7 @@ public abstract class Board {
             // 킹사이드: 룩 h열 → f열
             Piece rook = grid[move.fromRow][KINGSIDE_ROOK_COL].getPiece();
             grid[move.fromRow][KINGSIDE_ROOK_DEST].setPiece(rook);
-            grid[move.fromRow][KINGSIDE_ROOK_COL].setPiece(null);
+            grid[move.fromRow][KINGSIDE_ROOK_COL].removePiece();
             rook.row = move.fromRow;
             rook.col = KINGSIDE_ROOK_DEST;
             rook.hasMoved = true;
@@ -403,7 +403,7 @@ public abstract class Board {
             // 퀸사이드: 룩 a열 → d열
             Piece rook = grid[move.fromRow][QUEENSIDE_ROOK_COL].getPiece();
             grid[move.fromRow][QUEENSIDE_ROOK_DEST].setPiece(rook);
-            grid[move.fromRow][QUEENSIDE_ROOK_COL].setPiece(null);
+            grid[move.fromRow][QUEENSIDE_ROOK_COL].removePiece();
             rook.row = move.fromRow;
             rook.col = QUEENSIDE_ROOK_DEST;
             rook.hasMoved = true;
@@ -541,7 +541,7 @@ public abstract class Board {
 
         // 임시로 이동 실행
         grid[move.toRow][move.toCol].setPiece(movingPiece);
-        grid[move.fromRow][move.fromCol].setPiece(null);
+        grid[move.fromRow][move.fromCol].removePiece();
         movingPiece.row = move.toRow;
         movingPiece.col = move.toCol;
 
@@ -693,8 +693,8 @@ public abstract class Board {
 
         // 임시로 이동 + 잡힌 폰 제거
         grid[move.toRow][move.toCol].setPiece(movingPiece);
-        grid[move.fromRow][move.fromCol].setPiece(null);
-        grid[capturedRow][capturedCol].setPiece(null);
+        grid[move.fromRow][move.fromCol].removePiece();
+        grid[capturedRow][capturedCol].removePiece();
         movingPiece.row = move.toRow;
         movingPiece.col = move.toCol;
 
@@ -703,7 +703,7 @@ public abstract class Board {
 
         // 원래 상태로 복원
         grid[move.fromRow][move.fromCol].setPiece(movingPiece);
-        grid[move.toRow][move.toCol].setPiece(null);
+        grid[move.toRow][move.toCol].removePiece();
         grid[capturedRow][capturedCol].setPiece(capturedPiece);
         movingPiece.row = origRow;
         movingPiece.col = origCol;

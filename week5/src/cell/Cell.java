@@ -33,10 +33,17 @@ public class Cell {
     }
 
     /// <summary>
-    /// 이 칸에 기물 배치 (제거하려면 null 전달)
+    /// 이 칸에 기물 배치
     /// </summary>
     public void setPiece(Piece piece) {
         this.piece = piece;
+    }
+
+    /// <summary>
+    /// 이 칸의 기물 제거
+    /// </summary>
+    public void removePiece() {
+        this.piece = null;
     }
 
     /// <summary>

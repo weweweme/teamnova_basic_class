@@ -158,6 +158,16 @@ java -cp out Main
   }
   Piece piece = cell.getPiece();
   ```
+- **null 대신 의미 있는 메서드 사용**: `setter(null)`로 제거하지 말고 전용 remove 메서드 사용
+  ```java
+  // 나쁜 예: null이 "제거"를 의미하는지 알 수 없음
+  cell.setPiece(null);
+  cell.setItem(null);
+
+  // 좋은 예: 의도가 명확한 전용 메서드
+  cell.removePiece();
+  cell.removeItem();
+  ```
 
 ## 5주차 과제
 

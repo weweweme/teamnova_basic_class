@@ -332,7 +332,7 @@ public class AiPlayer extends Player {
 
         // 임시로 이동 실행
         board.grid[move.toRow][move.toCol].setPiece(movingPiece);
-        board.grid[move.fromRow][move.fromCol].setPiece(null);
+        board.grid[move.fromRow][move.fromCol].removePiece();
         movingPiece.row = move.toRow;
         movingPiece.col = move.toCol;
         movingPiece.hasMoved = true;
@@ -363,7 +363,7 @@ public class AiPlayer extends Player {
 
         // 임시로 이동 실행
         board.grid[move.toRow][move.toCol].setPiece(movingPiece);
-        board.grid[move.fromRow][move.fromCol].setPiece(null);
+        board.grid[move.fromRow][move.fromCol].removePiece();
         movingPiece.row = move.toRow;
         movingPiece.col = move.toCol;
 

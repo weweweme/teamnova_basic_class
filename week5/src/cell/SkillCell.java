@@ -34,10 +34,17 @@ public class SkillCell extends Cell {
     }
 
     /// <summary>
-    /// 이 칸에 아이템 설치 (제거하려면 null 전달)
+    /// 이 칸에 아이템 설치
     /// </summary>
     public void setItem(Item item) {
         this.item = item;
+    }
+
+    /// <summary>
+    /// 이 칸의 아이템 제거
+    /// </summary>
+    public void removeItem() {
+        this.item = null;
     }
 
     /// <summary>

@@ -181,7 +181,7 @@ public class SkillGame extends Game {
 
         // 아이템 트리거 확인 (이동한 칸에 상대 아이템이 있으면 발동)
         String triggeredItem = skillBoard.triggerItem(move.toRow, move.toCol);
-        if (triggeredItem != null) {
+        if (!triggeredItem.isEmpty()) {
             Util.clearScreen();
             skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, null, currentPlayer.color);
             System.out.println();

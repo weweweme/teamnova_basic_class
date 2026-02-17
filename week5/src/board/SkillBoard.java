@@ -57,24 +57,12 @@ public class SkillBoard extends Board {
     /// 보드 출력 (스킬 모드용, 자기 아이템/효과 표시)
     /// viewerColor: 이 색상의 플레이어에게만 자기 아이템이 보임
     /// </summary>
-    public void print(int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves, int viewerColor) {
+    public void print(int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves, int validMoveCount, int viewerColor) {
         // 렌더링 시 사용할 플레이어 색상 설정
         currentViewerColor = viewerColor;
         // 부모의 print가 renderCell을 호출 → 오버라이드된 버전이 스킬 렌더링 수행
-        super.print(cursorRow, cursorCol, selectedRow, selectedCol, validMoves);
+        super.print(cursorRow, cursorCol, selectedRow, selectedCol, validMoves, validMoveCount);
         // 렌더링 완료 후 초기화
-        currentViewerColor = NONE;
-    }
-
-    /// <summary>
-    /// 보드 출력 (스킬 모드용, 유효 대상 수 직접 지정)
-    /// 버퍼 배열에서 유효한 범위만 표시할 때 사용
-    /// </summary>
-    public void print(int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves, int validMoveCount, int viewerColor) {
-        // 유효 대상 수를 먼저 설정 (부모 print에서 덮어쓰지 않음)
-        this.validMoveCount = validMoveCount;
-        currentViewerColor = viewerColor;
-        super.print(cursorRow, cursorCol, selectedRow, selectedCol, validMoves);
         currentViewerColor = NONE;
     }
 

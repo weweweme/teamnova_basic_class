@@ -48,6 +48,18 @@ public abstract class Board {
     /// </summary>
     private static final int COL = 1;
 
+    /// <summary>
+    /// 이동 가능한 칸이 없음을 나타내는 빈 배열 (null 대신 사용)
+    /// 한 번만 생성되어 재사용
+    /// </summary>
+    public static final int[][] EMPTY_MOVES = new int[0][COORD_SIZE];
+
+    /// <summary>
+    /// 필터링 후 한 기물의 최대 이동 가능 칸 수
+    /// 기본 이동 최대 27칸 + 캐슬링 최대 2칸 + 앙파상 최대 1칸 = 30
+    /// </summary>
+    public static final int MAX_FILTERED_MOVES = 30;
+
     // ========== 캐슬링 열 위치 ==========
 
     // 킹사이드 (킹: e→g, 룩: h→f)
@@ -72,9 +84,14 @@ public abstract class Board {
     // 잡힌 기물 목록 (잡은 기물 표시에 사용, 하위 클래스에서 접근 가능)
     protected final ArrayList<Piece> capturedPieces;
 
-    // 현재 print에서 사용 중인 유효 이동/대상 칸 수 (NONE이면 미설정)
-    // 스킬 대상 버퍼처럼 배열 일부만 유효한 경우, 외부에서 먼저 설정
-    protected int validMoveCount = NONE;
+    // 현재 print에서 사용 중인 유효 이동/대상 칸 수
+    protected int validMoveCount;
+
+    // 필터링된 이동 가능 칸 버퍼 (매번 새로 만들지 않고 재사용)
+    private final int[][] filteredBuffer = new int[MAX_FILTERED_MOVES][COORD_SIZE];
+
+    // 현재 유효한 필터링된 이동 칸 수
+    private int filteredCount;
 
     // ========== 생성자 ==========
 
@@ -164,38 +181,43 @@ public abstract class Board {
     /// 기본 보드 출력 (커서, 하이라이트 없음)
     /// </summary>
     public void print() {
-        print(NONE, NONE, NONE, NONE, null);
+        print(NONE, NONE, NONE, NONE, EMPTY_MOVES, 0);
     }
 
     /// <summary>
     /// 커서만 표시하며 보드 출력 (기물 탐색 모드)
     /// </summary>
     public void print(int cursorRow, int cursorCol) {
-        print(cursorRow, cursorCol, NONE, NONE, null);
+        print(cursorRow, cursorCol, NONE, NONE, EMPTY_MOVES, 0);
     }
 
     /// <summary>
     /// 보드 출력 (커서 + 선택된 기물 + 이동 가능한 칸 표시)
     /// cursorRow/Col: 현재 커서 위치 (NONE이면 커서 없음)
     /// selectedRow/Col: 선택된 기물 위치 (NONE이면 선택 없음)
-    /// validMoves: 이동 가능한 칸 목록 (null이면 표시 안 함)
+    /// validMoves: 이동 가능한 칸 버퍼
+    /// validMoveCount: 버퍼에서 유효한 칸 수
     /// </summary>
-    public void print(int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves) {
-        // 외부에서 validMoveCount가 설정되지 않았으면 배열 길이 사용
-        if (validMoveCount == NONE) {
-            validMoveCount = (validMoves != null) ? validMoves.length : 0;
-        }
+    public void print(int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves, int validMoveCount) {
+        this.validMoveCount = validMoveCount;
 
-        // 상단 열 표시
+        // === 보드 출력 시작 ===
+
+        // 상단 열 레이블 (a~h)
         System.out.println("     a   b   c   d   e   f   g   h");
         System.out.println("   +---+---+---+---+---+---+---+---+");
 
+        // 8x8 격자 한 행씩 출력
         for (int r = 0; r < SIZE; r++) {
+            // 내부 행 번호(0~7)를 체스 줄 번호(8~1)로 변환
             int rank = SIZE - r;
+
+            // 한 행을 문자열로 조립 (예: " 8 | r | n | b | q | k | b | n | r | 8")
             StringBuilder line = new StringBuilder();
             line.append(String.format(" %d |", rank));
 
             for (int c = 0; c < SIZE; c++) {
+                // 각 칸의 표시 문자열 결정 (기물, 커서, 이동 가능 표시 등)
                 String cell = renderCell(r, c, cursorRow, cursorCol, selectedRow, selectedCol, validMoves);
                 line.append(cell).append("|");
             }
@@ -205,14 +227,12 @@ public abstract class Board {
             System.out.println("   +---+---+---+---+---+---+---+---+");
         }
 
-        // 하단 열 표시
+        // 하단 열 레이블 (a~h)
         System.out.println("     a   b   c   d   e   f   g   h");
 
         // 잡은 기물 표시
         printCapturedPieces();
 
-        // 렌더링 완료 후 초기화
-        validMoveCount = NONE;
     }
 
     /// <summary>
@@ -286,21 +306,10 @@ public abstract class Board {
     }
 
     /// <summary>
-    /// 특정 좌표가 배열에 포함되어 있는지 확인
-    /// 배열 전체를 검사
-    /// </summary>
-    public boolean isInArray(int row, int col, int[][] array) {
-        return isInArray(row, col, array, (array != null) ? array.length : 0);
-    }
-
-    /// <summary>
     /// 특정 좌표가 배열의 처음 count개 항목에 포함되어 있는지 확인
     /// 버퍼 배열에서 유효한 범위만 검사할 때 사용
     /// </summary>
     public boolean isInArray(int row, int col, int[][] array, int count) {
-        if (array == null) {
-            return false;
-        }
         for (int i = 0; i < count; i++) {
             if (array[i][0] == row && array[i][1] == col) {
                 return true;
@@ -457,47 +466,61 @@ public abstract class Board {
     /// 기본 이동 규칙 + 특수 규칙(캐슬링, 앙파상) 포함
     /// 자기 킹이 위험해지는 수는 제외
     /// </summary>
-    public int[][] getFilteredMoves(int row, int col) {
+    public int getFilteredMoves(int row, int col) {
+        filteredCount = 0;
+
         if (grid[row][col].isEmpty()) {
-            return new int[0][];
+            return 0;
         }
         Piece piece = grid[row][col].getPiece();
 
         // 동결된 기물은 이동 불가
         if (piece.frozen) {
-            return new int[0][];
+            return 0;
         }
 
-        int[][] rawMoves = piece.getValidMoves(grid);
-        ArrayList<int[]> filtered = new ArrayList<>();
+        int rawCount = piece.getValidMoves(grid);
 
-        for (int[] dest : rawMoves) {
+        for (int i = 0; i < rawCount; i++) {
+            int destRow = piece.moveBuffer[i][0];
+            int destCol = piece.moveBuffer[i][1];
+
             // 방패가 걸린 상대 기물은 잡을 수 없음
-            if (grid[dest[0]][dest[1]].hasPiece()) {
-                Piece target = grid[dest[0]][dest[1]].getPiece();
+            if (grid[destRow][destCol].hasPiece()) {
+                Piece target = grid[destRow][destCol].getPiece();
                 if (target.shielded && target.color != piece.color) {
                     continue;
                 }
             }
 
-            Move move = new Move(row, col, dest[0], dest[1]);
+            Move move = new Move(row, col, destRow, destCol);
             // 이 수를 두면 자기 킹이 체크되는지 확인
             if (!wouldBeInCheck(move, piece.color)) {
-                filtered.add(dest);
+                filteredBuffer[filteredCount][0] = destRow;
+                filteredBuffer[filteredCount][1] = destCol;
+                filteredCount++;
             }
         }
 
         // 캐슬링 (킹이 아직 움직이지 않았을 때만)
         if (piece instanceof King && !piece.hasMoved) {
-            addCastlingMoves(piece, filtered);
+            addCastlingMoves(piece);
         }
 
         // 앙파상 (폰일 때만)
         if (piece instanceof Pawn) {
-            addEnPassantMoves(piece, row, col, filtered);
+            addEnPassantMoves(piece, row, col);
         }
 
-        return filtered.toArray(new int[0][]);
+        return filteredCount;
+    }
+
+    /// <summary>
+    /// 필터링된 이동 가능 칸 버퍼 반환 (getFilteredMoves와 함께 사용)
+    /// getFilteredMoves의 반환값이 유효한 칸 수이고, 이 버퍼에서 그 수만큼만 유효
+    /// </summary>
+    public int[][] getFilteredBuffer() {
+        return filteredBuffer;
     }
 
     /// <summary>
@@ -518,9 +541,9 @@ public abstract class Board {
                 }
 
                 // getFilteredMoves가 캐슬링, 앙파상도 포함하여 반환
-                int[][] moves = getFilteredMoves(r, c);
-                for (int[] dest : moves) {
-                    allMoves.add(new Move(r, c, dest[0], dest[1]));
+                int moveCount = getFilteredMoves(r, c);
+                for (int i = 0; i < moveCount; i++) {
+                    allMoves.add(new Move(r, c, filteredBuffer[i][0], filteredBuffer[i][1]));
                 }
             }
         }
@@ -563,7 +586,7 @@ public abstract class Board {
     /// 캐슬링 가능한 수를 목록에 추가
     /// 조건: 킹/룩 미이동, 사이에 기물 없음, 체크 아님, 경유 칸 공격 안 받음
     /// </summary>
-    private void addCastlingMoves(Piece king, ArrayList<int[]> moves) {
+    private void addCastlingMoves(Piece king) {
         int row = king.row;
         int opponentColor = (king.color == Piece.RED) ? Piece.BLUE : Piece.RED;
 
@@ -583,7 +606,9 @@ public abstract class Board {
         boolean kingsidePathSafe = isSquareSafe(row, KINGSIDE_ROOK_DEST, opponentColor) && isSquareSafe(row, KINGSIDE_KING_DEST, opponentColor);
 
         if (kingsideRookReady && kingsidePathClear && kingsidePathSafe) {
-            moves.add(new int[]{row, KINGSIDE_KING_DEST});
+            filteredBuffer[filteredCount][0] = row;
+            filteredBuffer[filteredCount][1] = KINGSIDE_KING_DEST;
+            filteredCount++;
         }
 
         // 퀸사이드 캐슬링 (킹: e→c, 룩: a→d)
@@ -597,7 +622,9 @@ public abstract class Board {
         boolean queensidePathSafe = isSquareSafe(row, QUEENSIDE_KING_DEST, opponentColor) && isSquareSafe(row, QUEENSIDE_ROOK_DEST, opponentColor);
 
         if (queensideRookReady && queensidePathClear && queensidePathSafe) {
-            moves.add(new int[]{row, QUEENSIDE_KING_DEST});
+            filteredBuffer[filteredCount][0] = row;
+            filteredBuffer[filteredCount][1] = QUEENSIDE_KING_DEST;
+            filteredCount++;
         }
     }
 
@@ -617,9 +644,9 @@ public abstract class Board {
                 }
 
                 // 해당 기물의 이동 가능한 칸에 목표 칸이 포함되면 안전하지 않음
-                int[][] pieceMoves = piece.getValidMoves(grid);
-                for (int[] move : pieceMoves) {
-                    if (move[0] == row && move[1] == col) {
+                int moveCount = piece.getValidMoves(grid);
+                for (int i = 0; i < moveCount; i++) {
+                    if (piece.moveBuffer[i][0] == row && piece.moveBuffer[i][1] == col) {
                         return false;
                     }
                 }
@@ -634,7 +661,7 @@ public abstract class Board {
     /// 앙파상 가능한 수를 목록에 추가
     /// 상대 폰이 바로 직전에 2칸 전진했고, 이 폰이 옆에 있으면 앙파상 가능
     /// </summary>
-    private void addEnPassantMoves(Piece pawn, int row, int col, ArrayList<int[]> moves) {
+    private void addEnPassantMoves(Piece pawn, int row, int col) {
         // 폰이 첫 이동 시 전진하는 행 수
         final int PAWN_DOUBLE_STEP = 2;
         // 인접한 열 거리 (바로 옆 1칸)
@@ -676,7 +703,9 @@ public abstract class Board {
         // 자기 킹이 위험해지지 않는지 확인 (앙파상은 잡히는 위치가 다르므로 별도 확인)
         Move enPassantMove = new Move(row, col, enPassantRow, enPassantCol);
         if (!wouldBeInCheckEnPassant(enPassantMove, pawn.color, lastMove.toRow, lastMove.toCol)) {
-            moves.add(new int[]{enPassantRow, enPassantCol});
+            filteredBuffer[filteredCount][0] = enPassantRow;
+            filteredBuffer[filteredCount][1] = enPassantCol;
+            filteredCount++;
         }
     }
 
@@ -738,9 +767,9 @@ public abstract class Board {
                 }
 
                 // 상대 기물의 이동 가능한 칸에 킹 위치가 포함되면 체크
-                int[][] moves = piece.getValidMoves(grid);
-                for (int[] move : moves) {
-                    if (move[ROW] == kingRow && move[COL] == kingCol) {
+                int moveCount = piece.getValidMoves(grid);
+                for (int i = 0; i < moveCount; i++) {
+                    if (piece.moveBuffer[i][ROW] == kingRow && piece.moveBuffer[i][COL] == kingCol) {
                         return true;
                     }
                 }

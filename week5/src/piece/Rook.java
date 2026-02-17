@@ -27,9 +27,9 @@ public class Rook extends Piece {
     /// </summary>
     @Override
     protected void calculateMoves(Cell[][] board) {
-        slideMoves(board, -1, 0, moves);  // 위
-        slideMoves(board, 1, 0, moves);   // 아래
-        slideMoves(board, 0, -1, moves);  // 왼쪽
-        slideMoves(board, 0, 1, moves);   // 오른쪽
+        slideMoves(board, -1, 0);  // 위
+        slideMoves(board, 1, 0);   // 아래
+        slideMoves(board, 0, -1);  // 왼쪽
+        slideMoves(board, 0, 1);   // 오른쪽
     }
 }

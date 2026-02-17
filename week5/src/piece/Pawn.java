@@ -33,12 +33,12 @@ public class Pawn extends Piece {
         // 1칸 전진 (빈 칸일 때만)
         int oneStep = row + direction;
         if (oneStep >= 0 && oneStep < 8 && board[oneStep][col].isEmpty()) {
-            moves.add(new int[]{oneStep, col});
+            addMove(oneStep, col);
 
             // 2칸 전진 (첫 이동이고, 앞 2칸 모두 빈 칸일 때만)
             int twoStep = row + direction * 2;
             if (!hasMoved && twoStep >= 0 && twoStep < 8 && board[twoStep][col].isEmpty()) {
-                moves.add(new int[]{twoStep, col});
+                addMove(twoStep, col);
             }
         }
 
@@ -52,7 +52,7 @@ public class Pawn extends Piece {
 
             // 적군이 있을 때만 대각선 이동 가능
             if (board[oneStep][captureCol].hasPiece() && isEnemy(board[oneStep][captureCol].getPiece())) {
-                moves.add(new int[]{oneStep, captureCol});
+                addMove(oneStep, captureCol);
             }
         }
     }

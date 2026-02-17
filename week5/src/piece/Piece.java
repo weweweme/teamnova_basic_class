@@ -1,7 +1,7 @@
 package piece;
 
+import board.Board;
 import cell.Cell;
-import java.util.ArrayList;
 
 /// <summary>
 /// 기물 추상 클래스
@@ -56,8 +56,17 @@ public abstract class Piece {
     // 동결 상태 (true이면 이번 턴에 이동할 수 없음, 스킬 모드에서 사용)
     public boolean frozen;
 
-    // 이동 가능한 칸 목록 (매번 새로 만들지 않고 재사용)
-    protected ArrayList<int[]> moves = new ArrayList<>();
+    // ========== 이동 버퍼 ==========
+
+    // 한 기물이 가질 수 있는 최대 이동 가능 칸 수
+    // 퀸이 빈 보드 중앙에서 최대 27칸 이동 가능, 여유분 포함
+    public static final int MAX_MOVES = 28;
+
+    // 이동 가능한 칸 버퍼 (매번 새로 만들지 않고 재사용)
+    public final int[][] moveBuffer = new int[MAX_MOVES][Board.COORD_SIZE];
+
+    // 현재 유효한 이동 가능 칸 수 (moveBuffer에서 이 수만큼만 유효)
+    public int moveCount;
 
     // ========== 생성자 ==========
 
@@ -78,21 +87,32 @@ public abstract class Piece {
     // ========== 이동 규칙 ==========
 
     /// <summary>
-    /// 이 기물이 현재 보드에서 이동할 수 있는 모든 칸의 좌표를 반환
-    /// 초기화와 변환은 여기서 처리하고, 실제 이동 규칙은 하위 클래스가 구현
+    /// 이 기물이 현재 보드에서 이동할 수 있는 모든 칸을 버퍼에 저장
+    /// 초기화는 여기서 처리하고, 실제 이동 규칙은 하위 클래스가 구현
+    /// 결과는 moveBuffer에 저장되고, 반환값은 유효한 칸 수
     /// </summary>
-    public int[][] getValidMoves(Cell[][] board) {
-        moves.clear();
+    public int getValidMoves(Cell[][] board) {
+        moveCount = 0;
         calculateMoves(board);
-        return moves.toArray(new int[0][]);
+        return moveCount;
     }
 
     /// <summary>
     /// 실제 이동 가능한 칸을 계산하는 메서드
     /// 각 하위 클래스가 자기만의 이동 규칙으로 구현 (메서드 오버라이딩)
-    /// 결과는 moves 목록에 추가
+    /// 결과는 addMove()로 버퍼에 추가
     /// </summary>
     protected abstract void calculateMoves(Cell[][] board);
+
+    /// <summary>
+    /// 이동 가능한 칸을 버퍼에 추가
+    /// calculateMoves에서 좌표를 저장할 때 사용
+    /// </summary>
+    protected void addMove(int row, int col) {
+        moveBuffer[moveCount][0] = row;
+        moveBuffer[moveCount][1] = col;
+        moveCount++;
+    }
 
     // ========== 공통 메서드 ==========
 
@@ -115,9 +135,9 @@ public abstract class Piece {
     /// <summary>
     /// 한 방향으로 직선 이동 가능한 칸들을 구함 (퀸, 룩, 비숍 공통)
     /// 빈 칸이면 계속 전진, 적군이면 잡고 멈춤, 아군이면 멈춤
-    /// 결과를 전달받은 목록에 추가
+    /// 결과를 버퍼에 추가
     /// </summary>
-    protected void slideMoves(Cell[][] board, int dRow, int dCol, ArrayList<int[]> moves) {
+    protected void slideMoves(Cell[][] board, int dRow, int dCol) {
         int r = row + dRow;
         int c = col + dCol;
 
@@ -125,12 +145,12 @@ public abstract class Piece {
         while (r >= 0 && r < 8 && c >= 0 && c < 8) {
             if (board[r][c].isEmpty()) {
                 // 빈 칸 → 이동 가능, 계속 전진
-                moves.add(new int[]{r, c});
+                addMove(r, c);
             } else {
                 Piece target = board[r][c].getPiece();
                 if (isEnemy(target)) {
                     // 적군 → 잡을 수 있음
-                    moves.add(new int[]{r, c});
+                    addMove(r, c);
                 }
                 // 적군이든 아군이든 여기서 멈춤
                 break;

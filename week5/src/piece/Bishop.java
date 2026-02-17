@@ -26,9 +26,9 @@ public class Bishop extends Piece {
     /// </summary>
     @Override
     protected void calculateMoves(Cell[][] board) {
-        slideMoves(board, -1, -1, moves);  // 좌상
-        slideMoves(board, -1, 1, moves);   // 우상
-        slideMoves(board, 1, -1, moves);   // 좌하
-        slideMoves(board, 1, 1, moves);    // 우하
+        slideMoves(board, -1, -1);  // 좌상
+        slideMoves(board, -1, 1);   // 우상
+        slideMoves(board, 1, -1);   // 좌하
+        slideMoves(board, 1, 1);    // 우하
     }
 }

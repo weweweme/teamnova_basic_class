@@ -27,15 +27,15 @@ public class Queen extends Piece {
     @Override
     protected void calculateMoves(Cell[][] board) {
         // 직선 4방향 (룩과 동일)
-        slideMoves(board, -1, 0, moves);   // 위
-        slideMoves(board, 1, 0, moves);    // 아래
-        slideMoves(board, 0, -1, moves);   // 왼쪽
-        slideMoves(board, 0, 1, moves);    // 오른쪽
+        slideMoves(board, -1, 0);   // 위
+        slideMoves(board, 1, 0);    // 아래
+        slideMoves(board, 0, -1);   // 왼쪽
+        slideMoves(board, 0, 1);    // 오른쪽
 
         // 대각선 4방향 (비숍과 동일)
-        slideMoves(board, -1, -1, moves);  // 좌상
-        slideMoves(board, -1, 1, moves);   // 우상
-        slideMoves(board, 1, -1, moves);   // 좌하
-        slideMoves(board, 1, 1, moves);    // 우하
+        slideMoves(board, -1, -1);  // 좌상
+        slideMoves(board, -1, 1);   // 우상
+        slideMoves(board, 1, -1);   // 좌하
+        slideMoves(board, 1, 1);    // 우하
     }
 }

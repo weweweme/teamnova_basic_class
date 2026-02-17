@@ -47,7 +47,7 @@ public class Knight extends Piece {
 
             // 빈 칸이거나 적군이면 이동 가능
             if (board[r][c].isEmpty() || isEnemy(board[r][c].getPiece())) {
-                moves.add(new int[]{r, c});
+                addMove(r, c);
             }
         }
     }

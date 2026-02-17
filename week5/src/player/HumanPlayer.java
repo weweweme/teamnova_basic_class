@@ -71,15 +71,16 @@ public class HumanPlayer extends Player {
                 }
 
                 // 이동 가능한 수가 있는지 확인
-                int[][] validMoves = board.getFilteredMoves(cursorRow, cursorCol);
-                if (validMoves.length == 0) {
+                int validMoveCount = board.getFilteredMoves(cursorRow, cursorCol);
+                if (validMoveCount == 0) {
                     continue;
                 }
+                int[][] validMoves = board.getFilteredBuffer();
 
                 // 2단계: 도착지 선택 (이동 모드)
                 int selectedRow = cursorRow;
                 int selectedCol = cursorCol;
-                Move result = chooseDest(board, selectedRow, selectedCol, validMoves);
+                Move result = chooseDest(board, selectedRow, selectedCol, validMoves, validMoveCount);
 
                 if (result != null) {
                     // 이동 확정
@@ -96,14 +97,14 @@ public class HumanPlayer extends Player {
     /// 선택한 기물의 이동 가능한 칸 중 도착지를 화살표 키로 선택
     /// q 입력 시 null 반환 (선택 취소, 1단계로 돌아감)
     /// </summary>
-    private Move chooseDest(Board board, int selectedRow, int selectedCol, int[][] validMoves) {
+    private Move chooseDest(Board board, int selectedRow, int selectedCol, int[][] validMoves, int validMoveCount) {
         // 커서를 첫 번째 이동 가능한 칸으로 이동
         int cursorRow = validMoves[0][0];
         int cursorCol = validMoves[0][1];
 
         while (true) {
             Util.clearScreen();
-            board.print(cursorRow, cursorCol, selectedRow, selectedCol, validMoves);
+            board.print(cursorRow, cursorCol, selectedRow, selectedCol, validMoves, validMoveCount);
             System.out.println();
             Piece piece = board.getPiece(selectedRow, selectedCol);
             System.out.println(piece.name + " 선택됨 (" + Util.toNotation(selectedRow, selectedCol) + ")");
@@ -127,7 +128,7 @@ public class HumanPlayer extends Player {
             // Enter → 도착지 확정 시도
             if (key == Util.KEY_ENTER) {
                 // 이동 가능한 칸인지 확인
-                if (board.isInArray(cursorRow, cursorCol, validMoves)) {
+                if (board.isInArray(cursorRow, cursorCol, validMoves, validMoveCount)) {
                     return new Move(selectedRow, selectedCol, cursorRow, cursorCol);
                 }
                 // 이동 불가능한 칸이면 무시
@@ -228,7 +229,7 @@ public class HumanPlayer extends Player {
 
         SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, null, color);
+        skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, Board.EMPTY_MOVES, 0, color);
         System.out.println();
         System.out.println(name + "의 차례 (" + getColorName() + ")");
         if (board.isInCheck(color)) {
@@ -264,7 +265,7 @@ public class HumanPlayer extends Player {
     public int chooseSkill(Board board, Skill[] skills) {
         SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, null, color);
+        skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, Board.EMPTY_MOVES, 0, color);
         System.out.println();
         System.out.println("스킬을 선택하세요:");
 
@@ -336,7 +337,7 @@ public class HumanPlayer extends Player {
     public int chooseItemType(Board board, Item[] items) {
         SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, null, color);
+        skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, Board.EMPTY_MOVES, 0, color);
         System.out.println();
         System.out.println("아이템을 선택하세요:");
 
@@ -374,7 +375,7 @@ public class HumanPlayer extends Player {
 
         while (true) {
             Util.clearScreen();
-            skillBoard.print(cursorRow, cursorCol, Board.NONE, Board.NONE, null, color);
+            skillBoard.print(cursorRow, cursorCol, Board.NONE, Board.NONE, Board.EMPTY_MOVES, 0, color);
             System.out.println();
             System.out.println("아이템을 설치할 빈 칸을 선택하세요");
             System.out.println("방향키: 이동 | Enter: 확정 | q: 취소");
@@ -409,7 +410,7 @@ public class HumanPlayer extends Player {
     public int chooseReviveTarget(Board board, Piece[] captured) {
         SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, null, color);
+        skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, Board.EMPTY_MOVES, 0, color);
         System.out.println();
         System.out.println("부활할 기물을 선택하세요:");
 

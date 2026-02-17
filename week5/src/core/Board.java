@@ -23,8 +23,8 @@ public abstract class Board {
 
     // ========== 필드 ==========
 
-    // 8x8 격자 (빈 칸은 null)
-    public final Piece[][] grid;
+    // 8x8 격자 (각 칸은 Cell 객체, 기물이 없으면 빈 Cell)
+    public final Cell[][] grid;
 
     // 마지막으로 실행된 수 (앙파상 판정에 사용)
     private Move lastMove;
@@ -42,10 +42,26 @@ public abstract class Board {
     /// 체스판 생성 및 기물 초기 배치
     /// </summary>
     public Board() {
-        grid = new Piece[SIZE][SIZE];
+        grid = new Cell[SIZE][SIZE];
+
+        // 각 칸을 빈 Cell로 초기화 (하위 클래스가 createCell()을 오버라이드하여 다른 종류의 칸 생성 가능)
+        for (int r = 0; r < SIZE; r++) {
+            for (int c = 0; c < SIZE; c++) {
+                grid[r][c] = createCell();
+            }
+        }
+
         lastMove = null;
         capturedPieces = new ArrayList<>();
         initPieces();
+    }
+
+    /// <summary>
+    /// 칸 객체를 생성하는 팩토리 메서드
+    /// 하위 클래스에서 오버라이드하여 확장된 칸(SkillCell 등)을 생성 가능
+    /// </summary>
+    protected Cell createCell() {
+        return new Cell();
     }
 
     // ========== 초기 배치 ==========
@@ -72,34 +88,34 @@ public abstract class Board {
         final int ROOK_RIGHT = 7;      // h열 - 룩
 
         // 파란팀 주요 기물
-        grid[BLUE_BACK_ROW][ROOK_LEFT] = new Rook(Piece.BLUE, BLUE_BACK_ROW, ROOK_LEFT);
-        grid[BLUE_BACK_ROW][KNIGHT_LEFT] = new Knight(Piece.BLUE, BLUE_BACK_ROW, KNIGHT_LEFT);
-        grid[BLUE_BACK_ROW][BISHOP_LEFT] = new Bishop(Piece.BLUE, BLUE_BACK_ROW, BISHOP_LEFT);
-        grid[BLUE_BACK_ROW][QUEEN_COL] = new Queen(Piece.BLUE, BLUE_BACK_ROW, QUEEN_COL);
-        grid[BLUE_BACK_ROW][KING_COL] = new King(Piece.BLUE, BLUE_BACK_ROW, KING_COL);
-        grid[BLUE_BACK_ROW][BISHOP_RIGHT] = new Bishop(Piece.BLUE, BLUE_BACK_ROW, BISHOP_RIGHT);
-        grid[BLUE_BACK_ROW][KNIGHT_RIGHT] = new Knight(Piece.BLUE, BLUE_BACK_ROW, KNIGHT_RIGHT);
-        grid[BLUE_BACK_ROW][ROOK_RIGHT] = new Rook(Piece.BLUE, BLUE_BACK_ROW, ROOK_RIGHT);
+        grid[BLUE_BACK_ROW][ROOK_LEFT].setPiece(new Rook(Piece.BLUE, BLUE_BACK_ROW, ROOK_LEFT));
+        grid[BLUE_BACK_ROW][KNIGHT_LEFT].setPiece(new Knight(Piece.BLUE, BLUE_BACK_ROW, KNIGHT_LEFT));
+        grid[BLUE_BACK_ROW][BISHOP_LEFT].setPiece(new Bishop(Piece.BLUE, BLUE_BACK_ROW, BISHOP_LEFT));
+        grid[BLUE_BACK_ROW][QUEEN_COL].setPiece(new Queen(Piece.BLUE, BLUE_BACK_ROW, QUEEN_COL));
+        grid[BLUE_BACK_ROW][KING_COL].setPiece(new King(Piece.BLUE, BLUE_BACK_ROW, KING_COL));
+        grid[BLUE_BACK_ROW][BISHOP_RIGHT].setPiece(new Bishop(Piece.BLUE, BLUE_BACK_ROW, BISHOP_RIGHT));
+        grid[BLUE_BACK_ROW][KNIGHT_RIGHT].setPiece(new Knight(Piece.BLUE, BLUE_BACK_ROW, KNIGHT_RIGHT));
+        grid[BLUE_BACK_ROW][ROOK_RIGHT].setPiece(new Rook(Piece.BLUE, BLUE_BACK_ROW, ROOK_RIGHT));
 
         // 파란팀 폰
         for (int c = 0; c < SIZE; c++) {
-            grid[BLUE_PAWN_ROW][c] = new Pawn(Piece.BLUE, BLUE_PAWN_ROW, c);
+            grid[BLUE_PAWN_ROW][c].setPiece(new Pawn(Piece.BLUE, BLUE_PAWN_ROW, c));
         }
 
         // 빨간팀 폰
         for (int c = 0; c < SIZE; c++) {
-            grid[RED_PAWN_ROW][c] = new Pawn(Piece.RED, RED_PAWN_ROW, c);
+            grid[RED_PAWN_ROW][c].setPiece(new Pawn(Piece.RED, RED_PAWN_ROW, c));
         }
 
         // 빨간팀 주요 기물
-        grid[RED_BACK_ROW][ROOK_LEFT] = new Rook(Piece.RED, RED_BACK_ROW, ROOK_LEFT);
-        grid[RED_BACK_ROW][KNIGHT_LEFT] = new Knight(Piece.RED, RED_BACK_ROW, KNIGHT_LEFT);
-        grid[RED_BACK_ROW][BISHOP_LEFT] = new Bishop(Piece.RED, RED_BACK_ROW, BISHOP_LEFT);
-        grid[RED_BACK_ROW][QUEEN_COL] = new Queen(Piece.RED, RED_BACK_ROW, QUEEN_COL);
-        grid[RED_BACK_ROW][KING_COL] = new King(Piece.RED, RED_BACK_ROW, KING_COL);
-        grid[RED_BACK_ROW][BISHOP_RIGHT] = new Bishop(Piece.RED, RED_BACK_ROW, BISHOP_RIGHT);
-        grid[RED_BACK_ROW][KNIGHT_RIGHT] = new Knight(Piece.RED, RED_BACK_ROW, KNIGHT_RIGHT);
-        grid[RED_BACK_ROW][ROOK_RIGHT] = new Rook(Piece.RED, RED_BACK_ROW, ROOK_RIGHT);
+        grid[RED_BACK_ROW][ROOK_LEFT].setPiece(new Rook(Piece.RED, RED_BACK_ROW, ROOK_LEFT));
+        grid[RED_BACK_ROW][KNIGHT_LEFT].setPiece(new Knight(Piece.RED, RED_BACK_ROW, KNIGHT_LEFT));
+        grid[RED_BACK_ROW][BISHOP_LEFT].setPiece(new Bishop(Piece.RED, RED_BACK_ROW, BISHOP_LEFT));
+        grid[RED_BACK_ROW][QUEEN_COL].setPiece(new Queen(Piece.RED, RED_BACK_ROW, QUEEN_COL));
+        grid[RED_BACK_ROW][KING_COL].setPiece(new King(Piece.RED, RED_BACK_ROW, KING_COL));
+        grid[RED_BACK_ROW][BISHOP_RIGHT].setPiece(new Bishop(Piece.RED, RED_BACK_ROW, BISHOP_RIGHT));
+        grid[RED_BACK_ROW][KNIGHT_RIGHT].setPiece(new Knight(Piece.RED, RED_BACK_ROW, KNIGHT_RIGHT));
+        grid[RED_BACK_ROW][ROOK_RIGHT].setPiece(new Rook(Piece.RED, RED_BACK_ROW, ROOK_RIGHT));
     }
 
     // ========== 보드 출력 ==========
@@ -200,7 +216,7 @@ public abstract class Board {
     /// 하위 클래스에서 오버라이드하여 추가 표시 가능
     /// </summary>
     protected String renderCell(int r, int c, int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves) {
-        Piece piece = grid[r][c];
+        Piece piece = grid[r][c].getPiece();
         boolean isCursor = (r == cursorRow && c == cursorCol);
         boolean isSelected = (r == selectedRow && c == selectedCol);
         boolean isValidMove = isInArray(r, c, validMoves, validMoveCount);
@@ -260,7 +276,7 @@ public abstract class Board {
         if (row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
             return null;
         }
-        return grid[row][col];
+        return grid[row][col].getPiece();
     }
 
     /// <summary>
@@ -269,7 +285,7 @@ public abstract class Board {
     public int[] findKing(int color) {
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
-                Piece piece = grid[r][c];
+                Piece piece = grid[r][c].getPiece();
                 if (piece instanceof King && piece.color == color) {
                     return new int[]{r, c};
                 }
@@ -285,7 +301,7 @@ public abstract class Board {
     /// 캐슬링, 앙파상 등 특수 이동도 자동 감지하여 처리
     /// </summary>
     public void executeMove(Move move) {
-        Piece piece = grid[move.fromRow][move.fromCol];
+        Piece piece = grid[move.fromRow][move.fromCol].getPiece();
 
         // 캐슬링 감지 (킹이 2칸 이동)
         if (piece instanceof King && Math.abs(move.toCol - move.fromCol) == 2) {
@@ -295,21 +311,21 @@ public abstract class Board {
         }
 
         // 앙파상 감지 (폰이 대각선으로 빈 칸에 이동)
-        if (piece instanceof Pawn && move.fromCol != move.toCol && grid[move.toRow][move.toCol] == null) {
+        if (piece instanceof Pawn && move.fromCol != move.toCol && grid[move.toRow][move.toCol].isEmpty()) {
             // 잡힌 폰 기록 및 제거
-            capturedPieces.add(grid[move.fromRow][move.toCol]);
-            grid[move.fromRow][move.toCol] = null;
+            capturedPieces.add(grid[move.fromRow][move.toCol].getPiece());
+            grid[move.fromRow][move.toCol].setPiece(null);
         }
 
         // 일반 잡기 기록
-        Piece captured = grid[move.toRow][move.toCol];
+        Piece captured = grid[move.toRow][move.toCol].getPiece();
         if (captured != null) {
             capturedPieces.add(captured);
         }
 
         // 도착 칸에 기물 배치
-        grid[move.toRow][move.toCol] = piece;
-        grid[move.fromRow][move.fromCol] = null;
+        grid[move.toRow][move.toCol].setPiece(piece);
+        grid[move.fromRow][move.fromCol].setPiece(null);
 
         // 기물의 위치 정보 갱신
         piece.row = move.toRow;
@@ -325,28 +341,28 @@ public abstract class Board {
     /// 퀸사이드: 킹 e→c, 룩 a→d
     /// </summary>
     private void executeCastling(Move move) {
-        Piece king = grid[move.fromRow][move.fromCol];
+        Piece king = grid[move.fromRow][move.fromCol].getPiece();
 
         // 킹 이동
-        grid[move.toRow][move.toCol] = king;
-        grid[move.fromRow][move.fromCol] = null;
+        grid[move.toRow][move.toCol].setPiece(king);
+        grid[move.fromRow][move.fromCol].setPiece(null);
         king.row = move.toRow;
         king.col = move.toCol;
         king.hasMoved = true;
 
         if (move.toCol > move.fromCol) {
             // 킹사이드: 룩 h열(7) → f열(5)
-            Piece rook = grid[move.fromRow][7];
-            grid[move.fromRow][5] = rook;
-            grid[move.fromRow][7] = null;
+            Piece rook = grid[move.fromRow][7].getPiece();
+            grid[move.fromRow][5].setPiece(rook);
+            grid[move.fromRow][7].setPiece(null);
             rook.row = move.fromRow;
             rook.col = 5;
             rook.hasMoved = true;
         } else {
             // 퀸사이드: 룩 a열(0) → d열(3)
-            Piece rook = grid[move.fromRow][0];
-            grid[move.fromRow][3] = rook;
-            grid[move.fromRow][0] = null;
+            Piece rook = grid[move.fromRow][0].getPiece();
+            grid[move.fromRow][3].setPiece(rook);
+            grid[move.fromRow][0].setPiece(null);
             rook.row = move.fromRow;
             rook.col = 3;
             rook.hasMoved = true;
@@ -360,7 +376,7 @@ public abstract class Board {
     /// 폰이 상대편 끝 줄에 도착하면 프로모션
     /// </summary>
     public boolean isPromotion(Move move) {
-        Piece piece = grid[move.toRow][move.toCol];
+        Piece piece = grid[move.toRow][move.toCol].getPiece();
         if (!(piece instanceof Pawn)) {
             return false;
         }
@@ -374,23 +390,23 @@ public abstract class Board {
     /// 1: 퀸, 2: 룩, 3: 비숍, 4: 나이트
     /// </summary>
     public void promote(int row, int col, int choice) {
-        int color = grid[row][col].color;
+        int color = grid[row][col].getPiece().color;
         switch (choice) {
             case 1:
-                grid[row][col] = new Queen(color, row, col);
+                grid[row][col].setPiece(new Queen(color, row, col));
                 break;
             case 2:
-                grid[row][col] = new Rook(color, row, col);
+                grid[row][col].setPiece(new Rook(color, row, col));
                 break;
             case 3:
-                grid[row][col] = new Bishop(color, row, col);
+                grid[row][col].setPiece(new Bishop(color, row, col));
                 break;
             case 4:
-                grid[row][col] = new Knight(color, row, col);
+                grid[row][col].setPiece(new Knight(color, row, col));
                 break;
         }
         // 승격된 기물은 이미 이동한 상태
-        grid[row][col].hasMoved = true;
+        grid[row][col].getPiece().hasMoved = true;
     }
 
     // ========== 이동 유효성 ==========
@@ -401,7 +417,7 @@ public abstract class Board {
     /// 자기 킹이 위험해지는 수는 제외
     /// </summary>
     public int[][] getFilteredMoves(int row, int col) {
-        Piece piece = grid[row][col];
+        Piece piece = grid[row][col].getPiece();
         if (piece == null) {
             return new int[0][];
         }
@@ -416,7 +432,7 @@ public abstract class Board {
 
         for (int[] dest : rawMoves) {
             // 방패가 걸린 상대 기물은 잡을 수 없음
-            Piece target = grid[dest[0]][dest[1]];
+            Piece target = grid[dest[0]][dest[1]].getPiece();
             if (target != null && target.shielded && target.color != piece.color) {
                 continue;
             }
@@ -450,7 +466,7 @@ public abstract class Board {
 
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
-                Piece piece = grid[r][c];
+                Piece piece = grid[r][c].getPiece();
                 if (piece == null || piece.color != color) {
                     continue;
                 }
@@ -472,14 +488,14 @@ public abstract class Board {
     /// </summary>
     private boolean wouldBeInCheck(Move move, int color) {
         // 원래 상태 저장
-        Piece movingPiece = grid[move.fromRow][move.fromCol];
-        Piece capturedPiece = grid[move.toRow][move.toCol];
+        Piece movingPiece = grid[move.fromRow][move.fromCol].getPiece();
+        Piece capturedPiece = grid[move.toRow][move.toCol].getPiece();
         int origRow = movingPiece.row;
         int origCol = movingPiece.col;
 
         // 임시로 이동 실행
-        grid[move.toRow][move.toCol] = movingPiece;
-        grid[move.fromRow][move.fromCol] = null;
+        grid[move.toRow][move.toCol].setPiece(movingPiece);
+        grid[move.fromRow][move.fromCol].setPiece(null);
         movingPiece.row = move.toRow;
         movingPiece.col = move.toCol;
 
@@ -487,8 +503,8 @@ public abstract class Board {
         boolean inCheck = isInCheck(color);
 
         // 원래 상태로 복원
-        grid[move.fromRow][move.fromCol] = movingPiece;
-        grid[move.toRow][move.toCol] = capturedPiece;
+        grid[move.fromRow][move.fromCol].setPiece(movingPiece);
+        grid[move.toRow][move.toCol].setPiece(capturedPiece);
         movingPiece.row = origRow;
         movingPiece.col = origCol;
 
@@ -511,10 +527,10 @@ public abstract class Board {
         }
 
         // 킹사이드 캐슬링 (킹: e→g, 룩: h→f)
-        Piece kingsideRook = grid[row][7];
+        Piece kingsideRook = grid[row][7].getPiece();
         if (kingsideRook instanceof Rook && !kingsideRook.hasMoved) {
             // f열, g열이 비어있는지 확인
-            if (grid[row][5] == null && grid[row][6] == null) {
+            if (grid[row][5].isEmpty() && grid[row][6].isEmpty()) {
                 // f열, g열이 공격받지 않는지 확인
                 if (!isSquareAttacked(row, 5, opponentColor) &&
                     !isSquareAttacked(row, 6, opponentColor)) {
@@ -524,10 +540,10 @@ public abstract class Board {
         }
 
         // 퀸사이드 캐슬링 (킹: e→c, 룩: a→d)
-        Piece queensideRook = grid[row][0];
+        Piece queensideRook = grid[row][0].getPiece();
         if (queensideRook instanceof Rook && !queensideRook.hasMoved) {
             // b열, c열, d열이 비어있는지 확인
-            if (grid[row][1] == null && grid[row][2] == null && grid[row][3] == null) {
+            if (grid[row][1].isEmpty() && grid[row][2].isEmpty() && grid[row][3].isEmpty()) {
                 // c열, d열이 공격받지 않는지 확인
                 if (!isSquareAttacked(row, 2, opponentColor) &&
                     !isSquareAttacked(row, 3, opponentColor)) {
@@ -544,7 +560,7 @@ public abstract class Board {
     private boolean isSquareAttacked(int row, int col, int attackerColor) {
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
-                Piece piece = grid[r][c];
+                Piece piece = grid[r][c].getPiece();
                 if (piece == null || piece.color != attackerColor) {
                     continue;
                 }
@@ -573,7 +589,7 @@ public abstract class Board {
         }
 
         // 마지막으로 이동한 기물이 폰인지 확인
-        Piece lastPiece = grid[lastMove.toRow][lastMove.toCol];
+        Piece lastPiece = grid[lastMove.toRow][lastMove.toCol].getPiece();
         if (!(lastPiece instanceof Pawn)) {
             return;
         }
@@ -614,15 +630,15 @@ public abstract class Board {
     /// </summary>
     private boolean wouldBeInCheckEnPassant(Move move, int color, int capturedRow, int capturedCol) {
         // 원래 상태 저장
-        Piece movingPiece = grid[move.fromRow][move.fromCol];
-        Piece capturedPiece = grid[capturedRow][capturedCol];
+        Piece movingPiece = grid[move.fromRow][move.fromCol].getPiece();
+        Piece capturedPiece = grid[capturedRow][capturedCol].getPiece();
         int origRow = movingPiece.row;
         int origCol = movingPiece.col;
 
         // 임시로 이동 + 잡힌 폰 제거
-        grid[move.toRow][move.toCol] = movingPiece;
-        grid[move.fromRow][move.fromCol] = null;
-        grid[capturedRow][capturedCol] = null;
+        grid[move.toRow][move.toCol].setPiece(movingPiece);
+        grid[move.fromRow][move.fromCol].setPiece(null);
+        grid[capturedRow][capturedCol].setPiece(null);
         movingPiece.row = move.toRow;
         movingPiece.col = move.toCol;
 
@@ -630,9 +646,9 @@ public abstract class Board {
         boolean inCheck = isInCheck(color);
 
         // 원래 상태로 복원
-        grid[move.fromRow][move.fromCol] = movingPiece;
-        grid[move.toRow][move.toCol] = null;
-        grid[capturedRow][capturedCol] = capturedPiece;
+        grid[move.fromRow][move.fromCol].setPiece(movingPiece);
+        grid[move.toRow][move.toCol].setPiece(null);
+        grid[capturedRow][capturedCol].setPiece(capturedPiece);
         movingPiece.row = origRow;
         movingPiece.col = origCol;
 
@@ -657,7 +673,7 @@ public abstract class Board {
         // 모든 상대 기물을 순회하며 킹을 공격할 수 있는지 확인
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
-                Piece piece = grid[r][c];
+                Piece piece = grid[r][c].getPiece();
                 if (piece == null || piece.color == color) {
                     continue;
                 }

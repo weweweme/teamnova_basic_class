@@ -323,15 +323,15 @@ public class AiPlayer extends Player {
     /// </summary>
     private boolean wouldCheckmate(Board board, Move move, int opponentColor) {
         // 원래 상태 저장
-        Piece movingPiece = board.grid[move.fromRow][move.fromCol];
-        Piece capturedPiece = board.grid[move.toRow][move.toCol];
+        Piece movingPiece = board.grid[move.fromRow][move.fromCol].getPiece();
+        Piece capturedPiece = board.grid[move.toRow][move.toCol].getPiece();
         int origRow = movingPiece.row;
         int origCol = movingPiece.col;
         boolean origHasMoved = movingPiece.hasMoved;
 
         // 임시로 이동 실행
-        board.grid[move.toRow][move.toCol] = movingPiece;
-        board.grid[move.fromRow][move.fromCol] = null;
+        board.grid[move.toRow][move.toCol].setPiece(movingPiece);
+        board.grid[move.fromRow][move.fromCol].setPiece(null);
         movingPiece.row = move.toRow;
         movingPiece.col = move.toCol;
         movingPiece.hasMoved = true;
@@ -340,8 +340,8 @@ public class AiPlayer extends Player {
         boolean checkmate = board.isCheckmate(opponentColor);
 
         // 원래 상태로 복원
-        board.grid[move.fromRow][move.fromCol] = movingPiece;
-        board.grid[move.toRow][move.toCol] = capturedPiece;
+        board.grid[move.fromRow][move.fromCol].setPiece(movingPiece);
+        board.grid[move.toRow][move.toCol].setPiece(capturedPiece);
         movingPiece.row = origRow;
         movingPiece.col = origCol;
         movingPiece.hasMoved = origHasMoved;
@@ -355,14 +355,14 @@ public class AiPlayer extends Player {
     /// </summary>
     private boolean wouldCheck(Board board, Move move, int opponentColor) {
         // 원래 상태 저장
-        Piece movingPiece = board.grid[move.fromRow][move.fromCol];
-        Piece capturedPiece = board.grid[move.toRow][move.toCol];
+        Piece movingPiece = board.grid[move.fromRow][move.fromCol].getPiece();
+        Piece capturedPiece = board.grid[move.toRow][move.toCol].getPiece();
         int origRow = movingPiece.row;
         int origCol = movingPiece.col;
 
         // 임시로 이동 실행
-        board.grid[move.toRow][move.toCol] = movingPiece;
-        board.grid[move.fromRow][move.fromCol] = null;
+        board.grid[move.toRow][move.toCol].setPiece(movingPiece);
+        board.grid[move.fromRow][move.fromCol].setPiece(null);
         movingPiece.row = move.toRow;
         movingPiece.col = move.toCol;
 
@@ -370,8 +370,8 @@ public class AiPlayer extends Player {
         boolean check = board.isInCheck(opponentColor);
 
         // 원래 상태로 복원
-        board.grid[move.fromRow][move.fromCol] = movingPiece;
-        board.grid[move.toRow][move.toCol] = capturedPiece;
+        board.grid[move.fromRow][move.fromCol].setPiece(movingPiece);
+        board.grid[move.toRow][move.toCol].setPiece(capturedPiece);
         movingPiece.row = origRow;
         movingPiece.col = origCol;
 

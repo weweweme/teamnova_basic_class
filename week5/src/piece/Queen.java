@@ -1,5 +1,7 @@
 package piece;
 
+import core.Cell;
+
 /// <summary>
 /// 퀸 기물
 /// 직선 + 대각선 8방향으로 무제한 이동 (룩 + 비숍의 결합)
@@ -23,7 +25,7 @@ public class Queen extends Piece {
     /// 직선 4방향 + 대각선 4방향 = 8방향 직선 이동
     /// </summary>
     @Override
-    protected void calculateMoves(Piece[][] board) {
+    protected void calculateMoves(Cell[][] board) {
         // 직선 4방향 (룩과 동일)
         slideMoves(board, -1, 0, moves);   // 위
         slideMoves(board, 1, 0, moves);    // 아래

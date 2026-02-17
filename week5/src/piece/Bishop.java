@@ -1,5 +1,7 @@
 package piece;
 
+import core.Cell;
+
 /// <summary>
 /// 비숍 기물
 /// 대각선 4방향으로 무제한 이동 (가로막히면 멈춤)
@@ -23,7 +25,7 @@ public class Bishop extends Piece {
     /// 대각선 4방향으로 직선 이동
     /// </summary>
     @Override
-    protected void calculateMoves(Piece[][] board) {
+    protected void calculateMoves(Cell[][] board) {
         slideMoves(board, -1, -1, moves);  // 좌상
         slideMoves(board, -1, 1, moves);   // 우상
         slideMoves(board, 1, -1, moves);   // 좌하

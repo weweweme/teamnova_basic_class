@@ -1,5 +1,7 @@
 package piece;
 
+import core.Cell;
+
 /// <summary>
 /// 킹 기물
 /// 전방향 1칸 이동 (8방향)
@@ -32,7 +34,7 @@ public class King extends Piece {
     /// 8방향 각 1칸 중 보드 안이고 아군이 없는 칸
     /// </summary>
     @Override
-    protected void calculateMoves(Piece[][] board) {
+    protected void calculateMoves(Cell[][] board) {
         for (int[] offset : OFFSETS) {
             int r = row + offset[0];
             int c = col + offset[1];
@@ -42,7 +44,7 @@ public class King extends Piece {
                 continue;
             }
 
-            Piece target = board[r][c];
+            Piece target = board[r][c].getPiece();
 
             // 빈 칸이거나 적군이면 이동 가능
             if (target == null || isEnemy(target)) {

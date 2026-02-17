@@ -13,9 +13,6 @@ public class SkillBoard extends Board {
 
     // ========== 필드 ==========
 
-    // 아이템 격자 (빈 칸은 null, 아이템이 설치된 칸에만 값 존재)
-    private final Item[][] itemGrid;
-
     // 현재 보드를 보고 있는 플레이어 색상 (-1이면 일반 표시)
     private int currentViewerColor;
 
@@ -23,8 +20,25 @@ public class SkillBoard extends Board {
 
     public SkillBoard() {
         super();
-        itemGrid = new Item[SIZE][SIZE];
         currentViewerColor = -1;
+    }
+
+    // ========== 칸 생성 ==========
+
+    /// <summary>
+    /// 스킬 모드용 칸(SkillCell) 생성
+    /// 아이템 등 스킬 모드 전용 속성을 지원하는 칸으로 격자를 채움
+    /// </summary>
+    @Override
+    protected Cell createCell() {
+        return new SkillCell();
+    }
+
+    /// <summary>
+    /// 격자의 칸을 SkillCell로 반환 (아이템 접근용)
+    /// </summary>
+    private SkillCell skillCell(int r, int c) {
+        return (SkillCell) grid[r][c];
     }
 
     // ========== 보드 출력 (스킬 모드) ==========
@@ -75,7 +89,7 @@ public class SkillBoard extends Board {
     /// 기존 표시 + 방패(!), 동결(~), 자기 아이템 표시 추가
     /// </summary>
     private String renderCellSkill(int r, int c, int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves, int viewerColor) {
-        Piece piece = grid[r][c];
+        Piece piece = grid[r][c].getPiece();
         boolean isCursor = (r == cursorRow && c == cursorCol);
         boolean isSelected = (r == selectedRow && c == selectedCol);
         boolean isValidMove = isInArray(r, c, validMoves, validMoveCount);
@@ -105,7 +119,7 @@ public class SkillBoard extends Board {
         }
 
         // 4순위: 자기 아이템이 설치된 빈 칸 (설치자에게만 보임)
-        Item item = itemGrid[r][c];
+        Item item = skillCell(r, c).getItem();
         if (item != null && item.ownerColor == viewerColor) {
             String colorCode = (item.ownerColor == Piece.RED) ? Util.RED : Util.BLUE;
             return " " + colorCode + item.getSymbol() + Util.RESET + " ";
@@ -120,7 +134,7 @@ public class SkillBoard extends Board {
     /// 보드에 아이템을 설치
     /// </summary>
     public void placeItem(Item item) {
-        itemGrid[item.row][item.col] = item;
+        skillCell(item.row, item.col).setItem(item);
     }
 
     /// <summary>
@@ -130,7 +144,7 @@ public class SkillBoard extends Board {
         if (row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
             return null;
         }
-        return itemGrid[row][col];
+        return skillCell(row, col).getItem();
     }
 
     /// <summary>
@@ -140,8 +154,9 @@ public class SkillBoard extends Board {
     /// 반환값: 발동된 아이템 이름 (없으면 null, 화면 표시용)
     /// </summary>
     public String triggerItem(int row, int col) {
-        Item item = itemGrid[row][col];
-        Piece steppedPiece = grid[row][col];
+        SkillCell cell = skillCell(row, col);
+        Item item = cell.getItem();
+        Piece steppedPiece = cell.getPiece();
 
         // 아이템이 없거나 기물이 없거나 자기 아이템이면 무시
         if (item == null || steppedPiece == null || item.ownerColor == steppedPiece.color) {
@@ -153,7 +168,7 @@ public class SkillBoard extends Board {
         item.trigger(this, steppedPiece);
 
         // 발동된 아이템 제거
-        itemGrid[row][col] = null;
+        cell.setItem(null);
 
         return itemName;
     }
@@ -167,7 +182,7 @@ public class SkillBoard extends Board {
     public void clearShields(int color) {
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
-                Piece piece = grid[r][c];
+                Piece piece = grid[r][c].getPiece();
                 if (piece != null && piece.color == color && piece.shielded) {
                     piece.shielded = false;
                 }
@@ -182,7 +197,7 @@ public class SkillBoard extends Board {
     public void clearFreezes(int color) {
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
-                Piece piece = grid[r][c];
+                Piece piece = grid[r][c].getPiece();
                 if (piece != null && piece.color == color && piece.frozen) {
                     piece.frozen = false;
                 }
@@ -197,7 +212,7 @@ public class SkillBoard extends Board {
     public boolean hasUnfrozenPieces(int color) {
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
-                Piece piece = grid[r][c];
+                Piece piece = grid[r][c].getPiece();
                 if (piece != null && piece.color == color && !piece.frozen) {
                     return true;
                 }
@@ -213,10 +228,10 @@ public class SkillBoard extends Board {
     /// 파괴 스킬, 폭탄 아이템에서 사용
     /// </summary>
     public void removePiece(int row, int col) {
-        Piece piece = grid[row][col];
+        Piece piece = grid[row][col].getPiece();
         if (piece != null) {
             capturedPieces.add(piece);
-            grid[row][col] = null;
+            grid[row][col].setPiece(null);
         }
     }
 
@@ -254,7 +269,7 @@ public class SkillBoard extends Board {
     /// </summary>
     public void revivePiece(Piece piece, int row, int col) {
         capturedPieces.remove(piece);
-        grid[row][col] = piece;
+        grid[row][col].setPiece(piece);
         piece.row = row;
         piece.col = col;
         piece.hasMoved = true;  // 부활한 기물은 이동한 것으로 처리

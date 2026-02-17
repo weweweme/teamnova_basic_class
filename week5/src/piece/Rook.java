@@ -1,5 +1,7 @@
 package piece;
 
+import core.Cell;
+
 /// <summary>
 /// 룩 기물
 /// 상하좌우 직선으로 무제한 이동 (가로막히면 멈춤)
@@ -24,7 +26,7 @@ public class Rook extends Piece {
     /// 상하좌우 4방향으로 직선 이동
     /// </summary>
     @Override
-    protected void calculateMoves(Piece[][] board) {
+    protected void calculateMoves(Cell[][] board) {
         slideMoves(board, -1, 0, moves);  // 위
         slideMoves(board, 1, 0, moves);   // 아래
         slideMoves(board, 0, -1, moves);  // 왼쪽

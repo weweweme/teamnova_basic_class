@@ -1,6 +1,7 @@
 package skill;
 
 import core.Board;
+import core.Cell;
 import piece.Piece;
 
 /// <summary>
@@ -67,7 +68,7 @@ public abstract class Skill {
     /// Board가 아닌 격자 배열만 받아 최소한의 정보로 판단
     /// 각 하위 클래스가 자기만의 조건으로 구현 (메서드 오버라이딩)
     /// </summary>
-    public abstract boolean canUse(Piece[][] grid, int color);
+    public abstract boolean canUse(Cell[][] grid, int color);
 
     /// <summary>
     /// 스킬 대상이 될 수 있는 칸들을 찾아 버퍼에 저장
@@ -75,7 +76,7 @@ public abstract class Skill {
     /// 매번 새 배열을 만들지 않고 기존 버퍼를 재사용
     /// 각 하위 클래스가 자기만의 대상 조건으로 구현 (메서드 오버라이딩)
     /// </summary>
-    public abstract void findTargets(Piece[][] grid, int color);
+    public abstract void findTargets(Cell[][] grid, int color);
 
     /// <summary>
     /// 선택한 대상에게 스킬 효과를 적용

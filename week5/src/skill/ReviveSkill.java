@@ -1,6 +1,7 @@
 package skill;
 
 import core.Board;
+import core.Cell;
 import core.SkillBoard;
 import piece.Piece;
 
@@ -40,7 +41,7 @@ public class ReviveSkill extends Skill {
     /// 잡힌 기물 수는 capturedCount 필드로 확인 (격자에 없는 정보)
     /// </summary>
     @Override
-    public boolean canUse(Piece[][] grid, int color) {
+    public boolean canUse(Cell[][] grid, int color) {
         if (!hasUses()) {
             return false;
         }
@@ -53,7 +54,7 @@ public class ReviveSkill extends Skill {
         // 뒷줄에 빈 칸이 하나라도 있는지 확인
         int backRow = (color == Piece.RED) ? 7 : 0;
         for (int c = 0; c < Board.SIZE; c++) {
-            if (grid[backRow][c] == null) {
+            if (grid[backRow][c].isEmpty()) {
                 return true;
             }
         }
@@ -65,13 +66,13 @@ public class ReviveSkill extends Skill {
     /// 결과를 버퍼(targets, targetCount)에 저장하여 메모리 재사용
     /// </summary>
     @Override
-    public void findTargets(Piece[][] grid, int color) {
+    public void findTargets(Cell[][] grid, int color) {
         // 빨간팀 뒷줄: 7행(1번 줄), 파란팀 뒷줄: 0행(8번 줄)
         int backRow = (color == Piece.RED) ? 7 : 0;
         targetCount = 0;
 
         for (int c = 0; c < Board.SIZE; c++) {
-            if (grid[backRow][c] == null) {
+            if (grid[backRow][c].isEmpty()) {
                 targets[targetCount][0] = backRow;
                 targets[targetCount][1] = c;
                 targetCount++;

@@ -1,5 +1,7 @@
 package piece;
 
+import core.Cell;
+
 /// <summary>
 /// 나이트 기물
 /// L자 모양으로 이동 (다른 기물을 뛰어넘을 수 있음)
@@ -33,7 +35,7 @@ public class Knight extends Piece {
     /// L자 모양 8칸 중 보드 안이고 아군이 없는 칸
     /// </summary>
     @Override
-    protected void calculateMoves(Piece[][] board) {
+    protected void calculateMoves(Cell[][] board) {
         for (int[] offset : OFFSETS) {
             int r = row + offset[0];
             int c = col + offset[1];
@@ -43,7 +45,7 @@ public class Knight extends Piece {
                 continue;
             }
 
-            Piece target = board[r][c];
+            Piece target = board[r][c].getPiece();
 
             // 빈 칸이거나 적군이면 이동 가능
             if (target == null || isEnemy(target)) {

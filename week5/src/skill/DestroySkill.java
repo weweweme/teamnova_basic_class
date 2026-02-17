@@ -1,6 +1,7 @@
 package skill;
 
 import core.Board;
+import core.Cell;
 import core.SkillBoard;
 import piece.King;
 import piece.Piece;
@@ -25,7 +26,7 @@ public class DestroySkill extends Skill {
     /// 격자를 직접 순회하며 조기 반환
     /// </summary>
     @Override
-    public boolean canUse(Piece[][] grid, int color) {
+    public boolean canUse(Cell[][] grid, int color) {
         if (!hasUses()) {
             return false;
         }
@@ -34,7 +35,7 @@ public class DestroySkill extends Skill {
 
         for (int r = 0; r < Board.SIZE; r++) {
             for (int c = 0; c < Board.SIZE; c++) {
-                Piece piece = grid[r][c];
+                Piece piece = grid[r][c].getPiece();
                 if (piece != null && piece.color == opponentColor && !(piece instanceof King)) {
                     return true;
                 }
@@ -48,13 +49,13 @@ public class DestroySkill extends Skill {
     /// 결과를 버퍼(targets, targetCount)에 저장하여 메모리 재사용
     /// </summary>
     @Override
-    public void findTargets(Piece[][] grid, int color) {
+    public void findTargets(Cell[][] grid, int color) {
         int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
         targetCount = 0;
 
         for (int r = 0; r < Board.SIZE; r++) {
             for (int c = 0; c < Board.SIZE; c++) {
-                Piece piece = grid[r][c];
+                Piece piece = grid[r][c].getPiece();
                 if (piece != null && piece.color == opponentColor && !(piece instanceof King)) {
                     targets[targetCount][0] = r;
                     targets[targetCount][1] = c;

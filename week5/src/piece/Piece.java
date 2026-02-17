@@ -1,5 +1,6 @@
 package piece;
 
+import core.Cell;
 import java.util.ArrayList;
 
 /// <summary>
@@ -72,7 +73,7 @@ public abstract class Piece {
     /// 이 기물이 현재 보드에서 이동할 수 있는 모든 칸의 좌표를 반환
     /// 초기화와 변환은 여기서 처리하고, 실제 이동 규칙은 하위 클래스가 구현
     /// </summary>
-    public int[][] getValidMoves(Piece[][] board) {
+    public int[][] getValidMoves(Cell[][] board) {
         moves.clear();
         calculateMoves(board);
         return moves.toArray(new int[0][]);
@@ -83,7 +84,7 @@ public abstract class Piece {
     /// 각 하위 클래스가 자기만의 이동 규칙으로 구현 (메서드 오버라이딩)
     /// 결과는 moves 목록에 추가
     /// </summary>
-    protected abstract void calculateMoves(Piece[][] board);
+    protected abstract void calculateMoves(Cell[][] board);
 
     // ========== 공통 메서드 ==========
 
@@ -108,13 +109,13 @@ public abstract class Piece {
     /// 빈 칸이면 계속 전진, 적군이면 잡고 멈춤, 아군이면 멈춤
     /// 결과를 전달받은 목록에 추가
     /// </summary>
-    protected void slideMoves(Piece[][] board, int dRow, int dCol, ArrayList<int[]> moves) {
+    protected void slideMoves(Cell[][] board, int dRow, int dCol, ArrayList<int[]> moves) {
         int r = row + dRow;
         int c = col + dCol;
 
         // 보드 범위 안에서 계속 전진
         while (r >= 0 && r < 8 && c >= 0 && c < 8) {
-            Piece target = board[r][c];
+            Piece target = board[r][c].getPiece();
 
             if (target == null) {
                 // 빈 칸 → 이동 가능, 계속 전진

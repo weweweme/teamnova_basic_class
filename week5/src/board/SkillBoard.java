@@ -124,10 +124,12 @@ public class SkillBoard extends Board {
         }
 
         // 4순위: 자기 아이템이 설치된 빈 칸 (설치자에게만 보임)
-        Item item = skillCell(r, c).getItem();
-        if (item != null && item.ownerColor == viewerColor) {
-            String colorCode = (item.ownerColor == Piece.RED) ? Util.RED : Util.BLUE;
-            return " " + colorCode + item.getSymbol() + Util.RESET + " ";
+        if (skillCell(r, c).hasItem()) {
+            Item item = skillCell(r, c).getItem();
+            if (item.ownerColor == viewerColor) {
+                String colorCode = (item.ownerColor == Piece.RED) ? Util.RED : Util.BLUE;
+                return " " + colorCode + item.getSymbol() + Util.RESET + " ";
+            }
         }
 
         return "   ";
@@ -160,9 +162,13 @@ public class SkillBoard extends Board {
     /// </summary>
     public String triggerItem(int row, int col) {
         SkillCell cell = skillCell(row, col);
-        Item item = cell.getItem();
+
         // 아이템이 없거나 기물이 없거나 자기 아이템이면 무시
-        if (item == null || cell.isEmpty() || item.ownerColor == cell.getPiece().color) {
+        if (!cell.hasItem() || cell.isEmpty()) {
+            return null;
+        }
+        Item item = cell.getItem();
+        if (item.ownerColor == cell.getPiece().color) {
             return null;
         }
 

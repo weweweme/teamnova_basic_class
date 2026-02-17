@@ -138,6 +138,26 @@ java -cp out Main
       // 단일 스레드 앱에서는 발생하지 않음 (컴파일러 요구사항)
   }
   ```
+- **Tester-Doer 패턴**: 객체를 가져와서 null 체크하는 대신, 먼저 존재 여부를 확인하고 필요할 때만 가져오기
+  ```java
+  // 나쁜 예: 가져온 후 null 체크
+  Piece piece = cell.getPiece();
+  if (piece != null) {
+      // piece 사용
+  }
+
+  // 좋은 예: 존재 여부 먼저 확인 (Tester), 있을 때만 가져오기 (Doer)
+  if (cell.hasPiece()) {
+      Piece piece = cell.getPiece();
+      // piece 사용
+  }
+
+  // 없는 경우를 먼저 걸러내는 것도 동일한 패턴
+  if (cell.isEmpty()) {
+      return;
+  }
+  Piece piece = cell.getPiece();
+  ```
 
 ## 5주차 과제
 

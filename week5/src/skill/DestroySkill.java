@@ -35,9 +35,11 @@ public class DestroySkill extends Skill {
 
         for (int r = 0; r < Board.SIZE; r++) {
             for (int c = 0; c < Board.SIZE; c++) {
-                Piece piece = grid[r][c].getPiece();
-                if (piece != null && piece.color == opponentColor && !(piece instanceof King)) {
-                    return true;
+                if (grid[r][c].hasPiece()) {
+                    Piece piece = grid[r][c].getPiece();
+                    if (piece.color == opponentColor && !(piece instanceof King)) {
+                        return true;
+                    }
                 }
             }
         }
@@ -55,11 +57,13 @@ public class DestroySkill extends Skill {
 
         for (int r = 0; r < Board.SIZE; r++) {
             for (int c = 0; c < Board.SIZE; c++) {
-                Piece piece = grid[r][c].getPiece();
-                if (piece != null && piece.color == opponentColor && !(piece instanceof King)) {
-                    targets[targetCount][0] = r;
-                    targets[targetCount][1] = c;
-                    targetCount++;
+                if (grid[r][c].hasPiece()) {
+                    Piece piece = grid[r][c].getPiece();
+                    if (piece.color == opponentColor && !(piece instanceof King)) {
+                        targets[targetCount][0] = r;
+                        targets[targetCount][1] = c;
+                        targetCount++;
+                    }
                 }
             }
         }

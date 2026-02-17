@@ -92,14 +92,15 @@ public class SkillBoard extends Board {
     /// 기존 표시 + 방패(!), 동결(~), 자기 아이템 표시 추가
     /// </summary>
     private String renderCellSkill(int r, int c, int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves, int viewerColor) {
-        Piece piece = grid[r][c].getPiece();
+        boolean hasPiece = grid[r][c].hasPiece();
         boolean isCursor = (r == cursorRow && c == cursorCol);
         boolean isSelected = (r == selectedRow && c == selectedCol);
         boolean isValidMove = isInArray(r, c, validMoves, validMoveCount);
 
         // 1순위: 커서 또는 선택된 기물 → 대괄호로 감싸기
         if (isCursor || isSelected) {
-            if (piece != null) {
+            if (hasPiece) {
+                Piece piece = grid[r][c].getPiece();
                 String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
                 return "[" + colorCode + piece.symbol + Util.RESET + "]";
             }
@@ -112,7 +113,8 @@ public class SkillBoard extends Board {
         }
 
         // 3순위: 기물이 있는 칸 (방패/동결 효과 표시)
-        if (piece != null) {
+        if (hasPiece) {
+            Piece piece = grid[r][c].getPiece();
             String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
             // 방패 표시: 기호 앞에 ! 표시
             String prefix = piece.shielded ? "!" : " ";
@@ -159,16 +161,14 @@ public class SkillBoard extends Board {
     public String triggerItem(int row, int col) {
         SkillCell cell = skillCell(row, col);
         Item item = cell.getItem();
-        Piece steppedPiece = cell.getPiece();
-
         // 아이템이 없거나 기물이 없거나 자기 아이템이면 무시
-        if (item == null || steppedPiece == null || item.ownerColor == steppedPiece.color) {
+        if (item == null || cell.isEmpty() || item.ownerColor == cell.getPiece().color) {
             return null;
         }
 
         // 아이템 효과 발동
         String itemName = item.name;
-        item.trigger(this, steppedPiece);
+        item.trigger(this, cell.getPiece());
 
         // 발동된 아이템 제거
         cell.setItem(null);
@@ -185,9 +185,11 @@ public class SkillBoard extends Board {
     public void clearShields(int color) {
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
-                Piece piece = grid[r][c].getPiece();
-                if (piece != null && piece.color == color && piece.shielded) {
-                    piece.shielded = false;
+                if (grid[r][c].hasPiece()) {
+                    Piece piece = grid[r][c].getPiece();
+                    if (piece.color == color && piece.shielded) {
+                        piece.shielded = false;
+                    }
                 }
             }
         }
@@ -200,9 +202,11 @@ public class SkillBoard extends Board {
     public void clearFreezes(int color) {
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
-                Piece piece = grid[r][c].getPiece();
-                if (piece != null && piece.color == color && piece.frozen) {
-                    piece.frozen = false;
+                if (grid[r][c].hasPiece()) {
+                    Piece piece = grid[r][c].getPiece();
+                    if (piece.color == color && piece.frozen) {
+                        piece.frozen = false;
+                    }
                 }
             }
         }
@@ -215,9 +219,11 @@ public class SkillBoard extends Board {
     public boolean hasUnfrozenPieces(int color) {
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
-                Piece piece = grid[r][c].getPiece();
-                if (piece != null && piece.color == color && !piece.frozen) {
-                    return true;
+                if (grid[r][c].hasPiece()) {
+                    Piece piece = grid[r][c].getPiece();
+                    if (piece.color == color && !piece.frozen) {
+                        return true;
+                    }
                 }
             }
         }
@@ -231,9 +237,8 @@ public class SkillBoard extends Board {
     /// 파괴 스킬, 폭탄 아이템에서 사용
     /// </summary>
     public void removePiece(int row, int col) {
-        Piece piece = grid[row][col].getPiece();
-        if (piece != null) {
-            capturedPieces.add(piece);
+        if (grid[row][col].hasPiece()) {
+            capturedPieces.add(grid[row][col].getPiece());
             grid[row][col].setPiece(null);
         }
     }

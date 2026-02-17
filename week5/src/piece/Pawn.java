@@ -50,10 +50,8 @@ public class Pawn extends Piece {
                 continue;
             }
 
-            Piece target = board[oneStep][captureCol].getPiece();
-
             // 적군이 있을 때만 대각선 이동 가능
-            if (isEnemy(target)) {
+            if (board[oneStep][captureCol].hasPiece() && isEnemy(board[oneStep][captureCol].getPiece())) {
                 moves.add(new int[]{oneStep, captureCol});
             }
         }

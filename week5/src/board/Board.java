@@ -256,14 +256,15 @@ public abstract class Board {
     /// 하위 클래스에서 오버라이드하여 추가 표시 가능
     /// </summary>
     protected String renderCell(int r, int c, int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves) {
-        Piece piece = grid[r][c].getPiece();
+        boolean hasPiece = grid[r][c].hasPiece();
         boolean isCursor = (r == cursorRow && c == cursorCol);
         boolean isSelected = (r == selectedRow && c == selectedCol);
         boolean isValidMove = isInArray(r, c, validMoves, validMoveCount);
 
         // 1순위: 커서 또는 선택된 기물 → 대괄호로 감싸기
         if (isCursor || isSelected) {
-            if (piece != null) {
+            if (hasPiece) {
+                Piece piece = grid[r][c].getPiece();
                 String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
                 return "[" + colorCode + piece.symbol + Util.RESET + "]";
             }
@@ -276,7 +277,8 @@ public abstract class Board {
         }
 
         // 3순위: 일반 칸
-        if (piece != null) {
+        if (hasPiece) {
+            Piece piece = grid[r][c].getPiece();
             String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
             return " " + colorCode + piece.symbol + Util.RESET + " ";
         }
@@ -358,9 +360,8 @@ public abstract class Board {
         }
 
         // 일반 잡기 기록
-        Piece captured = grid[move.toRow][move.toCol].getPiece();
-        if (captured != null) {
-            capturedPieces.add(captured);
+        if (grid[move.toRow][move.toCol].hasPiece()) {
+            capturedPieces.add(grid[move.toRow][move.toCol].getPiece());
         }
 
         // 도착 칸에 기물 배치
@@ -457,10 +458,10 @@ public abstract class Board {
     /// 자기 킹이 위험해지는 수는 제외
     /// </summary>
     public int[][] getFilteredMoves(int row, int col) {
-        Piece piece = grid[row][col].getPiece();
-        if (piece == null) {
+        if (grid[row][col].isEmpty()) {
             return new int[0][];
         }
+        Piece piece = grid[row][col].getPiece();
 
         // 동결된 기물은 이동 불가
         if (piece.frozen) {
@@ -472,9 +473,11 @@ public abstract class Board {
 
         for (int[] dest : rawMoves) {
             // 방패가 걸린 상대 기물은 잡을 수 없음
-            Piece target = grid[dest[0]][dest[1]].getPiece();
-            if (target != null && target.shielded && target.color != piece.color) {
-                continue;
+            if (grid[dest[0]][dest[1]].hasPiece()) {
+                Piece target = grid[dest[0]][dest[1]].getPiece();
+                if (target.shielded && target.color != piece.color) {
+                    continue;
+                }
             }
 
             Move move = new Move(row, col, dest[0], dest[1]);
@@ -506,8 +509,11 @@ public abstract class Board {
 
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
+                if (grid[r][c].isEmpty()) {
+                    continue;
+                }
                 Piece piece = grid[r][c].getPiece();
-                if (piece == null || piece.color != color) {
+                if (piece.color != color) {
                     continue;
                 }
 
@@ -602,8 +608,11 @@ public abstract class Board {
     private boolean isSquareSafe(int row, int col, int attackerColor) {
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
+                if (grid[r][c].isEmpty()) {
+                    continue;
+                }
                 Piece piece = grid[r][c].getPiece();
-                if (piece == null || piece.color != attackerColor) {
+                if (piece.color != attackerColor) {
                     continue;
                 }
 
@@ -720,8 +729,11 @@ public abstract class Board {
         // 모든 상대 기물을 순회하며 킹을 공격할 수 있는지 확인
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
+                if (grid[r][c].isEmpty()) {
+                    continue;
+                }
                 Piece piece = grid[r][c].getPiece();
-                if (piece == null || piece.color == color) {
+                if (piece.color == color) {
                     continue;
                 }
 

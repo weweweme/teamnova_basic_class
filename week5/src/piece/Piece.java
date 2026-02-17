@@ -123,17 +123,16 @@ public abstract class Piece {
 
         // 보드 범위 안에서 계속 전진
         while (r >= 0 && r < 8 && c >= 0 && c < 8) {
-            Piece target = board[r][c].getPiece();
-
-            if (target == null) {
+            if (board[r][c].isEmpty()) {
                 // 빈 칸 → 이동 가능, 계속 전진
                 moves.add(new int[]{r, c});
-            } else if (isEnemy(target)) {
-                // 적군 → 잡을 수 있음, 여기서 멈춤
-                moves.add(new int[]{r, c});
-                break;
             } else {
-                // 아군 → 이동 불가, 여기서 멈춤
+                Piece target = board[r][c].getPiece();
+                if (isEnemy(target)) {
+                    // 적군 → 잡을 수 있음
+                    moves.add(new int[]{r, c});
+                }
+                // 적군이든 아군이든 여기서 멈춤
                 break;
             }
 

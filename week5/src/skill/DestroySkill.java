@@ -2,6 +2,7 @@ package skill;
 
 import board.SimpleBoard;
 import board.SkillBoard;
+import core.Util;
 import cell.Cell;
 import piece.Piece;
 import piece.PieceType;
@@ -33,8 +34,8 @@ public class DestroySkill extends Skill {
 
         int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
 
-        for (int r = 0; r < SimpleBoard.SIZE; r++) {
-            for (int c = 0; c < SimpleBoard.SIZE; c++) {
+        for (int r = 0; r < Util.BOARD_SIZE; r++) {
+            for (int c = 0; c < Util.BOARD_SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
                     Piece piece = grid[r][c].getPiece();
                     if (piece.color == opponentColor && piece.type != PieceType.KING) {
@@ -55,8 +56,8 @@ public class DestroySkill extends Skill {
         int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
         targetCount = 0;
 
-        for (int r = 0; r < SimpleBoard.SIZE; r++) {
-            for (int c = 0; c < SimpleBoard.SIZE; c++) {
+        for (int r = 0; r < Util.BOARD_SIZE; r++) {
+            for (int c = 0; c < Util.BOARD_SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
                     Piece piece = grid[r][c].getPiece();
                     if (piece.color == opponentColor && piece.type != PieceType.KING) {

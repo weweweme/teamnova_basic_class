@@ -1,6 +1,7 @@
 package board;
 
 import core.Move;
+import core.Util;
 import piece.*;
 
 /// <summary>
@@ -229,8 +230,8 @@ public class ClassicBoard extends SimpleBoard {
     /// 캐슬링 경유 칸 검증에 사용
     /// </summary>
     private boolean isSquareSafe(int row, int col, int attackerColor) {
-        for (int r = 0; r < SIZE; r++) {
-            for (int c = 0; c < SIZE; c++) {
+        for (int r = 0; r < Util.BOARD_SIZE; r++) {
+            for (int c = 0; c < Util.BOARD_SIZE; c++) {
                 if (grid[r][c].isEmpty()) {
                     continue;
                 }

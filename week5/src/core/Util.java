@@ -14,6 +14,15 @@ public class Util {
     // 미설정을 나타내는 값 (커서 없음, 선택 없음, 위치 미지정 등)
     public static final int NONE = -1;
 
+    // 체스판 한 변의 칸 수 (8x8 정사각형 격자)
+    public static final int BOARD_SIZE = 8;
+
+    // 한 팀이 가질 수 있는 최대 기물 수 (킹1 + 퀸1 + 룩2 + 비숍2 + 나이트2 + 폰8 = 16)
+    public static final int MAX_PIECES_PER_SIDE = 16;
+
+    // 하나의 좌표를 이루는 값의 수 (행, 열 = 2개)
+    public static final int COORD_SIZE = 2;
+
     // 잘못된 입력을 나타내는 값
     public static final int INVALID_INPUT = -1;
 

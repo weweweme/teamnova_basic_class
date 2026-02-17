@@ -148,8 +148,8 @@ public class AiPlayer extends Player {
 
         // 파괴 스킬 확인 (인덱스 0): 상대 퀸이 있으면 파괴 우선
         if (skills[0].hasUses() && skills[0].canUse(board.grid, color)) {
-            for (int r = 0; r < SimpleBoard.SIZE; r++) {
-                for (int c = 0; c < SimpleBoard.SIZE; c++) {
+            for (int r = 0; r < Util.BOARD_SIZE; r++) {
+                for (int c = 0; c < Util.BOARD_SIZE; c++) {
                     if (board.grid[r][c].isEmpty()) {
                         continue;
                     }
@@ -287,8 +287,8 @@ public class AiPlayer extends Player {
 
         // 중앙에 빈 칸이 없으면 전체에서 탐색
         if (candidates.isEmpty()) {
-            for (int r = 0; r < SimpleBoard.SIZE; r++) {
-                for (int c = 0; c < SimpleBoard.SIZE; c++) {
+            for (int r = 0; r < Util.BOARD_SIZE; r++) {
+                for (int c = 0; c < Util.BOARD_SIZE; c++) {
                     if (board.grid[r][c].isEmpty() && skillBoard.getItem(r, c) == null) {
                         candidates.add(new int[]{r, c});
                     }

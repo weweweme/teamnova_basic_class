@@ -2,6 +2,7 @@ package skill;
 
 import board.SimpleBoard;
 import cell.Cell;
+import core.Util;
 import piece.Piece;
 
 /// <summary>
@@ -26,7 +27,7 @@ public abstract class Skill {
     public int remainingUses;
 
     // 대상 좌표 버퍼 (매번 새로 만들지 않고 재사용)
-    public final int[][] targets = new int[SimpleBoard.MAX_PIECES_PER_SIDE][SimpleBoard.COORD_SIZE];
+    public final int[][] targets = new int[Util.MAX_PIECES_PER_SIDE][Util.COORD_SIZE];
 
     // 현재 유효한 대상 수 (targets 배열에서 이 수만큼만 유효)
     public int targetCount = 0;

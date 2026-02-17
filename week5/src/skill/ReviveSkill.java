@@ -2,6 +2,7 @@ package skill;
 
 import board.SimpleBoard;
 import board.SkillBoard;
+import core.Util;
 import cell.Cell;
 import piece.Piece;
 
@@ -53,7 +54,7 @@ public class ReviveSkill extends Skill {
 
         // 뒷줄에 빈 칸이 하나라도 있는지 확인
         int backRow = (color == Piece.RED) ? 7 : 0;
-        for (int c = 0; c < SimpleBoard.SIZE; c++) {
+        for (int c = 0; c < Util.BOARD_SIZE; c++) {
             if (grid[backRow][c].isEmpty()) {
                 return true;
             }
@@ -71,7 +72,7 @@ public class ReviveSkill extends Skill {
         int backRow = (color == Piece.RED) ? 7 : 0;
         targetCount = 0;
 
-        for (int c = 0; c < SimpleBoard.SIZE; c++) {
+        for (int c = 0; c < Util.BOARD_SIZE; c++) {
             if (grid[backRow][c].isEmpty()) {
                 targets[targetCount][0] = backRow;
                 targets[targetCount][1] = c;

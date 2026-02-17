@@ -171,8 +171,8 @@ public class SkillBoard extends ClassicBoard {
     /// 지정한 칸의 아이템 반환 (없으면 null)
     /// </summary>
     public Item getItem(int row, int col) {
-        boolean rowOutOfBounds = row < 0 || row >= SIZE;   // 행이 보드 범위를 넘는지
-        boolean colOutOfBounds = col < 0 || col >= SIZE;   // 열이 보드 범위를 넘는지
+        boolean rowOutOfBounds = row < 0 || row >= Util.BOARD_SIZE;   // 행이 보드 범위를 넘는지
+        boolean colOutOfBounds = col < 0 || col >= Util.BOARD_SIZE;   // 열이 보드 범위를 넘는지
         if (rowOutOfBounds || colOutOfBounds) {
             return null;
         }
@@ -214,8 +214,8 @@ public class SkillBoard extends ClassicBoard {
     /// 자기 턴 시작 시 호출 (지난 턴에 건 방패를 해제)
     /// </summary>
     public void clearShields(int color) {
-        for (int r = 0; r < SIZE; r++) {
-            for (int c = 0; c < SIZE; c++) {
+        for (int r = 0; r < Util.BOARD_SIZE; r++) {
+            for (int c = 0; c < Util.BOARD_SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
                     SkillPiece piece = (SkillPiece) grid[r][c].getPiece();
                     if (piece.color == color && piece.shielded) {
@@ -231,8 +231,8 @@ public class SkillBoard extends ClassicBoard {
     /// 동결된 플레이어의 턴 시작 시 호출
     /// </summary>
     public void clearFreezes(int color) {
-        for (int r = 0; r < SIZE; r++) {
-            for (int c = 0; c < SIZE; c++) {
+        for (int r = 0; r < Util.BOARD_SIZE; r++) {
+            for (int c = 0; c < Util.BOARD_SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
                     SkillPiece piece = (SkillPiece) grid[r][c].getPiece();
                     if (piece.color == color && piece.frozen) {
@@ -248,8 +248,8 @@ public class SkillBoard extends ClassicBoard {
     /// 모든 기물이 동결되면 턴을 넘겨야 함
     /// </summary>
     public boolean hasUnfrozenPieces(int color) {
-        for (int r = 0; r < SIZE; r++) {
-            for (int c = 0; c < SIZE; c++) {
+        for (int r = 0; r < Util.BOARD_SIZE; r++) {
+            for (int c = 0; c < Util.BOARD_SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
                     SkillPiece piece = (SkillPiece) grid[r][c].getPiece();
                     if (piece.color == color && !piece.frozen) {

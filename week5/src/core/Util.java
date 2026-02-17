@@ -23,6 +23,28 @@ public class Util {
     // 하나의 좌표를 이루는 값의 수 (행, 열 = 2개)
     public static final int COORD_SIZE = 2;
 
+    // 행동 선택 상수 (스킬 모드에서 플레이어가 선택하는 행동)
+
+    // 기물 이동
+    public static final int ACTION_MOVE = 0;
+
+    // 스킬 사용
+    public static final int ACTION_SKILL = 1;
+
+    // 아이템 설치
+    public static final int ACTION_ITEM = 2;
+
+    // 스킬 배열 인덱스 (각 팀에 지급하는 스킬 순서)
+
+    // 파괴 스킬
+    public static final int SKILL_DESTROY = 0;
+
+    // 방패 스킬
+    public static final int SKILL_SHIELD = 1;
+
+    // 부활 스킬
+    public static final int SKILL_REVIVE = 2;
+
     // 잘못된 입력을 나타내는 값
     public static final int INVALID_INPUT = -1;
 

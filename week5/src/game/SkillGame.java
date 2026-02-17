@@ -134,7 +134,7 @@ public class SkillGame extends Game {
         }
 
         // 3단계: 부활 스킬의 잡힌 기물 수 갱신 (격자에 없는 정보)
-        ((ReviveSkill) skills[2]).setCapturedCount(
+        ((ReviveSkill) skills[Util.SKILL_REVIVE]).setCapturedCount(
             skillBoard.getCapturedCount(currentPlayer.color)
         );
 
@@ -142,7 +142,7 @@ public class SkillGame extends Game {
         int action = skillCapable().chooseAction(board, skills, items);
 
         switch (action) {
-            case 1:
+            case Util.ACTION_SKILL:
                 // 스킬 사용
                 boolean skillUsed = handleSkill(skills);
                 if (!skillUsed) {
@@ -151,7 +151,7 @@ public class SkillGame extends Game {
                 }
                 break;
 
-            case 2:
+            case Util.ACTION_ITEM:
                 // 아이템 설치
                 boolean itemPlaced = handleItem(items);
                 if (!itemPlaced) {

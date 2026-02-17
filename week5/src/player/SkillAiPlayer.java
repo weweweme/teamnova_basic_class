@@ -12,6 +12,22 @@ import item.Item;
 /// </summary>
 public class SkillAiPlayer extends ClassicAiPlayer implements SkillCapable {
 
+    // ========== AI 전략 상수 ==========
+
+    // 부활 대상으로 삼을 최소 기물 가치
+    private static final int REVIVE_VALUE_THRESHOLD = 5;
+
+    // 방패 스킬 발동 확률 분모 (1/5 = 20%)
+    private static final int SHIELD_CHANCE = 5;
+
+    // 아이템 설치 확률 (3/10 = 30%)
+    private static final int ITEM_CHANCE_RANGE = 10;
+    private static final int ITEM_CHANCE_THRESHOLD = 3;
+
+    // 아이템 설치 우선 탐색 영역 (중앙 4x4)
+    private static final int CENTER_MIN = 2;
+    private static final int CENTER_MAX = 5;
+
     // ========== 생성자 ==========
 
     public SkillAiPlayer(int color, String name, int difficulty) {
@@ -32,8 +48,8 @@ public class SkillAiPlayer extends ClassicAiPlayer implements SkillCapable {
     public int chooseAction(SimpleBoard board, Skill[] skills, Item[] items) {
         int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
 
-        // 파괴 스킬 확인 (인덱스 0): 상대 퀸이 있으면 파괴 우선
-        if (skills[0].hasUses() && skills[0].canUse(board.grid, color)) {
+        // 파괴 스킬 확인: 상대 퀸이 있으면 파괴 우선
+        if (skills[Util.SKILL_DESTROY].hasUses() && skills[Util.SKILL_DESTROY].canUse(board.grid, color)) {
             for (int r = 0; r < Util.BOARD_SIZE; r++) {
                 for (int c = 0; c < Util.BOARD_SIZE; c++) {
                     if (board.grid[r][c].isEmpty()) {
@@ -41,28 +57,28 @@ public class SkillAiPlayer extends ClassicAiPlayer implements SkillCapable {
                     }
                     Piece piece = board.grid[r][c].getPiece();
                     if (piece.type == PieceType.QUEEN && piece.color == opponentColor) {
-                        return 1;  // 스킬
+                        return Util.ACTION_SKILL;
                     }
                 }
             }
         }
 
-        // 부활 스킬 확인 (인덱스 2): 가치 높은 잡힌 기물이 있으면 부활
-        if (skills[2].hasUses() && skills[2].canUse(board.grid, color)) {
+        // 부활 스킬 확인: 가치 높은 잡힌 기물이 있으면 부활
+        if (skills[Util.SKILL_REVIVE].hasUses() && skills[Util.SKILL_REVIVE].canUse(board.grid, color)) {
             SkillBoard skillBoard = (SkillBoard) board;
             Piece[] captured = skillBoard.getCapturedPieces(color);
             for (Piece p : captured) {
-                if (p.value >= 5) {
-                    return 1;  // 스킬
+                if (p.value >= REVIVE_VALUE_THRESHOLD) {
+                    return Util.ACTION_SKILL;
                 }
             }
         }
 
-        // 방패 스킬 확인 (인덱스 1): 20% 확률로 사용
-        boolean shieldAvailable = skills[1].hasUses() && skills[1].canUse(board.grid, color);  // 방패 스킬을 사용할 수 있는지
-        boolean randomTrigger = Util.rand(5) == 0;  // 20% 확률로 발동하는지
+        // 방패 스킬 확인: 20% 확률로 사용
+        boolean shieldAvailable = skills[Util.SKILL_SHIELD].hasUses() && skills[Util.SKILL_SHIELD].canUse(board.grid, color);
+        boolean randomTrigger = Util.rand(SHIELD_CHANCE) == 0;
         if (shieldAvailable && randomTrigger) {
-            return 1;  // 스킬
+            return Util.ACTION_SKILL;
         }
 
         // 아이템 설치: 30% 확률로 사용
@@ -73,11 +89,11 @@ public class SkillAiPlayer extends ClassicAiPlayer implements SkillCapable {
                 break;
             }
         }
-        if (hasItem && Util.rand(10) < 3) {
-            return 2;  // 아이템
+        if (hasItem && Util.rand(ITEM_CHANCE_RANGE) < ITEM_CHANCE_THRESHOLD) {
+            return Util.ACTION_ITEM;
         }
 
-        return 0;  // 이동
+        return Util.ACTION_MOVE;
     }
 
     /// <summary>
@@ -86,19 +102,19 @@ public class SkillAiPlayer extends ClassicAiPlayer implements SkillCapable {
     /// </summary>
     @Override
     public int chooseSkill(SimpleBoard board, Skill[] skills) {
-        // 파괴 스킬 (인덱스 0)
-        if (skills[0].hasUses() && skills[0].canUse(board.grid, color)) {
-            return 0;
+        // 파괴 스킬
+        if (skills[Util.SKILL_DESTROY].hasUses() && skills[Util.SKILL_DESTROY].canUse(board.grid, color)) {
+            return Util.SKILL_DESTROY;
         }
 
-        // 부활 스킬 (인덱스 2)
-        if (skills[2].hasUses() && skills[2].canUse(board.grid, color)) {
-            return 2;
+        // 부활 스킬
+        if (skills[Util.SKILL_REVIVE].hasUses() && skills[Util.SKILL_REVIVE].canUse(board.grid, color)) {
+            return Util.SKILL_REVIVE;
         }
 
-        // 방패 스킬 (인덱스 1)
-        if (skills[1].hasUses() && skills[1].canUse(board.grid, color)) {
-            return 1;
+        // 방패 스킬
+        if (skills[Util.SKILL_SHIELD].hasUses() && skills[Util.SKILL_SHIELD].canUse(board.grid, color)) {
+            return Util.SKILL_SHIELD;
         }
 
         return Util.NONE;
@@ -163,8 +179,8 @@ public class SkillAiPlayer extends ClassicAiPlayer implements SkillCapable {
         SkillBoard skillBoard = (SkillBoard) board;
         // 보드 중앙 4x4 영역(2~5행, 2~5열)에서 빈 칸 탐색
         java.util.ArrayList<int[]> candidates = new java.util.ArrayList<>();
-        for (int r = 2; r <= 5; r++) {
-            for (int c = 2; c <= 5; c++) {
+        for (int r = CENTER_MIN; r <= CENTER_MAX; r++) {
+            for (int c = CENTER_MIN; c <= CENTER_MAX; c++) {
                 if (board.grid[r][c].isEmpty() && skillBoard.getItem(r, c) == null) {
                     candidates.add(new int[]{r, c});
                 }

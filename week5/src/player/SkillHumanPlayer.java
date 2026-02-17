@@ -47,7 +47,7 @@ public class SkillHumanPlayer extends ClassicHumanPlayer implements SkillCapable
 
         // 이동만 가능하면 바로 반환
         if (!hasSkill && !hasItem) {
-            return 0;
+            return Util.ACTION_MOVE;
         }
 
         SkillBoard skillBoard = (SkillBoard) board;
@@ -69,13 +69,13 @@ public class SkillHumanPlayer extends ClassicHumanPlayer implements SkillCapable
         while (true) {
             int key = Util.readInt();
             if (key == 1) {
-                return 0;
+                return Util.ACTION_MOVE;
             }
             if (key == 2 && hasSkill) {
-                return 1;
+                return Util.ACTION_SKILL;
             }
             if (key == 3 && hasItem) {
-                return 2;
+                return Util.ACTION_ITEM;
             }
         }
     }

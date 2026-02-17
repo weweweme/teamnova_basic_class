@@ -229,7 +229,8 @@ public class Piece {
     /// 적군인지 확인 (상대가 존재하고 색상이 다른 경우)
     /// </summary>
     public boolean isEnemy(Piece other) {
-        return other != null && this.color != other.color;
+        assert other != null : "isEnemy 호출 시 상대 기물이 null이면 안 됨";
+        return this.color != other.color;
     }
 
     // ========== 이동 헬퍼 ==========

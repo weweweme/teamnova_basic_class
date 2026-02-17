@@ -215,7 +215,7 @@ public class AiPlayer extends Player {
             return 1;
         }
 
-        return -1;
+        return Util.NONE;
     }
 
     /// <summary>
@@ -263,7 +263,7 @@ public class AiPlayer extends Player {
             }
         }
         if (available.isEmpty()) {
-            return -1;
+            return Util.NONE;
         }
         return available.get(Util.rand(available.size()));
     }
@@ -309,7 +309,7 @@ public class AiPlayer extends Player {
     @Override
     public int chooseReviveTarget(SimpleBoard board, Piece[] captured) {
         if (captured.length == 0) {
-            return -1;
+            return Util.NONE;
         }
 
         int bestIndex = 0;

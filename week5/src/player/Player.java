@@ -63,11 +63,11 @@ public abstract class Player {
     }
 
     /// <summary>
-    /// 사용할 스킬을 선택 (스킬 번호 반환, -1이면 취소)
+    /// 사용할 스킬을 선택 (스킬 번호 반환, Util.NONE이면 취소)
     /// 기본값: 취소
     /// </summary>
     public int chooseSkill(SimpleBoard board, Skill[] skills) {
-        return -1;
+        return Util.NONE;
     }
 
     /// <summary>
@@ -80,10 +80,10 @@ public abstract class Player {
     }
 
     /// <summary>
-    /// 사용할 아이템 종류를 선택 (인덱스 반환, -1이면 취소)
+    /// 사용할 아이템 종류를 선택 (인덱스 반환, Util.NONE이면 취소)
     /// </summary>
     public int chooseItemType(SimpleBoard board, Item[] items) {
-        return -1;
+        return Util.NONE;
     }
 
     /// <summary>
@@ -97,9 +97,9 @@ public abstract class Player {
     /// <summary>
     /// 부활할 기물을 선택 (잡힌 기물 목록에서 선택)
     /// captured: 부활 가능한 기물 목록
-    /// 반환: 선택한 인덱스 또는 -1(취소)
+    /// 반환: 선택한 인덱스 또는 Util.NONE(취소)
     /// </summary>
     public int chooseReviveTarget(SimpleBoard board, Piece[] captured) {
-        return -1;
+        return Util.NONE;
     }
 }

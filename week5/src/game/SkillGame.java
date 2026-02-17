@@ -114,7 +114,7 @@ public class SkillGame extends Game {
         // 모든 기물이 동결되어 있으면 턴 스킵
         if (!skillBoard.hasUnfrozenPieces(currentPlayer.color)) {
             Util.clearScreen();
-            skillBoard.print(SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.EMPTY_MOVES, 0, currentPlayer.color);
+            skillBoard.print(Util.NONE, Util.NONE, Util.NONE, Util.NONE, SimpleBoard.EMPTY_MOVES, 0, currentPlayer.color);
             System.out.println();
             System.out.println(currentPlayer.name + "의 모든 기물이 동결되어 턴을 넘깁니다.");
             Util.delay(2000);
@@ -183,7 +183,7 @@ public class SkillGame extends Game {
         String triggeredItem = skillBoard.triggerItem(move.toRow, move.toCol);
         if (!triggeredItem.isEmpty()) {
             Util.clearScreen();
-            skillBoard.print(SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.EMPTY_MOVES, 0, currentPlayer.color);
+            skillBoard.print(Util.NONE, Util.NONE, Util.NONE, Util.NONE, SimpleBoard.EMPTY_MOVES, 0, currentPlayer.color);
             System.out.println();
             System.out.println(triggeredItem + "에 걸렸습니다!");
             Util.delay(2000);
@@ -205,7 +205,7 @@ public class SkillGame extends Game {
     private boolean handleSkill(Skill[] skills) {
         // 스킬 선택
         int skillIndex = currentPlayer.chooseSkill(board, skills);
-        if (skillIndex == -1) {
+        if (skillIndex == Util.NONE) {
             return false;
         }
 
@@ -232,7 +232,7 @@ public class SkillGame extends Game {
 
         // 결과 표시
         Util.clearScreen();
-        skillBoard.print(SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.EMPTY_MOVES, 0, currentPlayer.color);
+        skillBoard.print(Util.NONE, Util.NONE, Util.NONE, Util.NONE, SimpleBoard.EMPTY_MOVES, 0, currentPlayer.color);
         System.out.println();
         System.out.println(skill.name + " 스킬 사용! (" + Util.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
@@ -253,7 +253,7 @@ public class SkillGame extends Game {
 
         // 부활할 기물 선택
         int pieceIndex = currentPlayer.chooseReviveTarget(board, captured);
-        if (pieceIndex == -1) {
+        if (pieceIndex == Util.NONE) {
             return false;
         }
 
@@ -275,7 +275,7 @@ public class SkillGame extends Game {
 
         // 결과 표시
         Util.clearScreen();
-        skillBoard.print(SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.EMPTY_MOVES, 0, currentPlayer.color);
+        skillBoard.print(Util.NONE, Util.NONE, Util.NONE, Util.NONE, SimpleBoard.EMPTY_MOVES, 0, currentPlayer.color);
         System.out.println();
         System.out.println(revived.name + " 부활! (" + Util.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
@@ -290,7 +290,7 @@ public class SkillGame extends Game {
     private boolean handleItem(Item[] items) {
         // 아이템 종류 선택
         int itemIndex = currentPlayer.chooseItemType(board, items);
-        if (itemIndex == -1) {
+        if (itemIndex == Util.NONE) {
             return false;
         }
 
@@ -314,7 +314,7 @@ public class SkillGame extends Game {
 
         // 결과 표시
         Util.clearScreen();
-        skillBoard.print(SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.EMPTY_MOVES, 0, currentPlayer.color);
+        skillBoard.print(Util.NONE, Util.NONE, Util.NONE, Util.NONE, SimpleBoard.EMPTY_MOVES, 0, currentPlayer.color);
         System.out.println();
         System.out.println(item.name + " 설치 완료! (" + Util.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);

@@ -11,6 +11,9 @@ public class Util {
 
     // ========== 상수 ==========
 
+    // 미설정을 나타내는 값 (커서 없음, 선택 없음, 위치 미지정 등)
+    public static final int NONE = -1;
+
     // 잘못된 입력을 나타내는 값
     public static final int INVALID_INPUT = -1;
 

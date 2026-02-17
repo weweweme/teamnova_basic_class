@@ -39,7 +39,7 @@ public class Main {
                         break;
                     }
                     int diff2 = selectDifficulty();
-                    if (diff2 == -1) {
+                    if (diff2 == Util.NONE) {
                         break;
                     }
                     Util.clearScreen();
@@ -59,7 +59,7 @@ public class Main {
                         break;
                     }
                     int diff4 = selectDifficulty();
-                    if (diff4 == -1) {
+                    if (diff4 == Util.NONE) {
                         break;
                     }
                     Util.clearScreen();
@@ -79,7 +79,7 @@ public class Main {
                         break;
                     }
                     int diff6 = selectDifficulty();
-                    if (diff6 == -1) {
+                    if (diff6 == Util.NONE) {
                         break;
                     }
                     Util.clearScreen();
@@ -251,7 +251,7 @@ public class Main {
         while (true) {
             int key = Util.readInt();
             if (key == 0) {
-                return -1;  // 돌아가기
+                return Util.NONE;  // 돌아가기
             }
             if (key == 1) {
                 return AiPlayer.EASY;

@@ -33,12 +33,6 @@ public class SimpleBoard {
     public static final int COORD_SIZE = 2;
 
     /// <summary>
-    /// 위치가 지정되지 않았음을 나타내는 값
-    /// 커서 없음, 선택 없음, 미설정 등에 사용
-    /// </summary>
-    public static final int NONE = -1;
-
-    /// <summary>
     /// 좌표 배열에서 행(row) 값의 위치 (예: move[ROW])
     /// </summary>
     protected static final int ROW = 0;
@@ -205,20 +199,20 @@ public class SimpleBoard {
     /// 기본 보드 출력 (커서, 하이라이트 없음)
     /// </summary>
     public void print() {
-        print(NONE, NONE, NONE, NONE, EMPTY_MOVES, 0);
+        print(Util.NONE, Util.NONE, Util.NONE, Util.NONE, EMPTY_MOVES, 0);
     }
 
     /// <summary>
     /// 커서만 표시하며 보드 출력 (기물 탐색 모드)
     /// </summary>
     public void print(int cursorRow, int cursorCol) {
-        print(cursorRow, cursorCol, NONE, NONE, EMPTY_MOVES, 0);
+        print(cursorRow, cursorCol, Util.NONE, Util.NONE, EMPTY_MOVES, 0);
     }
 
     /// <summary>
     /// 보드 출력 (커서 + 선택된 기물 + 이동 가능한 칸 표시)
-    /// cursorRow/Col: 현재 커서 위치 (NONE이면 커서 없음)
-    /// selectedRow/Col: 선택된 기물 위치 (NONE이면 선택 없음)
+    /// cursorRow/Col: 현재 커서 위치 (Util.NONE이면 커서 없음)
+    /// selectedRow/Col: 선택된 기물 위치 (Util.NONE이면 선택 없음)
     /// validMoves: 이동 가능한 칸 버퍼
     /// validMoveCount: 버퍼에서 유효한 칸 수
     /// </summary>

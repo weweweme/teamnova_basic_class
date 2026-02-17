@@ -240,7 +240,7 @@ public class HumanPlayer extends Player {
 
         SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.EMPTY_MOVES, 0, color);
+        skillBoard.print(Util.NONE, Util.NONE, Util.NONE, Util.NONE, SimpleBoard.EMPTY_MOVES, 0, color);
         System.out.println();
         System.out.println(name + "의 차례 (" + getColorName() + ")");
         if (board.isInCheck(color)) {
@@ -276,7 +276,7 @@ public class HumanPlayer extends Player {
     public int chooseSkill(SimpleBoard board, Skill[] skills) {
         SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.EMPTY_MOVES, 0, color);
+        skillBoard.print(Util.NONE, Util.NONE, Util.NONE, Util.NONE, SimpleBoard.EMPTY_MOVES, 0, color);
         System.out.println();
         System.out.println("스킬을 선택하세요:");
 
@@ -291,7 +291,7 @@ public class HumanPlayer extends Player {
         while (true) {
             int key = Util.readInt();
             if (key == 0) {
-                return -1;
+                return Util.NONE;
             }
             if (key >= 1 && key <= skills.length) {
                 int index = key - 1;
@@ -315,7 +315,7 @@ public class HumanPlayer extends Player {
 
         while (true) {
             Util.clearScreen();
-            skillBoard.print(cursorRow, cursorCol, SimpleBoard.NONE, SimpleBoard.NONE, targets, targetCount, color);
+            skillBoard.print(cursorRow, cursorCol, Util.NONE, Util.NONE, targets, targetCount, color);
             System.out.println();
             System.out.println("대상을 선택하세요 (· 표시된 칸)");
             System.out.println("방향키: 이동 | Enter: 확정 | q: 취소");
@@ -348,7 +348,7 @@ public class HumanPlayer extends Player {
     public int chooseItemType(SimpleBoard board, Item[] items) {
         SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.EMPTY_MOVES, 0, color);
+        skillBoard.print(Util.NONE, Util.NONE, Util.NONE, Util.NONE, SimpleBoard.EMPTY_MOVES, 0, color);
         System.out.println();
         System.out.println("아이템을 선택하세요:");
 
@@ -362,7 +362,7 @@ public class HumanPlayer extends Player {
         while (true) {
             int key = Util.readInt();
             if (key == 0) {
-                return -1;
+                return Util.NONE;
             }
             if (key >= 1 && key <= items.length) {
                 int index = key - 1;
@@ -386,7 +386,7 @@ public class HumanPlayer extends Player {
 
         while (true) {
             Util.clearScreen();
-            skillBoard.print(cursorRow, cursorCol, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.EMPTY_MOVES, 0, color);
+            skillBoard.print(cursorRow, cursorCol, Util.NONE, Util.NONE, SimpleBoard.EMPTY_MOVES, 0, color);
             System.out.println();
             System.out.println("아이템을 설치할 빈 칸을 선택하세요");
             System.out.println("방향키: 이동 | Enter: 확정 | q: 취소");
@@ -421,7 +421,7 @@ public class HumanPlayer extends Player {
     public int chooseReviveTarget(SimpleBoard board, Piece[] captured) {
         SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.NONE, SimpleBoard.EMPTY_MOVES, 0, color);
+        skillBoard.print(Util.NONE, Util.NONE, Util.NONE, Util.NONE, SimpleBoard.EMPTY_MOVES, 0, color);
         System.out.println();
         System.out.println("부활할 기물을 선택하세요:");
 
@@ -435,7 +435,7 @@ public class HumanPlayer extends Player {
         while (true) {
             int key = Util.readInt();
             if (key == 0) {
-                return -1;
+                return Util.NONE;
             }
             if (key >= 1 && key <= captured.length) {
                 return key - 1;

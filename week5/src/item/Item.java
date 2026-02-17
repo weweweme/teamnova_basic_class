@@ -1,6 +1,7 @@
 package item;
 
 import board.SimpleBoard;
+import core.Util;
 import piece.Piece;
 
 /// <summary>
@@ -46,9 +47,9 @@ public abstract class Item {
         this.description = description;
         this.maxUses = maxUses;
         this.remainingUses = maxUses;
-        this.row = -1;
-        this.col = -1;
-        this.ownerColor = -1;
+        this.row = Util.NONE;
+        this.col = Util.NONE;
+        this.ownerColor = Util.NONE;
     }
 
     /// <summary>

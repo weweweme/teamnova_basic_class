@@ -137,6 +137,14 @@ public class SimpleBoard {
         return new Cell();
     }
 
+    /// <summary>
+    /// 기물 객체를 생성하는 팩토리 메서드
+    /// 하위 클래스에서 오버라이드하여 확장된 기물(SkillPiece 등)을 생성 가능
+    /// </summary>
+    protected Piece createPiece(PieceType type, int color, int row, int col) {
+        return new Piece(type, color, row, col);
+    }
+
     // ========== 초기 배치 ==========
 
     /// <summary>
@@ -161,36 +169,36 @@ public class SimpleBoard {
         final int ROOK_RIGHT = 7;      // h열 - 룩
 
         // 파란팀 주요 기물
-        grid[BLUE_BACK_ROW][ROOK_LEFT].setPiece(new Piece(PieceType.ROOK, Piece.BLUE, BLUE_BACK_ROW, ROOK_LEFT));
-        grid[BLUE_BACK_ROW][KNIGHT_LEFT].setPiece(new Piece(PieceType.KNIGHT, Piece.BLUE, BLUE_BACK_ROW, KNIGHT_LEFT));
-        grid[BLUE_BACK_ROW][BISHOP_LEFT].setPiece(new Piece(PieceType.BISHOP, Piece.BLUE, BLUE_BACK_ROW, BISHOP_LEFT));
-        grid[BLUE_BACK_ROW][QUEEN_COL].setPiece(new Piece(PieceType.QUEEN, Piece.BLUE, BLUE_BACK_ROW, QUEEN_COL));
-        blueKing = new Piece(PieceType.KING, Piece.BLUE, BLUE_BACK_ROW, KING_COL);
+        grid[BLUE_BACK_ROW][ROOK_LEFT].setPiece(createPiece(PieceType.ROOK, Piece.BLUE, BLUE_BACK_ROW, ROOK_LEFT));
+        grid[BLUE_BACK_ROW][KNIGHT_LEFT].setPiece(createPiece(PieceType.KNIGHT, Piece.BLUE, BLUE_BACK_ROW, KNIGHT_LEFT));
+        grid[BLUE_BACK_ROW][BISHOP_LEFT].setPiece(createPiece(PieceType.BISHOP, Piece.BLUE, BLUE_BACK_ROW, BISHOP_LEFT));
+        grid[BLUE_BACK_ROW][QUEEN_COL].setPiece(createPiece(PieceType.QUEEN, Piece.BLUE, BLUE_BACK_ROW, QUEEN_COL));
+        blueKing = createPiece(PieceType.KING, Piece.BLUE, BLUE_BACK_ROW, KING_COL);
         grid[BLUE_BACK_ROW][KING_COL].setPiece(blueKing);
-        grid[BLUE_BACK_ROW][BISHOP_RIGHT].setPiece(new Piece(PieceType.BISHOP, Piece.BLUE, BLUE_BACK_ROW, BISHOP_RIGHT));
-        grid[BLUE_BACK_ROW][KNIGHT_RIGHT].setPiece(new Piece(PieceType.KNIGHT, Piece.BLUE, BLUE_BACK_ROW, KNIGHT_RIGHT));
-        grid[BLUE_BACK_ROW][ROOK_RIGHT].setPiece(new Piece(PieceType.ROOK, Piece.BLUE, BLUE_BACK_ROW, ROOK_RIGHT));
+        grid[BLUE_BACK_ROW][BISHOP_RIGHT].setPiece(createPiece(PieceType.BISHOP, Piece.BLUE, BLUE_BACK_ROW, BISHOP_RIGHT));
+        grid[BLUE_BACK_ROW][KNIGHT_RIGHT].setPiece(createPiece(PieceType.KNIGHT, Piece.BLUE, BLUE_BACK_ROW, KNIGHT_RIGHT));
+        grid[BLUE_BACK_ROW][ROOK_RIGHT].setPiece(createPiece(PieceType.ROOK, Piece.BLUE, BLUE_BACK_ROW, ROOK_RIGHT));
 
         // 파란팀 폰
         for (int c = 0; c < SIZE; c++) {
-            grid[BLUE_PAWN_ROW][c].setPiece(new Piece(PieceType.PAWN, Piece.BLUE, BLUE_PAWN_ROW, c));
+            grid[BLUE_PAWN_ROW][c].setPiece(createPiece(PieceType.PAWN, Piece.BLUE, BLUE_PAWN_ROW, c));
         }
 
         // 빨간팀 폰
         for (int c = 0; c < SIZE; c++) {
-            grid[RED_PAWN_ROW][c].setPiece(new Piece(PieceType.PAWN, Piece.RED, RED_PAWN_ROW, c));
+            grid[RED_PAWN_ROW][c].setPiece(createPiece(PieceType.PAWN, Piece.RED, RED_PAWN_ROW, c));
         }
 
         // 빨간팀 주요 기물
-        grid[RED_BACK_ROW][ROOK_LEFT].setPiece(new Piece(PieceType.ROOK, Piece.RED, RED_BACK_ROW, ROOK_LEFT));
-        grid[RED_BACK_ROW][KNIGHT_LEFT].setPiece(new Piece(PieceType.KNIGHT, Piece.RED, RED_BACK_ROW, KNIGHT_LEFT));
-        grid[RED_BACK_ROW][BISHOP_LEFT].setPiece(new Piece(PieceType.BISHOP, Piece.RED, RED_BACK_ROW, BISHOP_LEFT));
-        grid[RED_BACK_ROW][QUEEN_COL].setPiece(new Piece(PieceType.QUEEN, Piece.RED, RED_BACK_ROW, QUEEN_COL));
-        redKing = new Piece(PieceType.KING, Piece.RED, RED_BACK_ROW, KING_COL);
+        grid[RED_BACK_ROW][ROOK_LEFT].setPiece(createPiece(PieceType.ROOK, Piece.RED, RED_BACK_ROW, ROOK_LEFT));
+        grid[RED_BACK_ROW][KNIGHT_LEFT].setPiece(createPiece(PieceType.KNIGHT, Piece.RED, RED_BACK_ROW, KNIGHT_LEFT));
+        grid[RED_BACK_ROW][BISHOP_LEFT].setPiece(createPiece(PieceType.BISHOP, Piece.RED, RED_BACK_ROW, BISHOP_LEFT));
+        grid[RED_BACK_ROW][QUEEN_COL].setPiece(createPiece(PieceType.QUEEN, Piece.RED, RED_BACK_ROW, QUEEN_COL));
+        redKing = createPiece(PieceType.KING, Piece.RED, RED_BACK_ROW, KING_COL);
         grid[RED_BACK_ROW][KING_COL].setPiece(redKing);
-        grid[RED_BACK_ROW][BISHOP_RIGHT].setPiece(new Piece(PieceType.BISHOP, Piece.RED, RED_BACK_ROW, BISHOP_RIGHT));
-        grid[RED_BACK_ROW][KNIGHT_RIGHT].setPiece(new Piece(PieceType.KNIGHT, Piece.RED, RED_BACK_ROW, KNIGHT_RIGHT));
-        grid[RED_BACK_ROW][ROOK_RIGHT].setPiece(new Piece(PieceType.ROOK, Piece.RED, RED_BACK_ROW, ROOK_RIGHT));
+        grid[RED_BACK_ROW][BISHOP_RIGHT].setPiece(createPiece(PieceType.BISHOP, Piece.RED, RED_BACK_ROW, BISHOP_RIGHT));
+        grid[RED_BACK_ROW][KNIGHT_RIGHT].setPiece(createPiece(PieceType.KNIGHT, Piece.RED, RED_BACK_ROW, KNIGHT_RIGHT));
+        grid[RED_BACK_ROW][ROOK_RIGHT].setPiece(createPiece(PieceType.ROOK, Piece.RED, RED_BACK_ROW, ROOK_RIGHT));
     }
 
     // ========== 보드 출력 ==========
@@ -386,8 +394,8 @@ public class SimpleBoard {
         }
         Piece piece = grid[row][col].getPiece();
 
-        // 동결된 기물은 이동 불가
-        if (piece.frozen) {
+        // 이동이 차단된 기물은 이동 불가 (SkillBoard에서 동결 상태 확인)
+        if (isMovementBlocked(piece)) {
             return 0;
         }
 
@@ -397,10 +405,10 @@ public class SimpleBoard {
             int destRow = piece.moveBuffer[i][ROW];
             int destCol = piece.moveBuffer[i][COL];
 
-            // 방패가 걸린 상대 기물은 잡을 수 없음
+            // 잡기가 차단된 기물은 잡을 수 없음 (SkillBoard에서 방패 상태 확인)
             if (grid[destRow][destCol].hasPiece()) {
                 Piece target = grid[destRow][destCol].getPiece();
-                if (target.shielded && target.color != piece.color) {
+                if (isCaptureBlocked(target)) {
                     continue;
                 }
             }
@@ -427,6 +435,24 @@ public class SimpleBoard {
     /// </summary>
     protected void addSpecialMoves(Piece piece, int row, int col) {
         // 기본: 특수 규칙 없음
+    }
+
+    /// <summary>
+    /// 기물의 이동이 차단되었는지 확인하는 훅 메서드
+    /// 기본 Board에서는 항상 이동 가능
+    /// SkillBoard가 오버라이드하여 동결 상태 확인
+    /// </summary>
+    protected boolean isMovementBlocked(Piece piece) {
+        return false;
+    }
+
+    /// <summary>
+    /// 기물의 잡기가 차단되었는지 확인하는 훅 메서드
+    /// 기본 Board에서는 항상 잡기 가능
+    /// SkillBoard가 오버라이드하여 방패 상태 확인
+    /// </summary>
+    protected boolean isCaptureBlocked(Piece target) {
+        return false;
     }
 
     /// <summary>

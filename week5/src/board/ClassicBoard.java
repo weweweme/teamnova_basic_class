@@ -286,8 +286,8 @@ public class ClassicBoard extends SimpleBoard {
             return;
         }
 
-        // 방패가 걸린 폰은 앙파상으로 잡을 수 없음
-        if (lastPiece.shielded) {
+        // 잡기가 차단된 폰은 앙파상으로 잡을 수 없음 (방패 등)
+        if (isCaptureBlocked(lastPiece)) {
             return;
         }
 

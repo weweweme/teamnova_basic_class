@@ -11,6 +11,7 @@ import item.Item;
 /// 스킬 모드 보드
 /// 공식 체스 규칙(ClassicBoard) + 아이템/스킬 시스템 추가
 /// 방패, 동결, 기물 제거/부활, 아이템 설치/발동 기능 제공
+/// 기물은 SkillPiece로 생성되어 방패/동결 상태를 자체적으로 보유
 /// </summary>
 public class SkillBoard extends ClassicBoard {
 
@@ -33,7 +34,7 @@ public class SkillBoard extends ClassicBoard {
         currentViewerColor = Util.NONE;
     }
 
-    // ========== 칸 생성 ==========
+    // ========== 팩토리 메서드 ==========
 
     /// <summary>
     /// 스킬 모드용 칸(SkillCell) 생성
@@ -45,10 +46,37 @@ public class SkillBoard extends ClassicBoard {
     }
 
     /// <summary>
+    /// 스킬 모드용 기물(SkillPiece) 생성
+    /// 방패/동결 상태를 지원하는 기물로 생성
+    /// </summary>
+    @Override
+    protected Piece createPiece(PieceType type, int color, int row, int col) {
+        return new SkillPiece(type, color, row, col);
+    }
+
+    /// <summary>
     /// 격자의 칸을 SkillCell로 반환 (아이템 접근용)
     /// </summary>
     private SkillCell skillCell(int r, int c) {
         return (SkillCell) grid[r][c];
+    }
+
+    // ========== 훅 메서드 오버라이드 ==========
+
+    /// <summary>
+    /// 동결된 기물은 이동 불가
+    /// </summary>
+    @Override
+    protected boolean isMovementBlocked(Piece piece) {
+        return ((SkillPiece) piece).frozen;
+    }
+
+    /// <summary>
+    /// 방패가 걸린 기물은 잡기 불가
+    /// </summary>
+    @Override
+    protected boolean isCaptureBlocked(Piece target) {
+        return ((SkillPiece) target).shielded;
     }
 
     // ========== 보드 출력 (스킬 모드) ==========
@@ -109,7 +137,7 @@ public class SkillBoard extends ClassicBoard {
 
         // 3순위: 기물이 있는 칸 (방패/동결 효과 표시)
         if (hasPiece) {
-            Piece piece = grid[r][c].getPiece();
+            SkillPiece piece = (SkillPiece) grid[r][c].getPiece();
             String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
             // 방패 표시: 기호 앞에 ! 표시
             String prefix = piece.shielded ? "!" : " ";
@@ -189,7 +217,7 @@ public class SkillBoard extends ClassicBoard {
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
-                    Piece piece = grid[r][c].getPiece();
+                    SkillPiece piece = (SkillPiece) grid[r][c].getPiece();
                     if (piece.color == color && piece.shielded) {
                         piece.shielded = false;
                     }
@@ -206,7 +234,7 @@ public class SkillBoard extends ClassicBoard {
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
-                    Piece piece = grid[r][c].getPiece();
+                    SkillPiece piece = (SkillPiece) grid[r][c].getPiece();
                     if (piece.color == color && piece.frozen) {
                         piece.frozen = false;
                     }
@@ -223,7 +251,7 @@ public class SkillBoard extends ClassicBoard {
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
-                    Piece piece = grid[r][c].getPiece();
+                    SkillPiece piece = (SkillPiece) grid[r][c].getPiece();
                     if (piece.color == color && !piece.frozen) {
                         return true;
                     }
@@ -277,6 +305,7 @@ public class SkillBoard extends ClassicBoard {
     /// <summary>
     /// 잡힌 기물을 지정한 위치에 부활
     /// 잡힌 기물 목록에서 제거하고 보드에 배치
+    /// 방패/동결 상태를 초기화
     /// </summary>
     public void revivePiece(Piece piece, int row, int col) {
         capturedPieces.remove(piece);
@@ -284,7 +313,8 @@ public class SkillBoard extends ClassicBoard {
         piece.row = row;
         piece.col = col;
         piece.hasMoved = true;  // 부활한 기물은 이동한 것으로 처리
-        piece.shielded = false;
-        piece.frozen = false;
+        SkillPiece skillPiece = (SkillPiece) piece;
+        skillPiece.shielded = false;
+        skillPiece.frozen = false;
     }
 }

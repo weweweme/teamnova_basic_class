@@ -2,6 +2,7 @@ package item;
 
 import board.SimpleBoard;
 import piece.Piece;
+import piece.SkillPiece;
 
 /// <summary>
 /// 함정 아이템
@@ -33,7 +34,7 @@ public class TrapItem extends Item {
     /// </summary>
     @Override
     public void trigger(SimpleBoard board, Piece steppedPiece) {
-        steppedPiece.frozen = true;
+        ((SkillPiece) steppedPiece).frozen = true;
     }
 
     /// <summary>

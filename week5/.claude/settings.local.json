@@ -7,7 +7,9 @@
       "Bash(git mv:*)",
       "Bash(for d in core piece player game skill item)",
       "Bash(done)",
-      "Bash(git status:*)"
+      "Bash(git status:*)",
+      "Bash(git -C /Users/jinsoo/teamnova_basic_class/week5 diff --stat)",
+      "Bash(git -C /Users/jinsoo/teamnova_basic_class/week5 status -u)"
     ]
   }
 }

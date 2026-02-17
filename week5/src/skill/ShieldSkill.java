@@ -4,6 +4,7 @@ import board.SimpleBoard;
 import cell.Cell;
 import piece.Piece;
 import piece.PieceType;
+import piece.SkillPiece;
 
 /// <summary>
 /// 방패 스킬
@@ -71,7 +72,7 @@ public class ShieldSkill extends Skill {
     @Override
     public void execute(SimpleBoard board, int targetRow, int targetCol, int color) {
         if (board.grid[targetRow][targetCol].hasPiece()) {
-            board.grid[targetRow][targetCol].getPiece().shielded = true;
+            ((SkillPiece) board.grid[targetRow][targetCol].getPiece()).shielded = true;
         }
         useCharge();
     }

@@ -14,6 +14,13 @@ import item.Item;
 /// </summary>
 public class HumanPlayer extends Player {
 
+    // ========== 필드 ==========
+
+    /// <summary>
+    /// 선택한 이동 정보를 담는 객체 (매번 새로 만들지 않고 재사용)
+    /// </summary>
+    private final Move selectedMove = new Move(0, 0, 0, 0);
+
     // ========== 생성자 ==========
 
     public HumanPlayer(int color, String name) {
@@ -130,7 +137,8 @@ public class HumanPlayer extends Player {
             if (key == Util.KEY_ENTER) {
                 // 이동 가능한 칸인지 확인
                 if (board.isInArray(cursorRow, cursorCol, validMoves, validMoveCount)) {
-                    return new Move(selectedRow, selectedCol, cursorRow, cursorCol);
+                    selectedMove.set(selectedRow, selectedCol, cursorRow, cursorCol);
+                    return selectedMove;
                 }
                 // 이동 불가능한 칸이면 무시
             }

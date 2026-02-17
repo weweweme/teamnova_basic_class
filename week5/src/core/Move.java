@@ -32,4 +32,14 @@ public class Move {
         this.toRow = toRow;
         this.toCol = toCol;
     }
+
+    /// <summary>
+    /// 이동 정보를 덮어쓰기 (객체를 새로 만들지 않고 재사용)
+    /// </summary>
+    public void set(int fromRow, int fromCol, int toRow, int toCol) {
+        this.fromRow = fromRow;
+        this.fromCol = fromCol;
+        this.toRow = toRow;
+        this.toCol = toCol;
+    }
 }

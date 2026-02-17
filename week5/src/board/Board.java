@@ -106,6 +106,11 @@ public abstract class Board {
     private final ArrayList<Move> allMoves = new ArrayList<>();
 
     /// <summary>
+    /// 이동 시뮬레이션용 임시 Move (체크 판정 시 매번 새로 만들지 않고 재사용)
+    /// </summary>
+    private final Move tempMove = new Move(0, 0, 0, 0);
+
+    /// <summary>
     /// 잡힌 기물을 가치순으로 정렬하여 표시할 때 사용하는 목록
     /// capturedPieces의 내용을 복사해서 정렬 (원본 순서를 바꾸지 않기 위해)
     /// 매번 새로 만들지 않고 재사용
@@ -366,7 +371,7 @@ public abstract class Board {
         // 캐슬링 감지 (킹이 2칸 이동)
         if (piece instanceof King && Math.abs(move.toCol - move.fromCol) == 2) {
             executeCastling(move);
-            lastMove = move;
+            saveLastMove(move);
             return;
         }
 
@@ -391,7 +396,19 @@ public abstract class Board {
         piece.col = move.toCol;
         piece.hasMoved = true;
 
-        lastMove = move;
+        saveLastMove(move);
+    }
+
+    /// <summary>
+    /// 마지막 이동 정보를 저장 (앙파상 판정에 사용)
+    /// 첫 이동 시 1회만 Move 객체를 생성하고, 이후에는 값만 덮어씀
+    /// </summary>
+    private void saveLastMove(Move move) {
+        if (lastMove == null) {
+            lastMove = new Move(move.fromRow, move.fromCol, move.toRow, move.toCol);
+        } else {
+            lastMove.set(move.fromRow, move.fromCol, move.toRow, move.toCol);
+        }
     }
 
     /// <summary>
@@ -502,9 +519,9 @@ public abstract class Board {
                 }
             }
 
-            Move move = new Move(row, col, destRow, destCol);
+            tempMove.set(row, col, destRow, destCol);
             // 이 수를 두면 자기 킹이 체크되는지 확인
-            if (!wouldBeInCheck(move, piece.color)) {
+            if (!wouldBeInCheck(tempMove, piece.color)) {
                 filteredBuffer[filteredCount][ROW] = destRow;
                 filteredBuffer[filteredCount][COL] = destCol;
                 filteredCount++;
@@ -710,8 +727,8 @@ public abstract class Board {
         int enPassantCol = lastMove.toCol;
 
         // 자기 킹이 위험해지지 않는지 확인 (앙파상은 잡히는 위치가 다르므로 별도 확인)
-        Move enPassantMove = new Move(row, col, enPassantRow, enPassantCol);
-        if (!wouldBeInCheckEnPassant(enPassantMove, pawn.color, lastMove.toRow, lastMove.toCol)) {
+        tempMove.set(row, col, enPassantRow, enPassantCol);
+        if (!wouldBeInCheckEnPassant(tempMove, pawn.color, lastMove.toRow, lastMove.toCol)) {
             filteredBuffer[filteredCount][ROW] = enPassantRow;
             filteredBuffer[filteredCount][COL] = enPassantCol;
             filteredCount++;
@@ -808,8 +825,23 @@ public abstract class Board {
 
     /// <summary>
     /// 특정 색상에 합법적인 수가 하나도 없는지 확인
+    /// 합법적인 수가 하나라도 발견되면 즉시 반환 (전체를 모을 필요 없음)
     /// </summary>
     private boolean hasNoValidMoves(int color) {
-        return getAllValidMoves(color).isEmpty();
+        for (int r = 0; r < SIZE; r++) {
+            for (int c = 0; c < SIZE; c++) {
+                if (grid[r][c].isEmpty()) {
+                    continue;
+                }
+                Piece piece = grid[r][c].getPiece();
+                if (piece.color != color) {
+                    continue;
+                }
+                if (getFilteredMoves(r, c) > 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }

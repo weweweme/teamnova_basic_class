@@ -18,6 +18,14 @@ public abstract class Piece {
     // 파란팀 (상단, 후공)
     public static final int BLUE = 1;
 
+    // ========== 방향 상수 ==========
+
+    // 빨간팀 전진 방향 (위쪽, 행 감소)
+    public static final int RED_DIRECTION = -1;
+
+    // 파란팀 전진 방향 (아래쪽, 행 증가)
+    public static final int BLUE_DIRECTION = 1;
+
     // ========== 필드 ==========
 
     // 기물의 색상 (RED 또는 BLUE)

@@ -27,8 +27,8 @@ public class Pawn extends Piece {
     /// </summary>
     @Override
     protected void calculateMoves(Cell[][] board) {
-        // 빨간팀은 위로(-1), 파란팀은 아래로(+1) 전진
-        int direction = (color == RED) ? -1 : 1;
+        // 빨간팀은 위로, 파란팀은 아래로 전진
+        int direction = (color == RED) ? RED_DIRECTION : BLUE_DIRECTION;
 
         // 1칸 전진 (빈 칸일 때만)
         int oneStep = row + direction;

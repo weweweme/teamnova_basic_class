@@ -13,14 +13,14 @@ public class SkillBoard extends Board {
 
     // ========== 필드 ==========
 
-    // 현재 보드를 보고 있는 플레이어 색상 (-1이면 일반 표시)
+    // 현재 보드를 보고 있는 플레이어 색상 (NONE이면 일반 표시)
     private int currentViewerColor;
 
     // ========== 생성자 ==========
 
     public SkillBoard() {
         super();
-        currentViewerColor = -1;
+        currentViewerColor = NONE;
     }
 
     // ========== 칸 생성 ==========
@@ -53,7 +53,7 @@ public class SkillBoard extends Board {
         // 부모의 print가 renderCell을 호출 → 오버라이드된 버전이 스킬 렌더링 수행
         super.print(cursorRow, cursorCol, selectedRow, selectedCol, validMoves);
         // 렌더링 완료 후 초기화
-        currentViewerColor = -1;
+        currentViewerColor = NONE;
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public class SkillBoard extends Board {
         this.validMoveCount = validMoveCount;
         currentViewerColor = viewerColor;
         super.print(cursorRow, cursorCol, selectedRow, selectedCol, validMoves);
-        currentViewerColor = -1;
+        currentViewerColor = NONE;
     }
 
     /// <summary>
@@ -76,7 +76,7 @@ public class SkillBoard extends Board {
     @Override
     protected String renderCell(int r, int c, int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves) {
         // 일반 표시 모드 (스킬 모드 비활성화 시)
-        if (currentViewerColor == -1) {
+        if (currentViewerColor == NONE) {
             return super.renderCell(r, c, cursorRow, cursorCol, selectedRow, selectedCol, validMoves);
         }
 

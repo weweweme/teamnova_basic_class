@@ -227,7 +227,7 @@ public class HumanPlayer extends Player {
 
         SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(-1, -1, -1, -1, null, color);
+        skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, null, color);
         System.out.println();
         System.out.println(name + "의 차례 (" + getColorName() + ")");
         if (board.isInCheck(color)) {
@@ -263,7 +263,7 @@ public class HumanPlayer extends Player {
     public int chooseSkill(Board board, Skill[] skills) {
         SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(-1, -1, -1, -1, null, color);
+        skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, null, color);
         System.out.println();
         System.out.println("스킬을 선택하세요:");
 
@@ -302,7 +302,7 @@ public class HumanPlayer extends Player {
 
         while (true) {
             Util.clearScreen();
-            skillBoard.print(cursorRow, cursorCol, -1, -1, targets, targetCount, color);
+            skillBoard.print(cursorRow, cursorCol, Board.NONE, Board.NONE, targets, targetCount, color);
             System.out.println();
             System.out.println("대상을 선택하세요 (· 표시된 칸)");
             System.out.println("방향키: 이동 | Enter: 확정 | q: 취소");
@@ -335,7 +335,7 @@ public class HumanPlayer extends Player {
     public int chooseItemType(Board board, Item[] items) {
         SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(-1, -1, -1, -1, null, color);
+        skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, null, color);
         System.out.println();
         System.out.println("아이템을 선택하세요:");
 
@@ -373,7 +373,7 @@ public class HumanPlayer extends Player {
 
         while (true) {
             Util.clearScreen();
-            skillBoard.print(cursorRow, cursorCol, -1, -1, null, color);
+            skillBoard.print(cursorRow, cursorCol, Board.NONE, Board.NONE, null, color);
             System.out.println();
             System.out.println("아이템을 설치할 빈 칸을 선택하세요");
             System.out.println("방향키: 이동 | Enter: 확정 | q: 취소");
@@ -408,7 +408,7 @@ public class HumanPlayer extends Player {
     public int chooseReviveTarget(Board board, Piece[] captured) {
         SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(-1, -1, -1, -1, null, color);
+        skillBoard.print(Board.NONE, Board.NONE, Board.NONE, Board.NONE, null, color);
         System.out.println();
         System.out.println("부활할 기물을 선택하세요:");
 

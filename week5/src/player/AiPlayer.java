@@ -52,10 +52,10 @@ public class AiPlayer extends Player {
         Util.delay(1000);
 
         // 모든 합법적인 수 가져오기
-        Move[] allMoves = board.getAllValidMoves(color);
+        java.util.ArrayList<Move> allMoves = board.getAllValidMoves(color);
 
         // 수가 없으면 null (체크메이트 또는 스테일메이트 상태)
-        if (allMoves.length == 0) {
+        if (allMoves.isEmpty()) {
             return null;
         }
 
@@ -73,15 +73,15 @@ public class AiPlayer extends Player {
     /// <summary>
     /// 쉬움: 합법적인 수 중 랜덤으로 선택
     /// </summary>
-    private Move chooseEasy(Move[] allMoves) {
-        return allMoves[Util.rand(allMoves.length)];
+    private Move chooseEasy(java.util.ArrayList<Move> allMoves) {
+        return allMoves.get(Util.rand(allMoves.size()));
     }
 
     /// <summary>
     /// 보통: 우선순위 기반 전략
     /// 체크메이트 > 기물 잡기(가치 높은 순) > 체크 > 랜덤
     /// </summary>
-    private Move chooseNormal(Board board, Move[] allMoves) {
+    private Move chooseNormal(Board board, java.util.ArrayList<Move> allMoves) {
         // 상대 색상
         int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
 
@@ -119,7 +119,7 @@ public class AiPlayer extends Player {
         }
 
         // 4순위: 랜덤 선택
-        return allMoves[Util.rand(allMoves.length)];
+        return allMoves.get(Util.rand(allMoves.size()));
     }
 
     // ========== 프로모션 ==========

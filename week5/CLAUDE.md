@@ -101,7 +101,7 @@ java -cp out Main
   /// 사용자가 입력한 번호(1번부터 시작)로 상품 찾기
   /// 존재하지 않는 번호면 null 반환
   ```
-- **메서드 주석 스타일**: 메서드 설명은 `/// <summary>` 형식 사용
+- **`/// <summary>` 주석 필수**: 메서드와 필드 모두 `/// <summary>` 형식으로 설명 작성 (IDE에서 마우스 커서를 올리면 바로 확인 가능)
   ```java
   /// <summary>
   /// 메서드 설명
@@ -109,6 +109,11 @@ java -cp out Main
   void someMethod() {
       // ...
   }
+
+  /// <summary>
+  /// 필드 설명
+  /// </summary>
+  private final ArrayList<Move> allMoves = new ArrayList<>();
   ```
 - **try-catch 사용 원칙**: 실제 예외가 발생할 수 있는 상황에서만 사용
   - **사용하지 말 것**: 단순 입력 검증 (숫자 파싱 등) → `hasNextInt()` 같은 검증 메서드 활용

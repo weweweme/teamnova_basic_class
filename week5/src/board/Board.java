@@ -100,6 +100,12 @@ public abstract class Board {
     private int filteredCount;
 
     /// <summary>
+    /// 특정 색상의 모든 합법적인 수를 모아두는 목록
+    /// getAllValidMoves() 호출 시 매번 새로 만들지 않고 재사용
+    /// </summary>
+    private final ArrayList<Move> allMoves = new ArrayList<>();
+
+    /// <summary>
     /// 잡힌 기물을 가치순으로 정렬하여 표시할 때 사용하는 목록
     /// capturedPieces의 내용을 복사해서 정렬 (원본 순서를 바꾸지 않기 위해)
     /// 매번 새로 만들지 않고 재사용
@@ -332,7 +338,7 @@ public abstract class Board {
     /// </summary>
     public boolean isInArray(int row, int col, int[][] array, int count) {
         for (int i = 0; i < count; i++) {
-            if (array[i][0] == row && array[i][1] == col) {
+            if (array[i][ROW] == row && array[i][COL] == col) {
                 return true;
             }
         }
@@ -403,23 +409,23 @@ public abstract class Board {
         king.col = move.toCol;
         king.hasMoved = true;
 
+        Piece rook;
         if (move.toCol > move.fromCol) {
             // 킹사이드: 룩 h열 → f열
-            Piece rook = grid[move.fromRow][KINGSIDE_ROOK_COL].getPiece();
+            rook = grid[move.fromRow][KINGSIDE_ROOK_COL].getPiece();
             grid[move.fromRow][KINGSIDE_ROOK_DEST].setPiece(rook);
             grid[move.fromRow][KINGSIDE_ROOK_COL].removePiece();
             rook.row = move.fromRow;
             rook.col = KINGSIDE_ROOK_DEST;
-            rook.hasMoved = true;
         } else {
             // 퀸사이드: 룩 a열 → d열
-            Piece rook = grid[move.fromRow][QUEENSIDE_ROOK_COL].getPiece();
+            rook = grid[move.fromRow][QUEENSIDE_ROOK_COL].getPiece();
             grid[move.fromRow][QUEENSIDE_ROOK_DEST].setPiece(rook);
             grid[move.fromRow][QUEENSIDE_ROOK_COL].removePiece();
             rook.row = move.fromRow;
             rook.col = QUEENSIDE_ROOK_DEST;
-            rook.hasMoved = true;
         }
+        rook.hasMoved = true;
     }
 
     // ========== 프로모션 ==========
@@ -485,8 +491,8 @@ public abstract class Board {
         int rawCount = piece.getValidMoves(grid);
 
         for (int i = 0; i < rawCount; i++) {
-            int destRow = piece.moveBuffer[i][0];
-            int destCol = piece.moveBuffer[i][1];
+            int destRow = piece.moveBuffer[i][ROW];
+            int destCol = piece.moveBuffer[i][COL];
 
             // 방패가 걸린 상대 기물은 잡을 수 없음
             if (grid[destRow][destCol].hasPiece()) {
@@ -499,8 +505,8 @@ public abstract class Board {
             Move move = new Move(row, col, destRow, destCol);
             // 이 수를 두면 자기 킹이 체크되는지 확인
             if (!wouldBeInCheck(move, piece.color)) {
-                filteredBuffer[filteredCount][0] = destRow;
-                filteredBuffer[filteredCount][1] = destCol;
+                filteredBuffer[filteredCount][ROW] = destRow;
+                filteredBuffer[filteredCount][COL] = destCol;
                 filteredCount++;
             }
         }
@@ -530,8 +536,8 @@ public abstract class Board {
     /// 특정 색상의 모든 합법적인 수 목록 반환
     /// 캐슬링, 앙파상 등 특수 규칙도 포함
     /// </summary>
-    public Move[] getAllValidMoves(int color) {
-        ArrayList<Move> allMoves = new ArrayList<>();
+    public ArrayList<Move> getAllValidMoves(int color) {
+        allMoves.clear();
 
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
@@ -546,12 +552,12 @@ public abstract class Board {
                 // getFilteredMoves가 캐슬링, 앙파상도 포함하여 반환
                 int moveCount = getFilteredMoves(r, c);
                 for (int i = 0; i < moveCount; i++) {
-                    allMoves.add(new Move(r, c, filteredBuffer[i][0], filteredBuffer[i][1]));
+                    allMoves.add(new Move(r, c, filteredBuffer[i][ROW], filteredBuffer[i][COL]));
                 }
             }
         }
 
-        return allMoves.toArray(new Move[0]);
+        return allMoves;
     }
 
     /// <summary>
@@ -609,8 +615,8 @@ public abstract class Board {
         boolean kingsidePathSafe = isSquareSafe(row, KINGSIDE_ROOK_DEST, opponentColor) && isSquareSafe(row, KINGSIDE_KING_DEST, opponentColor);
 
         if (kingsideRookReady && kingsidePathClear && kingsidePathSafe) {
-            filteredBuffer[filteredCount][0] = row;
-            filteredBuffer[filteredCount][1] = KINGSIDE_KING_DEST;
+            filteredBuffer[filteredCount][ROW] = row;
+            filteredBuffer[filteredCount][COL] = KINGSIDE_KING_DEST;
             filteredCount++;
         }
 
@@ -625,8 +631,8 @@ public abstract class Board {
         boolean queensidePathSafe = isSquareSafe(row, QUEENSIDE_KING_DEST, opponentColor) && isSquareSafe(row, QUEENSIDE_ROOK_DEST, opponentColor);
 
         if (queensideRookReady && queensidePathClear && queensidePathSafe) {
-            filteredBuffer[filteredCount][0] = row;
-            filteredBuffer[filteredCount][1] = QUEENSIDE_KING_DEST;
+            filteredBuffer[filteredCount][ROW] = row;
+            filteredBuffer[filteredCount][COL] = QUEENSIDE_KING_DEST;
             filteredCount++;
         }
     }
@@ -649,7 +655,7 @@ public abstract class Board {
                 // 해당 기물의 이동 가능한 칸에 목표 칸이 포함되면 안전하지 않음
                 int moveCount = piece.getValidMoves(grid);
                 for (int i = 0; i < moveCount; i++) {
-                    if (piece.moveBuffer[i][0] == row && piece.moveBuffer[i][1] == col) {
+                    if (piece.moveBuffer[i][ROW] == row && piece.moveBuffer[i][COL] == col) {
                         return false;
                     }
                 }
@@ -706,8 +712,8 @@ public abstract class Board {
         // 자기 킹이 위험해지지 않는지 확인 (앙파상은 잡히는 위치가 다르므로 별도 확인)
         Move enPassantMove = new Move(row, col, enPassantRow, enPassantCol);
         if (!wouldBeInCheckEnPassant(enPassantMove, pawn.color, lastMove.toRow, lastMove.toCol)) {
-            filteredBuffer[filteredCount][0] = enPassantRow;
-            filteredBuffer[filteredCount][1] = enPassantCol;
+            filteredBuffer[filteredCount][ROW] = enPassantRow;
+            filteredBuffer[filteredCount][COL] = enPassantCol;
             filteredCount++;
         }
     }
@@ -804,6 +810,6 @@ public abstract class Board {
     /// 특정 색상에 합법적인 수가 하나도 없는지 확인
     /// </summary>
     private boolean hasNoValidMoves(int color) {
-        return getAllValidMoves(color).length == 0;
+        return getAllValidMoves(color).isEmpty();
     }
 }

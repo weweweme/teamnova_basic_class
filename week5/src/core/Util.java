@@ -23,6 +23,20 @@ public class Util {
     // 하나의 좌표를 이루는 값의 수 (행, 열 = 2개)
     public static final int COORD_SIZE = 2;
 
+    // 프로모션 선택 상수 (폰 승격 시 변환할 기물)
+
+    // 퀸으로 승격
+    public static final int PROMOTE_QUEEN = 1;
+
+    // 룩으로 승격
+    public static final int PROMOTE_ROOK = 2;
+
+    // 비숍으로 승격
+    public static final int PROMOTE_BISHOP = 3;
+
+    // 나이트로 승격
+    public static final int PROMOTE_KNIGHT = 4;
+
     // 행동 선택 상수 (스킬 모드에서 플레이어가 선택하는 행동)
 
     // 기물 이동

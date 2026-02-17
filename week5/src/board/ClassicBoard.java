@@ -143,16 +143,16 @@ public class ClassicBoard extends SimpleBoard {
     public void promote(int row, int col, int choice) {
         Piece piece = grid[row][col].getPiece();
         switch (choice) {
-            case 1:
+            case Util.PROMOTE_QUEEN:
                 PieceFactory.configure(piece, PieceType.QUEEN);
                 break;
-            case 2:
+            case Util.PROMOTE_ROOK:
                 PieceFactory.configure(piece, PieceType.ROOK);
                 break;
-            case 3:
+            case Util.PROMOTE_BISHOP:
                 PieceFactory.configure(piece, PieceType.BISHOP);
                 break;
-            case 4:
+            case Util.PROMOTE_KNIGHT:
                 PieceFactory.configure(piece, PieceType.KNIGHT);
                 break;
         }

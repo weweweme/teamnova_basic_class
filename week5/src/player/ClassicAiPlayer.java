@@ -1,6 +1,7 @@
 package player;
 
 import board.SimpleBoard;
+import core.Util;
 
 /// <summary>
 /// AI 플레이어 (공식 모드)
@@ -21,6 +22,6 @@ public class ClassicAiPlayer extends AiPlayer implements Promotable {
     /// </summary>
     @Override
     public int choosePromotion(SimpleBoard board) {
-        return 1;
+        return Util.PROMOTE_QUEEN;
     }
 }

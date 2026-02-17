@@ -32,7 +32,7 @@ public class ClassicHumanPlayer extends HumanPlayer implements Promotable {
         // 유효한 키가 입력될 때까지 반복
         while (true) {
             int key = Util.readInt();
-            if (key >= 1 && key <= 4) {
+            if (key >= Util.PROMOTE_QUEEN && key <= Util.PROMOTE_KNIGHT) {
                 return key;
             }
         }

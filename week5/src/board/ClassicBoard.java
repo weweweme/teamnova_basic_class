@@ -43,15 +43,24 @@ public class ClassicBoard extends SimpleBoard {
     public void executeMove(Move move) {
         Piece piece = grid[move.fromRow][move.fromCol].getPiece();
 
-        // 캐슬링 감지 (킹이 2칸 이동)
-        if (piece instanceof King && Math.abs(move.toCol - move.fromCol) == 2) {
+        // 캐슬링 감지 (킹이 2칸 옆으로 이동)
+        boolean isKing = piece instanceof King;                          // 이동한 기물이 킹인지
+        boolean movedTwoColumns = Math.abs(move.toCol - move.fromCol) == 2;  // 2칸 옆으로 이동했는지
+        boolean isCastling = isKing && movedTwoColumns;
+
+        if (isCastling) {
             executeCastling(move);
             saveLastMove(move);
             return;
         }
 
         // 앙파상 감지 (폰이 대각선으로 빈 칸에 이동)
-        if (piece instanceof Pawn && move.fromCol != move.toCol && grid[move.toRow][move.toCol].isEmpty()) {
+        boolean isPawn = piece instanceof Pawn;                          // 이동한 기물이 폰인지
+        boolean movedDiagonally = move.fromCol != move.toCol;           // 열이 바뀌었는지 (대각선 이동)
+        boolean destEmpty = grid[move.toRow][move.toCol].isEmpty();     // 도착 칸이 비어있는지
+        boolean isEnPassant = isPawn && movedDiagonally && destEmpty;
+
+        if (isEnPassant) {
             // 잡힌 폰 기록 및 제거
             capturedPieces.add(grid[move.fromRow][move.toCol].getPiece());
             grid[move.fromRow][move.toCol].removePiece();
@@ -121,8 +130,9 @@ public class ClassicBoard extends SimpleBoard {
             return false;
         }
         // 빨간팀은 0행(8번 줄), 파란팀은 7행(1번 줄)이 끝
-        return (piece.color == Piece.RED && move.toRow == 0) ||
-               (piece.color == Piece.BLUE && move.toRow == 7);
+        boolean isRedAtEnd = piece.color == Piece.RED && move.toRow == 0;
+        boolean isBlueAtEnd = piece.color == Piece.BLUE && move.toRow == 7;
+        return isRedAtEnd || isBlueAtEnd;
     }
 
     /// <summary>

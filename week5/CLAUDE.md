@@ -57,6 +57,19 @@ java -cp out Main
   int b = 2;
   int c = 3;
   ```
+- **복합 조건은 boolean 변수로 분리**: if 조건에 `&&`/`||`가 2개 이상이면 각 조건을 의미 있는 이름의 boolean 지역변수로 분리
+  ```java
+  // 나쁜 예: 한 줄에 조건이 너무 많음
+  if (piece instanceof Pawn && move.fromCol != move.toCol && grid[move.toRow][move.toCol].isEmpty()) {
+
+  // 좋은 예: 각 조건에 이름을 부여
+  boolean isPawn = piece instanceof Pawn;
+  boolean movedDiagonally = move.fromCol != move.toCol;
+  boolean destEmpty = grid[move.toRow][move.toCol].isEmpty();
+  boolean isEnPassant = isPawn && movedDiagonally && destEmpty;
+
+  if (isEnPassant) {
+  ```
 - **조건문 선택 기준 (if-else vs switch)**:
   - `if-else`: 복합 조건 (범위 비교, AND/OR 조합, null 체크, 객체 비교)
   - `switch`: 단일 값으로 여러 분기 처리 (메뉴 선택, 열거형 등)

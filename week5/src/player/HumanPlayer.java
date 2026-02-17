@@ -174,7 +174,9 @@ public class HumanPlayer extends Player {
         }
 
         // 보드 범위 확인
-        if (newRow < 0 || newRow >= SimpleBoard.SIZE || newCol < 0 || newCol >= SimpleBoard.SIZE) {
+        boolean rowOutOfBounds = newRow < 0 || newRow >= SimpleBoard.SIZE;   // 행이 보드 범위를 넘는지
+        boolean colOutOfBounds = newCol < 0 || newCol >= SimpleBoard.SIZE;   // 열이 보드 범위를 넘는지
+        if (rowOutOfBounds || colOutOfBounds) {
             return null;  // 범위 밖이면 이동하지 않음
         }
 

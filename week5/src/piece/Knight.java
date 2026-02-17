@@ -41,7 +41,9 @@ public class Knight extends Piece {
             int c = col + offset[1];
 
             // 보드 범위 확인
-            if (r < 0 || r >= 8 || c < 0 || c >= 8) {
+            boolean rowOutOfBounds = r < 0 || r >= 8;   // 행이 보드 범위를 넘는지
+            boolean colOutOfBounds = c < 0 || c >= 8;   // 열이 보드 범위를 넘는지
+            if (rowOutOfBounds || colOutOfBounds) {
                 continue;
             }
 

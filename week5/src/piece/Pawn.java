@@ -32,12 +32,19 @@ public class Pawn extends Piece {
 
         // 1칸 전진 (빈 칸일 때만)
         int oneStep = row + direction;
-        if (oneStep >= 0 && oneStep < 8 && board[oneStep][col].isEmpty()) {
+        boolean oneStepInBounds = oneStep >= 0 && oneStep < 8;   // 1칸 앞이 보드 안인지
+        boolean oneStepEmpty = oneStepInBounds && board[oneStep][col].isEmpty();  // 앞 칸이 비어있는지
+
+        if (oneStepEmpty) {
             addMove(oneStep, col);
 
             // 2칸 전진 (첫 이동이고, 앞 2칸 모두 빈 칸일 때만)
             int twoStep = row + direction * 2;
-            if (!hasMoved && twoStep >= 0 && twoStep < 8 && board[twoStep][col].isEmpty()) {
+            boolean isFirstMove = !hasMoved;                         // 아직 한 번도 움직이지 않았는지
+            boolean twoStepInBounds = twoStep >= 0 && twoStep < 8;  // 2칸 앞이 보드 안인지
+            boolean twoStepEmpty = twoStepInBounds && board[twoStep][col].isEmpty();  // 2칸 앞이 비어있는지
+
+            if (isFirstMove && twoStepEmpty) {
                 addMove(twoStep, col);
             }
         }
@@ -46,7 +53,9 @@ public class Pawn extends Piece {
         int[] captureCols = {col - 1, col + 1};  // 왼쪽 대각선, 오른쪽 대각선
         for (int captureCol : captureCols) {
             // 보드 범위 확인
-            if (oneStep < 0 || oneStep >= 8 || captureCol < 0 || captureCol >= 8) {
+            boolean rowOutOfBounds = oneStep < 0 || oneStep >= 8;       // 행이 보드 범위를 넘는지
+            boolean colOutOfBounds = captureCol < 0 || captureCol >= 8; // 열이 보드 범위를 넘는지
+            if (rowOutOfBounds || colOutOfBounds) {
                 continue;
             }
 

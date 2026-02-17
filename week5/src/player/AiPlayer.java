@@ -173,7 +173,9 @@ public class AiPlayer extends Player {
         }
 
         // 방패 스킬 확인 (인덱스 1): 20% 확률로 사용
-        if (skills[1].hasUses() && skills[1].canUse(board.grid, color) && Util.rand(5) == 0) {
+        boolean shieldAvailable = skills[1].hasUses() && skills[1].canUse(board.grid, color);  // 방패 스킬을 사용할 수 있는지
+        boolean randomTrigger = Util.rand(5) == 0;  // 20% 확률로 발동하는지
+        if (shieldAvailable && randomTrigger) {
             return 1;  // 스킬
         }
 

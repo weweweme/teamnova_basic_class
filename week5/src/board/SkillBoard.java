@@ -143,7 +143,9 @@ public class SkillBoard extends ClassicBoard {
     /// 지정한 칸의 아이템 반환 (없으면 null)
     /// </summary>
     public Item getItem(int row, int col) {
-        if (row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
+        boolean rowOutOfBounds = row < 0 || row >= SIZE;   // 행이 보드 범위를 넘는지
+        boolean colOutOfBounds = col < 0 || col >= SIZE;   // 열이 보드 범위를 넘는지
+        if (rowOutOfBounds || colOutOfBounds) {
             return null;
         }
         return skillCell(row, col).getItem();

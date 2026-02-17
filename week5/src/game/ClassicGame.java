@@ -3,6 +3,7 @@ package game;
 import board.*;
 import core.*;
 import player.Player;
+import player.Promotable;
 
 /// <summary>
 /// 공식 체스 게임
@@ -57,7 +58,7 @@ public class ClassicGame extends Game {
 
         // 프로모션 확인 (폰이 끝 줄에 도착하면 승격)
         if (classicBoard.isPromotion(move)) {
-            int choice = currentPlayer.choosePromotion(board);
+            int choice = ((Promotable) currentPlayer).choosePromotion(board);
             classicBoard.promote(move.toRow, move.toCol, choice);
         }
 

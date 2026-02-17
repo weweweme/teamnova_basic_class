@@ -4,6 +4,8 @@ import board.*;
 import core.*;
 import piece.Piece;
 import player.Player;
+import player.Promotable;
+import player.SkillCapable;
 import skill.*;
 import item.*;
 
@@ -43,6 +45,16 @@ public class SkillGame extends Game {
         // 각 팀에 아이템 2개씩 지급
         redItems = new Item[]{new BombItem(), new TrapItem()};
         blueItems = new Item[]{new BombItem(), new TrapItem()};
+    }
+
+    // ========== 헬퍼 ==========
+
+    /// <summary>
+    /// 현재 플레이어를 SkillPlayer로 캐스팅하여 반환
+    /// 스킬/아이템 메서드 호출 시 사용
+    /// </summary>
+    private SkillCapable skillCapable() {
+        return (SkillCapable) currentPlayer;
     }
 
     // ========== 보드 생성 ==========
@@ -127,7 +139,7 @@ public class SkillGame extends Game {
         );
 
         // 4단계: 행동 선택
-        int action = currentPlayer.chooseAction(board, skills, items);
+        int action = skillCapable().chooseAction(board, skills, items);
 
         switch (action) {
             case 1:
@@ -191,7 +203,7 @@ public class SkillGame extends Game {
 
         // 프로모션 확인
         if (skillBoard.isPromotion(move)) {
-            int choice = currentPlayer.choosePromotion(board);
+            int choice = ((Promotable) currentPlayer).choosePromotion(board);
             skillBoard.promote(move.toRow, move.toCol, choice);
         }
 
@@ -204,7 +216,7 @@ public class SkillGame extends Game {
     /// </summary>
     private boolean handleSkill(Skill[] skills) {
         // 스킬 선택
-        int skillIndex = currentPlayer.chooseSkill(board, skills);
+        int skillIndex = skillCapable().chooseSkill(board, skills);
         if (skillIndex == Util.NONE) {
             return false;
         }
@@ -222,7 +234,7 @@ public class SkillGame extends Game {
             return false;
         }
 
-        int[] target = currentPlayer.chooseSkillTarget(board, skill.targets, skill.targetCount);
+        int[] target = skillCapable().chooseSkillTarget(board, skill.targets, skill.targetCount);
         if (target == null) {
             return false;
         }
@@ -252,7 +264,7 @@ public class SkillGame extends Game {
         }
 
         // 부활할 기물 선택
-        int pieceIndex = currentPlayer.chooseReviveTarget(board, captured);
+        int pieceIndex = skillCapable().chooseReviveTarget(board, captured);
         if (pieceIndex == Util.NONE) {
             return false;
         }
@@ -263,7 +275,7 @@ public class SkillGame extends Game {
             return false;
         }
 
-        int[] target = currentPlayer.chooseSkillTarget(board, skill.targets, skill.targetCount);
+        int[] target = skillCapable().chooseSkillTarget(board, skill.targets, skill.targetCount);
         if (target == null) {
             return false;
         }
@@ -289,7 +301,7 @@ public class SkillGame extends Game {
     /// </summary>
     private boolean handleItem(Item[] items) {
         // 아이템 종류 선택
-        int itemIndex = currentPlayer.chooseItemType(board, items);
+        int itemIndex = skillCapable().chooseItemType(board, items);
         if (itemIndex == Util.NONE) {
             return false;
         }
@@ -297,7 +309,7 @@ public class SkillGame extends Game {
         Item item = items[itemIndex];
 
         // 설치 위치 선택
-        int[] target = currentPlayer.chooseItemTarget(board);
+        int[] target = skillCapable().chooseItemTarget(board);
         if (target == null) {
             return false;
         }

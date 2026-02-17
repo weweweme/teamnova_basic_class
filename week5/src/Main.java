@@ -135,8 +135,8 @@ public class Main {
     /// 캐슬링, 앙파상, 프로모션 포함
     /// </summary>
     private static void startClassicGame() {
-        Player red = new HumanPlayer(Piece.RED, "플레이어 1");
-        Player blue = new HumanPlayer(Piece.BLUE, "플레이어 2");
+        Player red = new ClassicHumanPlayer(Piece.RED, "플레이어 1");
+        Player blue = new ClassicHumanPlayer(Piece.BLUE, "플레이어 2");
         Game game = new ClassicGame(red, blue);
         game.run();
     }
@@ -149,11 +149,11 @@ public class Main {
         Player blue;
 
         if (playerColor == 1) {
-            red = new HumanPlayer(Piece.RED, "플레이어");
-            blue = new AiPlayer(Piece.BLUE, "AI", difficulty);
+            red = new ClassicHumanPlayer(Piece.RED, "플레이어");
+            blue = new ClassicAiPlayer(Piece.BLUE, "AI", difficulty);
         } else {
-            red = new AiPlayer(Piece.RED, "AI", difficulty);
-            blue = new HumanPlayer(Piece.BLUE, "플레이어");
+            red = new ClassicAiPlayer(Piece.RED, "AI", difficulty);
+            blue = new ClassicHumanPlayer(Piece.BLUE, "플레이어");
         }
 
         Game game = new ClassicGame(red, blue);
@@ -165,8 +165,8 @@ public class Main {
     /// 스킬과 아이템을 사용할 수 있는 모드
     /// </summary>
     private static void startSkillGame() {
-        Player red = new HumanPlayer(Piece.RED, "플레이어 1");
-        Player blue = new HumanPlayer(Piece.BLUE, "플레이어 2");
+        Player red = new SkillHumanPlayer(Piece.RED, "플레이어 1");
+        Player blue = new SkillHumanPlayer(Piece.BLUE, "플레이어 2");
         Game game = new SkillGame(red, blue);
         game.run();
     }
@@ -179,11 +179,11 @@ public class Main {
         Player blue;
 
         if (playerColor == 1) {
-            red = new HumanPlayer(Piece.RED, "플레이어");
-            blue = new AiPlayer(Piece.BLUE, "AI", difficulty);
+            red = new SkillHumanPlayer(Piece.RED, "플레이어");
+            blue = new SkillAiPlayer(Piece.BLUE, "AI", difficulty);
         } else {
-            red = new AiPlayer(Piece.RED, "AI", difficulty);
-            blue = new HumanPlayer(Piece.BLUE, "플레이어");
+            red = new SkillAiPlayer(Piece.RED, "AI", difficulty);
+            blue = new SkillHumanPlayer(Piece.BLUE, "플레이어");
         }
 
         Game game = new SkillGame(red, blue);

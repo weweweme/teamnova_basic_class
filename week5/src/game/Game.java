@@ -8,7 +8,7 @@ import player.Player;
 /// <summary>
 /// 게임 추상 클래스 (템플릿 메서드 패턴)
 /// 게임 루프의 전체 흐름을 정의하고, 턴 처리 방식은 하위 클래스가 구현
-/// BasicGame: 기본 체스, StandardGame: 공식 체스, SkillGame: 스킬+아이템 모드
+/// SimpleGame: 기본 체스, ClassicGame: 공식 체스, SkillGame: 스킬+아이템 모드
 /// </summary>
 public abstract class Game {
 
@@ -83,15 +83,15 @@ public abstract class Game {
 
     /// <summary>
     /// 게임에 맞는 보드를 생성하여 반환
-    /// BasicGame: SimpleBoard, StandardGame: ClassicBoard, SkillGame: SkillBoard
+    /// SimpleGame: SimpleBoard, ClassicGame: ClassicBoard, SkillGame: SkillBoard
     /// </summary>
     protected abstract SimpleBoard createBoard();
 
     /// <summary>
     /// 한 턴의 처리를 수행
     /// 각 하위 클래스가 자기만의 턴 진행 방식으로 구현 (메서드 오버라이딩)
-    /// BasicGame: 수 선택 → 이동 (프로모션 없음)
-    /// StandardGame: 수 선택 → 이동 → 프로모션
+    /// SimpleGame: 수 선택 → 이동 (프로모션 없음)
+    /// ClassicGame: 수 선택 → 이동 → 프로모션
     /// SkillGame: 효과 정리 → 행동 선택(이동/스킬/아이템) → 아이템 트리거 → 효과 정리
     /// true 반환 시 게임 종료 요청
     /// </summary>

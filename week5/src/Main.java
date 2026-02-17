@@ -29,7 +29,7 @@ public class Main {
                 case 1:
                     // 기본 체스 2인 대전
                     Util.clearScreen();
-                    startBasicGame();
+                    startSimpleGame();
                     running = false;
                     break;
                 case 2:
@@ -43,13 +43,13 @@ public class Main {
                         break;
                     }
                     Util.clearScreen();
-                    startBasicAiGame(color2, diff2);
+                    startSimpleAiGame(color2, diff2);
                     running = false;
                     break;
                 case 3:
                     // 공식 체스 2인 대전
                     Util.clearScreen();
-                    startStandardGame();
+                    startClassicGame();
                     running = false;
                     break;
                 case 4:
@@ -63,7 +63,7 @@ public class Main {
                         break;
                     }
                     Util.clearScreen();
-                    startStandardAiGame(color4, diff4);
+                    startClassicAiGame(color4, diff4);
                     running = false;
                     break;
                 case 5:
@@ -104,17 +104,17 @@ public class Main {
     /// 기본 체스 2인 대전 시작
     /// 기물의 기본 이동만 사용 (캐슬링/앙파상/프로모션 없음)
     /// </summary>
-    private static void startBasicGame() {
+    private static void startSimpleGame() {
         Player red = new HumanPlayer(Piece.RED, "플레이어 1");
         Player blue = new HumanPlayer(Piece.BLUE, "플레이어 2");
-        Game game = new BasicGame(red, blue);
+        Game game = new SimpleGame(red, blue);
         game.run();
     }
 
     /// <summary>
     /// 기본 체스 AI 대전 시작
     /// </summary>
-    private static void startBasicAiGame(int playerColor, int difficulty) {
+    private static void startSimpleAiGame(int playerColor, int difficulty) {
         Player red;
         Player blue;
 
@@ -126,7 +126,7 @@ public class Main {
             blue = new HumanPlayer(Piece.BLUE, "플레이어");
         }
 
-        Game game = new BasicGame(red, blue);
+        Game game = new SimpleGame(red, blue);
         game.run();
     }
 
@@ -134,17 +134,17 @@ public class Main {
     /// 공식 체스 2인 대전 시작
     /// 캐슬링, 앙파상, 프로모션 포함
     /// </summary>
-    private static void startStandardGame() {
+    private static void startClassicGame() {
         Player red = new HumanPlayer(Piece.RED, "플레이어 1");
         Player blue = new HumanPlayer(Piece.BLUE, "플레이어 2");
-        Game game = new StandardGame(red, blue);
+        Game game = new ClassicGame(red, blue);
         game.run();
     }
 
     /// <summary>
     /// 공식 체스 AI 대전 시작
     /// </summary>
-    private static void startStandardAiGame(int playerColor, int difficulty) {
+    private static void startClassicAiGame(int playerColor, int difficulty) {
         Player red;
         Player blue;
 
@@ -156,7 +156,7 @@ public class Main {
             blue = new HumanPlayer(Piece.BLUE, "플레이어");
         }
 
-        Game game = new StandardGame(red, blue);
+        Game game = new ClassicGame(red, blue);
         game.run();
     }
 

@@ -251,8 +251,8 @@ SimpleBoard (기본 이동, 체크, 체크메이트)
 
 ```
 Game (abstract - 게임 루프, 턴 관리)
- ├── BasicGame     (SimpleBoard, 프로모션 없음)
- ├── StandardGame  (ClassicBoard, 프로모션 처리)
+ ├── SimpleGame     (SimpleBoard, 프로모션 없음)
+ ├── ClassicGame  (ClassicBoard, 프로모션 처리)
  └── SkillGame     (SkillBoard, 스킬/아이템 + 프로모션)
 ```
 
@@ -262,8 +262,8 @@ Game (abstract - 게임 루프, 턴 관리)
 |------|------|
 | `Main` | 타이틀 화면, 모드 선택 (기본/공식/스킬 × 2인/AI), 게임 시작 |
 | `Game` | **추상 클래스** - 게임 루프, 턴 관리, 체크/체크메이트 판정 |
-| `BasicGame` | 기본 체스 게임 (이동만, 프로모션 없음) |
-| `StandardGame` | 공식 체스 게임 (이동 + 프로모션) |
+| `SimpleGame` | 기본 체스 게임 (이동만, 프로모션 없음) |
+| `ClassicGame` | 공식 체스 게임 (이동 + 프로모션) |
 | `SkillGame` | 스킬 모드 게임 (이동 + 프로모션 + 스킬/아이템) |
 | `SimpleBoard` | 8x8 격자, 기본 이동, 체크 판정, `addSpecialMoves()` 훅 |
 | `ClassicBoard` | 공식 체스판 (캐슬링, 앙파상, 프로모션 추가) |

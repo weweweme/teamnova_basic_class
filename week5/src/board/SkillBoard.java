@@ -85,6 +85,20 @@ public class SkillBoard extends ClassicBoard {
     /// 보드 출력 (스킬 모드용, 자기 아이템/효과 표시)
     /// viewerColor: 이 색상의 플레이어에게만 자기 아이템이 보임
     /// </summary>
+    /// <summary>
+    /// 보드 기본 출력 (커서/선택 없이 시점만 지정)
+    /// </summary>
+    public void print(int viewerColor) {
+        print(Util.NONE, Util.NONE, Util.NONE, Util.NONE, EMPTY_MOVES, 0, viewerColor);
+    }
+
+    /// <summary>
+    /// 커서만 표시하며 보드 출력 (기물 탐색 모드, 스킬 모드용)
+    /// </summary>
+    public void print(int cursorRow, int cursorCol, int viewerColor) {
+        print(cursorRow, cursorCol, Util.NONE, Util.NONE, EMPTY_MOVES, 0, viewerColor);
+    }
+
     public void print(int cursorRow, int cursorCol, int selectedRow, int selectedCol, int[][] validMoves, int validMoveCount, int viewerColor) {
         // 렌더링 시 사용할 플레이어 색상 설정
         currentViewerColor = viewerColor;

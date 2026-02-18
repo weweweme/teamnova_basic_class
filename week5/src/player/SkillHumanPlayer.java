@@ -52,7 +52,7 @@ public class SkillHumanPlayer extends ClassicHumanPlayer implements SkillCapable
 
         SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(Util.NONE, Util.NONE, Util.NONE, Util.NONE, SimpleBoard.EMPTY_MOVES, 0, color);
+        skillBoard.print(color);
         System.out.println();
         System.out.println(name + "의 차례 (" + getColorName() + ")");
         if (board.isInCheck(color)) {
@@ -97,15 +97,14 @@ public class SkillHumanPlayer extends ClassicHumanPlayer implements SkillCapable
     public int chooseSkill(SimpleBoard board, Skill[] skills) {
         SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(Util.NONE, Util.NONE, Util.NONE, Util.NONE, SimpleBoard.EMPTY_MOVES, 0, color);
+        skillBoard.print(color);
         System.out.println();
         System.out.println("스킬을 선택하세요:");
 
         for (int i = 0; i < skills.length; i++) {
             Skill skill = skills[i];
             String available = (skill.hasUses() && skill.canUse(board.grid, color)) ? "" : " (사용 불가)";
-            System.out.println("[" + (i + 1) + "] " + skill.name + " - " + skill.description
-                    + " (남은 " + skill.remainingUses + "회)" + available);
+            System.out.println("[" + (i + 1) + "] " + skill.name + " - " + skill.description + " (남은 " + skill.remainingUses + "회)" + available);
         }
         System.out.println("[0] 취소");
 
@@ -169,7 +168,7 @@ public class SkillHumanPlayer extends ClassicHumanPlayer implements SkillCapable
     public int chooseItemType(SimpleBoard board, Item[] items) {
         SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(Util.NONE, Util.NONE, Util.NONE, Util.NONE, SimpleBoard.EMPTY_MOVES, 0, color);
+        skillBoard.print(color);
         System.out.println();
         System.out.println("아이템을 선택하세요:");
 
@@ -207,7 +206,7 @@ public class SkillHumanPlayer extends ClassicHumanPlayer implements SkillCapable
 
         while (true) {
             Util.clearScreen();
-            skillBoard.print(cursorRow, cursorCol, Util.NONE, Util.NONE, SimpleBoard.EMPTY_MOVES, 0, color);
+            skillBoard.print(cursorRow, cursorCol, color);
             System.out.println();
             System.out.println("아이템을 설치할 빈 칸을 선택하세요");
             System.out.println("방향키: 이동 | Enter: 확정 | q: 취소");
@@ -242,7 +241,7 @@ public class SkillHumanPlayer extends ClassicHumanPlayer implements SkillCapable
     public int chooseReviveTarget(SimpleBoard board, Piece[] captured) {
         SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(Util.NONE, Util.NONE, Util.NONE, Util.NONE, SimpleBoard.EMPTY_MOVES, 0, color);
+        skillBoard.print(color);
         System.out.println();
         System.out.println("부활할 기물을 선택하세요:");
 

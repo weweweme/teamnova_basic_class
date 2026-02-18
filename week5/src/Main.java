@@ -230,12 +230,12 @@ public class Main {
         while (true) {
             Util.clearScreen();
             System.out.println("========================================");
-            System.out.println("  시연 모드");
+            System.out.println("  튜토리얼");
             System.out.println("========================================");
             System.out.println();
-            System.out.println("[" + DEMO_SIMPLE + "] 기본 모드 시연 (Piece 상속)");
-            System.out.println("[" + DEMO_CLASSIC + "] 공식 모드 시연 (Board 상속)");
-            System.out.println("[" + DEMO_SKILL + "] 스킬 모드 시연 (Board 상속 + 스킬)");
+            System.out.println("[" + DEMO_SIMPLE + "] 기본 체스");
+            System.out.println("[" + DEMO_CLASSIC + "] 공식 체스");
+            System.out.println("[" + DEMO_SKILL + "] 스킬 모드");
             System.out.println("[" + DEMO_BACK + "] 돌아가기");
 
             int key = Util.readInt();
@@ -290,7 +290,7 @@ public class Main {
         System.out.println("[" + MODE_CLASSIC_AI + "] 공식 체스 (AI)");
         System.out.println("[" + MODE_SKILL_2P + "] 스킬 모드 (2인)");
         System.out.println("[" + MODE_SKILL_AI + "] 스킬 모드 (AI)");
-        System.out.println("[" + MODE_DEMO + "] 시연 모드");
+        System.out.println("[" + MODE_DEMO + "] 튜토리얼");
         System.out.println("[" + MODE_QUIT + "] 종료");
 
         // 유효한 키가 입력될 때까지 반복

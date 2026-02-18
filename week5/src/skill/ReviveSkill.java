@@ -53,7 +53,7 @@ public class ReviveSkill extends Skill {
         }
 
         // 뒷줄에 빈 칸이 하나라도 있는지 확인
-        int backRow = (color == Piece.RED) ? 7 : 0;
+        int backRow = (color == Piece.RED) ? Util.BOARD_SIZE - 1 : 0;
         for (int c = 0; c < Util.BOARD_SIZE; c++) {
             if (grid[backRow][c].isEmpty()) {
                 return true;
@@ -69,7 +69,7 @@ public class ReviveSkill extends Skill {
     @Override
     public void findTargets(Cell[][] grid, int color) {
         // 빨간팀 뒷줄: 7행(1번 줄), 파란팀 뒷줄: 0행(8번 줄)
-        int backRow = (color == Piece.RED) ? 7 : 0;
+        int backRow = (color == Piece.RED) ? Util.BOARD_SIZE - 1 : 0;
         targetCount = 0;
 
         for (int c = 0; c < Util.BOARD_SIZE; c++) {

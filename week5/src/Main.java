@@ -31,6 +31,9 @@ public class Main {
     // 스킬 모드 AI 대전
     private static final int MODE_SKILL_AI = 6;
 
+    // 시연 모드
+    private static final int MODE_DEMO = 7;
+
     // 종료
     private static final int MODE_QUIT = 0;
 
@@ -101,6 +104,11 @@ public class Main {
                     }
                     Util.clearScreen();
                     startSkillAiGame(color6, diff6);
+                    running = false;
+                    break;
+                case MODE_DEMO:
+                    Util.clearScreen();
+                    startDemo();
                     running = false;
                     break;
                 default:
@@ -207,6 +215,48 @@ public class Main {
         game.run();
     }
 
+    /// <summary>
+    /// 시연 모드 시작
+    /// 기본 → 공식 → 스킬 순서로 시연 게임을 진행
+    /// 각 시연에서 q를 누르면 다음 시연으로 넘어감
+    /// </summary>
+    private static void startDemo() {
+        // 1단계: 기본 모드 시연 (Piece 상속 구조)
+        Game demo1 = new DemoSimpleGame();
+        demo1.run();
+
+        // 전환 화면
+        Util.clearScreen();
+        System.out.println("========================================");
+        System.out.println("  기본 모드 시연 완료!");
+        System.out.println("  다음: 공식 모드 시연");
+        System.out.println("  (아무 키나 누르세요)");
+        System.out.println("========================================");
+        Util.readKey();
+
+        // 2단계: 공식 모드 시연 (ClassicBoard 상속)
+        Game demo2 = new DemoClassicGame();
+        demo2.run();
+
+        // 전환 화면
+        Util.clearScreen();
+        System.out.println("========================================");
+        System.out.println("  공식 모드 시연 완료!");
+        System.out.println("  다음: 스킬 모드 시연");
+        System.out.println("  (아무 키나 누르세요)");
+        System.out.println("========================================");
+        Util.readKey();
+
+        // 3단계: 스킬 모드 시연 (SkillBoard 상속)
+        Game demo3 = new DemoSkillGame();
+        demo3.run();
+
+        Util.clearScreen();
+        System.out.println("========================================");
+        System.out.println("  시연 완료!");
+        System.out.println("========================================");
+    }
+
     // ========== 화면 ==========
 
     /// <summary>
@@ -241,12 +291,13 @@ public class Main {
         System.out.println("[" + MODE_CLASSIC_AI + "] 공식 체스 (AI)");
         System.out.println("[" + MODE_SKILL_2P + "] 스킬 모드 (2인)");
         System.out.println("[" + MODE_SKILL_AI + "] 스킬 모드 (AI)");
+        System.out.println("[" + MODE_DEMO + "] 시연 모드");
         System.out.println("[" + MODE_QUIT + "] 종료");
 
         // 유효한 키가 입력될 때까지 반복
         while (true) {
             int key = Util.readInt();
-            if (key >= MODE_QUIT && key <= MODE_SKILL_AI) {
+            if (key >= MODE_QUIT && key <= MODE_DEMO) {
                 return key;
             }
         }

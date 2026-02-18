@@ -93,6 +93,9 @@ public class SimpleBoard {
     private final StringBuilder redCaptures = new StringBuilder();
     private final StringBuilder blueCaptures = new StringBuilder();
 
+    // 보드 아래에 표시할 추가 메시지 (시연 모드 등에서 사용)
+    protected String footerMessage = "";
+
     // ========== 생성자 ==========
 
     /// <summary>
@@ -184,6 +187,52 @@ public class SimpleBoard {
         grid[RED_BACK_ROW][ROOK_RIGHT].setPiece(createPiece(PieceType.ROOK, Piece.RED, RED_BACK_ROW, ROOK_RIGHT));
     }
 
+    // ========== 보드 커스터마이즈 (시연 모드 등) ==========
+
+    /// <summary>
+    /// 보드 아래에 표시할 추가 메시지를 설정
+    /// 빈 문자열이면 표시하지 않음
+    /// </summary>
+    public void setFooterMessage(String message) {
+        this.footerMessage = message;
+    }
+
+    /// <summary>
+    /// 보드의 모든 기물을 제거
+    /// 커스텀 배치를 위해 빈 보드를 만들 때 사용
+    /// </summary>
+    public void clearAllPieces() {
+        for (int r = 0; r < Util.BOARD_SIZE; r++) {
+            for (int c = 0; c < Util.BOARD_SIZE; c++) {
+                if (grid[r][c].hasPiece()) {
+                    grid[r][c].removePiece();
+                }
+            }
+        }
+        capturedPieces.clear();
+        redKing = null;
+        blueKing = null;
+    }
+
+    /// <summary>
+    /// 특정 위치에 기물을 배치
+    /// 킹은 자동으로 내부 참조에 등록됨 (체크 판정에 필요)
+    /// createPiece()를 사용하므로 하위 클래스의 기물 타입에 맞게 생성됨
+    /// </summary>
+    public void placePiece(PieceType type, int color, int row, int col) {
+        Piece piece = createPiece(type, color, row, col);
+        grid[row][col].setPiece(piece);
+
+        // 킹이면 내부 참조 등록 (체크/체크메이트 판정에 사용)
+        if (type == PieceType.KING) {
+            if (color == Piece.RED) {
+                redKing = piece;
+            } else {
+                blueKing = piece;
+            }
+        }
+    }
+
     // ========== 보드 출력 ==========
 
     /// <summary>
@@ -241,6 +290,12 @@ public class SimpleBoard {
 
         // 잡은 기물 표시
         printCapturedPieces();
+
+        // 추가 메시지 표시 (시연 모드 등)
+        if (!footerMessage.isEmpty()) {
+            System.out.println();
+            System.out.println(footerMessage);
+        }
 
     }
 

@@ -11,6 +11,29 @@ public class Main {
 
     // 실행 명령어 java -cp out Main
 
+    // ========== 모드 선택 상수 ==========
+
+    // 기본 체스 2인 대전
+    private static final int MODE_SIMPLE_2P = 1;
+
+    // 기본 체스 AI 대전
+    private static final int MODE_SIMPLE_AI = 2;
+
+    // 공식 체스 2인 대전
+    private static final int MODE_CLASSIC_2P = 3;
+
+    // 공식 체스 AI 대전
+    private static final int MODE_CLASSIC_AI = 4;
+
+    // 스킬 모드 2인 대전
+    private static final int MODE_SKILL_2P = 5;
+
+    // 스킬 모드 AI 대전
+    private static final int MODE_SKILL_AI = 6;
+
+    // 종료
+    private static final int MODE_QUIT = 0;
+
     // ========== 진입점 ==========
 
     public static void main(String[] args) {
@@ -26,16 +49,14 @@ public class Main {
             int mode = selectMode();
 
             switch (mode) {
-                case 1:
-                    // 기본 체스 2인 대전
+                case MODE_SIMPLE_2P:
                     Util.clearScreen();
                     startSimpleGame();
                     running = false;
                     break;
-                case 2:
-                    // 기본 체스 AI 대전
+                case MODE_SIMPLE_AI:
                     int color2 = selectColor();
-                    if (color2 == 0) {
+                    if (color2 == Util.NONE) {
                         break;
                     }
                     int diff2 = selectDifficulty();
@@ -46,16 +67,14 @@ public class Main {
                     startSimpleAiGame(color2, diff2);
                     running = false;
                     break;
-                case 3:
-                    // 공식 체스 2인 대전
+                case MODE_CLASSIC_2P:
                     Util.clearScreen();
                     startClassicGame();
                     running = false;
                     break;
-                case 4:
-                    // 공식 체스 AI 대전
+                case MODE_CLASSIC_AI:
                     int color4 = selectColor();
-                    if (color4 == 0) {
+                    if (color4 == Util.NONE) {
                         break;
                     }
                     int diff4 = selectDifficulty();
@@ -66,16 +85,14 @@ public class Main {
                     startClassicAiGame(color4, diff4);
                     running = false;
                     break;
-                case 5:
-                    // 스킬 모드 2인 대전
+                case MODE_SKILL_2P:
                     Util.clearScreen();
                     startSkillGame();
                     running = false;
                     break;
-                case 6:
-                    // 스킬 모드 AI 대전
+                case MODE_SKILL_AI:
                     int color6 = selectColor();
-                    if (color6 == 0) {
+                    if (color6 == Util.NONE) {
                         break;
                     }
                     int diff6 = selectDifficulty();
@@ -87,7 +104,7 @@ public class Main {
                     running = false;
                     break;
                 default:
-                    // 0 → 종료
+                    // MODE_QUIT → 종료
                     System.out.println("\n게임을 종료합니다.");
                     running = false;
                     break;
@@ -118,7 +135,7 @@ public class Main {
         Player red;
         Player blue;
 
-        if (playerColor == 1) {
+        if (playerColor == Piece.RED) {
             red = new HumanPlayer(Piece.RED, "플레이어");
             blue = new AiPlayer(Piece.BLUE, "AI", difficulty);
         } else {
@@ -148,7 +165,7 @@ public class Main {
         Player red;
         Player blue;
 
-        if (playerColor == 1) {
+        if (playerColor == Piece.RED) {
             red = new ClassicHumanPlayer(Piece.RED, "플레이어");
             blue = new ClassicAiPlayer(Piece.BLUE, "AI", difficulty);
         } else {
@@ -178,7 +195,7 @@ public class Main {
         Player red;
         Player blue;
 
-        if (playerColor == 1) {
+        if (playerColor == Piece.RED) {
             red = new SkillHumanPlayer(Piece.RED, "플레이어");
             blue = new SkillAiPlayer(Piece.BLUE, "AI", difficulty);
         } else {
@@ -218,18 +235,18 @@ public class Main {
     /// </summary>
     private static int selectMode() {
         System.out.println();
-        System.out.println("[1] 기본 체스 (2인)");
-        System.out.println("[2] 기본 체스 (AI)");
-        System.out.println("[3] 공식 체스 (2인)");
-        System.out.println("[4] 공식 체스 (AI)");
-        System.out.println("[5] 스킬 모드 (2인)");
-        System.out.println("[6] 스킬 모드 (AI)");
-        System.out.println("[0] 종료");
+        System.out.println("[" + MODE_SIMPLE_2P + "] 기본 체스 (2인)");
+        System.out.println("[" + MODE_SIMPLE_AI + "] 기본 체스 (AI)");
+        System.out.println("[" + MODE_CLASSIC_2P + "] 공식 체스 (2인)");
+        System.out.println("[" + MODE_CLASSIC_AI + "] 공식 체스 (AI)");
+        System.out.println("[" + MODE_SKILL_2P + "] 스킬 모드 (2인)");
+        System.out.println("[" + MODE_SKILL_AI + "] 스킬 모드 (AI)");
+        System.out.println("[" + MODE_QUIT + "] 종료");
 
         // 유효한 키가 입력될 때까지 반복
         while (true) {
             int key = Util.readInt();
-            if (key >= 0 && key <= 6) {
+            if (key >= MODE_QUIT && key <= MODE_SKILL_AI) {
                 return key;
             }
         }
@@ -241,22 +258,26 @@ public class Main {
     /// 유효한 키가 눌릴 때까지 대기
     /// </summary>
     private static int selectDifficulty() {
+        final int KEY_BACK = 0;
+        final int KEY_EASY = 1;
+        final int KEY_NORMAL = 2;
+
         System.out.println();
         System.out.println("난이도를 선택하세요:");
-        System.out.println("[1] 쉬움");
-        System.out.println("[2] 보통");
-        System.out.println("[0] 돌아가기");
+        System.out.println("[" + KEY_EASY + "] 쉬움");
+        System.out.println("[" + KEY_NORMAL + "] 보통");
+        System.out.println("[" + KEY_BACK + "] 돌아가기");
 
         // 유효한 키가 입력될 때까지 반복
         while (true) {
             int key = Util.readInt();
-            if (key == 0) {
-                return Util.NONE;  // 돌아가기
+            if (key == KEY_BACK) {
+                return Util.NONE;
             }
-            if (key == 1) {
+            if (key == KEY_EASY) {
                 return AiPlayer.EASY;
             }
-            if (key == 2) {
+            if (key == KEY_NORMAL) {
                 return AiPlayer.NORMAL;
             }
         }
@@ -268,17 +289,27 @@ public class Main {
     /// 유효한 키가 눌릴 때까지 대기
     /// </summary>
     private static int selectColor() {
+        final int KEY_BACK = 0;
+        final int KEY_RED = 1;
+        final int KEY_BLUE = 2;
+
         System.out.println();
         System.out.println("팀을 선택하세요:");
-        System.out.println("[1] " + Util.RED + "빨간팀" + Util.RESET + " (선공)");
-        System.out.println("[2] " + Util.BLUE + "파란팀" + Util.RESET + " (후공)");
-        System.out.println("[0] 돌아가기");
+        System.out.println("[" + KEY_RED + "] " + Util.RED + "빨간팀" + Util.RESET + " (선공)");
+        System.out.println("[" + KEY_BLUE + "] " + Util.BLUE + "파란팀" + Util.RESET + " (후공)");
+        System.out.println("[" + KEY_BACK + "] 돌아가기");
 
         // 유효한 키가 입력될 때까지 반복
         while (true) {
             int key = Util.readInt();
-            if (key == 0 || key == 1 || key == 2) {
-                return key;
+            if (key == KEY_BACK) {
+                return Util.NONE;
+            }
+            if (key == KEY_RED) {
+                return Piece.RED;
+            }
+            if (key == KEY_BLUE) {
+                return Piece.BLUE;
             }
         }
     }

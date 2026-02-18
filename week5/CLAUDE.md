@@ -70,6 +70,22 @@ java -cp out Main
 
   if (isEnPassant) {
   ```
+- **메뉴 번호 변수 관리**: 메뉴 출력 번호와 입력 체크 번호를 변수로 통일 관리하여 불일치 방지
+  ```java
+  // 나쁜 예: 번호가 따로 하드코딩되어 불일치 가능
+  System.out.println("[1] 옵션A");
+  System.out.println("[2] 옵션B");
+  if (key == 1) { ... }
+  if (key == 2) { ... }
+
+  // 좋은 예: 변수로 관리하여 불일치 방지
+  final int KEY_A = 1;
+  final int KEY_B = 2;
+  System.out.println("[" + KEY_A + "] 옵션A");
+  System.out.println("[" + KEY_B + "] 옵션B");
+  if (key == KEY_A) { ... }
+  if (key == KEY_B) { ... }
+  ```
 - **조건문 선택 기준 (if-else vs switch)**:
   - `if-else`: 복합 조건 (범위 비교, AND/OR 조합, null 체크, 객체 비교)
   - `switch`: 단일 값으로 여러 분기 처리 (메뉴 선택, 열거형 등)

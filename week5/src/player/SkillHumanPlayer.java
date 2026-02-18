@@ -58,24 +58,33 @@ public class SkillHumanPlayer extends ClassicHumanPlayer implements SkillCapable
         if (board.isInCheck(color)) {
             System.out.println(">> 체크! 킹을 보호하세요!");
         }
-        System.out.println("[1] 기물 이동");
+        final int KEY_MOVE = 1;
+        final int KEY_SKILL = 2;
+        final int KEY_ITEM = 3;
+
+        System.out.println("[" + KEY_MOVE + "] 기물 이동");
         if (hasSkill) {
-            System.out.println("[2] 스킬 사용");
+            System.out.println("[" + KEY_SKILL + "] 스킬 사용");
         }
         if (hasItem) {
-            System.out.println("[3] 아이템 설치");
+            System.out.println("[" + KEY_ITEM + "] 아이템 설치");
         }
 
         while (true) {
             int key = Util.readInt();
-            if (key == 1) {
-                return Util.ACTION_MOVE;
-            }
-            if (key == 2 && hasSkill) {
-                return Util.ACTION_SKILL;
-            }
-            if (key == 3 && hasItem) {
-                return Util.ACTION_ITEM;
+            switch (key) {
+                case KEY_MOVE:
+                    return Util.ACTION_MOVE;
+                case KEY_SKILL:
+                    if (hasSkill) {
+                        return Util.ACTION_SKILL;
+                    }
+                    break;
+                case KEY_ITEM:
+                    if (hasItem) {
+                        return Util.ACTION_ITEM;
+                    }
+                    break;
             }
         }
     }

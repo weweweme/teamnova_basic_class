@@ -23,6 +23,59 @@ public class Util {
     // 하나의 좌표를 이루는 값의 수 (행, 열 = 2개)
     public static final int COORD_SIZE = 2;
 
+    // 체스판 행 위치 (체스 줄 번호 → 내부 좌표)
+    // 체스에서 8번 줄이 맨 위(파란팀), 1번 줄이 맨 아래(빨간팀)
+
+    // 8번 줄 (파란팀 주요 기물)
+    public static final int ROW_8 = 0;
+
+    // 7번 줄 (파란팀 폰)
+    public static final int ROW_7 = 1;
+
+    // 6번 줄
+    public static final int ROW_6 = 2;
+
+    // 5번 줄
+    public static final int ROW_5 = 3;
+
+    // 4번 줄
+    public static final int ROW_4 = 4;
+
+    // 3번 줄
+    public static final int ROW_3 = 5;
+
+    // 2번 줄 (빨간팀 폰)
+    public static final int ROW_2 = 6;
+
+    // 1번 줄 (빨간팀 주요 기물)
+    public static final int ROW_1 = 7;
+
+    // 체스판 열 위치 (체스 파일 문자 → 내부 좌표)
+
+    // a열
+    public static final int COL_A = 0;
+
+    // b열
+    public static final int COL_B = 1;
+
+    // c열
+    public static final int COL_C = 2;
+
+    // d열
+    public static final int COL_D = 3;
+
+    // e열
+    public static final int COL_E = 4;
+
+    // f열
+    public static final int COL_F = 5;
+
+    // g열
+    public static final int COL_G = 6;
+
+    // h열
+    public static final int COL_H = 7;
+
     // 프로모션 선택 상수 (폰 승격 시 변환할 기물)
 
     // 퀸으로 승격

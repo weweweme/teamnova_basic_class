@@ -107,9 +107,10 @@ public class Main {
                     running = false;
                     break;
                 case MODE_DEMO:
-                    Util.clearScreen();
                     startDemo();
-                    running = false;
+                    // 시연 종료 후 메인 메뉴로 복귀
+                    Util.clearScreen();
+                    printTitleScreen();
                     break;
                 default:
                     // MODE_QUIT → 종료
@@ -217,44 +218,42 @@ public class Main {
 
     /// <summary>
     /// 시연 모드 시작
-    /// 기본 → 공식 → 스킬 순서로 시연 게임을 진행
-    /// 각 시연에서 q를 누르면 다음 시연으로 넘어감
+    /// 서브 메뉴에서 기본/공식/스킬 시연을 선택하여 진행
+    /// 0을 누르면 메인 메뉴로 돌아감
     /// </summary>
     private static void startDemo() {
-        // 1단계: 기본 모드 시연 (Piece 상속 구조)
-        Game demo1 = new DemoSimpleGame();
-        demo1.run();
+        final int DEMO_SIMPLE = 1;
+        final int DEMO_CLASSIC = 2;
+        final int DEMO_SKILL = 3;
+        final int DEMO_BACK = 0;
 
-        // 전환 화면
-        Util.clearScreen();
-        System.out.println("========================================");
-        System.out.println("  기본 모드 시연 완료!");
-        System.out.println("  다음: 공식 모드 시연");
-        System.out.println("  (아무 키나 누르세요)");
-        System.out.println("========================================");
-        Util.readKey();
+        while (true) {
+            Util.clearScreen();
+            System.out.println("========================================");
+            System.out.println("  시연 모드");
+            System.out.println("========================================");
+            System.out.println();
+            System.out.println("[" + DEMO_SIMPLE + "] 기본 모드 시연 (Piece 상속)");
+            System.out.println("[" + DEMO_CLASSIC + "] 공식 모드 시연 (Board 상속)");
+            System.out.println("[" + DEMO_SKILL + "] 스킬 모드 시연 (Board 상속 + 스킬)");
+            System.out.println("[" + DEMO_BACK + "] 돌아가기");
 
-        // 2단계: 공식 모드 시연 (ClassicBoard 상속)
-        Game demo2 = new DemoClassicGame();
-        demo2.run();
+            int key = Util.readInt();
 
-        // 전환 화면
-        Util.clearScreen();
-        System.out.println("========================================");
-        System.out.println("  공식 모드 시연 완료!");
-        System.out.println("  다음: 스킬 모드 시연");
-        System.out.println("  (아무 키나 누르세요)");
-        System.out.println("========================================");
-        Util.readKey();
-
-        // 3단계: 스킬 모드 시연 (SkillBoard 상속)
-        Game demo3 = new DemoSkillGame();
-        demo3.run();
-
-        Util.clearScreen();
-        System.out.println("========================================");
-        System.out.println("  시연 완료!");
-        System.out.println("========================================");
+            switch (key) {
+                case DEMO_SIMPLE:
+                    new DemoSimpleGame().run();
+                    break;
+                case DEMO_CLASSIC:
+                    new DemoClassicGame().run();
+                    break;
+                case DEMO_SKILL:
+                    new DemoSkillGame().run();
+                    break;
+                case DEMO_BACK:
+                    return;
+            }
+        }
     }
 
     // ========== 화면 ==========

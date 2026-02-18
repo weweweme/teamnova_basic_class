@@ -1,5 +1,7 @@
 package game;
 
+import board.ClassicBoard;
+import core.Move;
 import core.Util;
 import piece.*;
 import player.*;
@@ -8,6 +10,7 @@ import player.*;
 /// 공식 모드 시연 게임
 /// ClassicBoard가 SimpleBoard를 상속받아 추가한 특수 규칙을 시연
 /// 턴마다 스크립트가 바뀌며 캐슬링 → 앙파상 → 프로모션 순서로 안내
+/// 스크립트와 다른 수를 두면 이동을 실행하지 않고 다시 선택
 /// </summary>
 public class DemoClassicGame extends ClassicGame {
 
@@ -32,7 +35,7 @@ public class DemoClassicGame extends ClassicGame {
         + "옆에 있는 아군 폰이 앙파상으로 잡을 수 있습니다.",
 
         // 턴 3 (빨간팀) - 앙파상
-        "[2/3] ▶ 빨간 폰(d5)을 선택하세요\n"
+        "[2/3] ▶ 빨간 폰(d5)을 선택 → c6으로 이동\n"
         + "\n"
         + "앙파상: 파란 폰이 방금 2칸 전진했으므로\n"
         + "c6으로 대각선 이동하여 잡을 수 있습니다 (· 확인)\n"
@@ -49,6 +52,29 @@ public class DemoClassicGame extends ClassicGame {
         + "프로모션: 폰이 상대 끝줄에 도달하면 승격합니다.\n"
         + "퀸/룩/비숍/나이트 중 하나를 선택할 수 있습니다.\n"
         + "ClassicBoard.isPromotion()이 이를 감지합니다."
+    };
+
+    /// <summary>
+    /// 턴별 기대하는 출발 위치 (null이면 자유 이동)
+    /// </summary>
+    private static final int[][] EXPECTED_FROM = {
+        {Util.ROW_1, Util.COL_E},   // 턴 1: 킹 e1
+        {Util.ROW_7, Util.COL_C},   // 턴 2: 폰 c7
+        {Util.ROW_5, Util.COL_D},   // 턴 3: 폰 d5
+        null,                         // 턴 4: 자유
+        {Util.ROW_7, Util.COL_G},   // 턴 5: 폰 g7
+    };
+
+    /// <summary>
+    /// 턴별 기대하는 도착 위치 (null이면 도착 검증 안 함)
+    /// 앙파상(c6), 프로모션(g8) 등 정확한 도착이 필요한 경우에만 지정
+    /// </summary>
+    private static final int[][] EXPECTED_TO = {
+        null,                         // 턴 1: 킹사이드/퀸사이드 어느 쪽이든
+        {Util.ROW_5, Util.COL_C},   // 턴 2: c5 (2칸 전진)
+        {Util.ROW_6, Util.COL_C},   // 턴 3: c6 (앙파상)
+        null,                         // 턴 4: 자유
+        {Util.ROW_8, Util.COL_G},   // 턴 5: g8 (프로모션)
     };
 
     // 모든 스크립트 완료 후 표시할 메시지
@@ -86,19 +112,54 @@ public class DemoClassicGame extends ClassicGame {
         board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_F);    // f7 - 폰
     }
 
-    // ========== 턴 처리 (스크립트 갱신) ==========
+    // ========== 턴 처리 (스크립트 검증) ==========
 
     /// <summary>
-    /// 매 턴 시작 시 현재 턴에 맞는 스크립트를 보드 하단에 표시
+    /// 매 턴 시작 시 스크립트를 표시하고, 플레이어의 수를 검증
+    /// 출발/도착 위치가 스크립트와 다르면 이동을 실행하지 않고 다시 선택
+    /// 프로모션도 직접 처리 (ClassicGame.processTurn 대체)
     /// </summary>
     @Override
     protected boolean processTurn() {
         int scriptIndex = turnCount - 1;
-        if (scriptIndex < SCRIPTS.length) {
-            board.setFooterMessage(SCRIPTS[scriptIndex]);
-        } else {
-            board.setFooterMessage(COMPLETE_MESSAGE);
+        String script = (scriptIndex < SCRIPTS.length) ? SCRIPTS[scriptIndex] : COMPLETE_MESSAGE;
+        int[] expectedFrom = (scriptIndex < EXPECTED_FROM.length) ? EXPECTED_FROM[scriptIndex] : null;
+        int[] expectedTo = (scriptIndex < EXPECTED_TO.length) ? EXPECTED_TO[scriptIndex] : null;
+
+        board.setFooterMessage(script);
+
+        while (true) {
+            Move move = currentPlayer.chooseMove(board);
+
+            // q → 게임 종료
+            if (move == null) {
+                Util.clearScreen();
+                board.print();
+                System.out.println("\n게임을 종료합니다.");
+                return true;
+            }
+
+            // 출발 위치 검증
+            boolean fromOk = (expectedFrom == null) || (move.fromRow == expectedFrom[0] && move.fromCol == expectedFrom[1]);
+            // 도착 위치 검증
+            boolean toOk = (expectedTo == null) || (move.toRow == expectedTo[0] && move.toCol == expectedTo[1]);
+
+            if (!fromOk || !toOk) {
+                board.setFooterMessage(">> 안내에 따라 진행해주세요!\n\n" + script);
+                continue;
+            }
+
+            // 검증 통과 → 이동 실행
+            board.executeMove(move);
+
+            // 프로모션 확인 (폰이 끝 줄에 도착하면 승격)
+            ClassicBoard classicBoard = (ClassicBoard) board;
+            if (classicBoard.isPromotion(move)) {
+                int choice = ((Promotable) currentPlayer).choosePromotion(board);
+                classicBoard.promote(move.toRow, move.toCol, choice);
+            }
+
+            return false;
         }
-        return super.processTurn();
     }
 }

@@ -9,7 +9,7 @@ import game.*;
 /// </summary>
 public class Main {
 
-    // 실행 명령어 java -cp out Main
+    // 실행 명령어: java -cp out Main
 
     // ========== 모드 선택 상수 ==========
 

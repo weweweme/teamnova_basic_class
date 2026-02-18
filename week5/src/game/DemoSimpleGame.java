@@ -1,5 +1,6 @@
 package game;
 
+import core.Move;
 import core.Util;
 import piece.*;
 import player.*;
@@ -8,6 +9,7 @@ import player.*;
 /// 기본 모드 시연 게임
 /// Piece 상속 구조를 보여주기 위한 커스텀 보드 배치
 /// 턴마다 스크립트가 바뀌며 각 기물의 고유한 이동 규칙을 안내
+/// 스크립트와 다른 기물을 선택하면 이동을 실행하지 않고 다시 선택
 /// </summary>
 public class DemoSimpleGame extends SimpleGame {
 
@@ -70,6 +72,23 @@ public class DemoSimpleGame extends SimpleGame {
         + "자기 킹이 위험해지는 수는 자동으로 제외됩니다."
     };
 
+    /// <summary>
+    /// 턴별 기대하는 출발 위치 (null이면 검증 없이 자유 이동)
+    /// </summary>
+    private static final int[][] EXPECTED_FROM = {
+        {Util.ROW_3, Util.COL_B},   // 턴 1: 나이트 b3
+        null,                         // 턴 2: 자유
+        {Util.ROW_1, Util.COL_C},   // 턴 3: 비숍 c1
+        null,                         // 턴 4: 자유
+        {Util.ROW_1, Util.COL_A},   // 턴 5: 룩 a1
+        null,                         // 턴 6: 자유
+        {Util.ROW_4, Util.COL_D},   // 턴 7: 퀸 d4
+        null,                         // 턴 8: 자유
+        {Util.ROW_2, Util.COL_E},   // 턴 9: 폰 e2
+        null,                         // 턴 10: 자유
+        {Util.ROW_1, Util.COL_E},   // 턴 11: 킹 e1
+    };
+
     // 모든 스크립트 완료 후 표시할 메시지
     private static final String COMPLETE_MESSAGE =
         "기본 모드 시연 완료!\n"
@@ -95,26 +114,51 @@ public class DemoSimpleGame extends SimpleGame {
         board.placePiece(PieceType.KNIGHT, Piece.RED, Util.ROW_3, Util.COL_B);   // b3 - 나이트 (L자 이동)
         board.placePiece(PieceType.PAWN, Piece.RED, Util.ROW_2, Util.COL_E);     // e2 - 폰 (전진, 첫 이동 2칸)
 
-        // 파란팀: 최소 배치 (킹 + 자유 이동용)
+        // 파란팀: 빨간 기물과 겹치지 않는 g/h 열에 배치 (시연 기물 보호)
         board.placePiece(PieceType.KING, Piece.BLUE, Util.ROW_8, Util.COL_E);    // e8 - 킹
-        board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_5, Util.COL_E);    // e5 - 폰
-        board.placePiece(PieceType.ROOK, Piece.BLUE, Util.ROW_8, Util.COL_A);    // a8 - 룩
+        board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_G);    // g7 - 폰
+        board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_H);    // h7 - 폰
     }
 
-    // ========== 턴 처리 (스크립트 갱신) ==========
+    // ========== 턴 처리 (스크립트 검증) ==========
 
     /// <summary>
-    /// 매 턴 시작 시 현재 턴에 맞는 스크립트를 보드 하단에 표시
-    /// turnCount는 Game에서 1부터 시작하여 switchTurn()마다 증가
+    /// 매 턴 시작 시 스크립트를 표시하고, 플레이어의 수를 검증
+    /// 스크립트에 지정된 기물이 아닌 다른 기물을 선택하면
+    /// 이동을 실행하지 않고 경고 후 다시 선택하게 함
     /// </summary>
     @Override
     protected boolean processTurn() {
         int scriptIndex = turnCount - 1;
-        if (scriptIndex < SCRIPTS.length) {
-            board.setFooterMessage(SCRIPTS[scriptIndex]);
-        } else {
-            board.setFooterMessage(COMPLETE_MESSAGE);
+        String script = (scriptIndex < SCRIPTS.length) ? SCRIPTS[scriptIndex] : COMPLETE_MESSAGE;
+        int[] expectedFrom = (scriptIndex < EXPECTED_FROM.length) ? EXPECTED_FROM[scriptIndex] : null;
+
+        board.setFooterMessage(script);
+
+        while (true) {
+            Move move = currentPlayer.chooseMove(board);
+
+            // q → 게임 종료
+            if (move == null) {
+                Util.clearScreen();
+                board.print();
+                System.out.println("\n게임을 종료합니다.");
+                return true;
+            }
+
+            // 출발 위치 검증 (expectedFrom이 null이면 자유 이동)
+            if (expectedFrom != null) {
+                boolean wrongSource = move.fromRow != expectedFrom[0] || move.fromCol != expectedFrom[1];
+                if (wrongSource) {
+                    // 이동 실행하지 않고 경고 표시 후 재선택
+                    board.setFooterMessage(">> 안내에 따라 기물을 선택해주세요!\n\n" + script);
+                    continue;
+                }
+            }
+
+            // 검증 통과 → 이동 실행
+            board.executeMove(move);
+            return false;
         }
-        return super.processTurn();
     }
 }

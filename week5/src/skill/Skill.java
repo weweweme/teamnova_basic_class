@@ -3,7 +3,6 @@ package skill;
 import board.SkillBoard;
 import cell.Cell;
 import core.Util;
-import piece.Piece;
 
 /// <summary>
 /// 스킬 추상 클래스

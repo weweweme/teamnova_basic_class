@@ -274,10 +274,13 @@ public class SimpleBoard {
 
         System.out.println();
         if (!redCaptures.isEmpty()) {
-            System.out.println("  " + Util.RED + "빨간팀" + Util.RESET + " 획득: " + redCaptures.toString().trim());
+            // trim()은 ESC(\033, 코드 27)도 제거하므로 마지막 공백만 삭제
+            redCaptures.setLength(redCaptures.length() - 1);
+            System.out.println("  " + Util.RED + "빨간팀" + Util.RESET + " 획득: " + redCaptures);
         }
         if (!blueCaptures.isEmpty()) {
-            System.out.println("  " + Util.BLUE + "파란팀" + Util.RESET + " 획득: " + blueCaptures.toString().trim());
+            blueCaptures.setLength(blueCaptures.length() - 1);
+            System.out.println("  " + Util.BLUE + "파란팀" + Util.RESET + " 획득: " + blueCaptures);
         }
     }
 

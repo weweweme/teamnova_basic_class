@@ -117,6 +117,10 @@ public class Util {
             // 단일 스레드 앱에서는 발생하지 않음 (컴파일러 요구사항)
         }
 
+        // 터미널 커서 숨기기 (게임에서 커서가 불필요하므로)
+        System.out.print("\033[?25l");
+        System.out.flush();
+
         // 프로그램이 비정상 종료(Ctrl+C 등)되어도 터미널 복원
         Runtime.getRuntime().addShutdownHook(new Thread(Util::disableRawMode));
     }
@@ -125,6 +129,10 @@ public class Util {
     /// 터미널을 원래 모드로 복원
     /// </summary>
     public static void disableRawMode() {
+        // 터미널 커서 복원
+        System.out.print("\033[?25h");
+        System.out.flush();
+
         // 주의: Process.exec()와 waitFor()는 checked exception이라 try-catch 필수 (컴파일러 요구)
         try {
             Runtime.getRuntime().exec(new String[]{

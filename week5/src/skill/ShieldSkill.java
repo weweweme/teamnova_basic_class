@@ -1,6 +1,6 @@
 package skill;
 
-import board.SimpleBoard;
+import board.SkillBoard;
 import cell.Cell;
 import core.Util;
 import piece.Piece;
@@ -71,7 +71,7 @@ public class ShieldSkill extends Skill {
     /// 효과: 지정한 기물에 방패 상태 부여
     /// </summary>
     @Override
-    public void execute(SimpleBoard board, int targetRow, int targetCol, int color) {
+    public void execute(SkillBoard board, int targetRow, int targetCol, int color) {
         if (board.grid[targetRow][targetCol].hasPiece()) {
             ((SkillPiece) board.grid[targetRow][targetCol].getPiece()).shielded = true;
         }

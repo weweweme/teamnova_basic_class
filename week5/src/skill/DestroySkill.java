@@ -1,6 +1,5 @@
 package skill;
 
-import board.SimpleBoard;
 import board.SkillBoard;
 import core.Util;
 import cell.Cell;
@@ -74,8 +73,8 @@ public class DestroySkill extends Skill {
     /// 효과: 지정한 칸의 상대 기물을 제거하고 잡힌 기물 목록에 추가
     /// </summary>
     @Override
-    public void execute(SimpleBoard board, int targetRow, int targetCol, int color) {
-        ((SkillBoard) board).removePiece(targetRow, targetCol);
+    public void execute(SkillBoard board, int targetRow, int targetCol, int color) {
+        board.removePiece(targetRow, targetCol);
         useCharge();
     }
 }

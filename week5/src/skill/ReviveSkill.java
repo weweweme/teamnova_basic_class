@@ -1,6 +1,5 @@
 package skill;
 
-import board.SimpleBoard;
 import board.SkillBoard;
 import core.Util;
 import cell.Cell;
@@ -86,7 +85,7 @@ public class ReviveSkill extends Skill {
     /// 부활할 기물 선택은 Player.chooseReviveTarget()으로 별도 처리
     /// </summary>
     @Override
-    public void execute(SimpleBoard board, int targetRow, int targetCol, int color) {
+    public void execute(SkillBoard board, int targetRow, int targetCol, int color) {
         // 이 메서드는 직접 호출되지 않음
         // SkillGame에서 부활 기물 선택 → 위치 선택 → board.revivePiece() 순서로 처리
         useCharge();

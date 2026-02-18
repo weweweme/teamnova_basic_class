@@ -1,6 +1,6 @@
 package skill;
 
-import board.SimpleBoard;
+import board.SkillBoard;
 import cell.Cell;
 import core.Util;
 import piece.Piece;
@@ -84,5 +84,5 @@ public abstract class Skill {
     /// 기물 제거/부활 등 보드 상태 변경이 필요하므로 Board를 받음
     /// 각 하위 클래스가 자기만의 효과로 구현 (메서드 오버라이딩)
     /// </summary>
-    public abstract void execute(SimpleBoard board, int targetRow, int targetCol, int color);
+    public abstract void execute(SkillBoard board, int targetRow, int targetCol, int color);
 }

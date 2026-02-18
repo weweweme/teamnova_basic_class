@@ -240,7 +240,7 @@ public class SkillGame extends Game {
         }
 
         // 스킬 실행
-        skill.execute(board, target[0], target[1], currentPlayer.color);
+        skill.execute(skillBoard, target[0], target[1], currentPlayer.color);
 
         // 결과 표시
         Util.clearScreen();

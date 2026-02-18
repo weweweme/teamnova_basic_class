@@ -131,6 +131,9 @@ public abstract class Game {
         System.out.println("========================================");
         System.out.println("  체크메이트! " + currentPlayer.name + " 승리!");
         System.out.println("========================================");
+        System.out.println();
+        System.out.println("아무 키나 누르면 계속합니다...");
+        Util.readKey();
     }
 
     /// <summary>
@@ -143,5 +146,8 @@ public abstract class Game {
         System.out.println("========================================");
         System.out.println("  스테일메이트! 무승부!");
         System.out.println("========================================");
+        System.out.println();
+        System.out.println("아무 키나 누르면 계속합니다...");
+        Util.readKey();
     }
 }

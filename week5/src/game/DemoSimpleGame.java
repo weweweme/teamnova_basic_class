@@ -21,55 +21,67 @@ public class DemoSimpleGame extends SimpleGame {
     /// </summary>
     private static final String[] SCRIPTS = {
         // 턴 1 (빨간팀) - 나이트
-        "[1/6] ▶ 빨간 나이트(b3)를 선택하세요\n"
+        "[1/7] ▶ 빨간 나이트(b3)를 선택하세요\n"
         + "\n"
         + "Knight는 Piece를 상속받아 L자(2+1칸) 이동을 구현합니다.\n"
         + "이동 가능한 칸(·)이 L자 모양인 것을 확인하세요.",
 
         // 턴 2 (파란팀)
-        "[1/6] 파란팀 차례 - 아무 기물이나 이동하세요",
+        "[1/7] 파란팀 차례 - 아무 기물이나 이동하세요",
 
         // 턴 3 (빨간팀) - 비숍
-        "[2/6] ▶ 빨간 비숍(c1)을 선택하세요\n"
+        "[2/7] ▶ 빨간 비숍(c1)을 선택하세요\n"
         + "\n"
         + "Bishop은 대각선 4방향으로 무제한 이동합니다.\n"
         + "Piece의 slideMoves() 헬퍼로 장거리 이동을 구현합니다.",
 
         // 턴 4 (파란팀)
-        "[2/6] 파란팀 차례 - 아무 기물이나 이동하세요",
+        "[2/7] 파란팀 차례 - 아무 기물이나 이동하세요",
 
         // 턴 5 (빨간팀) - 룩
-        "[3/6] ▶ 빨간 룩(a1)을 선택하세요\n"
+        "[3/7] ▶ 빨간 룩(a1)을 선택하세요\n"
         + "\n"
         + "Rook은 상하좌우 직선 4방향으로 무제한 이동합니다.\n"
         + "Bishop과 같은 slideMoves()로 방향만 다르게 구현합니다.",
 
         // 턴 6 (파란팀)
-        "[3/6] 파란팀 차례 - 아무 기물이나 이동하세요",
+        "[3/7] 파란팀 차례 - 아무 기물이나 이동하세요",
 
         // 턴 7 (빨간팀) - 퀸
-        "[4/6] ▶ 빨간 퀸(d4)을 선택하세요\n"
+        "[4/7] ▶ 빨간 퀸(d4)을 선택하세요\n"
         + "\n"
         + "Queen은 직선 + 대각선 8방향으로 무제한 이동합니다.\n"
         + "Rook의 이동 + Bishop의 이동을 합친 것입니다.",
 
         // 턴 8 (파란팀)
-        "[4/6] 파란팀 차례 - 아무 기물이나 이동하세요",
+        "[4/7] 파란팀 차례 - 아무 기물이나 이동하세요",
 
         // 턴 9 (빨간팀) - 폰
-        "[5/6] ▶ 빨간 폰(e2)을 선택하세요\n"
+        "[5/7] ▶ 빨간 폰(e2)을 선택하세요\n"
         + "\n"
         + "Pawn은 전진 1칸(첫 이동 시 2칸), 대각선 잡기가 가능합니다.\n"
         + "다른 기물과 달리 전진과 잡기 방향이 다릅니다.",
 
         // 턴 10 (파란팀)
-        "[5/6] 파란팀 차례 - 아무 기물이나 이동하세요",
+        "[5/7] 파란팀 차례 - 아무 기물이나 이동하세요",
 
         // 턴 11 (빨간팀) - 킹
-        "[6/6] ▶ 빨간 킹(e1)을 선택하세요\n"
+        "[6/7] ▶ 빨간 킹(e1)을 선택하세요\n"
         + "\n"
         + "King은 전방향 1칸 이동이 가능합니다.\n"
-        + "자기 킹이 위험해지는 수는 자동으로 제외됩니다."
+        + "자기 킹이 위험해지는 수는 자동으로 제외됩니다.",
+
+        // 턴 12 (파란팀) - 체크메이트 준비
+        "[7/7] 파란팀 차례 - 아무 기물이나 이동하세요\n"
+        + "\n"
+        + "(다음 턴에 체크메이트를 시연합니다)",
+
+        // 턴 13 (빨간팀) - 체크메이트
+        "[7/7] ▶ 빨간 룩(a1)을 a8로 이동하세요\n"
+        + "\n"
+        + "체크메이트: 상대 킹이 도망갈 곳이 없으면 게임 종료!\n"
+        + "백 랭크 메이트: f7/g7/h7 폰이 자기 킹의 퇴로를 막습니다.\n"
+        + "board.isCheckmate()가 이를 감지합니다."
     };
 
     /// <summary>
@@ -87,7 +99,24 @@ public class DemoSimpleGame extends SimpleGame {
         {Util.ROW_2, Util.COL_E},   // 턴 9: 폰 e2
         null,                         // 턴 10: 자유
         {Util.ROW_1, Util.COL_E},   // 턴 11: 킹 e1
+        null,                         // 턴 12: 자유
+        {Util.ROW_1, Util.COL_A},   // 턴 13: 룩 a1
     };
+
+    /// <summary>
+    /// 턴별 기대하는 도착 위치 (null이면 도착 검증 안 함)
+    /// 체크메이트 시연에서 정확한 도착이 필요한 경우에만 지정
+    /// </summary>
+    private static final int[][] EXPECTED_TO = {
+        null, null, null, null, null,   // 턴 1~5
+        null, null, null, null, null,   // 턴 6~10
+        null,                           // 턴 11: 킹 자유 이동
+        null,                           // 턴 12: 자유
+        {Util.ROW_8, Util.COL_A},     // 턴 13: a8 (체크메이트)
+    };
+
+    // 체크메이트 시연에서 보드를 재배치하는 스크립트 인덱스 (턴 13)
+    private static final int CHECKMATE_STEP = 12;
 
     // 모든 스크립트 완료 후 표시할 메시지
     private static final String COMPLETE_MESSAGE =
@@ -120,6 +149,26 @@ public class DemoSimpleGame extends SimpleGame {
         board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_H);    // h7 - 폰
     }
 
+    // ========== 체크메이트 시연 배치 ==========
+
+    /// <summary>
+    /// 백 랭크 메이트 배치로 보드를 재배치
+    /// 룩(a1)이 a8로 이동하면 킹(g8)이 f7/g7/h7 폰에 막혀 체크메이트
+    /// </summary>
+    private void setupCheckmateBoard() {
+        board.clearAllPieces();
+
+        // 빨간팀
+        board.placePiece(PieceType.KING, Piece.RED, Util.ROW_1, Util.COL_G);    // g1 - 킹
+        board.placePiece(PieceType.ROOK, Piece.RED, Util.ROW_1, Util.COL_A);    // a1 - 룩 (체크메이트 실행)
+
+        // 파란팀 (킹이 자기 폰에 막힌 상태)
+        board.placePiece(PieceType.KING, Piece.BLUE, Util.ROW_8, Util.COL_G);   // g8 - 킹
+        board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_F);   // f7 - 폰 (퇴로 차단)
+        board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_G);   // g7 - 폰 (퇴로 차단)
+        board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_H);   // h7 - 폰 (퇴로 차단)
+    }
+
     // ========== 턴 처리 (스크립트 검증) ==========
 
     /// <summary>
@@ -132,6 +181,12 @@ public class DemoSimpleGame extends SimpleGame {
         int scriptIndex = turnCount - 1;
         String script = (scriptIndex < SCRIPTS.length) ? SCRIPTS[scriptIndex] : COMPLETE_MESSAGE;
         int[] expectedFrom = (scriptIndex < EXPECTED_FROM.length) ? EXPECTED_FROM[scriptIndex] : null;
+        int[] expectedTo = (scriptIndex < EXPECTED_TO.length) ? EXPECTED_TO[scriptIndex] : null;
+
+        // 체크메이트 시연 턴이면 보드를 백 랭크 메이트 배치로 전환
+        if (scriptIndex == CHECKMATE_STEP) {
+            setupCheckmateBoard();
+        }
 
         board.setFooterMessage(script);
 
@@ -146,14 +201,16 @@ public class DemoSimpleGame extends SimpleGame {
                 return true;
             }
 
-            // 출발 위치 검증 (expectedFrom이 null이면 자유 이동)
-            if (expectedFrom != null) {
-                boolean wrongSource = move.fromRow != expectedFrom[0] || move.fromCol != expectedFrom[1];
-                if (wrongSource) {
-                    // 이동 실행하지 않고 경고 표시 후 재선택
-                    board.setFooterMessage(">> 안내에 따라 기물을 선택해주세요!\n\n" + script);
-                    continue;
-                }
+            // 출발 위치 검증
+            boolean fromOk = (expectedFrom == null)
+                    || (move.fromRow == expectedFrom[0] && move.fromCol == expectedFrom[1]);
+            // 도착 위치 검증
+            boolean toOk = (expectedTo == null)
+                    || (move.toRow == expectedTo[0] && move.toCol == expectedTo[1]);
+
+            if (!fromOk || !toOk) {
+                board.setFooterMessage(">> 안내에 따라 진행해주세요!\n\n" + script);
+                continue;
             }
 
             // 검증 통과 → 이동 실행

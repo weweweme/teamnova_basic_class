@@ -96,7 +96,7 @@ public class DemoClassicGame extends ClassicGame {
         board.placePiece(PieceType.PAWN, Piece.RED, Util.ROW_5, Util.COL_D);     // d5 - 폰 (앙파상 대기)
 
         // 파란팀
-        board.placePiece(PieceType.KING, Piece.BLUE, Util.ROW_8, Util.COL_E);    // e8 - 킹
+        board.placePiece(PieceType.KING, Piece.BLUE, Util.ROW_7, Util.COL_E);    // e7 - 킹 (g8 프로모션 후 체크 방지)
         board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_C);    // c7 - 폰 (2칸 전진 → 앙파상 트리거)
         board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_F);    // f7 - 폰
     }

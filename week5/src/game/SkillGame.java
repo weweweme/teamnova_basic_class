@@ -19,19 +19,19 @@ public class SkillGame extends Game {
     // ========== 필드 ==========
 
     // 스킬 보드 (스킬 전용 메서드 호출용)
-    private SkillBoard skillBoard;
+    protected SkillBoard skillBoard;
 
     // 빨간팀 스킬 (파괴, 방패, 부활)
-    private Skill[] redSkills;
+    protected Skill[] redSkills;
 
     // 파란팀 스킬
-    private Skill[] blueSkills;
+    protected Skill[] blueSkills;
 
     // 빨간팀 아이템 (폭탄, 함정)
-    private Item[] redItems;
+    protected Item[] redItems;
 
     // 파란팀 아이템
-    private Item[] blueItems;
+    protected Item[] blueItems;
 
     // ========== 생성자 ==========
 
@@ -53,7 +53,7 @@ public class SkillGame extends Game {
     /// 현재 플레이어를 SkillPlayer로 캐스팅하여 반환
     /// 스킬/아이템 메서드 호출 시 사용
     /// </summary>
-    private SkillCapable skillCapable() {
+    protected SkillCapable skillCapable() {
         return (SkillCapable) currentPlayer;
     }
 
@@ -179,7 +179,7 @@ public class SkillGame extends Game {
     /// 이동 처리 (기존 체스 이동 + 아이템 트리거)
     /// 반환: true면 이동 완료, false면 게임 종료 요청
     /// </summary>
-    private boolean handleMove() {
+    protected boolean handleMove() {
         Move move = currentPlayer.chooseMove(board);
 
         if (move == null) {
@@ -197,7 +197,14 @@ public class SkillGame extends Game {
             Util.clearScreen();
             skillBoard.print(currentPlayer.color);
             System.out.println();
-            System.out.println(triggeredItem + "에 걸렸습니다!");
+
+            // 폭탄인데 기물이 살아있으면 킹이 면역된 것
+            boolean bombImmune = triggeredItem.equals("폭탄") && board.grid[move.toRow][move.toCol].hasPiece();
+            if (bombImmune) {
+                System.out.println("폭탄에 걸렸지만 킹은 폭탄으로 제거할 수 없습니다!");
+            } else {
+                System.out.println(triggeredItem + "에 걸렸습니다!");
+            }
             Util.delay(2000);
         }
 
@@ -214,7 +221,7 @@ public class SkillGame extends Game {
     /// 스킬 사용 처리
     /// 반환: true면 스킬 사용 완료, false면 취소됨
     /// </summary>
-    private boolean handleSkill(Skill[] skills) {
+    protected boolean handleSkill(Skill[] skills) {
         // 스킬 선택
         int skillIndex = skillCapable().chooseSkill(board, skills);
         if (skillIndex == Util.NONE) {
@@ -299,7 +306,7 @@ public class SkillGame extends Game {
     /// 아이템 설치 처리
     /// 반환: true면 설치 완료, false면 취소됨
     /// </summary>
-    private boolean handleItem(Item[] items) {
+    protected boolean handleItem(Item[] items) {
         // 아이템 종류 선택
         int itemIndex = skillCapable().chooseItemType(board, items);
         if (itemIndex == Util.NONE) {

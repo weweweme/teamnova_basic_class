@@ -251,7 +251,7 @@ public class DemoSkillGame extends SkillGame {
 
         // ===== 행동 선택 + 검증 =====
 
-        int action = skillCapable().chooseAction(board, skills, items);
+        int action = currentSkillPlayer().chooseAction(board, skills, items);
 
         // 기대하는 행동이 아니면 경고 후 재시도
         if (action != expectedAction) {
@@ -284,7 +284,7 @@ public class DemoSkillGame extends SkillGame {
         String script = SCRIPTS[scriptIndex];
 
         // 스킬 선택 + 검증
-        int skillIndex = skillCapable().chooseSkill(board, skills);
+        int skillIndex = currentSkillPlayer().chooseSkill(board, skills);
         if (skillIndex == Util.NONE) {
             return processTurn();
         }
@@ -307,7 +307,7 @@ public class DemoSkillGame extends SkillGame {
         }
 
         // 대상 선택 + 위치 검증
-        int[] target = skillCapable().chooseSkillTarget(board, skill.targets, skill.targetCount);
+        int[] target = currentSkillPlayer().chooseSkillTarget(board, skill.targets, skill.targetCount);
         if (target == null) {
             return processTurn();
         }
@@ -341,7 +341,7 @@ public class DemoSkillGame extends SkillGame {
         }
 
         // 부활할 기물 선택
-        int pieceIndex = skillCapable().chooseReviveTarget(board, captured);
+        int pieceIndex = currentSkillPlayer().chooseReviveTarget(board, captured);
         if (pieceIndex == Util.NONE) {
             return processTurn();
         }
@@ -352,7 +352,7 @@ public class DemoSkillGame extends SkillGame {
             return processTurn();
         }
 
-        int[] target = skillCapable().chooseSkillTarget(board, skill.targets, skill.targetCount);
+        int[] target = currentSkillPlayer().chooseSkillTarget(board, skill.targets, skill.targetCount);
         if (target == null) {
             return processTurn();
         }
@@ -382,7 +382,7 @@ public class DemoSkillGame extends SkillGame {
         String script = SCRIPTS[scriptIndex];
 
         // 아이템 종류 선택 + 검증
-        int itemIndex = skillCapable().chooseItemType(board, items);
+        int itemIndex = currentSkillPlayer().chooseItemType(board, items);
         if (itemIndex == Util.NONE) {
             return processTurn();
         }
@@ -394,7 +394,7 @@ public class DemoSkillGame extends SkillGame {
         Item item = items[itemIndex];
 
         // 설치 위치 선택 + 검증
-        int[] target = skillCapable().chooseItemTarget(board);
+        int[] target = currentSkillPlayer().chooseItemTarget(board);
         if (target == null) {
             return processTurn();
         }

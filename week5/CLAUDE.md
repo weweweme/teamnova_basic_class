@@ -33,7 +33,7 @@ java -cp out Main
 
 ## 프로젝트 구조
 
-총 **37개 소스 파일**, 8개 패키지
+총 **38개 소스 파일**, 8개 패키지
 
 ```
 src/
@@ -73,16 +73,18 @@ src/
 │   ├── PieceFactory.java           기물 속성 설정 팩토리
 │   └── SkillPiece.java             스킬 기물 (+방패, 동결 상태)
 │
-├── player/                         플레이어 계층 (9개)
+├── player/                         플레이어 계층 (11개)
 │   ├── Player.java                 플레이어 추상 클래스
-│   ├── HumanPlayer.java            사람 (기본 - 화살표 키 조작)
-│   ├── ClassicHumanPlayer.java     사람 (공식 - +프로모션)
-│   ├── SkillHumanPlayer.java       사람 (스킬 - +스킬/아이템)
-│   ├── AiPlayer.java               AI (기본 - 우선순위 전략)
-│   ├── ClassicAiPlayer.java        AI (공식 - +프로모션)
-│   ├── SkillAiPlayer.java          AI (스킬 - +스킬/아이템)
-│   ├── Promotable.java             프로모션 인터페이스
-│   └── SkillCapable.java           스킬/아이템 인터페이스
+│   ├── HumanPlayer.java            사람 (기본 - HumanInput에 위임)
+│   ├── AiPlayer.java               AI (기본 - AiInput에 위임)
+│   ├── ClassicPlayer.java          공식 모드 추상 클래스 (+프로모션)
+│   ├── ClassicHumanPlayer.java     사람 (공식 - HumanInput 조합)
+│   ├── ClassicAiPlayer.java        AI (공식 - AiInput 조합)
+│   ├── SkillPlayer.java            스킬 모드 추상 클래스 (+스킬/아이템)
+│   ├── SkillHumanPlayer.java       사람 (스킬 - HumanInput 조합)
+│   ├── SkillAiPlayer.java          AI (스킬 - AiInput 조합)
+│   ├── HumanInput.java             사람 입력 처리 (커서, 프로모션)
+│   └── AiInput.java                AI 전략 처리 (우선순위 전략)
 │
 └── skill/                          스킬 계층 (4개)
     ├── Skill.java                  스킬 추상 클래스
@@ -102,6 +104,7 @@ out/                                컴파일된 클래스 파일 (gitignore)
 ## 개발 규칙
 
 - **점진적 커밋**: 모든 커밋은 사용자 컨펌 후 진행 (커밋은 사용자가 직접, 메시지만 제공)
+- **주석은 현재 모듈만 설명**: 주석은 "이 코드가 무엇을 하는지"만 담백하게 기술. 설계 경위(왜 이렇게 바꿨는지), 패턴 이름(조합 패턴, 팩토리 패턴 등), 리팩토링 히스토리는 주석에 남기지 않는다
 - **주석 필수**: 변수명, 로직 전개, 타입 선택에 대한 근거를 주석으로 작성
 - **단계별 진행**: 기능 하나씩 구현 후 확인
 - **변수 선언**: 쉼표로 구분하지 말고 각 변수를 개별 라인에 선언
@@ -279,58 +282,80 @@ out/                                컴파일된 클래스 파일 (gitignore)
 - 2인 대전 + AI 대전 모드
 - 기본 규칙 먼저 → 특수 규칙 단계적 추가
 
-### 상속 구조 (7개 계층 + 2개 인터페이스)
+### 상속 구조 (7개 계층)
 
-**1차: Piece 계층 (기물)**
+모드별 계층(board, cell, piece, player, game)은 모두 **직렬 체인**으로 통일:
+기본 → (공식 →) 스킬 순서로 기능을 단계적으로 추가.
 
-```
-Piece (데이터 기반 이동 - PieceFactory가 type별 방향/속성 설정)
- └── SkillPiece  (+방패 shielded, 동결 frozen 상태)
-```
+종류별 계층(skill, item)은 **병렬 구조**: 추상 부모 아래 독립적인 형제.
 
-- `PieceType` 열거형이 기물 종류(KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN)를 정의
-- `PieceFactory.configure()`가 type에 따라 이름/기호/가치/이동방향을 설정
-- 모든 기물이 동일한 `Piece.getValidMoves()` → `calculateMoves()`를 사용
-- 기물별 차이는 `directions`(이동+잡기), `moveOnlyDirections`(전진만), `captureOnlyDirections`(잡기만), `repeatMove`(슬라이드 여부) 데이터로 구분
-
-**2차: Board 계층 (체스판)**
+**board 패키지 (체스판)**
 
 ```
-SimpleBoard (기본 이동, 체크, 체크메이트)
+SimpleBoard (기본 이동, 체크, 체크메이트 + 훅 메서드 4개)
  └── ClassicBoard  (+캐슬링, 앙파상, 프로모션)
       └── SkillBoard (+스킬, 아이템, 방패, 동결)
 ```
 
-- `SimpleBoard`에 훅 메서드 4개 정의 (하위 클래스가 오버라이드)
-  - `addSpecialMoves()` → ClassicBoard가 캐슬링/앙파상 추가
-  - `isMovementBlocked()` → SkillBoard가 동결 상태 확인
-  - `isCaptureBlocked()` → SkillBoard가 방패 상태 확인
-  - `createCell()` / `createPiece()` → SkillBoard가 SkillCell/SkillPiece 생성
+- 훅 메서드: `addSpecialMoves`, `isMovementBlocked`, `isCaptureBlocked`, `createCell`/`createPiece`
 
-**3차: Cell 계층 (칸)**
+**cell 패키지 (칸)**
 
 ```
-Cell (기물 관리: getPiece/setPiece/removePiece/hasPiece/isEmpty)
- └── SkillCell  (+아이템 관리: getItem/setItem/removeItem/hasItem)
+Cell (기물 관리)
+ └── SkillCell  (+아이템 관리)
 ```
 
-**4차: Player 계층 (플레이어)**
-
-사람 체인과 AI 체인이 병렬 구조로 모드별 기능을 단계적으로 추가:
+**piece 패키지 (기물)**
 
 ```
-              Player (abstract - chooseMove)
-             /                              \
-    HumanPlayer (화살표 키 조작)          AiPlayer (우선순위 전략)
-         |                                    |
-ClassicHumanPlayer (+Promotable)       ClassicAiPlayer (+Promotable)
-         |                                    |
-SkillHumanPlayer (+SkillCapable)       SkillAiPlayer (+SkillCapable)
+Piece (데이터 기반 이동 - PieceFactory가 type별 방향/속성 설정)
+ └── SkillPiece  (+방패, 동결 상태)
 ```
 
-**5차: Game 계층 (게임 루프)**
+- `PieceType` 열거형이 기물 종류 정의, `PieceFactory.configure()`가 속성 설정
 
-각 모드의 게임 루프 + 각 모드의 튜토리얼이 서브클래스로 존재:
+**player 패키지 (플레이어)**
+
+Player는 **두 축**이 교차하는 구조이다:
+- **모드 축**: 기본 → 공식(+프로모션) → 스킬(+스킬/아이템) — 기능이 추가됨
+- **조작 축**: 사람(키보드) vs AI(자동) — 입력 방식이 다름
+
+**모드 축을 상속 체인**으로, **조작 코드를 별도 클래스(HumanInput, AiInput)로 추출하여 조합(Composition)**으로 공유한다.
+이를 통해 Game에서 `((Promotable) currentPlayer)` 같은 형변환 없이 타입 안전하게 사용 가능.
+
+```
+모드 축 (상속 체인):
+Player (abstract - chooseMove)
+ ├── HumanPlayer (기본 - uses HumanInput)
+ ├── AiPlayer (기본 - uses AiInput)
+ └── ClassicPlayer (abstract - +choosePromotion)
+      ├── ClassicHumanPlayer (uses HumanInput)
+      ├── ClassicAiPlayer (uses AiInput)
+      └── SkillPlayer (abstract - +스킬/아이템 메서드 6개)
+           ├── SkillHumanPlayer (uses HumanInput)
+           └── SkillAiPlayer (uses AiInput)
+
+조작 축 (조합):
+HumanInput ← 키보드 조작 코드 (~120줄: chooseMove, chooseDest, moveCursor, getColorName, choosePromotion)
+AiInput    ← AI 전략 코드 (~80줄: chooseMove, chooseEasy, chooseNormal, wouldCheckmate, wouldCheck)
+```
+
+**조합(Composition) 패턴을 사용한 이유**
+
+Java는 단일 상속만 가능하므로, 모드 축과 조작 축 중 하나만 상속 체인으로 구성할 수 있다.
+모드 축을 상속으로 선택하면 ClassicHumanPlayer가 HumanPlayer를 상속할 수 없어 조작 코드 ~120줄이 중복된다.
+
+이 문제를 **조합 패턴**으로 해결:
+- `HumanInput`: 키보드 조작 코드를 별도 클래스로 추출. 모든 Human 계열이 `private final HumanInput input`으로 공유
+- `AiInput`: AI 전략 코드를 별도 클래스로 추출. 모든 AI 계열이 `private final AiInput aiInput`으로 공유
+
+Game 측에서는 ClassicGame이 `ClassicPlayer` 타입, SkillGame이 `SkillPlayer` 타입을 직접 받아
+`currentClassicPlayer().choosePromotion()`, `currentSkillPlayer().chooseAction()` 형태로 형변환 없이 호출한다.
+
+**game 패키지 (게임 루프)**
+
+각 모드의 게임 루프가 직렬 체인, 각 모드의 튜토리얼이 서브클래스:
 
 ```
 Game (abstract - 템플릿 메서드 패턴)
@@ -338,11 +363,13 @@ Game (abstract - 템플릿 메서드 패턴)
       ├── DemoSimpleGame
       └── ClassicGame (afterMove → 프로모션)
            ├── DemoClassicGame
-           └── SkillGame (+스킬, 아이템, run/processTurn 오버라이드)
+           └── SkillGame (afterMove/processTurn/run 오버라이드)
                 └── DemoSkillGame
 ```
 
-**6차: Skill 계층 (스킬)**
+- 훅 메서드: `afterMove` — SimpleGame이 정의, ClassicGame/SkillGame이 프로모션 처리로 오버라이드
+
+**skill 패키지 (스킬)**
 
 ```
 Skill (abstract - canUse/findTargets/execute)
@@ -351,7 +378,7 @@ Skill (abstract - canUse/findTargets/execute)
  └── ReviveSkill   (잡힌 아군 기물 1개 부활, 빈 칸에 배치)
 ```
 
-**7차: Item 계층 (아이템)**
+**item 패키지 (아이템)**
 
 ```
 Item (abstract - trigger/getSymbol)
@@ -359,18 +386,53 @@ Item (abstract - trigger/getSymbol)
  └── TrapItem  (밟은 기물 동결, 다음 턴 이동 불가)
 ```
 
-**인터페이스 2개**
+**상속 구조 차트**
 
+```mermaid
+graph TD
+    subgraph "board"
+        SB[SimpleBoard] --> CB[ClassicBoard] --> SKB[SkillBoard]
+    end
+    subgraph "cell"
+        CE[Cell] --> SCE[SkillCell]
+    end
+    subgraph "piece"
+        PI[Piece] --> SPI[SkillPiece]
+    end
+    subgraph "player (상속)"
+        PL[Player] --> HP[HumanPlayer]
+        PL --> AP[AiPlayer]
+        PL --> CP[ClassicPlayer] --> CHP[ClassicHumanPlayer]
+        CP --> CAP[ClassicAiPlayer]
+        CP --> SP[SkillPlayer] --> SHP[SkillHumanPlayer]
+        SP --> SAP[SkillAiPlayer]
+    end
+    subgraph "player (조합)"
+        HI[HumanInput] -.-|uses| HP
+        HI -.-|uses| CHP
+        HI -.-|uses| SHP
+        AI[AiInput] -.-|uses| AP
+        AI -.-|uses| CAP
+        AI -.-|uses| SAP
+    end
+    subgraph "game"
+        GA[Game] --> SG[SimpleGame] --> CG[ClassicGame] --> SKG[SkillGame]
+        SG -.-> DSG[DemoSimpleGame]
+        CG -.-> DCG[DemoClassicGame]
+        SKG -.-> DSKG[DemoSkillGame]
+    end
+    subgraph "skill"
+        SK[Skill] --> DS[DestroySkill]
+        SK --> SHS[ShieldSkill]
+        SK --> RS[ReviveSkill]
+    end
+    subgraph "item"
+        IT[Item] --> BI[BombItem]
+        IT --> TI[TrapItem]
+    end
 ```
-Promotable   → choosePromotion(board)
-               구현: ClassicHumanPlayer, ClassicAiPlayer
 
-SkillCapable → chooseAction(), chooseSkill(), chooseSkillTarget(),
-               chooseItemType(), chooseItemTarget(), chooseReviveTarget()
-               구현: SkillHumanPlayer, SkillAiPlayer
-```
-
-### 클래스 구조 (37개)
+### 클래스 구조 (38개)
 
 **진입점**
 
@@ -412,17 +474,19 @@ SkillCapable → chooseAction(), chooseSkill(), chooseSkillTarget(),
 
 **player 패키지 - 플레이어**
 
-| 클래스/인터페이스 | 역할 |
-|-------------------|------|
+| 클래스 | 역할 |
+|--------|------|
 | `Player` | **추상** - `chooseMove()` 선언, 색상/이름 보유 |
-| `HumanPlayer` | 화살표 키로 커서 이동 → Enter로 기물 선택/도착지 확정 |
-| `ClassicHumanPlayer` | HumanPlayer + `Promotable` (프로모션 시 숫자 키로 기물 선택) |
-| `SkillHumanPlayer` | ClassicHumanPlayer + `SkillCapable` (행동/스킬/아이템/부활 선택) |
-| `AiPlayer` | 쉬움(랜덤) / 보통(체크메이트 > 잡기 > 체크 > 랜덤) |
-| `ClassicAiPlayer` | AiPlayer + `Promotable` (항상 퀸으로 승격) |
-| `SkillAiPlayer` | ClassicAiPlayer + `SkillCapable` (확률 기반 행동 선택) |
-| `Promotable` | **인터페이스** - `choosePromotion()` |
-| `SkillCapable` | **인터페이스** - 스킬/아이템 선택 메서드 6개 |
+| `HumanPlayer` | 기본 모드 사람 (HumanInput에 위임) |
+| `AiPlayer` | 기본 모드 AI (AiInput에 위임), 난이도 상수 `EASY`/`NORMAL` |
+| `ClassicPlayer` | **추상** - Player + `choosePromotion()` 선언 |
+| `ClassicHumanPlayer` | 공식 모드 사람 (HumanInput 조합) |
+| `ClassicAiPlayer` | 공식 모드 AI (AiInput 조합, 항상 퀸으로 승격) |
+| `SkillPlayer` | **추상** - ClassicPlayer + 스킬/아이템 메서드 6개 선언 |
+| `SkillHumanPlayer` | 스킬 모드 사람 (HumanInput 조합, 행동/스킬/아이템/부활 선택) |
+| `SkillAiPlayer` | 스킬 모드 AI (AiInput 조합, 확률 기반 행동 선택) |
+| `HumanInput` | 키보드 조작 코드 (chooseMove, chooseDest, moveCursor, choosePromotion) |
+| `AiInput` | AI 전략 코드 (chooseMove, chooseEasy, chooseNormal, 시뮬레이션) |
 
 **game 패키지 - 게임 루프**
 
@@ -485,7 +549,7 @@ graph TD
 graph TD
     A[수 선택 - Player.chooseMove] --> B[이동 실행 - Board.executeMove]
     B --> C{폰이 끝 줄 도착?}
-    C -->|yes| D[승격 선택 - Promotable.choosePromotion]
+    C -->|yes| D[승격 선택 - ClassicPlayer.choosePromotion]
     C -->|no| E[턴 완료]
     D --> E
 ```
@@ -515,13 +579,13 @@ graph TD
 graph TB
     Main["<b>Main</b><br/>진입점"]
     game["<b>game</b><br/>Game, SimpleGame<br/>ClassicGame, SkillGame<br/>Demo*Game (3개)"]
-    player["<b>player</b><br/>Player, Human*Player (3단)<br/>Ai*Player (3단)<br/>Promotable, SkillCapable"]
+    player["<b>player</b><br/>Player → ClassicPlayer → SkillPlayer<br/>Human*Player (3단), Ai*Player (3단)<br/>HumanInput, AiInput"]
     board["<b>board</b><br/>SimpleBoard<br/>ClassicBoard<br/>SkillBoard"]
     piece["<b>piece</b><br/>Piece, SkillPiece<br/>PieceType, PieceFactory"]
     cell["<b>cell</b><br/>Cell, SkillCell"]
     skill["<b>skill</b><br/>Skill, DestroySkill<br/>ShieldSkill, ReviveSkill"]
     item["<b>item</b><br/>Item<br/>BombItem, TrapItem"]
-    core["<b>core</b><br/>Util, Move"]
+    core["<b>core</b><br/>Chess, Move, Util"]
 
     Main --> game
     Main --> player
@@ -579,7 +643,7 @@ graph TB
 | **팩토리 메서드** | `createBoard()`, `createCell()`, `createPiece()` | 하위 클래스가 자기 모드에 맞는 객체 생성 |
 | **정적 팩토리** | `PieceFactory.configure()` | PieceType에 따라 기물 속성(방향, 기호, 가치) 일괄 설정 |
 | **다형성** | `Player.chooseMove()` | Game이 Human/AI 구분 없이 동일하게 호출 |
-| **인터페이스 분리** | `Promotable`, `SkillCapable` | 모드별 필요한 기능만 인터페이스로 분리, 필요한 클래스만 구현 |
+| **조합(Composition)** | `HumanInput`, `AiInput` | 조작 코드를 별도 클래스로 추출하여 모든 Human/AI 계열이 공유 |
 
 ### 좌표 체계
 

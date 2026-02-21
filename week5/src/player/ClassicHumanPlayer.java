@@ -1,14 +1,20 @@
 package player;
 
 import board.SimpleBoard;
-import core.Chess;
-import core.Util;
+import core.Move;
 
 /// <summary>
 /// 사람 플레이어 (공식 모드)
-/// 기본 모드의 조작(HumanPlayer)에 프로모션 선택 기능을 추가
+/// 기본 조작(HumanInput)과 프로모션 선택 기능을 함께 제공
 /// </summary>
-public class ClassicHumanPlayer extends HumanPlayer implements Promotable {
+public class ClassicHumanPlayer extends ClassicPlayer {
+
+    // ========== 필드 ==========
+
+    /// <summary>
+    /// 키보드 입력 처리
+    /// </summary>
+    private final HumanInput input = new HumanInput();
 
     // ========== 생성자 ==========
 
@@ -16,29 +22,25 @@ public class ClassicHumanPlayer extends HumanPlayer implements Promotable {
         super(color, name);
     }
 
+    // ========== 수 선택 ==========
+
+    /// <summary>
+    /// 화살표 키 조작으로 수를 선택
+    /// HumanInput에 위임
+    /// </summary>
+    @Override
+    public Move chooseMove(SimpleBoard board) {
+        return input.chooseMove(board, color, name);
+    }
+
     // ========== 프로모션 ==========
 
     /// <summary>
     /// 폰 프로모션 시 승격할 기물을 선택
-    /// 숫자 키(1~4)로 선택
+    /// HumanInput에 위임
     /// </summary>
     @Override
     public int choosePromotion(SimpleBoard board) {
-        Util.clearScreen();
-        board.print();
-        System.out.println();
-        System.out.println("프로모션! 승격할 기물을 선택하세요:");
-        System.out.println("[" + Chess.PROMOTE_QUEEN + "] 퀸  ["
-                + Chess.PROMOTE_ROOK + "] 룩  ["
-                + Chess.PROMOTE_BISHOP + "] 비숍  ["
-                + Chess.PROMOTE_KNIGHT + "] 나이트");
-
-        // 유효한 키가 입력될 때까지 반복
-        while (true) {
-            int key = Util.readInt();
-            if (key >= Chess.PROMOTE_QUEEN && key <= Chess.PROMOTE_KNIGHT) {
-                return key;
-            }
-        }
+        return input.choosePromotion(board);
     }
 }

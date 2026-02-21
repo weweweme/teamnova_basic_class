@@ -2,8 +2,8 @@ package game;
 
 import board.*;
 import core.*;
+import player.ClassicPlayer;
 import player.Player;
-import player.Promotable;
 
 /// <summary>
 /// 공식 체스 게임
@@ -19,10 +19,30 @@ public class ClassicGame extends SimpleGame {
     /// </summary>
     private ClassicBoard classicBoard;
 
+    // 빨간팀 플레이어 (ClassicPlayer 타입으로 프로모션 메서드 호출용)
+    private ClassicPlayer classicRedPlayer;
+
+    // 파란팀 플레이어
+    private ClassicPlayer classicBluePlayer;
+
     // ========== 생성자 ==========
 
-    public ClassicGame(Player redPlayer, Player bluePlayer) {
+    public ClassicGame(ClassicPlayer redPlayer, ClassicPlayer bluePlayer) {
         super(redPlayer, bluePlayer);
+        this.classicRedPlayer = redPlayer;
+        this.classicBluePlayer = bluePlayer;
+    }
+
+    // ========== 헬퍼 ==========
+
+    /// <summary>
+    /// 현재 플레이어를 ClassicPlayer 타입으로 반환
+    /// </summary>
+    protected ClassicPlayer currentClassicPlayer() {
+        if (currentPlayer == redPlayer) {
+            return classicRedPlayer;
+        }
+        return classicBluePlayer;
     }
 
     // ========== 보드 생성 ==========
@@ -45,7 +65,7 @@ public class ClassicGame extends SimpleGame {
     @Override
     protected void afterMove(Move move) {
         if (classicBoard.isPromotion(move)) {
-            int choice = ((Promotable) currentPlayer).choosePromotion(board);
+            int choice = currentClassicPlayer().choosePromotion(board);
             classicBoard.promote(move.toRow, move.toCol, choice);
         }
     }

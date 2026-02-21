@@ -161,8 +161,8 @@ public class Main {
     /// 캐슬링, 앙파상, 프로모션 포함
     /// </summary>
     private static void startClassicGame() {
-        Player red = new ClassicHumanPlayer(Piece.RED, "플레이어 1");
-        Player blue = new ClassicHumanPlayer(Piece.BLUE, "플레이어 2");
+        ClassicPlayer red = new ClassicHumanPlayer(Piece.RED, "플레이어 1");
+        ClassicPlayer blue = new ClassicHumanPlayer(Piece.BLUE, "플레이어 2");
         Game game = new ClassicGame(red, blue);
         game.run();
     }
@@ -171,8 +171,8 @@ public class Main {
     /// 공식 체스 AI 대전 시작
     /// </summary>
     private static void startClassicAiGame(int playerColor, int difficulty) {
-        Player red;
-        Player blue;
+        ClassicPlayer red;
+        ClassicPlayer blue;
 
         if (playerColor == Piece.RED) {
             red = new ClassicHumanPlayer(Piece.RED, "플레이어");
@@ -191,8 +191,8 @@ public class Main {
     /// 스킬과 아이템을 사용할 수 있는 모드
     /// </summary>
     private static void startSkillGame() {
-        Player red = new SkillHumanPlayer(Piece.RED, "플레이어 1");
-        Player blue = new SkillHumanPlayer(Piece.BLUE, "플레이어 2");
+        SkillPlayer red = new SkillHumanPlayer(Piece.RED, "플레이어 1");
+        SkillPlayer blue = new SkillHumanPlayer(Piece.BLUE, "플레이어 2");
         Game game = new SkillGame(red, blue);
         game.run();
     }
@@ -201,8 +201,8 @@ public class Main {
     /// 스킬 모드 AI 대전 시작
     /// </summary>
     private static void startSkillAiGame(int playerColor, int difficulty) {
-        Player red;
-        Player blue;
+        SkillPlayer red;
+        SkillPlayer blue;
 
         if (playerColor == Piece.RED) {
             red = new SkillHumanPlayer(Piece.RED, "플레이어");

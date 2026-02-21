@@ -4,8 +4,7 @@ import board.*;
 import core.*;
 import piece.Piece;
 import player.Player;
-import player.Promotable;
-import player.SkillCapable;
+import player.SkillPlayer;
 import skill.*;
 import item.*;
 
@@ -33,10 +32,18 @@ public class SkillGame extends ClassicGame {
     // 파란팀 아이템
     protected Item[] blueItems;
 
+    // 빨간팀 플레이어 (SkillPlayer 타입으로 스킬 메서드 호출용)
+    private SkillPlayer skillRedPlayer;
+
+    // 파란팀 플레이어
+    private SkillPlayer skillBluePlayer;
+
     // ========== 생성자 ==========
 
-    public SkillGame(Player redPlayer, Player bluePlayer) {
+    public SkillGame(SkillPlayer redPlayer, SkillPlayer bluePlayer) {
         super(redPlayer, bluePlayer);
+        this.skillRedPlayer = redPlayer;
+        this.skillBluePlayer = bluePlayer;
 
         // 각 팀에 스킬 3개씩 지급
         redSkills = new Skill[]{new DestroySkill(), new ShieldSkill(), new ReviveSkill()};
@@ -50,11 +57,13 @@ public class SkillGame extends ClassicGame {
     // ========== 헬퍼 ==========
 
     /// <summary>
-    /// 현재 플레이어를 SkillPlayer로 캐스팅하여 반환
-    /// 스킬/아이템 메서드 호출 시 사용
+    /// 현재 플레이어를 SkillPlayer 타입으로 반환
     /// </summary>
-    protected SkillCapable skillCapable() {
-        return (SkillCapable) currentPlayer;
+    protected SkillPlayer currentSkillPlayer() {
+        if (currentPlayer == redPlayer) {
+            return skillRedPlayer;
+        }
+        return skillBluePlayer;
     }
 
     // ========== 보드 생성 ==========
@@ -77,7 +86,7 @@ public class SkillGame extends ClassicGame {
     @Override
     protected void afterMove(Move move) {
         if (skillBoard.isPromotion(move)) {
-            int choice = ((Promotable) currentPlayer).choosePromotion(board);
+            int choice = currentClassicPlayer().choosePromotion(board);
             skillBoard.promote(move.toRow, move.toCol, choice);
         }
     }
@@ -153,7 +162,7 @@ public class SkillGame extends ClassicGame {
         );
 
         // 4단계: 행동 선택
-        int action = skillCapable().chooseAction(board, skills, items);
+        int action = currentSkillPlayer().chooseAction(board, skills, items);
 
         switch (action) {
             case Chess.ACTION_SKILL:
@@ -234,7 +243,7 @@ public class SkillGame extends ClassicGame {
     /// </summary>
     protected boolean handleSkill(Skill[] skills) {
         // 스킬 선택
-        int skillIndex = skillCapable().chooseSkill(board, skills);
+        int skillIndex = currentSkillPlayer().chooseSkill(board, skills);
         if (skillIndex == Util.NONE) {
             return false;
         }
@@ -252,7 +261,7 @@ public class SkillGame extends ClassicGame {
             return false;
         }
 
-        int[] target = skillCapable().chooseSkillTarget(board, skill.targets, skill.targetCount);
+        int[] target = currentSkillPlayer().chooseSkillTarget(board, skill.targets, skill.targetCount);
         if (target == null) {
             return false;
         }
@@ -282,7 +291,7 @@ public class SkillGame extends ClassicGame {
         }
 
         // 부활할 기물 선택
-        int pieceIndex = skillCapable().chooseReviveTarget(board, captured);
+        int pieceIndex = currentSkillPlayer().chooseReviveTarget(board, captured);
         if (pieceIndex == Util.NONE) {
             return false;
         }
@@ -293,7 +302,7 @@ public class SkillGame extends ClassicGame {
             return false;
         }
 
-        int[] target = skillCapable().chooseSkillTarget(board, skill.targets, skill.targetCount);
+        int[] target = currentSkillPlayer().chooseSkillTarget(board, skill.targets, skill.targetCount);
         if (target == null) {
             return false;
         }
@@ -319,7 +328,7 @@ public class SkillGame extends ClassicGame {
     /// </summary>
     protected boolean handleItem(Item[] items) {
         // 아이템 종류 선택
-        int itemIndex = skillCapable().chooseItemType(board, items);
+        int itemIndex = currentSkillPlayer().chooseItemType(board, items);
         if (itemIndex == Util.NONE) {
             return false;
         }
@@ -327,7 +336,7 @@ public class SkillGame extends ClassicGame {
         Item item = items[itemIndex];
 
         // 설치 위치 선택
-        int[] target = skillCapable().chooseItemTarget(board);
+        int[] target = currentSkillPlayer().chooseItemTarget(board);
         if (target == null) {
             return false;
         }

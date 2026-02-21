@@ -2,18 +2,37 @@ package player;
 
 import board.SimpleBoard;
 import core.Chess;
-import core.Util;
+import core.Move;
 
 /// <summary>
 /// AI 플레이어 (공식 모드)
-/// 기본 AI(AiPlayer)에 프로모션 선택 기능을 추가
+/// AI 전략(AiInput)과 프로모션 선택 기능을 함께 제공
 /// </summary>
-public class ClassicAiPlayer extends AiPlayer implements Promotable {
+public class ClassicAiPlayer extends ClassicPlayer {
+
+    // ========== 필드 ==========
+
+    /// <summary>
+    /// AI 전략 처리
+    /// </summary>
+    private final AiInput aiInput;
 
     // ========== 생성자 ==========
 
     public ClassicAiPlayer(int color, String name, int difficulty) {
-        super(color, name, difficulty);
+        super(color, name);
+        this.aiInput = new AiInput(difficulty);
+    }
+
+    // ========== 수 선택 ==========
+
+    /// <summary>
+    /// AI가 수를 선택
+    /// AiInput에 위임
+    /// </summary>
+    @Override
+    public Move chooseMove(SimpleBoard board) {
+        return aiInput.chooseMove(board, color, name);
     }
 
     // ========== 프로모션 ==========

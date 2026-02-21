@@ -1,6 +1,7 @@
 package game;
 
 import core.Move;
+import core.Chess;
 import core.Util;
 import piece.*;
 import player.*;
@@ -69,28 +70,28 @@ public class DemoSkillGame extends SkillGame {
     /// 턴별 기대하는 행동 (범위 밖이면 자유 플레이)
     /// </summary>
     private static final int[] EXPECTED_ACTIONS = {
-        Util.ACTION_SKILL,   // 턴 1: 스킬 (파괴)
-        Util.ACTION_SKILL,   // 턴 2: 스킬 (방패)
-        Util.ACTION_ITEM,    // 턴 3: 아이템 (함정)
-        Util.ACTION_MOVE,    // 턴 4: 이동 (함정 발동)
-        Util.ACTION_ITEM,    // 턴 5: 아이템 (폭탄)
-        Util.ACTION_MOVE,    // 턴 6: 이동 (동결 체험 + 폭탄 발동)
-        Util.ACTION_MOVE,    // 턴 7: 이동
-        Util.ACTION_SKILL,   // 턴 8: 스킬 (부활)
+        Chess.ACTION_SKILL,   // 턴 1: 스킬 (파괴)
+        Chess.ACTION_SKILL,   // 턴 2: 스킬 (방패)
+        Chess.ACTION_ITEM,    // 턴 3: 아이템 (함정)
+        Chess.ACTION_MOVE,    // 턴 4: 이동 (함정 발동)
+        Chess.ACTION_ITEM,    // 턴 5: 아이템 (폭탄)
+        Chess.ACTION_MOVE,    // 턴 6: 이동 (동결 체험 + 폭탄 발동)
+        Chess.ACTION_MOVE,    // 턴 7: 이동
+        Chess.ACTION_SKILL,   // 턴 8: 스킬 (부활)
     };
 
     /// <summary>
     /// 턴별 기대하는 스킬/아이템 인덱스 (이동 턴이면 NONE)
     /// </summary>
     private static final int[] EXPECTED_CHOICES = {
-        Util.SKILL_DESTROY,  // 턴 1: 파괴
-        Util.SKILL_SHIELD,   // 턴 2: 방패
+        Chess.SKILL_DESTROY,  // 턴 1: 파괴
+        Chess.SKILL_SHIELD,   // 턴 2: 방패
         ITEM_TRAP,           // 턴 3: 함정
         Util.NONE,           // 턴 4: 이동
         ITEM_BOMB,           // 턴 5: 폭탄
         Util.NONE,           // 턴 6: 이동
         Util.NONE,           // 턴 7: 이동
-        Util.SKILL_REVIVE,   // 턴 8: 부활
+        Chess.SKILL_REVIVE,   // 턴 8: 부활
     };
 
     /// <summary>
@@ -98,13 +99,13 @@ public class DemoSkillGame extends SkillGame {
     /// null이면 검증 안 함
     /// </summary>
     private static final int[][] EXPECTED_TARGETS = {
-        {Util.ROW_8, Util.COL_C},   // 턴 1: 파괴 대상 - c8 비숍
-        {Util.ROW_8, Util.COL_H},   // 턴 2: 방패 대상 - h8 룩
-        {Util.ROW_6, Util.COL_H},   // 턴 3: 함정 설치 - h6
-        {Util.ROW_6, Util.COL_H},   // 턴 4: 이동 도착 - h6
-        {Util.ROW_6, Util.COL_F},   // 턴 5: 폭탄 설치 - f6
-        {Util.ROW_6, Util.COL_F},   // 턴 6: 이동 도착 - f6
-        {Util.ROW_5, Util.COL_D},   // 턴 7: 이동 도착 - d5
+        {Chess.ROW_8, Chess.COL_C},   // 턴 1: 파괴 대상 - c8 비숍
+        {Chess.ROW_8, Chess.COL_H},   // 턴 2: 방패 대상 - h8 룩
+        {Chess.ROW_6, Chess.COL_H},   // 턴 3: 함정 설치 - h6
+        {Chess.ROW_6, Chess.COL_H},   // 턴 4: 이동 도착 - h6
+        {Chess.ROW_6, Chess.COL_F},   // 턴 5: 폭탄 설치 - f6
+        {Chess.ROW_6, Chess.COL_F},   // 턴 6: 이동 도착 - f6
+        {Chess.ROW_5, Chess.COL_D},   // 턴 7: 이동 도착 - d5
         null,                         // 턴 8: 부활 (위치 자유)
     };
 
@@ -115,10 +116,10 @@ public class DemoSkillGame extends SkillGame {
         null,                         // 턴 1: 스킬
         null,                         // 턴 2: 스킬
         null,                         // 턴 3: 아이템
-        {Util.ROW_7, Util.COL_H},   // 턴 4: 폰 h7에서 출발
+        {Chess.ROW_7, Chess.COL_H},   // 턴 4: 폰 h7에서 출발
         null,                         // 턴 5: 아이템
-        {Util.ROW_7, Util.COL_F},   // 턴 6: 폰 f7에서 출발
-        {Util.ROW_4, Util.COL_D},   // 턴 7: 폰 d4에서 출발
+        {Chess.ROW_7, Chess.COL_F},   // 턴 6: 폰 f7에서 출발
+        {Chess.ROW_4, Chess.COL_D},   // 턴 7: 폰 d4에서 출발
         null,                         // 턴 8: 스킬
     };
 
@@ -147,17 +148,17 @@ public class DemoSkillGame extends SkillGame {
         board.clearAllPieces();
 
         // 빨간팀
-        board.placePiece(PieceType.KING, Piece.RED, Util.ROW_1, Util.COL_E);     // e1 - 킹
-        board.placePiece(PieceType.ROOK, Piece.RED, Util.ROW_1, Util.COL_A);     // a1 - 룩
-        board.placePiece(PieceType.PAWN, Piece.RED, Util.ROW_4, Util.COL_D);     // d4 - 폰 (턴7 이동용)
-        board.placePiece(PieceType.KNIGHT, Piece.RED, Util.ROW_1, Util.COL_B);   // b1 - 나이트
+        board.placePiece(PieceType.KING, Piece.RED, Chess.ROW_1, Chess.COL_E);     // e1 - 킹
+        board.placePiece(PieceType.ROOK, Piece.RED, Chess.ROW_1, Chess.COL_A);     // a1 - 룩
+        board.placePiece(PieceType.PAWN, Piece.RED, Chess.ROW_4, Chess.COL_D);     // d4 - 폰 (턴7 이동용)
+        board.placePiece(PieceType.KNIGHT, Piece.RED, Chess.ROW_1, Chess.COL_B);   // b1 - 나이트
 
         // 파란팀
-        board.placePiece(PieceType.KING, Piece.BLUE, Util.ROW_8, Util.COL_E);    // e8 - 킹
-        board.placePiece(PieceType.ROOK, Piece.BLUE, Util.ROW_8, Util.COL_H);    // h8 - 룩 (턴2 방패 대상)
-        board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_H);    // h7 - 폰 (턴4 함정 발동용)
-        board.placePiece(PieceType.BISHOP, Piece.BLUE, Util.ROW_8, Util.COL_C);  // c8 - 비숍 (턴1 파괴 대상)
-        board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_F);    // f7 - 폰 (턴6 폭탄 발동용)
+        board.placePiece(PieceType.KING, Piece.BLUE, Chess.ROW_8, Chess.COL_E);    // e8 - 킹
+        board.placePiece(PieceType.ROOK, Piece.BLUE, Chess.ROW_8, Chess.COL_H);    // h8 - 룩 (턴2 방패 대상)
+        board.placePiece(PieceType.PAWN, Piece.BLUE, Chess.ROW_7, Chess.COL_H);    // h7 - 폰 (턴4 함정 발동용)
+        board.placePiece(PieceType.BISHOP, Piece.BLUE, Chess.ROW_8, Chess.COL_C);  // c8 - 비숍 (턴1 파괴 대상)
+        board.placePiece(PieceType.PAWN, Piece.BLUE, Chess.ROW_7, Chess.COL_F);    // f7 - 폰 (턴6 폭탄 발동용)
     }
 
     // ========== 게임 루프 오버라이드 ==========
@@ -244,7 +245,7 @@ public class DemoSkillGame extends SkillGame {
         }
 
         // 부활 스킬의 잡힌 기물 수 갱신
-        ((ReviveSkill) skills[Util.SKILL_REVIVE]).setCapturedCount(
+        ((ReviveSkill) skills[Chess.SKILL_REVIVE]).setCapturedCount(
             skillBoard.getCapturedCount(currentPlayer.color)
         );
 
@@ -261,9 +262,9 @@ public class DemoSkillGame extends SkillGame {
         // ===== 행동 처리 (단계별 검증 포함) =====
 
         switch (action) {
-            case Util.ACTION_SKILL:
+            case Chess.ACTION_SKILL:
                 return handleDemoSkill(skills, scriptIndex);
-            case Util.ACTION_ITEM:
+            case Chess.ACTION_ITEM:
                 return handleDemoItem(items, scriptIndex);
             default:
                 return handleDemoMove(scriptIndex);
@@ -322,7 +323,7 @@ public class DemoSkillGame extends SkillGame {
         Util.clearScreen();
         skillBoard.print(currentPlayer.color);
         System.out.println();
-        System.out.println(skill.name + " 스킬 사용! (" + Util.toNotation(target[0], target[1]) + ")");
+        System.out.println(skill.name + " 스킬 사용! (" + Chess.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
 
         return false;
@@ -365,7 +366,7 @@ public class DemoSkillGame extends SkillGame {
         Util.clearScreen();
         skillBoard.print(currentPlayer.color);
         System.out.println();
-        System.out.println(revived.name + " 부활! (" + Util.toNotation(target[0], target[1]) + ")");
+        System.out.println(revived.name + " 부활! (" + Chess.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
 
         return false;
@@ -416,7 +417,7 @@ public class DemoSkillGame extends SkillGame {
         Util.clearScreen();
         skillBoard.print(currentPlayer.color);
         System.out.println();
-        System.out.println(item.name + " 설치 완료! (" + Util.toNotation(target[0], target[1]) + ")");
+        System.out.println(item.name + " 설치 완료! (" + Chess.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
 
         return false;

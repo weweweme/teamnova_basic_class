@@ -1,6 +1,7 @@
 package game;
 
 import core.Move;
+import core.Chess;
 import core.Util;
 import piece.*;
 import player.*;
@@ -81,21 +82,21 @@ public class DemoSimpleGame extends SimpleGame {
     /// 턴별 기대하는 출발 위치 (null이면 검증 없이 자유 이동)
     /// </summary>
     private static final int[][] EXPECTED_FROM = {
-        {Util.ROW_3, Util.COL_B},   // 턴 1: 나이트 b3
+        {Chess.ROW_3, Chess.COL_B},   // 턴 1: 나이트 b3
         null,                         // 턴 2: 자유
-        {Util.ROW_1, Util.COL_C},   // 턴 3: 비숍 c1
+        {Chess.ROW_1, Chess.COL_C},   // 턴 3: 비숍 c1
         null,                         // 턴 4: 자유
-        {Util.ROW_1, Util.COL_A},   // 턴 5: 룩 a1
+        {Chess.ROW_1, Chess.COL_A},   // 턴 5: 룩 a1
         null,                         // 턴 6: 자유
-        {Util.ROW_4, Util.COL_D},   // 턴 7: 퀸 d4
+        {Chess.ROW_4, Chess.COL_D},   // 턴 7: 퀸 d4
         null,                         // 턴 8: 자유
-        {Util.ROW_2, Util.COL_E},   // 턴 9: 폰 e2
+        {Chess.ROW_2, Chess.COL_E},   // 턴 9: 폰 e2
         null,                         // 턴 10: 자유
-        {Util.ROW_1, Util.COL_E},   // 턴 11: 킹 e1
+        {Chess.ROW_1, Chess.COL_E},   // 턴 11: 킹 e1
         null,                         // 턴 12: 체크 탈출 (킹만 이동 가능)
         null,                         // 턴 13: 자유
         null,                         // 턴 14: 자유
-        {Util.ROW_1, Util.COL_A},   // 턴 15: 룩 a1
+        {Chess.ROW_1, Chess.COL_A},   // 턴 15: 룩 a1
     };
 
     /// <summary>
@@ -109,7 +110,7 @@ public class DemoSimpleGame extends SimpleGame {
         null,                           // 턴 12: 체크 탈출
         null,                           // 턴 13: 자유
         null,                           // 턴 14: 자유
-        {Util.ROW_8, Util.COL_A},     // 턴 15: a8 (체크메이트)
+        {Chess.ROW_8, Chess.COL_A},     // 턴 15: a8 (체크메이트)
     };
 
     // 체크 시연에서 보드를 재배치하는 스크립트 인덱스 (턴 12)
@@ -135,17 +136,17 @@ public class DemoSimpleGame extends SimpleGame {
         board.clearAllPieces();
 
         // 빨간팀: 각 기물의 이동 규칙을 보여줄 수 있는 위치에 배치
-        board.placePiece(PieceType.KING, Piece.RED, Util.ROW_1, Util.COL_E);     // e1 - 킹 (1칸 전방향)
-        board.placePiece(PieceType.QUEEN, Piece.RED, Util.ROW_4, Util.COL_D);    // d4 - 퀸 (8방향 무제한)
-        board.placePiece(PieceType.ROOK, Piece.RED, Util.ROW_1, Util.COL_A);     // a1 - 룩 (직선 4방향)
-        board.placePiece(PieceType.BISHOP, Piece.RED, Util.ROW_1, Util.COL_C);   // c1 - 비숍 (대각선 4방향)
-        board.placePiece(PieceType.KNIGHT, Piece.RED, Util.ROW_3, Util.COL_B);   // b3 - 나이트 (L자 이동)
-        board.placePiece(PieceType.PAWN, Piece.RED, Util.ROW_2, Util.COL_E);     // e2 - 폰 (전진, 첫 이동 2칸)
+        board.placePiece(PieceType.KING, Piece.RED, Chess.ROW_1, Chess.COL_E);     // e1 - 킹 (1칸 전방향)
+        board.placePiece(PieceType.QUEEN, Piece.RED, Chess.ROW_4, Chess.COL_D);    // d4 - 퀸 (8방향 무제한)
+        board.placePiece(PieceType.ROOK, Piece.RED, Chess.ROW_1, Chess.COL_A);     // a1 - 룩 (직선 4방향)
+        board.placePiece(PieceType.BISHOP, Piece.RED, Chess.ROW_1, Chess.COL_C);   // c1 - 비숍 (대각선 4방향)
+        board.placePiece(PieceType.KNIGHT, Piece.RED, Chess.ROW_3, Chess.COL_B);   // b3 - 나이트 (L자 이동)
+        board.placePiece(PieceType.PAWN, Piece.RED, Chess.ROW_2, Chess.COL_E);     // e2 - 폰 (전진, 첫 이동 2칸)
 
         // 파란팀: 빨간 기물과 겹치지 않는 g/h 열에 배치 (시연 기물 보호)
-        board.placePiece(PieceType.KING, Piece.BLUE, Util.ROW_8, Util.COL_E);    // e8 - 킹
-        board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_G);    // g7 - 폰
-        board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_H);    // h7 - 폰
+        board.placePiece(PieceType.KING, Piece.BLUE, Chess.ROW_8, Chess.COL_E);    // e8 - 킹
+        board.placePiece(PieceType.PAWN, Piece.BLUE, Chess.ROW_7, Chess.COL_G);    // g7 - 폰
+        board.placePiece(PieceType.PAWN, Piece.BLUE, Chess.ROW_7, Chess.COL_H);    // h7 - 폰
     }
 
     // ========== 체크/체크메이트 시연 배치 ==========
@@ -160,13 +161,13 @@ public class DemoSimpleGame extends SimpleGame {
         board.clearAllPieces();
 
         // 빨간팀
-        board.placePiece(PieceType.KING, Piece.RED, Util.ROW_1, Util.COL_G);    // g1 - 킹
-        board.placePiece(PieceType.ROOK, Piece.RED, Util.ROW_8, Util.COL_A);    // a8 - 룩 (체크 중)
+        board.placePiece(PieceType.KING, Piece.RED, Chess.ROW_1, Chess.COL_G);    // g1 - 킹
+        board.placePiece(PieceType.ROOK, Piece.RED, Chess.ROW_8, Chess.COL_A);    // a8 - 룩 (체크 중)
 
         // 파란팀 (킹이 체크 상태)
-        board.placePiece(PieceType.KING, Piece.BLUE, Util.ROW_8, Util.COL_E);   // e8 - 킹 (체크!)
-        board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_F);   // f7 - 폰 (이동 불가)
-        board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_G);   // g7 - 폰 (이동 불가)
+        board.placePiece(PieceType.KING, Piece.BLUE, Chess.ROW_8, Chess.COL_E);   // e8 - 킹 (체크!)
+        board.placePiece(PieceType.PAWN, Piece.BLUE, Chess.ROW_7, Chess.COL_F);   // f7 - 폰 (이동 불가)
+        board.placePiece(PieceType.PAWN, Piece.BLUE, Chess.ROW_7, Chess.COL_G);   // g7 - 폰 (이동 불가)
     }
 
     /// <summary>
@@ -177,14 +178,14 @@ public class DemoSimpleGame extends SimpleGame {
         board.clearAllPieces();
 
         // 빨간팀
-        board.placePiece(PieceType.KING, Piece.RED, Util.ROW_1, Util.COL_G);    // g1 - 킹
-        board.placePiece(PieceType.ROOK, Piece.RED, Util.ROW_1, Util.COL_A);    // a1 - 룩 (체크메이트 실행)
+        board.placePiece(PieceType.KING, Piece.RED, Chess.ROW_1, Chess.COL_G);    // g1 - 킹
+        board.placePiece(PieceType.ROOK, Piece.RED, Chess.ROW_1, Chess.COL_A);    // a1 - 룩 (체크메이트 실행)
 
         // 파란팀 (킹이 자기 폰에 막힌 상태)
-        board.placePiece(PieceType.KING, Piece.BLUE, Util.ROW_8, Util.COL_G);   // g8 - 킹
-        board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_F);   // f7 - 폰 (퇴로 차단)
-        board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_G);   // g7 - 폰 (퇴로 차단)
-        board.placePiece(PieceType.PAWN, Piece.BLUE, Util.ROW_7, Util.COL_H);   // h7 - 폰 (퇴로 차단)
+        board.placePiece(PieceType.KING, Piece.BLUE, Chess.ROW_8, Chess.COL_G);   // g8 - 킹
+        board.placePiece(PieceType.PAWN, Piece.BLUE, Chess.ROW_7, Chess.COL_F);   // f7 - 폰 (퇴로 차단)
+        board.placePiece(PieceType.PAWN, Piece.BLUE, Chess.ROW_7, Chess.COL_G);   // g7 - 폰 (퇴로 차단)
+        board.placePiece(PieceType.PAWN, Piece.BLUE, Chess.ROW_7, Chess.COL_H);   // h7 - 폰 (퇴로 차단)
     }
 
     // ========== 턴 처리 (스크립트 검증) ==========

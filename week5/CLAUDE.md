@@ -33,8 +33,65 @@ java -cp out Main
 
 ## 프로젝트 구조
 
-- `src/` - Java 소스 파일 (진입점: `Main.java`)
-- `out/` - 컴파일된 클래스 파일 (gitignore 처리됨)
+총 **37개 소스 파일**, 8개 패키지
+
+```
+src/
+├── Main.java                       진입점 (타이틀, 모드 선택, 게임 시작)
+│
+├── board/                          체스판 계층 (3개)
+│   ├── SimpleBoard.java            기본 체스판 (격자, 이동, 체크)
+│   ├── ClassicBoard.java           공식 체스판 (+캐슬링, 앙파상, 프로모션)
+│   └── SkillBoard.java             스킬 체스판 (+스킬, 아이템, 방패, 동결)
+│
+├── cell/                           칸 계층 (2개)
+│   ├── Cell.java                   기본 칸 (기물 관리)
+│   └── SkillCell.java              스킬 칸 (+아이템 관리)
+│
+├── core/                           유틸리티 (3개)
+│   ├── Chess.java                  체스 전용 상수 (좌표, 프로모션, 액션, 스킬)
+│   ├── Move.java                   이동 데이터 (출발/도착 좌표)
+│   └── Util.java                   범용 유틸리티 (입력, 화면, 딜레이, 랜덤)
+│
+├── game/                           게임 루프 계층 (7개)
+│   ├── Game.java                   게임 추상 클래스 (템플릿 메서드 패턴)
+│   ├── SimpleGame.java             기본 체스 게임
+│   ├── ClassicGame.java            공식 체스 게임
+│   ├── SkillGame.java              스킬 모드 게임
+│   ├── DemoSimpleGame.java         기본 체스 튜토리얼
+│   ├── DemoClassicGame.java        공식 체스 튜토리얼
+│   └── DemoSkillGame.java          스킬 모드 튜토리얼
+│
+├── item/                           아이템 계층 (3개)
+│   ├── Item.java                   아이템 추상 클래스
+│   ├── BombItem.java               폭탄 (기물 제거, 킹 면역)
+│   └── TrapItem.java               함정 (기물 동결)
+│
+├── piece/                          기물 계층 (4개)
+│   ├── Piece.java                  기물 클래스 (데이터 기반 이동)
+│   ├── PieceType.java              기물 종류 열거형
+│   ├── PieceFactory.java           기물 속성 설정 팩토리
+│   └── SkillPiece.java             스킬 기물 (+방패, 동결 상태)
+│
+├── player/                         플레이어 계층 (9개)
+│   ├── Player.java                 플레이어 추상 클래스
+│   ├── HumanPlayer.java            사람 (기본 - 화살표 키 조작)
+│   ├── ClassicHumanPlayer.java     사람 (공식 - +프로모션)
+│   ├── SkillHumanPlayer.java       사람 (스킬 - +스킬/아이템)
+│   ├── AiPlayer.java               AI (기본 - 우선순위 전략)
+│   ├── ClassicAiPlayer.java        AI (공식 - +프로모션)
+│   ├── SkillAiPlayer.java          AI (스킬 - +스킬/아이템)
+│   ├── Promotable.java             프로모션 인터페이스
+│   └── SkillCapable.java           스킬/아이템 인터페이스
+│
+└── skill/                          스킬 계층 (4개)
+    ├── Skill.java                  스킬 추상 클래스
+    ├── DestroySkill.java           파괴 (상대 기물 제거)
+    ├── ShieldSkill.java            방패 (아군 기물 보호)
+    └── ReviveSkill.java            부활 (잡힌 기물 복원)
+
+out/                                컴파일된 클래스 파일 (gitignore)
+```
 
 ## 개발 프로세스
 
@@ -222,80 +279,305 @@ java -cp out Main
 - 2인 대전 + AI 대전 모드
 - 기본 규칙 먼저 → 특수 규칙 단계적 추가
 
-### 상속 구조
+### 상속 구조 (7개 계층 + 2개 인터페이스)
 
-**1차 상속: Piece 계층 (기물)**
-
-```
-Piece (abstract)
- ├── King      (1칸 전방향)
- ├── Queen     (직선+대각선 무제한 - slideMoves 8방향)
- ├── Rook      (직선 4방향 - slideMoves)
- ├── Bishop    (대각선 4방향 - slideMoves)
- ├── Knight    (L자 이동 - slideMoves 미사용)
- └── Pawn      (전진, 첫 이동 2칸, 대각선 잡기)
-```
-
-- `Piece`에 추상 메서드 `getValidMoves(Piece[][] board)` 선언
-- 각 하위 클래스가 오버라이딩하여 자기만의 이동 로직 구현
-- `slideMoves()`: Piece에 protected 헬퍼 메서드로 직선/대각선 이동 공통 로직
-
-**2차 상속: Player 계층**
+**1차: Piece 계층 (기물)**
 
 ```
-Player (abstract)
- ├── HumanPlayer   (사용자 입력으로 수 선택)
- └── AiPlayer      (알고리즘으로 수 선택)
+Piece (데이터 기반 이동 - PieceFactory가 type별 방향/속성 설정)
+ └── SkillPiece  (+방패 shielded, 동결 frozen 상태)
 ```
 
-- `Player`에 추상 메서드 `chooseMove(SimpleBoard board)` 선언
-- `Game`이 `currentPlayer.chooseMove()` 호출 → 다형성
+- `PieceType` 열거형이 기물 종류(KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN)를 정의
+- `PieceFactory.configure()`가 type에 따라 이름/기호/가치/이동방향을 설정
+- 모든 기물이 동일한 `Piece.getValidMoves()` → `calculateMoves()`를 사용
+- 기물별 차이는 `directions`(이동+잡기), `moveOnlyDirections`(전진만), `captureOnlyDirections`(잡기만), `repeatMove`(슬라이드 여부) 데이터로 구분
 
-**3차 상속: SimpleBoard 계층 (체스판)**
+**2차: Board 계층 (체스판)**
 
 ```
 SimpleBoard (기본 이동, 체크, 체크메이트)
- └── ClassicBoard  (캐슬링, 앙파상, 프로모션 추가)
-      └── SkillBoard (스킬, 아이템 추가)
+ └── ClassicBoard  (+캐슬링, 앙파상, 프로모션)
+      └── SkillBoard (+스킬, 아이템, 방패, 동결)
 ```
 
-- `SimpleBoard`에 `addSpecialMoves()` 훅 메서드 정의 (기본: 빈 메서드)
-- `ClassicBoard`가 오버라이드하여 캐슬링/앙파상 추가
-- `SimpleBoard.executeMove()`는 기본 이동만, `ClassicBoard`가 오버라이드하여 특수 이동 처리
+- `SimpleBoard`에 훅 메서드 4개 정의 (하위 클래스가 오버라이드)
+  - `addSpecialMoves()` → ClassicBoard가 캐슬링/앙파상 추가
+  - `isMovementBlocked()` → SkillBoard가 동결 상태 확인
+  - `isCaptureBlocked()` → SkillBoard가 방패 상태 확인
+  - `createCell()` / `createPiece()` → SkillBoard가 SkillCell/SkillPiece 생성
 
-**4차 상속: Game 계층**
+**3차: Cell 계층 (칸)**
 
 ```
-Game (abstract - 게임 루프, 턴 관리)
- ├── SimpleGame     (SimpleBoard, 프로모션 없음)
- ├── ClassicGame  (ClassicBoard, 프로모션 처리)
- └── SkillGame     (SkillBoard, 스킬/아이템 + 프로모션)
+Cell (기물 관리: getPiece/setPiece/removePiece/hasPiece/isEmpty)
+ └── SkillCell  (+아이템 관리: getItem/setItem/removeItem/hasItem)
 ```
 
-### 클래스 구조
+**4차: Player 계층 (플레이어)**
 
-| 파일 | 역할 |
-|------|------|
-| `Main` | 타이틀 화면, 모드 선택 (기본/공식/스킬 × 2인/AI), 게임 시작 |
-| `Game` | **추상 클래스** - 게임 루프, 턴 관리, 체크/체크메이트 판정 |
-| `SimpleGame` | 기본 체스 게임 (이동만, 프로모션 없음) |
-| `ClassicGame` | 공식 체스 게임 (이동 + 프로모션) |
-| `SkillGame` | 스킬 모드 게임 (이동 + 프로모션 + 스킬/아이템) |
-| `SimpleBoard` | 8x8 격자, 기본 이동, 체크 판정, `addSpecialMoves()` 훅 |
-| `ClassicBoard` | 공식 체스판 (캐슬링, 앙파상, 프로모션 추가) |
-| `SkillBoard` | 스킬 모드 체스판 (ClassicBoard + 스킬/아이템) |
-| `Piece` | **추상 클래스** - 기물 공통 필드/메서드, abstract getValidMoves() |
-| `King` | 킹 - 1칸 전방향 |
-| `Queen` | 퀸 - 8방향 slideMoves |
-| `Rook` | 룩 - 상하좌우 slideMoves |
-| `Bishop` | 비숍 - 대각선 slideMoves |
-| `Knight` | 나이트 - L자 8칸 |
-| `Pawn` | 폰 - 전진, 대각선 잡기 |
-| `Move` | 이동 데이터 (출발/도착 좌표) |
-| `Player` | **추상 클래스** - 플레이어 공통, abstract chooseMove() |
-| `HumanPlayer` | 사람 플레이어 - 콘솔 입력 |
-| `AiPlayer` | AI 플레이어 - 우선순위 기반 전략 |
-| `Util` | 유틸리티 (입력, 좌표 변환, 랜덤, 딜레이) |
+사람 체인과 AI 체인이 병렬 구조로 모드별 기능을 단계적으로 추가:
+
+```
+              Player (abstract - chooseMove)
+             /                              \
+    HumanPlayer (화살표 키 조작)          AiPlayer (우선순위 전략)
+         |                                    |
+ClassicHumanPlayer (+Promotable)       ClassicAiPlayer (+Promotable)
+         |                                    |
+SkillHumanPlayer (+SkillCapable)       SkillAiPlayer (+SkillCapable)
+```
+
+**5차: Game 계층 (게임 루프)**
+
+각 모드의 게임 루프 + 각 모드의 튜토리얼이 서브클래스로 존재:
+
+```
+          Game (abstract - 템플릿 메서드 패턴)
+         /              |              \
+  SimpleGame       ClassicGame       SkillGame
+       |                |                |
+DemoSimpleGame  DemoClassicGame  DemoSkillGame
+```
+
+**6차: Skill 계층 (스킬)**
+
+```
+Skill (abstract - canUse/findTargets/execute)
+ ├── DestroySkill  (상대 기물 1개 제거, 킹 제외)
+ ├── ShieldSkill   (아군 기물 1개에 방패, 1턴간 잡기 방어)
+ └── ReviveSkill   (잡힌 아군 기물 1개 부활, 빈 칸에 배치)
+```
+
+**7차: Item 계층 (아이템)**
+
+```
+Item (abstract - trigger/getSymbol)
+ ├── BombItem  (밟은 기물 제거, 킹은 면역)
+ └── TrapItem  (밟은 기물 동결, 다음 턴 이동 불가)
+```
+
+**인터페이스 2개**
+
+```
+Promotable   → choosePromotion(board)
+               구현: ClassicHumanPlayer, ClassicAiPlayer
+
+SkillCapable → chooseAction(), chooseSkill(), chooseSkillTarget(),
+               chooseItemType(), chooseItemTarget(), chooseReviveTarget()
+               구현: SkillHumanPlayer, SkillAiPlayer
+```
+
+### 클래스 구조 (37개)
+
+**진입점**
+
+| 클래스 | 역할 |
+|--------|------|
+| `Main` | 타이틀 화면, 모드 선택 (기본/공식/스킬 × 2인/AI + 튜토리얼), 게임 시작 |
+
+**core 패키지 - 유틸리티**
+
+| 클래스 | 역할 |
+|--------|------|
+| `Chess` | 체스 전용 상수 (보드 크기, 좌표, 프로모션, 액션, 스킬), 좌표 변환 |
+| `Move` | 이동 데이터 (출발/도착 행열 좌표, set()으로 재사용) |
+| `Util` | 범용 유틸리티 - 상수 (키, 색상), 터미널 raw 모드, 입력, 화면, 딜레이, 랜덤 |
+
+**piece 패키지 - 기물**
+
+| 클래스 | 역할 |
+|--------|------|
+| `Piece` | 기물 클래스 - `getValidMoves()` → `calculateMoves()`로 데이터 기반 이동 |
+| `SkillPiece` | Piece + `shielded`/`frozen` 필드 (스킬 효과 상태) |
+| `PieceType` | 열거형 (KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN) |
+| `PieceFactory` | 정적 `configure()` - type에 따라 이름/기호/가치/방향 설정 |
+
+**cell 패키지 - 칸**
+
+| 클래스 | 역할 |
+|--------|------|
+| `Cell` | 기본 칸 - 기물 관리 (`getPiece`, `setPiece`, `removePiece`, `hasPiece`, `isEmpty`) |
+| `SkillCell` | Cell + 아이템 관리 (`getItem`, `setItem`, `removeItem`, `hasItem`) |
+
+**board 패키지 - 체스판**
+
+| 클래스 | 역할 |
+|--------|------|
+| `SimpleBoard` | 8x8 격자, 기물 배치, 기본 이동, 체크/체크메이트 판정, 훅 메서드 4개 |
+| `ClassicBoard` | SimpleBoard + 캐슬링, 앙파상, 프로모션 (`addSpecialMoves` 오버라이드) |
+| `SkillBoard` | ClassicBoard + 아이템/스킬 효과, 방패/동결 관리, 기물 제거/부활 |
+
+**player 패키지 - 플레이어**
+
+| 클래스/인터페이스 | 역할 |
+|-------------------|------|
+| `Player` | **추상** - `chooseMove()` 선언, 색상/이름 보유 |
+| `HumanPlayer` | 화살표 키로 커서 이동 → Enter로 기물 선택/도착지 확정 |
+| `ClassicHumanPlayer` | HumanPlayer + `Promotable` (프로모션 시 숫자 키로 기물 선택) |
+| `SkillHumanPlayer` | ClassicHumanPlayer + `SkillCapable` (행동/스킬/아이템/부활 선택) |
+| `AiPlayer` | 쉬움(랜덤) / 보통(체크메이트 > 잡기 > 체크 > 랜덤) |
+| `ClassicAiPlayer` | AiPlayer + `Promotable` (항상 퀸으로 승격) |
+| `SkillAiPlayer` | ClassicAiPlayer + `SkillCapable` (확률 기반 행동 선택) |
+| `Promotable` | **인터페이스** - `choosePromotion()` |
+| `SkillCapable` | **인터페이스** - 스킬/아이템 선택 메서드 6개 |
+
+**game 패키지 - 게임 루프**
+
+| 클래스 | 역할 |
+|--------|------|
+| `Game` | **추상** - 템플릿 메서드 패턴 (`run` → `processTurn` → 체크메이트 → `switchTurn`) |
+| `SimpleGame` | `processTurn`: chooseMove → executeMove |
+| `ClassicGame` | `processTurn`: chooseMove → executeMove → 프로모션 확인 |
+| `SkillGame` | `processTurn`: 효과 정리 → 행동 선택(이동/스킬/아이템) → 아이템 트리거 → 프로모션 |
+| `DemoSimpleGame` | SimpleGame + 15턴 스크립트 (나이트→비숍→룩→퀸→폰→킹→체크→체크메이트) |
+| `DemoClassicGame` | ClassicGame + 5턴 스크립트 (캐슬링→앙파상→프로모션) |
+| `DemoSkillGame` | SkillGame + 8턴 스크립트 (파괴→방패→함정→폭탄→동결체험→부활) |
+
+**skill 패키지 - 스킬**
+
+| 클래스 | 역할 |
+|--------|------|
+| `Skill` | **추상** - `canUse`/`findTargets`/`execute`, 사용 횟수 관리 |
+| `DestroySkill` | 상대 기물 1개 제거 (킹 제외), 2회 사용 |
+| `ShieldSkill` | 아군 기물 1개에 방패 (1턴간 잡기 방어), 2회 사용 |
+| `ReviveSkill` | 잡힌 아군 기물 1개 부활 (빈 칸에 배치), 1회 사용 |
+
+**item 패키지 - 아이템**
+
+| 클래스 | 역할 |
+|--------|------|
+| `Item` | **추상** - `trigger`/`getSymbol`, 설치 위치/소유자 보유 |
+| `BombItem` | 밟은 기물 제거 (킹은 면역), 2회 설치 |
+| `TrapItem` | 밟은 기물 동결 (다음 턴 이동 불가), 2회 설치 |
+
+### 게임 루프 흐름
+
+**공통 루프 (`Game.run`)** - 템플릿 메서드 패턴
+
+모든 게임 모드가 동일한 루프 구조를 공유하고, `processTurn()`과 `createBoard()`만 오버라이드.
+SkillGame은 `run()` 자체도 오버라이드하여 동결 해제 단계를 추가.
+
+```mermaid
+graph TD
+    START[Game.run 시작] --> PT[processTurn 호출]
+    PT -->|"quit = true"| END[게임 종료]
+    PT -->|"quit = false"| CM{체크메이트?}
+    CM -->|yes| WIN[승리 출력]
+    CM -->|no| SM{스테일메이트?}
+    SM -->|yes| DRAW[무승부 출력]
+    SM -->|no| SW[턴 교대]
+    SW --> PT
+```
+
+**SimpleGame.processTurn** - 기본 체스 (이동만)
+
+```mermaid
+graph TD
+    A[수 선택 - Player.chooseMove] --> B[이동 실행 - Board.executeMove]
+```
+
+**ClassicGame.processTurn** - 공식 체스 (이동 + 프로모션)
+
+```mermaid
+graph TD
+    A[수 선택 - Player.chooseMove] --> B[이동 실행 - Board.executeMove]
+    B --> C{폰이 끝 줄 도착?}
+    C -->|yes| D[승격 선택 - Promotable.choosePromotion]
+    C -->|no| E[턴 완료]
+    D --> E
+```
+
+**SkillGame.processTurn** - 스킬 모드 (이동/스킬/아이템)
+
+```mermaid
+graph TD
+    ACT[행동 선택] -->|이동| MV[수 선택 → 이동 실행]
+    MV --> TRG{상대 Item 밟음?}
+    TRG -->|yes| EFF[Item.trigger 발동]
+    TRG -->|no| END[턴 종료]
+    EFF --> END
+    ACT -->|스킬| SK[Skill 선택 → 대상 선택 → Skill.execute]
+    SK --> END
+    ACT -->|아이템| IT[Item 선택 → 빈 칸에 설치]
+    IT --> END
+```
+
+### 모듈 상호작용
+
+**패키지 간 의존관계**
+
+화살표 방향 = import 방향 (사용하는 쪽 → 사용되는 쪽)
+
+```mermaid
+graph TB
+    Main["<b>Main</b><br/>진입점"]
+    game["<b>game</b><br/>Game, SimpleGame<br/>ClassicGame, SkillGame<br/>Demo*Game (3개)"]
+    player["<b>player</b><br/>Player, Human*Player (3단)<br/>Ai*Player (3단)<br/>Promotable, SkillCapable"]
+    board["<b>board</b><br/>SimpleBoard<br/>ClassicBoard<br/>SkillBoard"]
+    piece["<b>piece</b><br/>Piece, SkillPiece<br/>PieceType, PieceFactory"]
+    cell["<b>cell</b><br/>Cell, SkillCell"]
+    skill["<b>skill</b><br/>Skill, DestroySkill<br/>ShieldSkill, ReviveSkill"]
+    item["<b>item</b><br/>Item<br/>BombItem, TrapItem"]
+    core["<b>core</b><br/>Util, Move"]
+
+    Main --> game
+    Main --> player
+
+    game --> board
+    game --> player
+    game --> skill
+    game --> item
+
+    player --> board
+    player --> skill
+    player --> item
+
+    board --> cell
+    board --> piece
+    board --> item
+
+    skill --> board
+    skill --> cell
+
+    item --> board
+
+    piece --> cell
+
+    cell --> piece
+    cell --> item
+
+    game --> core
+    player --> core
+    board --> core
+    skill --> core
+    item --> core
+    piece --> core
+```
+
+**주요 상호작용 흐름**
+
+```
+1. Main → Game.run() 호출
+2. Game → Player.chooseMove() 호출 (다형성)
+3. Player → Board.getFilteredMoves() 등으로 합법적인 수 조회
+4. Board → Piece.getValidMoves()로 기물별 이동 계산
+5. Board → Cell.getPiece()/setPiece()로 격자 상태 변경
+6. SkillGame → Skill.execute(), Item.trigger()로 특수 효과 적용
+7. SkillBoard → SkillPiece.frozen/shielded로 상태 확인
+8. SkillBoard → SkillCell.getItem()/setItem()으로 아이템 관리
+```
+
+### 설계 패턴
+
+| 패턴 | 적용 위치 | 설명 |
+|------|----------|------|
+| **템플릿 메서드** | `Game.run()` → `processTurn()` | 공통 루프를 정의하고 턴 처리만 하위 클래스가 오버라이드 |
+| **훅 메서드** | `SimpleBoard` 4개 | `addSpecialMoves`, `isMovementBlocked`, `isCaptureBlocked`, `createCell`/`createPiece` |
+| **팩토리 메서드** | `createBoard()`, `createCell()`, `createPiece()` | 하위 클래스가 자기 모드에 맞는 객체 생성 |
+| **정적 팩토리** | `PieceFactory.configure()` | PieceType에 따라 기물 속성(방향, 기호, 가치) 일괄 설정 |
+| **다형성** | `Player.chooseMove()` | Game이 Human/AI 구분 없이 동일하게 호출 |
+| **인터페이스 분리** | `Promotable`, `SkillCapable` | 모드별 필요한 기능만 인터페이스로 분리, 필요한 클래스만 구현 |
 
 ### 좌표 체계
 

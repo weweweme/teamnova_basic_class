@@ -2,6 +2,7 @@ package piece;
 
 import cell.Cell;
 import core.Util;
+import core.Chess;
 
 /// <summary>
 /// 체스 기물 클래스
@@ -89,7 +90,7 @@ public class Piece {
     public static final int MAX_MOVES = 28;
 
     // 이동 가능한 칸 버퍼 (매번 새로 만들지 않고 재사용)
-    public final int[][] moveBuffer = new int[MAX_MOVES][Util.COORD_SIZE];
+    public final int[][] moveBuffer = new int[MAX_MOVES][Chess.COORD_SIZE];
 
     // 현재 유효한 이동 가능 칸 수 (moveBuffer에서 이 수만큼만 유효)
     public int moveCount;
@@ -140,8 +141,8 @@ public class Piece {
                     int c = col + dir[1];
 
                     // 보드 범위 확인
-                    boolean rowOutOfBounds = r < 0 || r >= Util.BOARD_SIZE;   // 행이 보드 범위를 넘는지
-                    boolean colOutOfBounds = c < 0 || c >= Util.BOARD_SIZE;   // 열이 보드 범위를 넘는지
+                    boolean rowOutOfBounds = r < 0 || r >= Chess.BOARD_SIZE;   // 행이 보드 범위를 넘는지
+                    boolean colOutOfBounds = c < 0 || c >= Chess.BOARD_SIZE;   // 열이 보드 범위를 넘는지
                     if (rowOutOfBounds || colOutOfBounds) {
                         continue;
                     }
@@ -161,8 +162,8 @@ public class Piece {
                 int c = col + dir[1];
 
                 // 보드 범위 확인
-                boolean rowOutOfBounds = r < 0 || r >= Util.BOARD_SIZE;   // 행이 보드 범위를 넘는지
-                boolean colOutOfBounds = c < 0 || c >= Util.BOARD_SIZE;   // 열이 보드 범위를 넘는지
+                boolean rowOutOfBounds = r < 0 || r >= Chess.BOARD_SIZE;   // 행이 보드 범위를 넘는지
+                boolean colOutOfBounds = c < 0 || c >= Chess.BOARD_SIZE;   // 열이 보드 범위를 넘는지
                 if (rowOutOfBounds || colOutOfBounds) {
                     continue;
                 }
@@ -178,8 +179,8 @@ public class Piece {
                     int r2 = row + dir[0] * 2;
                     int c2 = col + dir[1] * 2;
 
-                    boolean r2OutOfBounds = r2 < 0 || r2 >= Util.BOARD_SIZE;   // 2칸 앞이 보드 범위를 넘는지
-                    boolean c2OutOfBounds = c2 < 0 || c2 >= Util.BOARD_SIZE;   // 2칸 옆이 보드 범위를 넘는지
+                    boolean r2OutOfBounds = r2 < 0 || r2 >= Chess.BOARD_SIZE;   // 2칸 앞이 보드 범위를 넘는지
+                    boolean c2OutOfBounds = c2 < 0 || c2 >= Chess.BOARD_SIZE;   // 2칸 옆이 보드 범위를 넘는지
                     if (r2OutOfBounds || c2OutOfBounds) {
                         continue;
                     }
@@ -199,8 +200,8 @@ public class Piece {
                 int c = col + dir[1];
 
                 // 보드 범위 확인
-                boolean rowOutOfBounds = r < 0 || r >= Util.BOARD_SIZE;   // 행이 보드 범위를 넘는지
-                boolean colOutOfBounds = c < 0 || c >= Util.BOARD_SIZE;   // 열이 보드 범위를 넘는지
+                boolean rowOutOfBounds = r < 0 || r >= Chess.BOARD_SIZE;   // 행이 보드 범위를 넘는지
+                boolean colOutOfBounds = c < 0 || c >= Chess.BOARD_SIZE;   // 열이 보드 범위를 넘는지
                 if (rowOutOfBounds || colOutOfBounds) {
                     continue;
                 }
@@ -245,7 +246,7 @@ public class Piece {
         int c = col + dCol;
 
         // 보드 범위 안에서 계속 전진
-        boolean inBounds = r >= 0 && r < Util.BOARD_SIZE && c >= 0 && c < Util.BOARD_SIZE;
+        boolean inBounds = r >= 0 && r < Chess.BOARD_SIZE && c >= 0 && c < Chess.BOARD_SIZE;
         while (inBounds) {
             if (board[r][c].isEmpty()) {
                 // 빈 칸 → 이동 가능, 계속 전진
@@ -262,7 +263,7 @@ public class Piece {
 
             r += dRow;
             c += dCol;
-            inBounds = r >= 0 && r < Util.BOARD_SIZE && c >= 0 && c < Util.BOARD_SIZE;
+            inBounds = r >= 0 && r < Chess.BOARD_SIZE && c >= 0 && c < Chess.BOARD_SIZE;
         }
     }
 }

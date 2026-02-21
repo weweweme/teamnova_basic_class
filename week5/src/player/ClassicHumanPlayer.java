@@ -1,6 +1,7 @@
 package player;
 
 import board.SimpleBoard;
+import core.Chess;
 import core.Util;
 
 /// <summary>
@@ -27,15 +28,15 @@ public class ClassicHumanPlayer extends HumanPlayer implements Promotable {
         board.print();
         System.out.println();
         System.out.println("프로모션! 승격할 기물을 선택하세요:");
-        System.out.println("[" + Util.PROMOTE_QUEEN + "] 퀸  ["
-                + Util.PROMOTE_ROOK + "] 룩  ["
-                + Util.PROMOTE_BISHOP + "] 비숍  ["
-                + Util.PROMOTE_KNIGHT + "] 나이트");
+        System.out.println("[" + Chess.PROMOTE_QUEEN + "] 퀸  ["
+                + Chess.PROMOTE_ROOK + "] 룩  ["
+                + Chess.PROMOTE_BISHOP + "] 비숍  ["
+                + Chess.PROMOTE_KNIGHT + "] 나이트");
 
         // 유효한 키가 입력될 때까지 반복
         while (true) {
             int key = Util.readInt();
-            if (key >= Util.PROMOTE_QUEEN && key <= Util.PROMOTE_KNIGHT) {
+            if (key >= Chess.PROMOTE_QUEEN && key <= Chess.PROMOTE_KNIGHT) {
                 return key;
             }
         }

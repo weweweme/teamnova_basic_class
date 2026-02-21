@@ -2,6 +2,7 @@ package skill;
 
 import board.SkillBoard;
 import core.Util;
+import core.Chess;
 import cell.Cell;
 import piece.Piece;
 
@@ -52,8 +53,8 @@ public class ReviveSkill extends Skill {
         }
 
         // 뒷줄에 빈 칸이 하나라도 있는지 확인
-        int backRow = (color == Piece.RED) ? Util.BOARD_SIZE - 1 : 0;
-        for (int c = 0; c < Util.BOARD_SIZE; c++) {
+        int backRow = (color == Piece.RED) ? Chess.BOARD_SIZE - 1 : 0;
+        for (int c = 0; c < Chess.BOARD_SIZE; c++) {
             if (grid[backRow][c].isEmpty()) {
                 return true;
             }
@@ -68,10 +69,10 @@ public class ReviveSkill extends Skill {
     @Override
     public void findTargets(Cell[][] grid, int color) {
         // 빨간팀 뒷줄: 7행(1번 줄), 파란팀 뒷줄: 0행(8번 줄)
-        int backRow = (color == Piece.RED) ? Util.BOARD_SIZE - 1 : 0;
+        int backRow = (color == Piece.RED) ? Chess.BOARD_SIZE - 1 : 0;
         targetCount = 0;
 
-        for (int c = 0; c < Util.BOARD_SIZE; c++) {
+        for (int c = 0; c < Chess.BOARD_SIZE; c++) {
             if (grid[backRow][c].isEmpty()) {
                 targets[targetCount][0] = backRow;
                 targets[targetCount][1] = c;

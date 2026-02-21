@@ -2,6 +2,7 @@ package player;
 
 import board.*;
 import core.*;
+import core.Chess;
 import piece.Piece;
 
 /// <summary>
@@ -112,7 +113,7 @@ public class HumanPlayer extends Player {
             board.print(cursorRow, cursorCol, selectedRow, selectedCol, validMoves, validMoveCount);
             System.out.println();
             Piece piece = board.grid[selectedRow][selectedCol].getPiece();
-            System.out.println(piece.name + " 선택됨 (" + Util.toNotation(selectedRow, selectedCol) + ")");
+            System.out.println(piece.name + " 선택됨 (" + Chess.toNotation(selectedRow, selectedCol) + ")");
             System.out.println("방향키: 이동 | Enter: 확정 | q: 취소");
 
             int key = Util.readKey();
@@ -171,8 +172,8 @@ public class HumanPlayer extends Player {
         }
 
         // 보드 범위 확인
-        boolean rowOutOfBounds = newRow < 0 || newRow >= Util.BOARD_SIZE;   // 행이 보드 범위를 넘는지
-        boolean colOutOfBounds = newCol < 0 || newCol >= Util.BOARD_SIZE;   // 열이 보드 범위를 넘는지
+        boolean rowOutOfBounds = newRow < 0 || newRow >= Chess.BOARD_SIZE;   // 행이 보드 범위를 넘는지
+        boolean colOutOfBounds = newCol < 0 || newCol >= Chess.BOARD_SIZE;   // 열이 보드 범위를 넘는지
         if (rowOutOfBounds || colOutOfBounds) {
             return null;  // 범위 밖이면 이동하지 않음
         }

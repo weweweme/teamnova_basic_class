@@ -14,104 +14,6 @@ public class Util {
     // 미설정을 나타내는 값 (커서 없음, 선택 없음, 위치 미지정 등)
     public static final int NONE = -1;
 
-    // 체스판 한 변의 칸 수 (8x8 정사각형 격자)
-    public static final int BOARD_SIZE = 8;
-
-    // 한 팀이 가질 수 있는 최대 기물 수 (킹1 + 퀸1 + 룩2 + 비숍2 + 나이트2 + 폰8 = 16)
-    public static final int MAX_PIECES_PER_SIDE = 16;
-
-    // 하나의 좌표를 이루는 값의 수 (행, 열 = 2개)
-    public static final int COORD_SIZE = 2;
-
-    // 체스판 행 위치 (체스 줄 번호 → 내부 좌표)
-    // 체스에서 8번 줄이 맨 위(파란팀), 1번 줄이 맨 아래(빨간팀)
-
-    // 8번 줄 (파란팀 주요 기물)
-    public static final int ROW_8 = 0;
-
-    // 7번 줄 (파란팀 폰)
-    public static final int ROW_7 = 1;
-
-    // 6번 줄
-    public static final int ROW_6 = 2;
-
-    // 5번 줄
-    public static final int ROW_5 = 3;
-
-    // 4번 줄
-    public static final int ROW_4 = 4;
-
-    // 3번 줄
-    public static final int ROW_3 = 5;
-
-    // 2번 줄 (빨간팀 폰)
-    public static final int ROW_2 = 6;
-
-    // 1번 줄 (빨간팀 주요 기물)
-    public static final int ROW_1 = 7;
-
-    // 체스판 열 위치 (체스 파일 문자 → 내부 좌표)
-
-    // a열
-    public static final int COL_A = 0;
-
-    // b열
-    public static final int COL_B = 1;
-
-    // c열
-    public static final int COL_C = 2;
-
-    // d열
-    public static final int COL_D = 3;
-
-    // e열
-    public static final int COL_E = 4;
-
-    // f열
-    public static final int COL_F = 5;
-
-    // g열
-    public static final int COL_G = 6;
-
-    // h열
-    public static final int COL_H = 7;
-
-    // 프로모션 선택 상수 (폰 승격 시 변환할 기물)
-
-    // 퀸으로 승격
-    public static final int PROMOTE_QUEEN = 1;
-
-    // 룩으로 승격
-    public static final int PROMOTE_ROOK = 2;
-
-    // 비숍으로 승격
-    public static final int PROMOTE_BISHOP = 3;
-
-    // 나이트로 승격
-    public static final int PROMOTE_KNIGHT = 4;
-
-    // 행동 선택 상수 (스킬 모드에서 플레이어가 선택하는 행동)
-
-    // 기물 이동
-    public static final int ACTION_MOVE = 0;
-
-    // 스킬 사용
-    public static final int ACTION_SKILL = 1;
-
-    // 아이템 설치
-    public static final int ACTION_ITEM = 2;
-
-    // 스킬 배열 인덱스 (각 팀에 지급하는 스킬 순서)
-
-    // 파괴 스킬
-    public static final int SKILL_DESTROY = 0;
-
-    // 방패 스킬
-    public static final int SKILL_SHIELD = 1;
-
-    // 부활 스킬
-    public static final int SKILL_REVIVE = 2;
-
     // 잘못된 입력을 나타내는 값
     public static final int INVALID_INPUT = -1;
 
@@ -273,21 +175,6 @@ public class Util {
             return key - '0';
         }
         return INVALID_INPUT;
-    }
-
-    // ========== 좌표 변환 ==========
-
-    /// <summary>
-    /// 내부 좌표(행, 열)를 체스 표기법으로 변환
-    /// 예: (6, 4) → "e2"
-    /// 행 0이 8번 줄(위), 행 7이 1번 줄(아래)
-    /// </summary>
-    public static String toNotation(int row, int col) {
-        // 열 번호(0~7)를 알파벳(a~h)으로 변환
-        char file = (char) ('a' + col);
-        // 행 번호(0~7)를 체스 줄 번호(8~1)로 변환
-        int rank = 8 - row;
-        return "" + file + rank;
     }
 
     // ========== 콘솔 관련 ==========

@@ -1,6 +1,7 @@
 package player;
 
 import board.SimpleBoard;
+import core.Chess;
 import core.Util;
 
 /// <summary>
@@ -22,6 +23,6 @@ public class ClassicAiPlayer extends AiPlayer implements Promotable {
     /// </summary>
     @Override
     public int choosePromotion(SimpleBoard board) {
-        return Util.PROMOTE_QUEEN;
+        return Chess.PROMOTE_QUEEN;
     }
 }

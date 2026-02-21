@@ -134,7 +134,7 @@ public class SkillGame extends Game {
         }
 
         // 3단계: 부활 스킬의 잡힌 기물 수 갱신 (격자에 없는 정보)
-        ((ReviveSkill) skills[Util.SKILL_REVIVE]).setCapturedCount(
+        ((ReviveSkill) skills[Chess.SKILL_REVIVE]).setCapturedCount(
             skillBoard.getCapturedCount(currentPlayer.color)
         );
 
@@ -142,7 +142,7 @@ public class SkillGame extends Game {
         int action = skillCapable().chooseAction(board, skills, items);
 
         switch (action) {
-            case Util.ACTION_SKILL:
+            case Chess.ACTION_SKILL:
                 // 스킬 사용
                 boolean skillUsed = handleSkill(skills);
                 if (!skillUsed) {
@@ -151,7 +151,7 @@ public class SkillGame extends Game {
                 }
                 break;
 
-            case Util.ACTION_ITEM:
+            case Chess.ACTION_ITEM:
                 // 아이템 설치
                 boolean itemPlaced = handleItem(items);
                 if (!itemPlaced) {
@@ -253,7 +253,7 @@ public class SkillGame extends Game {
         Util.clearScreen();
         skillBoard.print(currentPlayer.color);
         System.out.println();
-        System.out.println(skill.name + " 스킬 사용! (" + Util.toNotation(target[0], target[1]) + ")");
+        System.out.println(skill.name + " 스킬 사용! (" + Chess.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
 
         return true;
@@ -296,7 +296,7 @@ public class SkillGame extends Game {
         Util.clearScreen();
         skillBoard.print(currentPlayer.color);
         System.out.println();
-        System.out.println(revived.name + " 부활! (" + Util.toNotation(target[0], target[1]) + ")");
+        System.out.println(revived.name + " 부활! (" + Chess.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
 
         return true;
@@ -335,7 +335,7 @@ public class SkillGame extends Game {
         Util.clearScreen();
         skillBoard.print(currentPlayer.color);
         System.out.println();
-        System.out.println(item.name + " 설치 완료! (" + Util.toNotation(target[0], target[1]) + ")");
+        System.out.println(item.name + " 설치 완료! (" + Chess.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
 
         return true;

@@ -2,6 +2,7 @@ package board;
 
 import cell.Cell;
 import core.Move;
+import core.Chess;
 import core.Util;
 import java.util.ArrayList;
 import piece.*;
@@ -29,7 +30,7 @@ public class SimpleBoard {
     /// 이동 가능한 칸이 없음을 나타내는 빈 배열 (null 대신 사용)
     /// 한 번만 생성되어 재사용
     /// </summary>
-    public static final int[][] EMPTY_MOVES = new int[0][Util.COORD_SIZE];
+    public static final int[][] EMPTY_MOVES = new int[0][Chess.COORD_SIZE];
 
     /// <summary>
     /// 필터링 후 한 기물의 최대 이동 가능 칸 수
@@ -62,7 +63,7 @@ public class SimpleBoard {
     /// 필터링된 이동 가능 칸 버퍼 (매번 새로 만들지 않고 재사용)
     /// 하위 클래스에서 특수 규칙 이동을 추가할 때 접근 필요
     /// </summary>
-    protected final int[][] filteredBuffer = new int[MAX_FILTERED_MOVES][Util.COORD_SIZE];
+    protected final int[][] filteredBuffer = new int[MAX_FILTERED_MOVES][Chess.COORD_SIZE];
 
     /// <summary>
     /// 현재 유효한 필터링된 이동 칸 수
@@ -102,11 +103,11 @@ public class SimpleBoard {
     /// 체스판 생성 및 기물 초기 배치
     /// </summary>
     public SimpleBoard() {
-        grid = new Cell[Util.BOARD_SIZE][Util.BOARD_SIZE];
+        grid = new Cell[Chess.BOARD_SIZE][Chess.BOARD_SIZE];
 
         // 각 칸을 빈 Cell로 초기화 (하위 클래스가 createCell()을 오버라이드하여 다른 종류의 칸 생성 가능)
-        for (int r = 0; r < Util.BOARD_SIZE; r++) {
-            for (int c = 0; c < Util.BOARD_SIZE; c++) {
+        for (int r = 0; r < Chess.BOARD_SIZE; r++) {
+            for (int c = 0; c < Chess.BOARD_SIZE; c++) {
                 grid[r][c] = createCell();
             }
         }
@@ -166,12 +167,12 @@ public class SimpleBoard {
         grid[BLUE_BACK_ROW][ROOK_RIGHT].setPiece(createPiece(PieceType.ROOK, Piece.BLUE, BLUE_BACK_ROW, ROOK_RIGHT));
 
         // 파란팀 폰
-        for (int c = 0; c < Util.BOARD_SIZE; c++) {
+        for (int c = 0; c < Chess.BOARD_SIZE; c++) {
             grid[BLUE_PAWN_ROW][c].setPiece(createPiece(PieceType.PAWN, Piece.BLUE, BLUE_PAWN_ROW, c));
         }
 
         // 빨간팀 폰
-        for (int c = 0; c < Util.BOARD_SIZE; c++) {
+        for (int c = 0; c < Chess.BOARD_SIZE; c++) {
             grid[RED_PAWN_ROW][c].setPiece(createPiece(PieceType.PAWN, Piece.RED, RED_PAWN_ROW, c));
         }
 
@@ -202,8 +203,8 @@ public class SimpleBoard {
     /// 커스텀 배치를 위해 빈 보드를 만들 때 사용
     /// </summary>
     public void clearAllPieces() {
-        for (int r = 0; r < Util.BOARD_SIZE; r++) {
-            for (int c = 0; c < Util.BOARD_SIZE; c++) {
+        for (int r = 0; r < Chess.BOARD_SIZE; r++) {
+            for (int c = 0; c < Chess.BOARD_SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
                     grid[r][c].removePiece();
                 }
@@ -266,15 +267,15 @@ public class SimpleBoard {
         System.out.println("   +---+---+---+---+---+---+---+---+");
 
         // 8x8 격자 한 행씩 출력
-        for (int r = 0; r < Util.BOARD_SIZE; r++) {
+        for (int r = 0; r < Chess.BOARD_SIZE; r++) {
             // 내부 행 번호(0~7)를 체스 줄 번호(8~1)로 변환
-            int rank = Util.BOARD_SIZE - r;
+            int rank = Chess.BOARD_SIZE - r;
 
             // 한 행을 문자열로 조립 (예: " 8 | r | n | b | q | k | b | n | r | 8")
             StringBuilder line = new StringBuilder();
             line.append(String.format(" %d |", rank));
 
-            for (int c = 0; c < Util.BOARD_SIZE; c++) {
+            for (int c = 0; c < Chess.BOARD_SIZE; c++) {
                 // 각 칸의 표시 문자열 결정 (기물, 커서, 이동 가능 표시 등)
                 String cell = renderCell(r, c, cursorRow, cursorCol, selectedRow, selectedCol, validMoves);
                 line.append(cell).append("|");
@@ -510,8 +511,8 @@ public class SimpleBoard {
     public ArrayList<Move> getAllValidMoves(int color) {
         allMoves.clear();
 
-        for (int r = 0; r < Util.BOARD_SIZE; r++) {
-            for (int c = 0; c < Util.BOARD_SIZE; c++) {
+        for (int r = 0; r < Chess.BOARD_SIZE; r++) {
+            for (int c = 0; c < Chess.BOARD_SIZE; c++) {
                 if (grid[r][c].isEmpty()) {
                     continue;
                 }
@@ -572,8 +573,8 @@ public class SimpleBoard {
         int kingCol = king.col;
 
         // 모든 상대 기물을 순회하며 킹을 공격할 수 있는지 확인
-        for (int r = 0; r < Util.BOARD_SIZE; r++) {
-            for (int c = 0; c < Util.BOARD_SIZE; c++) {
+        for (int r = 0; r < Chess.BOARD_SIZE; r++) {
+            for (int c = 0; c < Chess.BOARD_SIZE; c++) {
                 if (grid[r][c].isEmpty()) {
                     continue;
                 }
@@ -622,8 +623,8 @@ public class SimpleBoard {
     /// 합법적인 수가 하나라도 발견되면 즉시 반환 (전체를 모을 필요 없음)
     /// </summary>
     private boolean hasNoValidMoves(int color) {
-        for (int r = 0; r < Util.BOARD_SIZE; r++) {
-            for (int c = 0; c < Util.BOARD_SIZE; c++) {
+        for (int r = 0; r < Chess.BOARD_SIZE; r++) {
+            for (int c = 0; c < Chess.BOARD_SIZE; c++) {
                 if (grid[r][c].isEmpty()) {
                     continue;
                 }

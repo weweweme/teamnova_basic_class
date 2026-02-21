@@ -2,6 +2,7 @@ package player;
 
 import board.*;
 import core.*;
+import core.Chess;
 import piece.*;
 import skill.Skill;
 import item.Item;
@@ -49,36 +50,36 @@ public class SkillAiPlayer extends ClassicAiPlayer implements SkillCapable {
         int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
 
         // 파괴 스킬 확인: 상대 퀸이 있으면 파괴 우선
-        if (skills[Util.SKILL_DESTROY].hasUses() && skills[Util.SKILL_DESTROY].canUse(board.grid, color)) {
-            for (int r = 0; r < Util.BOARD_SIZE; r++) {
-                for (int c = 0; c < Util.BOARD_SIZE; c++) {
+        if (skills[Chess.SKILL_DESTROY].hasUses() && skills[Chess.SKILL_DESTROY].canUse(board.grid, color)) {
+            for (int r = 0; r < Chess.BOARD_SIZE; r++) {
+                for (int c = 0; c < Chess.BOARD_SIZE; c++) {
                     if (board.grid[r][c].isEmpty()) {
                         continue;
                     }
                     Piece piece = board.grid[r][c].getPiece();
                     if (piece.type == PieceType.QUEEN && piece.color == opponentColor) {
-                        return Util.ACTION_SKILL;
+                        return Chess.ACTION_SKILL;
                     }
                 }
             }
         }
 
         // 부활 스킬 확인: 가치 높은 잡힌 기물이 있으면 부활
-        if (skills[Util.SKILL_REVIVE].hasUses() && skills[Util.SKILL_REVIVE].canUse(board.grid, color)) {
+        if (skills[Chess.SKILL_REVIVE].hasUses() && skills[Chess.SKILL_REVIVE].canUse(board.grid, color)) {
             SkillBoard skillBoard = (SkillBoard) board;
             Piece[] captured = skillBoard.getCapturedPieces(color);
             for (Piece p : captured) {
                 if (p.value >= REVIVE_VALUE_THRESHOLD) {
-                    return Util.ACTION_SKILL;
+                    return Chess.ACTION_SKILL;
                 }
             }
         }
 
         // 방패 스킬 확인: 20% 확률로 사용
-        boolean shieldAvailable = skills[Util.SKILL_SHIELD].hasUses() && skills[Util.SKILL_SHIELD].canUse(board.grid, color);
+        boolean shieldAvailable = skills[Chess.SKILL_SHIELD].hasUses() && skills[Chess.SKILL_SHIELD].canUse(board.grid, color);
         boolean randomTrigger = Util.rand(SHIELD_CHANCE) == 0;
         if (shieldAvailable && randomTrigger) {
-            return Util.ACTION_SKILL;
+            return Chess.ACTION_SKILL;
         }
 
         // 아이템 설치: 30% 확률로 사용
@@ -90,10 +91,10 @@ public class SkillAiPlayer extends ClassicAiPlayer implements SkillCapable {
             }
         }
         if (hasItem && Util.rand(ITEM_CHANCE_RANGE) < ITEM_CHANCE_THRESHOLD) {
-            return Util.ACTION_ITEM;
+            return Chess.ACTION_ITEM;
         }
 
-        return Util.ACTION_MOVE;
+        return Chess.ACTION_MOVE;
     }
 
     /// <summary>
@@ -103,18 +104,18 @@ public class SkillAiPlayer extends ClassicAiPlayer implements SkillCapable {
     @Override
     public int chooseSkill(SimpleBoard board, Skill[] skills) {
         // 파괴 스킬
-        if (skills[Util.SKILL_DESTROY].hasUses() && skills[Util.SKILL_DESTROY].canUse(board.grid, color)) {
-            return Util.SKILL_DESTROY;
+        if (skills[Chess.SKILL_DESTROY].hasUses() && skills[Chess.SKILL_DESTROY].canUse(board.grid, color)) {
+            return Chess.SKILL_DESTROY;
         }
 
         // 부활 스킬
-        if (skills[Util.SKILL_REVIVE].hasUses() && skills[Util.SKILL_REVIVE].canUse(board.grid, color)) {
-            return Util.SKILL_REVIVE;
+        if (skills[Chess.SKILL_REVIVE].hasUses() && skills[Chess.SKILL_REVIVE].canUse(board.grid, color)) {
+            return Chess.SKILL_REVIVE;
         }
 
         // 방패 스킬
-        if (skills[Util.SKILL_SHIELD].hasUses() && skills[Util.SKILL_SHIELD].canUse(board.grid, color)) {
-            return Util.SKILL_SHIELD;
+        if (skills[Chess.SKILL_SHIELD].hasUses() && skills[Chess.SKILL_SHIELD].canUse(board.grid, color)) {
+            return Chess.SKILL_SHIELD;
         }
 
         return Util.NONE;
@@ -189,8 +190,8 @@ public class SkillAiPlayer extends ClassicAiPlayer implements SkillCapable {
 
         // 중앙에 빈 칸이 없으면 전체에서 탐색
         if (candidates.isEmpty()) {
-            for (int r = 0; r < Util.BOARD_SIZE; r++) {
-                for (int c = 0; c < Util.BOARD_SIZE; c++) {
+            for (int r = 0; r < Chess.BOARD_SIZE; r++) {
+                for (int c = 0; c < Chess.BOARD_SIZE; c++) {
                     if (board.grid[r][c].isEmpty() && skillBoard.getItem(r, c) == null) {
                         candidates.add(new int[]{r, c});
                     }

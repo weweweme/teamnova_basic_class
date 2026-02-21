@@ -2,6 +2,7 @@ package player;
 
 import board.*;
 import core.*;
+import core.Chess;
 import piece.Piece;
 import skill.Skill;
 import item.Item;
@@ -47,7 +48,7 @@ public class SkillHumanPlayer extends ClassicHumanPlayer implements SkillCapable
 
         // 이동만 가능하면 바로 반환
         if (!hasSkill && !hasItem) {
-            return Util.ACTION_MOVE;
+            return Chess.ACTION_MOVE;
         }
 
         SkillBoard skillBoard = (SkillBoard) board;
@@ -74,15 +75,15 @@ public class SkillHumanPlayer extends ClassicHumanPlayer implements SkillCapable
             int key = Util.readInt();
             switch (key) {
                 case KEY_MOVE:
-                    return Util.ACTION_MOVE;
+                    return Chess.ACTION_MOVE;
                 case KEY_SKILL:
                     if (hasSkill) {
-                        return Util.ACTION_SKILL;
+                        return Chess.ACTION_SKILL;
                     }
                     break;
                 case KEY_ITEM:
                     if (hasItem) {
-                        return Util.ACTION_ITEM;
+                        return Chess.ACTION_ITEM;
                     }
                     break;
             }

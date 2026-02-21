@@ -9,7 +9,9 @@
       "Bash(done)",
       "Bash(git status:*)",
       "Bash(git -C /Users/jinsoo/teamnova_basic_class/week5 diff --stat)",
-      "Bash(git -C /Users/jinsoo/teamnova_basic_class/week5 status -u)"
+      "Bash(git -C /Users/jinsoo/teamnova_basic_class/week5 status -u)",
+      "Bash(echo:*)",
+      "Bash(grep:*)"
     ]
   }
 }

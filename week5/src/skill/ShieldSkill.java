@@ -3,6 +3,7 @@ package skill;
 import board.SkillBoard;
 import cell.Cell;
 import core.Util;
+import core.Chess;
 import piece.Piece;
 import piece.PieceType;
 import piece.SkillPiece;
@@ -32,8 +33,8 @@ public class ShieldSkill extends Skill {
             return false;
         }
 
-        for (int r = 0; r < Util.BOARD_SIZE; r++) {
-            for (int c = 0; c < Util.BOARD_SIZE; c++) {
+        for (int r = 0; r < Chess.BOARD_SIZE; r++) {
+            for (int c = 0; c < Chess.BOARD_SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
                     Piece piece = grid[r][c].getPiece();
                     if (piece.color == color && piece.type != PieceType.KING) {
@@ -53,8 +54,8 @@ public class ShieldSkill extends Skill {
     public void findTargets(Cell[][] grid, int color) {
         targetCount = 0;
 
-        for (int r = 0; r < Util.BOARD_SIZE; r++) {
-            for (int c = 0; c < Util.BOARD_SIZE; c++) {
+        for (int r = 0; r < Chess.BOARD_SIZE; r++) {
+            for (int c = 0; c < Chess.BOARD_SIZE; c++) {
                 if (grid[r][c].hasPiece()) {
                     Piece piece = grid[r][c].getPiece();
                     if (piece.color == color && piece.type != PieceType.KING) {

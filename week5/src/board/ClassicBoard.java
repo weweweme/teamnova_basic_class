@@ -1,7 +1,7 @@
 package board;
 
 import core.Move;
-import core.Util;
+import core.Chess;
 import piece.*;
 
 /// <summary>
@@ -143,16 +143,16 @@ public class ClassicBoard extends SimpleBoard {
     public void promote(int row, int col, int choice) {
         Piece piece = grid[row][col].getPiece();
         switch (choice) {
-            case Util.PROMOTE_QUEEN:
+            case Chess.PROMOTE_QUEEN:
                 PieceFactory.configure(piece, PieceType.QUEEN);
                 break;
-            case Util.PROMOTE_ROOK:
+            case Chess.PROMOTE_ROOK:
                 PieceFactory.configure(piece, PieceType.ROOK);
                 break;
-            case Util.PROMOTE_BISHOP:
+            case Chess.PROMOTE_BISHOP:
                 PieceFactory.configure(piece, PieceType.BISHOP);
                 break;
-            case Util.PROMOTE_KNIGHT:
+            case Chess.PROMOTE_KNIGHT:
                 PieceFactory.configure(piece, PieceType.KNIGHT);
                 break;
         }
@@ -230,8 +230,8 @@ public class ClassicBoard extends SimpleBoard {
     /// 캐슬링 경유 칸 검증에 사용
     /// </summary>
     private boolean isSquareSafe(int row, int col, int attackerColor) {
-        for (int r = 0; r < Util.BOARD_SIZE; r++) {
-            for (int c = 0; c < Util.BOARD_SIZE; c++) {
+        for (int r = 0; r < Chess.BOARD_SIZE; r++) {
+            for (int c = 0; c < Chess.BOARD_SIZE; c++) {
                 if (grid[r][c].isEmpty()) {
                     continue;
                 }

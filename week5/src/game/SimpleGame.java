@@ -49,6 +49,19 @@ public class SimpleGame extends Game {
         // 이동 실행 (기본 이동만, 캐슬링/앙파상 없음)
         board.executeMove(move);
 
+        // 이동 후 추가 처리 (하위 클래스가 오버라이드)
+        afterMove(move);
+
         return false;
+    }
+
+    // ========== 훅 메서드 ==========
+
+    /// <summary>
+    /// 이동 후 추가 처리 (훅 메서드)
+    /// ClassicGame이 오버라이드하여 프로모션 확인
+    /// </summary>
+    protected void afterMove(Move move) {
+        // 기본 모드: 추가 처리 없음
     }
 }

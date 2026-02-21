@@ -7,13 +7,16 @@ import player.Promotable;
 
 /// <summary>
 /// 공식 체스 게임
-/// 공식 체스 규칙으로 진행 (이동 → 프로모션 → 승패 확인)
+/// SimpleGame의 기본 이동에 프로모션 규칙을 추가
+/// afterMove 훅을 오버라이드하여 폰이 끝 줄 도달 시 승격 처리
 /// </summary>
-public class ClassicGame extends Game {
+public class ClassicGame extends SimpleGame {
 
     // ========== 필드 ==========
 
-    // 공식 체스 보드 (프로모션 등 공식 규칙 메서드 호출용)
+    /// <summary>
+    /// 공식 체스 보드 (프로모션 등 공식 규칙 메서드 호출용)
+    /// </summary>
     private ClassicBoard classicBoard;
 
     // ========== 생성자 ==========
@@ -33,35 +36,17 @@ public class ClassicGame extends Game {
         return classicBoard;
     }
 
-    // ========== 턴 처리 ==========
+    // ========== 훅 메서드 오버라이드 ==========
 
     /// <summary>
-    /// 공식 체스 턴 처리
-    /// 수 선택 → 이동 실행 → 프로모션 확인
-    /// true 반환 시 게임 종료 요청
+    /// 이동 후 프로모션 확인
+    /// 폰이 상대 끝 줄에 도착하면 승격할 기물을 선택
     /// </summary>
     @Override
-    protected boolean processTurn() {
-        // 현재 플레이어가 수를 선택
-        Move move = currentPlayer.chooseMove(board);
-
-        // null이면 게임 종료 요청
-        if (move == null) {
-            Util.clearScreen();
-            board.print();
-            System.out.println("\n게임을 종료합니다.");
-            return true;
-        }
-
-        // 이동 실행
-        board.executeMove(move);
-
-        // 프로모션 확인 (폰이 끝 줄에 도착하면 승격)
+    protected void afterMove(Move move) {
         if (classicBoard.isPromotion(move)) {
             int choice = ((Promotable) currentPlayer).choosePromotion(board);
             classicBoard.promote(move.toRow, move.toCol, choice);
         }
-
-        return false;
     }
 }

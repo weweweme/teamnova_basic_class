@@ -11,10 +11,10 @@ import item.*;
 
 /// <summary>
 /// 스킬 모드 게임
-/// 일반 체스에 스킬과 아이템 시스템을 추가
+/// ClassicGame의 공식 규칙에 스킬과 아이템 시스템을 추가
 /// 각 플레이어가 매 턴마다 이동/스킬/아이템 중 하나를 선택
 /// </summary>
-public class SkillGame extends Game {
+public class SkillGame extends ClassicGame {
 
     // ========== 필드 ==========
 
@@ -66,6 +66,20 @@ public class SkillGame extends Game {
     protected SimpleBoard createBoard() {
         skillBoard = new SkillBoard();
         return skillBoard;
+    }
+
+    // ========== 훅 메서드 오버라이드 ==========
+
+    /// <summary>
+    /// 이동 후 프로모션 확인
+    /// ClassicGame의 afterMove와 동일하지만 skillBoard를 사용
+    /// </summary>
+    @Override
+    protected void afterMove(Move move) {
+        if (skillBoard.isPromotion(move)) {
+            int choice = ((Promotable) currentPlayer).choosePromotion(board);
+            skillBoard.promote(move.toRow, move.toCol, choice);
+        }
     }
 
     // ========== 게임 루프 오버라이드 ==========
@@ -208,11 +222,8 @@ public class SkillGame extends Game {
             Util.delay(2000);
         }
 
-        // 프로모션 확인
-        if (skillBoard.isPromotion(move)) {
-            int choice = ((Promotable) currentPlayer).choosePromotion(board);
-            skillBoard.promote(move.toRow, move.toCol, choice);
-        }
+        // 프로모션 확인 (ClassicGame의 afterMove 훅에서 처리)
+        afterMove(move);
 
         return true;
     }

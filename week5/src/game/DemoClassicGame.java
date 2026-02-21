@@ -1,6 +1,5 @@
 package game;
 
-import board.ClassicBoard;
 import core.Move;
 import core.Chess;
 import core.Util;
@@ -142,12 +141,8 @@ public class DemoClassicGame extends ClassicGame {
             // 검증 통과 → 이동 실행
             board.executeMove(move);
 
-            // 프로모션 확인 (폰이 끝 줄에 도착하면 승격)
-            ClassicBoard classicBoard = (ClassicBoard) board;
-            if (classicBoard.isPromotion(move)) {
-                int choice = ((Promotable) currentPlayer).choosePromotion(board);
-                classicBoard.promote(move.toRow, move.toCol, choice);
-            }
+            // 프로모션 확인 (ClassicGame의 afterMove 훅에서 처리)
+            afterMove(move);
 
             return false;
         }

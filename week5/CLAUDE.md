@@ -333,11 +333,13 @@ SkillHumanPlayer (+SkillCapable)       SkillAiPlayer (+SkillCapable)
 각 모드의 게임 루프 + 각 모드의 튜토리얼이 서브클래스로 존재:
 
 ```
-          Game (abstract - 템플릿 메서드 패턴)
-         /              |              \
-  SimpleGame       ClassicGame       SkillGame
-       |                |                |
-DemoSimpleGame  DemoClassicGame  DemoSkillGame
+Game (abstract - 템플릿 메서드 패턴)
+ └── SimpleGame (기본 이동 + afterMove 훅)
+      ├── DemoSimpleGame
+      └── ClassicGame (afterMove → 프로모션)
+           ├── DemoClassicGame
+           └── SkillGame (+스킬, 아이템, run/processTurn 오버라이드)
+                └── DemoSkillGame
 ```
 
 **6차: Skill 계층 (스킬)**
@@ -427,9 +429,9 @@ SkillCapable → chooseAction(), chooseSkill(), chooseSkillTarget(),
 | 클래스 | 역할 |
 |--------|------|
 | `Game` | **추상** - 템플릿 메서드 패턴 (`run` → `processTurn` → 체크메이트 → `switchTurn`) |
-| `SimpleGame` | `processTurn`: chooseMove → executeMove |
-| `ClassicGame` | `processTurn`: chooseMove → executeMove → 프로모션 확인 |
-| `SkillGame` | `processTurn`: 효과 정리 → 행동 선택(이동/스킬/아이템) → 아이템 트리거 → 프로모션 |
+| `SimpleGame` | `processTurn`: chooseMove → executeMove → afterMove 훅 |
+| `ClassicGame` | SimpleGame + `afterMove` 오버라이드 (프로모션 확인) |
+| `SkillGame` | ClassicGame + `processTurn`/`run` 오버라이드 (효과 정리 → 행동 선택 → 아이템 트리거) |
 | `DemoSimpleGame` | SimpleGame + 15턴 스크립트 (나이트→비숍→룩→퀸→폰→킹→체크→체크메이트) |
 | `DemoClassicGame` | ClassicGame + 5턴 스크립트 (캐슬링→앙파상→프로모션) |
 | `DemoSkillGame` | SkillGame + 8턴 스크립트 (파괴→방패→함정→폭탄→동결체험→부활) |
@@ -573,7 +575,7 @@ graph TB
 | 패턴 | 적용 위치 | 설명 |
 |------|----------|------|
 | **템플릿 메서드** | `Game.run()` → `processTurn()` | 공통 루프를 정의하고 턴 처리만 하위 클래스가 오버라이드 |
-| **훅 메서드** | `SimpleBoard` 4개 | `addSpecialMoves`, `isMovementBlocked`, `isCaptureBlocked`, `createCell`/`createPiece` |
+| **훅 메서드** | `SimpleBoard` 4개, `SimpleGame` 1개 | Board: `addSpecialMoves`, `isMovementBlocked`, `isCaptureBlocked`, `createCell`/`createPiece`; Game: `afterMove` |
 | **팩토리 메서드** | `createBoard()`, `createCell()`, `createPiece()` | 하위 클래스가 자기 모드에 맞는 객체 생성 |
 | **정적 팩토리** | `PieceFactory.configure()` | PieceType에 따라 기물 속성(방향, 기호, 가치) 일괄 설정 |
 | **다형성** | `Player.chooseMove()` | Game이 Human/AI 구분 없이 동일하게 호출 |

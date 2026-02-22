@@ -42,6 +42,11 @@ public class HumanInput {
             if (board.isInCheck(color)) {
                 System.out.println(">> 체크! 킹을 보호하세요!");
             }
+            // 커서 위치의 기물/아이템 설명
+            String cellDesc = board.getCellDescription(cursorRow, cursorCol);
+            if (cellDesc != null) {
+                System.out.println(cellDesc);
+            }
             System.out.println("방향키: 이동 | Enter: 선택 | q: 종료");
 
             int key = Util.readKey();
@@ -106,6 +111,11 @@ public class HumanInput {
             System.out.println();
             Piece piece = board.grid[selectedRow][selectedCol].getPiece();
             System.out.println(piece.name + " 선택됨 (" + Chess.toNotation(selectedRow, selectedCol) + ")");
+            // 커서 위치의 기물/아이템 설명
+            String cellDesc = board.getCellDescription(cursorRow, cursorCol);
+            if (cellDesc != null) {
+                System.out.println(cellDesc);
+            }
             System.out.println("방향키: 이동 | Enter: 확정 | q: 취소");
 
             int key = Util.readKey();

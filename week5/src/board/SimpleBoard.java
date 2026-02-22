@@ -376,6 +376,20 @@ public class SimpleBoard {
     }
 
     /// <summary>
+    /// 커서 위치의 기물/아이템 설명 반환
+    /// 빈 칸이면 null 반환
+    /// SkillBoard가 오버라이드하여 아이템/효과 설명 추가
+    /// </summary>
+    public String getCellDescription(int row, int col) {
+        if (grid[row][col].hasPiece()) {
+            Piece piece = grid[row][col].getPiece();
+            String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
+            return colorCode + piece.name + Util.RESET + " - " + piece.description;
+        }
+        return null;
+    }
+
+    /// <summary>
     /// 특정 좌표가 배열의 처음 count개 항목에 포함되어 있는지 확인
     /// 버퍼 배열에서 유효한 범위만 검사할 때 사용
     /// </summary>

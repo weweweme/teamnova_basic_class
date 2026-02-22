@@ -211,7 +211,7 @@ public class SkillGame extends ClassicGame {
         String triggeredItem = skillBoard.triggerItem(move.toRow, move.toCol);
         if (!triggeredItem.isEmpty()) {
             Util.clearScreen();
-            skillBoard.print(currentPlayer.color);
+            board.print();
             System.out.println();
 
             // 폭탄인데 기물이 살아있으면 킹이 면역된 것
@@ -264,7 +264,7 @@ public class SkillGame extends ClassicGame {
 
         // 결과 표시
         Util.clearScreen();
-        skillBoard.print(currentPlayer.color);
+        board.print();
         System.out.println();
         System.out.println(skill.name + " 스킬 사용! (" + Chess.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
@@ -307,7 +307,7 @@ public class SkillGame extends ClassicGame {
 
         // 결과 표시
         Util.clearScreen();
-        skillBoard.print(currentPlayer.color);
+        board.print();
         System.out.println();
         System.out.println(revived.name + " 부활! (" + Chess.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
@@ -346,7 +346,7 @@ public class SkillGame extends ClassicGame {
 
         // 결과 표시
         Util.clearScreen();
-        skillBoard.print(currentPlayer.color);
+        board.print();
         System.out.println();
         System.out.println(item.name + " 설치 완료! (" + Chess.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);

@@ -238,7 +238,7 @@ public class DemoSkillGame extends SkillGame {
         // 모든 기물이 동결되어 있으면 턴 스킵
         if (!skillBoard.hasUnfrozenPieces(currentPlayer.color)) {
             Util.clearScreen();
-            skillBoard.print(currentPlayer.color);
+            board.print();
             System.out.println();
             System.out.println(currentPlayer.name + "의 모든 기물이 동결되어 턴을 넘깁니다.");
             Util.delay(2000);
@@ -322,7 +322,7 @@ public class DemoSkillGame extends SkillGame {
 
         // 결과 표시
         Util.clearScreen();
-        skillBoard.print(currentPlayer.color);
+        board.print();
         System.out.println();
         System.out.println(skill.name + " 스킬 사용! (" + Chess.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
@@ -365,7 +365,7 @@ public class DemoSkillGame extends SkillGame {
 
         // 결과 표시
         Util.clearScreen();
-        skillBoard.print(currentPlayer.color);
+        board.print();
         System.out.println();
         System.out.println(revived.name + " 부활! (" + Chess.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
@@ -416,7 +416,7 @@ public class DemoSkillGame extends SkillGame {
 
         // 결과 표시
         Util.clearScreen();
-        skillBoard.print(currentPlayer.color);
+        board.print();
         System.out.println();
         System.out.println(item.name + " 설치 완료! (" + Chess.toNotation(target[0], target[1]) + ")");
         Util.delay(1500);
@@ -463,7 +463,7 @@ public class DemoSkillGame extends SkillGame {
             String triggeredItem = skillBoard.triggerItem(move.toRow, move.toCol);
             if (!triggeredItem.isEmpty()) {
                 Util.clearScreen();
-                skillBoard.print(currentPlayer.color);
+                board.print();
                 System.out.println();
 
                 // 폭탄인데 기물이 살아있으면 킹이 면역된 것

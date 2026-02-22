@@ -52,6 +52,7 @@ public class PieceFactory {
         switch (type) {
             case KING:
                 piece.name = "킹";
+                piece.description = "모든 방향으로 1칸 이동";
                 piece.symbol = (piece.color == Piece.RED) ? "K" : "k";
                 piece.value = 0;
                 piece.directions = KING_DIRECTIONS;
@@ -60,6 +61,7 @@ public class PieceFactory {
 
             case QUEEN:
                 piece.name = "퀸";
+                piece.description = "가로, 세로, 대각선으로 무제한 이동";
                 piece.symbol = (piece.color == Piece.RED) ? "Q" : "q";
                 piece.value = 9;
                 piece.directions = QUEEN_DIRECTIONS;
@@ -68,6 +70,7 @@ public class PieceFactory {
 
             case ROOK:
                 piece.name = "룩";
+                piece.description = "가로, 세로로 무제한 이동";
                 piece.symbol = (piece.color == Piece.RED) ? "R" : "r";
                 piece.value = 5;
                 piece.directions = ROOK_DIRECTIONS;
@@ -76,6 +79,7 @@ public class PieceFactory {
 
             case BISHOP:
                 piece.name = "비숍";
+                piece.description = "대각선으로 무제한 이동";
                 piece.symbol = (piece.color == Piece.RED) ? "B" : "b";
                 piece.value = 3;
                 piece.directions = BISHOP_DIRECTIONS;
@@ -84,6 +88,7 @@ public class PieceFactory {
 
             case KNIGHT:
                 piece.name = "나이트";
+                piece.description = "L자 형태로 이동 (다른 기물을 뛰어넘음)";
                 piece.symbol = (piece.color == Piece.RED) ? "N" : "n";
                 piece.value = 3;
                 piece.directions = KNIGHT_DIRECTIONS;
@@ -92,6 +97,7 @@ public class PieceFactory {
 
             case PAWN:
                 piece.name = "폰";
+                piece.description = "전진 1칸 (첫 수 2칸), 대각선으로 잡기";
                 piece.symbol = (piece.color == Piece.RED) ? "P" : "p";
                 piece.value = 1;
                 // 폰은 일반 directions 대신 이동 전용/잡기 전용 방향 사용

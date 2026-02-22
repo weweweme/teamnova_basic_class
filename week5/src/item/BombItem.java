@@ -45,7 +45,7 @@ public class BombItem extends Item {
     }
 
     /// <summary>
-    /// 보드 표시 기호: * (설치자에게만 보임)
+    /// 보드 표시 기호: *
     /// </summary>
     @Override
     public String getSymbol() {

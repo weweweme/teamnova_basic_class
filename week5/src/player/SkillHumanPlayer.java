@@ -85,9 +85,8 @@ public class SkillHumanPlayer extends SkillPlayer {
             return Chess.ACTION_MOVE;
         }
 
-        SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(color);
+        board.print();
         System.out.println();
         System.out.println(name + "의 차례 (" + input.getColorName(color) + ")");
         if (board.isInCheck(color)) {
@@ -138,9 +137,8 @@ public class SkillHumanPlayer extends SkillPlayer {
     /// </summary>
     @Override
     public int chooseSkill(SimpleBoard board, Skill[] skills) {
-        SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(color);
+        board.print();
         System.out.println();
         System.out.println("스킬을 선택하세요:");
 
@@ -171,14 +169,13 @@ public class SkillHumanPlayer extends SkillPlayer {
     /// </summary>
     @Override
     public int[] chooseSkillTarget(SimpleBoard board, int[][] targets, int targetCount) {
-        SkillBoard skillBoard = (SkillBoard) board;
         // 첫 번째 대상으로 커서 초기화
         int cursorRow = targets[0][0];
         int cursorCol = targets[0][1];
 
         while (true) {
             Util.clearScreen();
-            skillBoard.print(cursorRow, cursorCol, Util.NONE, Util.NONE, targets, targetCount, color);
+            board.print(cursorRow, cursorCol, Util.NONE, Util.NONE, targets, targetCount);
             System.out.println();
             System.out.println("대상을 선택하세요 (· 표시된 칸)");
             System.out.println("방향키: 이동 | Enter: 확정 | q: 취소");
@@ -209,9 +206,8 @@ public class SkillHumanPlayer extends SkillPlayer {
     /// </summary>
     @Override
     public int chooseItemType(SimpleBoard board, Item[] items) {
-        SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(color);
+        board.print();
         System.out.println();
         System.out.println("아이템을 선택하세요:");
 
@@ -249,7 +245,7 @@ public class SkillHumanPlayer extends SkillPlayer {
 
         while (true) {
             Util.clearScreen();
-            skillBoard.print(cursorRow, cursorCol, color);
+            board.print(cursorRow, cursorCol);
             System.out.println();
             System.out.println("아이템을 설치할 빈 칸을 선택하세요");
             System.out.println("방향키: 이동 | Enter: 확정 | q: 취소");
@@ -282,9 +278,8 @@ public class SkillHumanPlayer extends SkillPlayer {
     /// </summary>
     @Override
     public int chooseReviveTarget(SimpleBoard board, Piece[] captured) {
-        SkillBoard skillBoard = (SkillBoard) board;
         Util.clearScreen();
-        skillBoard.print(color);
+        board.print();
         System.out.println();
         System.out.println("부활할 기물을 선택하세요:");
 

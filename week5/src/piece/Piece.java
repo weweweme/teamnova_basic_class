@@ -1,7 +1,6 @@
 package piece;
 
 import cell.Cell;
-import core.Util;
 import core.Chess;
 
 /// <summary>
@@ -43,6 +42,9 @@ public class Piece {
 
     // 기물 이름 ("킹", "퀸" 등)
     public String name;
+
+    // 기물의 이동 설명 (커서를 올리면 표시)
+    public String description;
 
     // 기물 이니셜 ("K", "q" 등 - 대문자는 빨간팀, 소문자는 파란팀)
     public String symbol;

@@ -8,7 +8,7 @@ import piece.Piece;
 /// 아이템 추상 클래스
 /// 빈 칸에 설치하여 상대 기물이 밟으면 효과 발동
 /// 각 하위 클래스(BombItem, TrapItem)가 자기만의 효과를 구현
-/// 설치된 아이템은 상대에게 보이지 않음 (지뢰 콘셉트)
+/// 설치된 아이템은 양쪽 모두에게 보임
 /// </summary>
 public abstract class Item {
 
@@ -92,7 +92,7 @@ public abstract class Item {
     public abstract void trigger(SimpleBoard board, Piece steppedPiece);
 
     /// <summary>
-    /// 보드에 표시할 기호 반환 (설치자에게만 보임)
+    /// 보드에 표시할 기호 반환
     /// 각 하위 클래스가 자기만의 기호로 구현 (메서드 오버라이딩)
     /// </summary>
     public abstract String getSymbol();

@@ -72,7 +72,7 @@ public class SimpleGame extends Game {
     /// <summary>
     /// 액션 수행 (훅 메서드)
     /// 기본 모드: 수 선택 → 이동 실행
-    /// SkillGame이 오버라이드하여 이동/스킬/아이템 중 하나를 선택
+    /// SkillGame이 오버라이드하여 행동 루프 (스킬/아이템 + 이동) 수행
     /// true 반환 시 게임 종료 요청
     /// </summary>
     protected boolean doAction() {

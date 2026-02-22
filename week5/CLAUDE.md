@@ -20,7 +20,7 @@ IntelliJ IDEA의 **Terminal 탭**에서 실행합니다 (Run 콘솔 아님).
 
 ```bash
 # 컴파일
-javac -d out src/*.java
+javac -d out $(find src -name "*.java")
 
 # 실행
 java -cp out Main
@@ -337,8 +337,8 @@ Player (abstract - chooseMove)
            └── SkillAiPlayer (uses AiInput)
 
 조작 축 (조합):
-HumanInput ← 키보드 조작 코드 (~120줄: chooseMove, chooseDest, moveCursor, getColorName, choosePromotion)
-AiInput    ← AI 전략 코드 (~80줄: chooseMove, chooseEasy, chooseNormal, wouldCheckmate, wouldCheck)
+HumanInput ← 키보드 조작 코드 (~210줄: chooseMove, chooseDest, moveCursor, getColorName, choosePromotion)
+AiInput    ← AI 전략 코드 (~170줄: chooseMove, chooseEasy, chooseNormal, wouldCheckmate, wouldCheck)
 ```
 
 **조합(Composition) 패턴을 사용한 이유**
@@ -505,7 +505,7 @@ graph TD
 | 클래스 | 역할 |
 |--------|------|
 | `Skill` | **추상** - `canUse`/`findTargets`/`execute`, 사용 횟수 관리 |
-| `DestroySkill` | 상대 기물 1개 제거 (킹 제외), 2회 사용 |
+| `DestroySkill` | 상대 기물 1개 제거 (킹 제외), 1회 사용 |
 | `ShieldSkill` | 아군 기물 1개에 방패 (1턴간 잡기 방어), 2회 사용 |
 | `ReviveSkill` | 잡힌 아군 기물 1개 부활 (빈 칸에 배치), 1회 사용 |
 
@@ -514,8 +514,8 @@ graph TD
 | 클래스 | 역할 |
 |--------|------|
 | `Item` | **추상** - `trigger`/`getSymbol`, 설치 위치/소유자 보유 |
-| `BombItem` | 밟은 기물 제거 (킹은 면역), 2회 설치 |
-| `TrapItem` | 밟은 기물 동결 (다음 턴 이동 불가), 2회 설치 |
+| `BombItem` | 밟은 기물 제거 (킹은 면역), 1회 설치 |
+| `TrapItem` | 밟은 기물 동결 (다음 턴 이동 불가), 1회 설치 |
 
 ### 게임 루프 흐름
 

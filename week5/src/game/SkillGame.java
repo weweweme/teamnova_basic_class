@@ -11,7 +11,7 @@ import item.*;
 /// <summary>
 /// 스킬 모드 게임
 /// ClassicGame의 공식 규칙에 스킬과 아이템 시스템을 추가
-/// 각 플레이어가 매 턴마다 이동/스킬/아이템 중 하나를 선택
+/// 매 턴 스킬(선택) + 아이템(선택) + 이동(필수)을 자유 순서로 수행
 /// </summary>
 public class SkillGame extends ClassicGame {
 

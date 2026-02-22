@@ -91,7 +91,7 @@ public class SkillBoard extends ClassicBoard {
         if (isCursor || isSelected) {
             if (hasPiece) {
                 Piece piece = grid[r][c].getPiece();
-                String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
+                String colorCode = (piece.color == Chess.RED) ? Util.RED : Util.BLUE;
                 return "[" + colorCode + piece.symbol + Util.RESET + "]";
             }
             return "[ ]";
@@ -105,7 +105,7 @@ public class SkillBoard extends ClassicBoard {
         // 3순위: 기물이 있는 칸 (방패/동결 효과 표시)
         if (hasPiece) {
             SkillPiece piece = (SkillPiece) grid[r][c].getPiece();
-            String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
+            String colorCode = (piece.color == Chess.RED) ? Util.RED : Util.BLUE;
             // 방패 표시: 기호 앞에 ! 표시
             String prefix = piece.shielded ? "!" : " ";
             // 동결 표시: 기호 뒤에 ~ 표시
@@ -116,7 +116,7 @@ public class SkillBoard extends ClassicBoard {
         // 4순위: 아이템이 설치된 빈 칸 (양쪽 모두에게 보임)
         if (skillCell(r, c).hasItem()) {
             Item item = skillCell(r, c).getItem();
-            String colorCode = (item.ownerColor == Piece.RED) ? Util.RED : Util.BLUE;
+            String colorCode = (item.ownerColor == Chess.RED) ? Util.RED : Util.BLUE;
             return " " + colorCode + item.getSymbol() + Util.RESET + " ";
         }
 
@@ -135,7 +135,7 @@ public class SkillBoard extends ClassicBoard {
         // 기물 설명 + 스킬 효과
         if (grid[row][col].hasPiece()) {
             SkillPiece piece = (SkillPiece) grid[row][col].getPiece();
-            String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
+            String colorCode = (piece.color == Chess.RED) ? Util.RED : Util.BLUE;
             desc = colorCode + piece.name + Util.RESET + " - " + piece.description;
             if (piece.shielded) {
                 desc += " [방패]";
@@ -148,7 +148,7 @@ public class SkillBoard extends ClassicBoard {
         // 아이템 설명
         if (skillCell(row, col).hasItem()) {
             Item item = skillCell(row, col).getItem();
-            String colorCode = (item.ownerColor == Piece.RED) ? Util.RED : Util.BLUE;
+            String colorCode = (item.ownerColor == Chess.RED) ? Util.RED : Util.BLUE;
             String itemDesc = colorCode + item.name + Util.RESET + " - " + item.description;
             if (desc != null) {
                 return desc + " | " + itemDesc;

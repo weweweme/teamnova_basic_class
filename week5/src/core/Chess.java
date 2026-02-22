@@ -166,6 +166,22 @@ public class Chess {
     /// </summary>
     public static final int SKILL_REVIVE = 2;
 
+    // ========== 플레이어 색상 ==========
+
+    // 빨간팀 (하단, 선공)
+    public static final int RED = 0;
+
+    // 파란팀 (상단, 후공)
+    public static final int BLUE = 1;
+
+    // ========== 전진 방향 ==========
+
+    // 빨간팀 전진 방향 (위쪽, 행 감소)
+    public static final int RED_DIRECTION = -1;
+
+    // 파란팀 전진 방향 (아래쪽, 행 증가)
+    public static final int BLUE_DIRECTION = 1;
+
     // ========== 좌표 변환 ==========
 
     /// <summary>

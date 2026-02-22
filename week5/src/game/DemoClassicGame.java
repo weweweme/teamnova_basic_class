@@ -77,28 +77,28 @@ public class DemoClassicGame extends ClassicGame {
 
     public DemoClassicGame() {
         super(
-            new ClassicHumanPlayer(Piece.RED, "빨간팀"),
-            new ClassicHumanPlayer(Piece.BLUE, "파란팀")
+            new ClassicHumanPlayer(Chess.RED, "빨간팀"),
+            new ClassicHumanPlayer(Chess.BLUE, "파란팀")
         );
 
         // 표준 배치 제거 후 시연용 커스텀 배치
         board.clearAllPieces();
 
         // === 캐슬링 시연 ===
-        board.placePiece(PieceType.KING, Piece.RED, Chess.ROW_1, Chess.COL_E);     // e1 - 킹 (캐슬링 가능)
-        board.placePiece(PieceType.ROOK, Piece.RED, Chess.ROW_1, Chess.COL_H);     // h1 - 룩 (킹사이드)
-        board.placePiece(PieceType.ROOK, Piece.RED, Chess.ROW_1, Chess.COL_A);     // a1 - 룩 (퀸사이드)
+        board.placePiece(PieceType.KING, Chess.RED, Chess.ROW_1, Chess.COL_E);     // e1 - 킹 (캐슬링 가능)
+        board.placePiece(PieceType.ROOK, Chess.RED, Chess.ROW_1, Chess.COL_H);     // h1 - 룩 (킹사이드)
+        board.placePiece(PieceType.ROOK, Chess.RED, Chess.ROW_1, Chess.COL_A);     // a1 - 룩 (퀸사이드)
 
         // === 프로모션 시연 ===
-        board.placePiece(PieceType.PAWN, Piece.RED, Chess.ROW_7, Chess.COL_G);     // g7 - 폰 (한 칸 전진하면 프로모션)
+        board.placePiece(PieceType.PAWN, Chess.RED, Chess.ROW_7, Chess.COL_G);     // g7 - 폰 (한 칸 전진하면 프로모션)
 
         // === 앙파상 시연 ===
-        board.placePiece(PieceType.PAWN, Piece.RED, Chess.ROW_5, Chess.COL_D);     // d5 - 폰 (앙파상 대기)
+        board.placePiece(PieceType.PAWN, Chess.RED, Chess.ROW_5, Chess.COL_D);     // d5 - 폰 (앙파상 대기)
 
         // 파란팀
-        board.placePiece(PieceType.KING, Piece.BLUE, Chess.ROW_7, Chess.COL_E);    // e7 - 킹 (g8 프로모션 후 체크 방지)
-        board.placePiece(PieceType.PAWN, Piece.BLUE, Chess.ROW_7, Chess.COL_C);    // c7 - 폰 (2칸 전진 → 앙파상 트리거)
-        board.placePiece(PieceType.PAWN, Piece.BLUE, Chess.ROW_7, Chess.COL_F);    // f7 - 폰
+        board.placePiece(PieceType.KING, Chess.BLUE, Chess.ROW_7, Chess.COL_E);    // e7 - 킹 (g8 프로모션 후 체크 방지)
+        board.placePiece(PieceType.PAWN, Chess.BLUE, Chess.ROW_7, Chess.COL_C);    // c7 - 폰 (2칸 전진 → 앙파상 트리거)
+        board.placePiece(PieceType.PAWN, Chess.BLUE, Chess.ROW_7, Chess.COL_F);    // f7 - 폰
     }
 
     // ========== 턴 처리 (스크립트 검증) ==========

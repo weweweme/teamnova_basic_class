@@ -92,7 +92,7 @@ public class SkillGame extends ClassicGame {
         skillBoard.clearFreezes(currentPlayer.color);
 
         // 부활 스킬의 잡힌 기물 수 갱신 (격자에 없는 정보)
-        Skill[] skills = (currentPlayer.color == Piece.RED) ? redSkills : blueSkills;
+        Skill[] skills = (currentPlayer.color == Chess.RED) ? redSkills : blueSkills;
         ((ReviveSkill) skills[Chess.SKILL_REVIVE]).setCapturedCount(skillBoard.getCapturedCount(currentPlayer.color));
     }
 
@@ -111,8 +111,8 @@ public class SkillGame extends ClassicGame {
         boolean itemUsed = false;
 
         // 현재 플레이어의 스킬/아이템 가져오기
-        Skill[] skills = (currentPlayer.color == Piece.RED) ? redSkills : blueSkills;
-        Item[] items = (currentPlayer.color == Piece.RED) ? redItems : blueItems;
+        Skill[] skills = (currentPlayer.color == Chess.RED) ? redSkills : blueSkills;
+        Item[] items = (currentPlayer.color == Chess.RED) ? redItems : blueItems;
 
         // 행동 루프: 스킬/아이템은 각 1회, 이동이 턴을 종료
         while (true) {

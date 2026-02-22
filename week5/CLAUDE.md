@@ -297,7 +297,7 @@ SimpleBoard (기본 이동, 체크, 체크메이트 + 훅 메서드 4개)
       └── SkillBoard (+스킬, 아이템, 방패, 동결)
 ```
 
-- 훅 메서드: `addSpecialMoves`, `isMovementBlocked`, `isCaptureBlocked`, `createCell`/`createPiece`
+- 훅 메서드: `addSpecialMoves`, `isMovementBlocked`, `isCaptureBlocked`, `createCell`/`createPiece`, `getCellDescription`
 
 **cell 패키지 (칸)**
 
@@ -313,7 +313,7 @@ Piece (데이터 기반 이동 - PieceFactory가 type별 방향/속성 설정)
  └── SkillPiece  (+방패, 동결 상태)
 ```
 
-- `PieceType` 열거형이 기물 종류 정의, `PieceFactory.configure()`가 속성 설정
+- `PieceType` 열거형이 기물 종류 정의, `PieceFactory.configure()`가 속성(이름, 설명, 기호, 가치, 방향) 설정
 
 **player 패키지 (플레이어)**
 
@@ -444,7 +444,7 @@ graph TD
 
 | 클래스 | 역할 |
 |--------|------|
-| `Chess` | 체스 전용 상수 (보드 크기, 좌표, 프로모션, 액션, 스킬), 좌표 변환 |
+| `Chess` | 체스 전용 상수 (보드 크기, 좌표, 색상, 전진 방향, 프로모션, 액션, 스킬), 좌표 변환 |
 | `Move` | 이동 데이터 (출발/도착 행열 좌표, set()으로 재사용) |
 | `Util` | 범용 유틸리티 - 상수 (키, 색상), 터미널 raw 모드, 입력, 화면, 딜레이, 랜덤 |
 
@@ -452,10 +452,10 @@ graph TD
 
 | 클래스 | 역할 |
 |--------|------|
-| `Piece` | 기물 클래스 - `getValidMoves()` → `calculateMoves()`로 데이터 기반 이동 |
+| `Piece` | 기물 클래스 - `getValidMoves()` → `calculateMoves()`로 데이터 기반 이동, `description` 필드로 이동 설명 보유 |
 | `SkillPiece` | Piece + `shielded`/`frozen` 필드 (스킬 효과 상태) |
 | `PieceType` | 열거형 (KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN) |
-| `PieceFactory` | 정적 `configure()` - type에 따라 이름/기호/가치/방향 설정 |
+| `PieceFactory` | 정적 `configure()` - type에 따라 이름/설명/기호/가치/방향 설정 |
 
 **cell 패키지 - 칸**
 
@@ -468,9 +468,9 @@ graph TD
 
 | 클래스 | 역할 |
 |--------|------|
-| `SimpleBoard` | 8x8 격자, 기물 배치, 기본 이동, 체크/체크메이트 판정, 훅 메서드 4개 |
+| `SimpleBoard` | 8x8 격자, 기물 배치, 기본 이동, 체크/체크메이트 판정, 훅 메서드 4개, `getCellDescription` 커서 설명 |
 | `ClassicBoard` | SimpleBoard + 캐슬링, 앙파상, 프로모션 (`addSpecialMoves` 오버라이드) |
-| `SkillBoard` | ClassicBoard + 아이템/스킬 효과, 방패/동결 관리, 기물 제거/부활 |
+| `SkillBoard` | ClassicBoard + 아이템/스킬 효과(양쪽 상시 표시), 방패/동결 관리, 기물 제거/부활, `getCellDescription` 오버라이드 |
 
 **player 패키지 - 플레이어**
 
@@ -513,7 +513,7 @@ graph TD
 
 | 클래스 | 역할 |
 |--------|------|
-| `Item` | **추상** - `trigger`/`getSymbol`, 설치 위치/소유자 보유 |
+| `Item` | **추상** - `trigger`/`getSymbol`, 설치 위치/소유자 보유, 양쪽 모두에게 보임 |
 | `BombItem` | 밟은 기물 제거 (킹은 면역), 1회 설치 |
 | `TrapItem` | 밟은 기물 동결 (다음 턴 이동 불가), 1회 설치 |
 
@@ -621,12 +621,13 @@ graph TB
 ```
 1. Main → selectMode() → Game.run() 호출 → 게임 종료 후 메인 메뉴로 복귀 (종료 선택 시에만 프로그램 종료)
 2. Game → processTurn() → beforeAction/doAction/afterAction 훅 호출
-3. Player → Board.getFilteredMoves() 등으로 합법적인 수 조회
-4. Board → Piece.getValidMoves()로 기물별 이동 계산
-5. Board → Cell.getPiece()/setPiece()로 격자 상태 변경
-6. SkillGame → doAction 행동 루프 (스킬/아이템 각 1회 + 이동 필수), Skill.execute(), Item.trigger()
-7. SkillBoard → SkillPiece.frozen/shielded로 상태 확인
-8. SkillBoard → SkillCell.getItem()/setItem()으로 아이템 관리
+3. HumanInput → Board.getCellDescription()으로 커서 위치 설명 조회 (다형성: SimpleBoard은 기물 설명, SkillBoard는 방패/동결/아이템 설명 추가)
+4. Player → Board.getFilteredMoves() 등으로 합법적인 수 조회
+5. Board → Piece.getValidMoves()로 기물별 이동 계산
+6. Board → Cell.getPiece()/setPiece()로 격자 상태 변경
+7. SkillGame → doAction 행동 루프 (스킬/아이템 각 1회 + 이동 필수), Skill.execute(), Item.trigger()
+8. SkillBoard → SkillPiece.frozen/shielded로 상태 확인
+9. SkillBoard → SkillCell.getItem()/setItem()으로 아이템 관리
 ```
 
 ### 설계 패턴
@@ -634,10 +635,10 @@ graph TB
 | 패턴 | 적용 위치 | 설명 |
 |------|----------|------|
 | **템플릿 메서드** | `Game.run()` → `SimpleGame.processTurn()` | 공통 루프와 턴 처리를 정의하고 훅만 하위 클래스가 오버라이드 |
-| **훅 메서드** | `SimpleBoard` 4개, `SimpleGame` 3개 | Board: `addSpecialMoves`, `isMovementBlocked`, `isCaptureBlocked`, `createCell`/`createPiece`; Game: `beforeAction`, `doAction`, `afterAction` |
+| **훅 메서드** | `SimpleBoard` 5개, `SimpleGame` 3개 | Board: `addSpecialMoves`, `isMovementBlocked`, `isCaptureBlocked`, `createCell`/`createPiece`, `getCellDescription`; Game: `beforeAction`, `doAction`, `afterAction` |
 | **팩토리 메서드** | `createBoard()`, `createCell()`, `createPiece()` | 하위 클래스가 자기 모드에 맞는 객체 생성 |
 | **정적 팩토리** | `PieceFactory.configure()` | PieceType에 따라 기물 속성(방향, 기호, 가치) 일괄 설정 |
-| **다형성** | `Player.chooseMove()` | Game이 Human/AI 구분 없이 동일하게 호출 |
+| **다형성** | `Player.chooseMove()`, `Board.getCellDescription()` | Game이 Human/AI 구분 없이 호출, HumanInput이 Board 타입 무관하게 설명 조회 |
 | **조합(Composition)** | `HumanInput`, `AiInput` | 조작 코드를 별도 클래스로 추출하여 모든 Human/AI 계열이 공유 |
 
 ### 좌표 체계
@@ -699,6 +700,9 @@ graph TB
 
 - 이동 가능한 칸: `·` 표시
 - 선택된 기물: `[K]` 형태로 표시
+- 커서 위치 설명: 기물 위에 커서를 올리면 이름과 이동 설명 표시 (예: `킹 - 모든 방향으로 1칸 이동`)
+- 스킬 모드 추가 표시: 방패 `[방패]`, 동결 `[동결]`, 아이템 설명도 함께 표시
+- 스킬 모드 아이템: 양쪽 모두에게 상시 보임 (폭탄 `*`, 함정 `^`)
 
 **메뉴 선택**: 커서 기반 (`selectMenu` 범용 메서드)
 - ↑↓ / W/S → 커서 이동

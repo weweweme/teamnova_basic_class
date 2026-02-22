@@ -214,7 +214,7 @@ public class HumanInput {
     /// 색상 이름 반환 ("빨간팀" 또는 "파란팀")
     /// </summary>
     public String getColorName(int color) {
-        if (color == Piece.RED) {
+        if (color == Chess.RED) {
             return Util.RED + "빨간팀" + Util.RESET;
         }
         return Util.BLUE + "파란팀" + Util.RESET;

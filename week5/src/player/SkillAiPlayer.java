@@ -76,7 +76,7 @@ public class SkillAiPlayer extends SkillPlayer {
     /// </summary>
     @Override
     public int chooseAction(SimpleBoard board, Skill[] skills, Item[] items, boolean skillUsed, boolean itemUsed) {
-        int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
+        int opponentColor = (color == Chess.RED) ? Chess.BLUE : Chess.RED;
 
         // 스킬 확인 (이번 턴 미사용일 때만)
         if (!skillUsed) {

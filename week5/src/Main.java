@@ -1,5 +1,5 @@
+import core.Chess;
 import core.Util;
-import piece.Piece;
 import player.*;
 import game.*;
 
@@ -120,8 +120,8 @@ public class Main {
     /// 기물의 기본 이동만 사용 (캐슬링/앙파상/프로모션 없음)
     /// </summary>
     private static void startSimpleGame() {
-        Player red = new HumanPlayer(Piece.RED, "플레이어 1");
-        Player blue = new HumanPlayer(Piece.BLUE, "플레이어 2");
+        Player red = new HumanPlayer(Chess.RED, "플레이어 1");
+        Player blue = new HumanPlayer(Chess.BLUE, "플레이어 2");
         Game game = new SimpleGame(red, blue);
         game.run();
     }
@@ -133,12 +133,12 @@ public class Main {
         Player red;
         Player blue;
 
-        if (playerColor == Piece.RED) {
-            red = new HumanPlayer(Piece.RED, "플레이어");
-            blue = new AiPlayer(Piece.BLUE, "AI", difficulty);
+        if (playerColor == Chess.RED) {
+            red = new HumanPlayer(Chess.RED, "플레이어");
+            blue = new AiPlayer(Chess.BLUE, "AI", difficulty);
         } else {
-            red = new AiPlayer(Piece.RED, "AI", difficulty);
-            blue = new HumanPlayer(Piece.BLUE, "플레이어");
+            red = new AiPlayer(Chess.RED, "AI", difficulty);
+            blue = new HumanPlayer(Chess.BLUE, "플레이어");
         }
 
         Game game = new SimpleGame(red, blue);
@@ -150,8 +150,8 @@ public class Main {
     /// 캐슬링, 앙파상, 프로모션 포함
     /// </summary>
     private static void startClassicGame() {
-        ClassicPlayer red = new ClassicHumanPlayer(Piece.RED, "플레이어 1");
-        ClassicPlayer blue = new ClassicHumanPlayer(Piece.BLUE, "플레이어 2");
+        ClassicPlayer red = new ClassicHumanPlayer(Chess.RED, "플레이어 1");
+        ClassicPlayer blue = new ClassicHumanPlayer(Chess.BLUE, "플레이어 2");
         Game game = new ClassicGame(red, blue);
         game.run();
     }
@@ -163,12 +163,12 @@ public class Main {
         ClassicPlayer red;
         ClassicPlayer blue;
 
-        if (playerColor == Piece.RED) {
-            red = new ClassicHumanPlayer(Piece.RED, "플레이어");
-            blue = new ClassicAiPlayer(Piece.BLUE, "AI", difficulty);
+        if (playerColor == Chess.RED) {
+            red = new ClassicHumanPlayer(Chess.RED, "플레이어");
+            blue = new ClassicAiPlayer(Chess.BLUE, "AI", difficulty);
         } else {
-            red = new ClassicAiPlayer(Piece.RED, "AI", difficulty);
-            blue = new ClassicHumanPlayer(Piece.BLUE, "플레이어");
+            red = new ClassicAiPlayer(Chess.RED, "AI", difficulty);
+            blue = new ClassicHumanPlayer(Chess.BLUE, "플레이어");
         }
 
         Game game = new ClassicGame(red, blue);
@@ -180,8 +180,8 @@ public class Main {
     /// 스킬과 아이템을 사용할 수 있는 모드
     /// </summary>
     private static void startSkillGame() {
-        SkillPlayer red = new SkillHumanPlayer(Piece.RED, "플레이어 1");
-        SkillPlayer blue = new SkillHumanPlayer(Piece.BLUE, "플레이어 2");
+        SkillPlayer red = new SkillHumanPlayer(Chess.RED, "플레이어 1");
+        SkillPlayer blue = new SkillHumanPlayer(Chess.BLUE, "플레이어 2");
         Game game = new SkillGame(red, blue);
         game.run();
     }
@@ -193,12 +193,12 @@ public class Main {
         SkillPlayer red;
         SkillPlayer blue;
 
-        if (playerColor == Piece.RED) {
-            red = new SkillHumanPlayer(Piece.RED, "플레이어");
-            blue = new SkillAiPlayer(Piece.BLUE, "AI", difficulty);
+        if (playerColor == Chess.RED) {
+            red = new SkillHumanPlayer(Chess.RED, "플레이어");
+            blue = new SkillAiPlayer(Chess.BLUE, "AI", difficulty);
         } else {
-            red = new SkillAiPlayer(Piece.RED, "AI", difficulty);
-            blue = new SkillHumanPlayer(Piece.BLUE, "플레이어");
+            red = new SkillAiPlayer(Chess.RED, "AI", difficulty);
+            blue = new SkillHumanPlayer(Chess.BLUE, "플레이어");
         }
 
         Game game = new SkillGame(red, blue);
@@ -404,6 +404,6 @@ public class Main {
         if (index == Util.NONE) {
             return Util.NONE;
         }
-        return (index == 0) ? Piece.RED : Piece.BLUE;
+        return (index == 0) ? Chess.RED : Chess.BLUE;
     }
 }

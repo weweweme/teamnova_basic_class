@@ -32,7 +32,7 @@ public class DestroySkill extends Skill {
             return false;
         }
 
-        int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
+        int opponentColor = (color == Chess.RED) ? Chess.BLUE : Chess.RED;
 
         for (int r = 0; r < Chess.BOARD_SIZE; r++) {
             for (int c = 0; c < Chess.BOARD_SIZE; c++) {
@@ -53,7 +53,7 @@ public class DestroySkill extends Skill {
     /// </summary>
     @Override
     public void findTargets(Cell[][] grid, int color) {
-        int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
+        int opponentColor = (color == Chess.RED) ? Chess.BLUE : Chess.RED;
         targetCount = 0;
 
         for (int r = 0; r < Chess.BOARD_SIZE; r++) {

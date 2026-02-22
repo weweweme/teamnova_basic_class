@@ -156,36 +156,36 @@ public class SimpleBoard {
         final int ROOK_RIGHT = 7;      // h열 - 룩
 
         // 파란팀 주요 기물
-        grid[BLUE_BACK_ROW][ROOK_LEFT].setPiece(createPiece(PieceType.ROOK, Piece.BLUE, BLUE_BACK_ROW, ROOK_LEFT));
-        grid[BLUE_BACK_ROW][KNIGHT_LEFT].setPiece(createPiece(PieceType.KNIGHT, Piece.BLUE, BLUE_BACK_ROW, KNIGHT_LEFT));
-        grid[BLUE_BACK_ROW][BISHOP_LEFT].setPiece(createPiece(PieceType.BISHOP, Piece.BLUE, BLUE_BACK_ROW, BISHOP_LEFT));
-        grid[BLUE_BACK_ROW][QUEEN_COL].setPiece(createPiece(PieceType.QUEEN, Piece.BLUE, BLUE_BACK_ROW, QUEEN_COL));
-        blueKing = createPiece(PieceType.KING, Piece.BLUE, BLUE_BACK_ROW, KING_COL);
+        grid[BLUE_BACK_ROW][ROOK_LEFT].setPiece(createPiece(PieceType.ROOK, Chess.BLUE, BLUE_BACK_ROW, ROOK_LEFT));
+        grid[BLUE_BACK_ROW][KNIGHT_LEFT].setPiece(createPiece(PieceType.KNIGHT, Chess.BLUE, BLUE_BACK_ROW, KNIGHT_LEFT));
+        grid[BLUE_BACK_ROW][BISHOP_LEFT].setPiece(createPiece(PieceType.BISHOP, Chess.BLUE, BLUE_BACK_ROW, BISHOP_LEFT));
+        grid[BLUE_BACK_ROW][QUEEN_COL].setPiece(createPiece(PieceType.QUEEN, Chess.BLUE, BLUE_BACK_ROW, QUEEN_COL));
+        blueKing = createPiece(PieceType.KING, Chess.BLUE, BLUE_BACK_ROW, KING_COL);
         grid[BLUE_BACK_ROW][KING_COL].setPiece(blueKing);
-        grid[BLUE_BACK_ROW][BISHOP_RIGHT].setPiece(createPiece(PieceType.BISHOP, Piece.BLUE, BLUE_BACK_ROW, BISHOP_RIGHT));
-        grid[BLUE_BACK_ROW][KNIGHT_RIGHT].setPiece(createPiece(PieceType.KNIGHT, Piece.BLUE, BLUE_BACK_ROW, KNIGHT_RIGHT));
-        grid[BLUE_BACK_ROW][ROOK_RIGHT].setPiece(createPiece(PieceType.ROOK, Piece.BLUE, BLUE_BACK_ROW, ROOK_RIGHT));
+        grid[BLUE_BACK_ROW][BISHOP_RIGHT].setPiece(createPiece(PieceType.BISHOP, Chess.BLUE, BLUE_BACK_ROW, BISHOP_RIGHT));
+        grid[BLUE_BACK_ROW][KNIGHT_RIGHT].setPiece(createPiece(PieceType.KNIGHT, Chess.BLUE, BLUE_BACK_ROW, KNIGHT_RIGHT));
+        grid[BLUE_BACK_ROW][ROOK_RIGHT].setPiece(createPiece(PieceType.ROOK, Chess.BLUE, BLUE_BACK_ROW, ROOK_RIGHT));
 
         // 파란팀 폰
         for (int c = 0; c < Chess.BOARD_SIZE; c++) {
-            grid[BLUE_PAWN_ROW][c].setPiece(createPiece(PieceType.PAWN, Piece.BLUE, BLUE_PAWN_ROW, c));
+            grid[BLUE_PAWN_ROW][c].setPiece(createPiece(PieceType.PAWN, Chess.BLUE, BLUE_PAWN_ROW, c));
         }
 
         // 빨간팀 폰
         for (int c = 0; c < Chess.BOARD_SIZE; c++) {
-            grid[RED_PAWN_ROW][c].setPiece(createPiece(PieceType.PAWN, Piece.RED, RED_PAWN_ROW, c));
+            grid[RED_PAWN_ROW][c].setPiece(createPiece(PieceType.PAWN, Chess.RED, RED_PAWN_ROW, c));
         }
 
         // 빨간팀 주요 기물
-        grid[RED_BACK_ROW][ROOK_LEFT].setPiece(createPiece(PieceType.ROOK, Piece.RED, RED_BACK_ROW, ROOK_LEFT));
-        grid[RED_BACK_ROW][KNIGHT_LEFT].setPiece(createPiece(PieceType.KNIGHT, Piece.RED, RED_BACK_ROW, KNIGHT_LEFT));
-        grid[RED_BACK_ROW][BISHOP_LEFT].setPiece(createPiece(PieceType.BISHOP, Piece.RED, RED_BACK_ROW, BISHOP_LEFT));
-        grid[RED_BACK_ROW][QUEEN_COL].setPiece(createPiece(PieceType.QUEEN, Piece.RED, RED_BACK_ROW, QUEEN_COL));
-        redKing = createPiece(PieceType.KING, Piece.RED, RED_BACK_ROW, KING_COL);
+        grid[RED_BACK_ROW][ROOK_LEFT].setPiece(createPiece(PieceType.ROOK, Chess.RED, RED_BACK_ROW, ROOK_LEFT));
+        grid[RED_BACK_ROW][KNIGHT_LEFT].setPiece(createPiece(PieceType.KNIGHT, Chess.RED, RED_BACK_ROW, KNIGHT_LEFT));
+        grid[RED_BACK_ROW][BISHOP_LEFT].setPiece(createPiece(PieceType.BISHOP, Chess.RED, RED_BACK_ROW, BISHOP_LEFT));
+        grid[RED_BACK_ROW][QUEEN_COL].setPiece(createPiece(PieceType.QUEEN, Chess.RED, RED_BACK_ROW, QUEEN_COL));
+        redKing = createPiece(PieceType.KING, Chess.RED, RED_BACK_ROW, KING_COL);
         grid[RED_BACK_ROW][KING_COL].setPiece(redKing);
-        grid[RED_BACK_ROW][BISHOP_RIGHT].setPiece(createPiece(PieceType.BISHOP, Piece.RED, RED_BACK_ROW, BISHOP_RIGHT));
-        grid[RED_BACK_ROW][KNIGHT_RIGHT].setPiece(createPiece(PieceType.KNIGHT, Piece.RED, RED_BACK_ROW, KNIGHT_RIGHT));
-        grid[RED_BACK_ROW][ROOK_RIGHT].setPiece(createPiece(PieceType.ROOK, Piece.RED, RED_BACK_ROW, ROOK_RIGHT));
+        grid[RED_BACK_ROW][BISHOP_RIGHT].setPiece(createPiece(PieceType.BISHOP, Chess.RED, RED_BACK_ROW, BISHOP_RIGHT));
+        grid[RED_BACK_ROW][KNIGHT_RIGHT].setPiece(createPiece(PieceType.KNIGHT, Chess.RED, RED_BACK_ROW, KNIGHT_RIGHT));
+        grid[RED_BACK_ROW][ROOK_RIGHT].setPiece(createPiece(PieceType.ROOK, Chess.RED, RED_BACK_ROW, ROOK_RIGHT));
     }
 
     // ========== 보드 커스터마이즈 (시연 모드 등) ==========
@@ -226,7 +226,7 @@ public class SimpleBoard {
 
         // 킹이면 내부 참조 등록 (체크/체크메이트 판정에 사용)
         if (type == PieceType.KING) {
-            if (color == Piece.RED) {
+            if (color == Chess.RED) {
                 redKing = piece;
             } else {
                 blueKing = piece;
@@ -319,7 +319,7 @@ public class SimpleBoard {
         blueCaptures.setLength(0);
 
         for (Piece p : sortedCapturedPieces) {
-            if (p.color == Piece.BLUE) {
+            if (p.color == Chess.BLUE) {
                 // 파란 기물이 잡힘 → 빨간팀이 잡은 것
                 redCaptures.append(Util.BLUE).append(p.symbol).append(Util.RESET).append(" ");
             } else {
@@ -355,7 +355,7 @@ public class SimpleBoard {
         if (isCursor || isSelected) {
             if (hasPiece) {
                 Piece piece = grid[r][c].getPiece();
-                String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
+                String colorCode = (piece.color == Chess.RED) ? Util.RED : Util.BLUE;
                 return "[" + colorCode + piece.symbol + Util.RESET + "]";
             }
             return "[ ]";
@@ -369,7 +369,7 @@ public class SimpleBoard {
         // 3순위: 일반 칸
         if (hasPiece) {
             Piece piece = grid[r][c].getPiece();
-            String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
+            String colorCode = (piece.color == Chess.RED) ? Util.RED : Util.BLUE;
             return " " + colorCode + piece.symbol + Util.RESET + " ";
         }
         return "   ";
@@ -383,7 +383,7 @@ public class SimpleBoard {
     public String getCellDescription(int row, int col) {
         if (grid[row][col].hasPiece()) {
             Piece piece = grid[row][col].getPiece();
-            String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
+            String colorCode = (piece.color == Chess.RED) ? Util.RED : Util.BLUE;
             return colorCode + piece.name + Util.RESET + " - " + piece.description;
         }
         return null;
@@ -408,7 +408,7 @@ public class SimpleBoard {
     /// 특정 색상의 킹 반환
     /// </summary>
     public Piece getKing(int color) {
-        return (color == Piece.RED) ? redKing : blueKing;
+        return (color == Chess.RED) ? redKing : blueKing;
     }
 
     // ========== 이동 실행 ==========

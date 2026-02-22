@@ -70,7 +70,7 @@ public class AiInput {
     /// </summary>
     private Move chooseNormal(SimpleBoard board, ArrayList<Move> allMoves, int color) {
         // 상대 색상
-        int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
+        int opponentColor = (color == Chess.RED) ? Chess.BLUE : Chess.RED;
 
         // 1순위: 체크메이트 가능한 수
         for (Move move : allMoves) {

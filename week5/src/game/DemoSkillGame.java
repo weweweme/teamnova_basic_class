@@ -141,25 +141,25 @@ public class DemoSkillGame extends SkillGame {
 
     public DemoSkillGame() {
         super(
-            new SkillHumanPlayer(Piece.RED, "빨간팀"),
-            new SkillHumanPlayer(Piece.BLUE, "파란팀")
+            new SkillHumanPlayer(Chess.RED, "빨간팀"),
+            new SkillHumanPlayer(Chess.BLUE, "파란팀")
         );
 
         // 표준 배치 제거 후 시연용 커스텀 배치
         board.clearAllPieces();
 
         // 빨간팀
-        board.placePiece(PieceType.KING, Piece.RED, Chess.ROW_1, Chess.COL_E);     // e1 - 킹
-        board.placePiece(PieceType.ROOK, Piece.RED, Chess.ROW_1, Chess.COL_A);     // a1 - 룩
-        board.placePiece(PieceType.PAWN, Piece.RED, Chess.ROW_4, Chess.COL_D);     // d4 - 폰 (턴7 이동용)
-        board.placePiece(PieceType.KNIGHT, Piece.RED, Chess.ROW_1, Chess.COL_B);   // b1 - 나이트
+        board.placePiece(PieceType.KING, Chess.RED, Chess.ROW_1, Chess.COL_E);     // e1 - 킹
+        board.placePiece(PieceType.ROOK, Chess.RED, Chess.ROW_1, Chess.COL_A);     // a1 - 룩
+        board.placePiece(PieceType.PAWN, Chess.RED, Chess.ROW_4, Chess.COL_D);     // d4 - 폰 (턴7 이동용)
+        board.placePiece(PieceType.KNIGHT, Chess.RED, Chess.ROW_1, Chess.COL_B);   // b1 - 나이트
 
         // 파란팀
-        board.placePiece(PieceType.KING, Piece.BLUE, Chess.ROW_8, Chess.COL_E);    // e8 - 킹
-        board.placePiece(PieceType.ROOK, Piece.BLUE, Chess.ROW_8, Chess.COL_H);    // h8 - 룩 (턴2 방패 대상)
-        board.placePiece(PieceType.PAWN, Piece.BLUE, Chess.ROW_7, Chess.COL_H);    // h7 - 폰 (턴4 함정 발동용)
-        board.placePiece(PieceType.BISHOP, Piece.BLUE, Chess.ROW_8, Chess.COL_C);  // c8 - 비숍 (턴1 파괴 대상)
-        board.placePiece(PieceType.PAWN, Piece.BLUE, Chess.ROW_7, Chess.COL_F);    // f7 - 폰 (턴6 폭탄 발동용)
+        board.placePiece(PieceType.KING, Chess.BLUE, Chess.ROW_8, Chess.COL_E);    // e8 - 킹
+        board.placePiece(PieceType.ROOK, Chess.BLUE, Chess.ROW_8, Chess.COL_H);    // h8 - 룩 (턴2 방패 대상)
+        board.placePiece(PieceType.PAWN, Chess.BLUE, Chess.ROW_7, Chess.COL_H);    // h7 - 폰 (턴4 함정 발동용)
+        board.placePiece(PieceType.BISHOP, Chess.BLUE, Chess.ROW_8, Chess.COL_C);  // c8 - 비숍 (턴1 파괴 대상)
+        board.placePiece(PieceType.PAWN, Chess.BLUE, Chess.ROW_7, Chess.COL_F);    // f7 - 폰 (턴6 폭탄 발동용)
     }
 
     // ========== 게임 루프 오버라이드 ==========
@@ -224,8 +224,8 @@ public class DemoSkillGame extends SkillGame {
 
         // ===== 스크립트 턴: 설정 =====
 
-        Skill[] skills = (currentPlayer.color == Piece.RED) ? redSkills : blueSkills;
-        Item[] items = (currentPlayer.color == Piece.RED) ? redItems : blueItems;
+        Skill[] skills = (currentPlayer.color == Chess.RED) ? redSkills : blueSkills;
+        Item[] items = (currentPlayer.color == Chess.RED) ? redItems : blueItems;
 
         // 지난 턴에 건 방패 해제
         skillBoard.clearShields(currentPlayer.color);

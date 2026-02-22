@@ -131,8 +131,8 @@ public class ClassicBoard extends SimpleBoard {
             return false;
         }
         // 빨간팀은 0행(8번 줄), 파란팀은 7행(1번 줄)이 끝
-        boolean isRedAtEnd = piece.color == Piece.RED && move.toRow == 0;
-        boolean isBlueAtEnd = piece.color == Piece.BLUE && move.toRow == 7;
+        boolean isRedAtEnd = piece.color == Chess.RED && move.toRow == 0;
+        boolean isBlueAtEnd = piece.color == Chess.BLUE && move.toRow == 7;
         return isRedAtEnd || isBlueAtEnd;
     }
 
@@ -185,7 +185,7 @@ public class ClassicBoard extends SimpleBoard {
     /// </summary>
     private void addCastlingMoves(Piece king) {
         int row = king.row;
-        int opponentColor = (king.color == Piece.RED) ? Piece.BLUE : Piece.RED;
+        int opponentColor = (king.color == Chess.RED) ? Chess.BLUE : Chess.RED;
 
         // 현재 체크 상태면 캐슬링 불가
         if (isInCheck(king.color)) {
@@ -293,7 +293,7 @@ public class ClassicBoard extends SimpleBoard {
         }
 
         // 앙파상 도착 칸 (상대 폰이 지나온 빈 칸)
-        int direction = (pawn.color == Piece.RED) ? Piece.RED_DIRECTION : Piece.BLUE_DIRECTION;
+        int direction = (pawn.color == Chess.RED) ? Chess.RED_DIRECTION : Chess.BLUE_DIRECTION;
         int enPassantRow = row + direction;
         int enPassantCol = lastMove.toCol;
 

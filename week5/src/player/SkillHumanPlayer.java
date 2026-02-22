@@ -284,7 +284,7 @@ public class SkillHumanPlayer extends SkillPlayer {
         System.out.println("부활할 기물을 선택하세요:");
 
         for (int i = 0; i < captured.length; i++) {
-            String colorCode = (captured[i].color == Piece.RED) ? Util.RED : Util.BLUE;
+            String colorCode = (captured[i].color == Chess.RED) ? Util.RED : Util.BLUE;
             System.out.println("[" + (i + 1) + "] " + colorCode + captured[i].name + Util.RESET
                     + " (가치: " + captured[i].value + ")");
         }

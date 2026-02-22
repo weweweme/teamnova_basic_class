@@ -12,7 +12,7 @@ public abstract class Player {
 
     // ========== 필드 ==========
 
-    // 플레이어 색상 (Piece.RED 또는 Piece.BLUE)
+    // 플레이어 색상 (Chess.RED 또는 Chess.BLUE)
     public int color;
 
     // 플레이어 이름 ("플레이어 1", "AI" 등)

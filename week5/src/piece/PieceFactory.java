@@ -1,5 +1,7 @@
 package piece;
 
+import core.Chess;
+
 /// <summary>
 /// 기물 설정 팩토리
 /// PieceType에 따라 기물의 이름, 기호, 가치, 이동 방향을 설정
@@ -53,7 +55,7 @@ public class PieceFactory {
             case KING:
                 piece.name = "킹";
                 piece.description = "모든 방향으로 1칸 이동";
-                piece.symbol = (piece.color == Piece.RED) ? "K" : "k";
+                piece.symbol = (piece.color == Chess.RED) ? "K" : "k";
                 piece.value = 0;
                 piece.directions = KING_DIRECTIONS;
                 piece.repeatMove = false;
@@ -62,7 +64,7 @@ public class PieceFactory {
             case QUEEN:
                 piece.name = "퀸";
                 piece.description = "가로, 세로, 대각선으로 무제한 이동";
-                piece.symbol = (piece.color == Piece.RED) ? "Q" : "q";
+                piece.symbol = (piece.color == Chess.RED) ? "Q" : "q";
                 piece.value = 9;
                 piece.directions = QUEEN_DIRECTIONS;
                 piece.repeatMove = true;
@@ -71,7 +73,7 @@ public class PieceFactory {
             case ROOK:
                 piece.name = "룩";
                 piece.description = "가로, 세로로 무제한 이동";
-                piece.symbol = (piece.color == Piece.RED) ? "R" : "r";
+                piece.symbol = (piece.color == Chess.RED) ? "R" : "r";
                 piece.value = 5;
                 piece.directions = ROOK_DIRECTIONS;
                 piece.repeatMove = true;
@@ -80,7 +82,7 @@ public class PieceFactory {
             case BISHOP:
                 piece.name = "비숍";
                 piece.description = "대각선으로 무제한 이동";
-                piece.symbol = (piece.color == Piece.RED) ? "B" : "b";
+                piece.symbol = (piece.color == Chess.RED) ? "B" : "b";
                 piece.value = 3;
                 piece.directions = BISHOP_DIRECTIONS;
                 piece.repeatMove = true;
@@ -89,7 +91,7 @@ public class PieceFactory {
             case KNIGHT:
                 piece.name = "나이트";
                 piece.description = "L자 형태로 이동 (다른 기물을 뛰어넘음)";
-                piece.symbol = (piece.color == Piece.RED) ? "N" : "n";
+                piece.symbol = (piece.color == Chess.RED) ? "N" : "n";
                 piece.value = 3;
                 piece.directions = KNIGHT_DIRECTIONS;
                 piece.repeatMove = false;
@@ -98,13 +100,13 @@ public class PieceFactory {
             case PAWN:
                 piece.name = "폰";
                 piece.description = "전진 1칸 (첫 수 2칸), 대각선으로 잡기";
-                piece.symbol = (piece.color == Piece.RED) ? "P" : "p";
+                piece.symbol = (piece.color == Chess.RED) ? "P" : "p";
                 piece.value = 1;
                 // 폰은 일반 directions 대신 이동 전용/잡기 전용 방향 사용
                 piece.directions = null;
                 piece.repeatMove = false;
                 // 빨간팀은 위로(-1), 파란팀은 아래로(+1) 전진
-                int dir = (piece.color == Piece.RED) ? Piece.RED_DIRECTION : Piece.BLUE_DIRECTION;
+                int dir = (piece.color == Chess.RED) ? Chess.RED_DIRECTION : Chess.BLUE_DIRECTION;
                 // 전진 방향 (빈 칸으로만 이동, 첫 이동 시 2칸 가능)
                 piece.moveOnlyDirections = new int[][] {{dir, 0}};
                 // 대각선 잡기 방향 (적군이 있을 때만 이동)

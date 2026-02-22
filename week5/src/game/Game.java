@@ -101,10 +101,10 @@ public abstract class Game {
     /// 상대 팀의 색상 반환
     /// </summary>
     protected int getOpponentColor() {
-        if (currentPlayer.color == Piece.RED) {
-            return Piece.BLUE;
+        if (currentPlayer.color == Chess.RED) {
+            return Chess.BLUE;
         }
-        return Piece.RED;
+        return Chess.RED;
     }
 
     /// <summary>

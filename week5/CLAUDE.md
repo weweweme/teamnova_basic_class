@@ -359,15 +359,15 @@ Game 측에서는 ClassicGame이 `ClassicPlayer` 타입, SkillGame이 `SkillPlay
 
 ```
 Game (abstract - 템플릿 메서드 패턴)
- └── SimpleGame (기본 이동 + afterMove 훅)
+ └── SimpleGame (processTurn 템플릿 + 훅 메서드 3개)
       ├── DemoSimpleGame
-      └── ClassicGame (afterMove → 프로모션)
+      └── ClassicGame (afterAction → 프로모션)
            ├── DemoClassicGame
-           └── SkillGame (afterMove/processTurn/run 오버라이드)
+           └── SkillGame (beforeAction/doAction/afterAction + run 오버라이드)
                 └── DemoSkillGame
 ```
 
-- 훅 메서드: `afterMove` — SimpleGame이 정의, ClassicGame/SkillGame이 프로모션 처리로 오버라이드
+- 훅 메서드: `beforeAction`(사전처리), `doAction`(액션 수행), `afterAction`(사후처리) — SimpleGame이 정의
 
 **skill 패키지 (스킬)**
 
@@ -493,9 +493,9 @@ graph TD
 | 클래스 | 역할 |
 |--------|------|
 | `Game` | **추상** - 템플릿 메서드 패턴 (`run` → `processTurn` → 체크메이트 → `switchTurn`) |
-| `SimpleGame` | `processTurn`: chooseMove → executeMove → afterMove 훅 |
-| `ClassicGame` | SimpleGame + `afterMove` 오버라이드 (프로모션 확인) |
-| `SkillGame` | ClassicGame + `processTurn`/`run` 오버라이드 (효과 정리 → 행동 선택 → 아이템 트리거) |
+| `SimpleGame` | `processTurn` 템플릿: `beforeAction` → `doAction` → `afterAction` |
+| `ClassicGame` | SimpleGame + `afterAction` 오버라이드 (프로모션 확인) |
+| `SkillGame` | ClassicGame + `beforeAction`/`doAction`/`afterAction`/`run` 오버라이드 |
 | `DemoSimpleGame` | SimpleGame + 15턴 스크립트 (나이트→비숍→룩→퀸→폰→킹→체크→체크메이트) |
 | `DemoClassicGame` | ClassicGame + 5턴 스크립트 (캐슬링→앙파상→프로모션) |
 | `DemoSkillGame` | SkillGame + 8턴 스크립트 (파괴→방패→함정→폭탄→동결체험→부활) |
@@ -521,40 +521,32 @@ graph TD
 
 **공통 루프 (`Game.run`)** - 템플릿 메서드 패턴
 
-모든 게임 모드가 동일한 루프 구조를 공유하고, `processTurn()`과 `createBoard()`만 오버라이드.
+모든 게임 모드가 동일한 루프 구조를 공유하고, 각 훅 메서드만 오버라이드.
 SkillGame은 `run()` 자체도 오버라이드하여 동결 해제 단계를 추가.
 
 ```mermaid
 graph TD
-    START[Game.run 시작] --> PT[processTurn 호출]
-    PT -->|"quit = true"| END[게임 종료]
-    PT -->|"quit = false"| CM{체크메이트?}
+    START[Game.run 시작] --> BA[사전처리 - beforeAction]
+    BA --> DA[액션 수행 - doAction]
+    DA -->|종료| END[게임 종료]
+    DA -->|진행| AA[사후처리 - afterAction]
+    AA --> CM{체크메이트?}
     CM -->|yes| WIN[승리 출력]
     CM -->|no| SM{스테일메이트?}
     SM -->|yes| DRAW[무승부 출력]
     SM -->|no| SW[턴 교대]
-    SW --> PT
+    SW --> BA
 ```
 
-**SimpleGame.processTurn** - 기본 체스 (이동만)
+**각 모드별 훅 오버라이드**
 
-```mermaid
-graph TD
-    A[수 선택 - Player.chooseMove] --> B[이동 실행 - Board.executeMove]
-```
+| 훅 | SimpleGame | ClassicGame | SkillGame |
+|---|---|---|---|
+| `beforeAction()` | 빈 구현 | - | 방패/동결 해제, 부활 갱신 |
+| `doAction()` | chooseMove → executeMove | - | 행동 선택(이동/스킬/아이템) + 처리 |
+| `afterAction()` | 빈 구현 | 프로모션 확인 | 프로모션 확인 (skillBoard 사용) |
 
-**ClassicGame.processTurn** - 공식 체스 (이동 + 프로모션)
-
-```mermaid
-graph TD
-    A[수 선택 - Player.chooseMove] --> B[이동 실행 - Board.executeMove]
-    B --> C{폰이 끝 줄 도착?}
-    C -->|yes| D[승격 선택 - ClassicPlayer.choosePromotion]
-    C -->|no| E[턴 완료]
-    D --> E
-```
-
-**SkillGame.processTurn** - 스킬 모드 (이동/스킬/아이템)
+**SkillGame.doAction** - 스킬 모드 액션 수행
 
 ```mermaid
 graph TD
@@ -625,7 +617,7 @@ graph TB
 
 ```
 1. Main → Game.run() 호출
-2. Game → Player.chooseMove() 호출 (다형성)
+2. Game → processTurn() → beforeAction/doAction/afterAction 훅 호출
 3. Player → Board.getFilteredMoves() 등으로 합법적인 수 조회
 4. Board → Piece.getValidMoves()로 기물별 이동 계산
 5. Board → Cell.getPiece()/setPiece()로 격자 상태 변경
@@ -638,8 +630,8 @@ graph TB
 
 | 패턴 | 적용 위치 | 설명 |
 |------|----------|------|
-| **템플릿 메서드** | `Game.run()` → `processTurn()` | 공통 루프를 정의하고 턴 처리만 하위 클래스가 오버라이드 |
-| **훅 메서드** | `SimpleBoard` 4개, `SimpleGame` 1개 | Board: `addSpecialMoves`, `isMovementBlocked`, `isCaptureBlocked`, `createCell`/`createPiece`; Game: `afterMove` |
+| **템플릿 메서드** | `Game.run()` → `SimpleGame.processTurn()` | 공통 루프와 턴 처리를 정의하고 훅만 하위 클래스가 오버라이드 |
+| **훅 메서드** | `SimpleBoard` 4개, `SimpleGame` 3개 | Board: `addSpecialMoves`, `isMovementBlocked`, `isCaptureBlocked`, `createCell`/`createPiece`; Game: `beforeAction`, `doAction`, `afterAction` |
 | **팩토리 메서드** | `createBoard()`, `createCell()`, `createPiece()` | 하위 클래스가 자기 모드에 맞는 객체 생성 |
 | **정적 팩토리** | `PieceFactory.configure()` | PieceType에 따라 기물 속성(방향, 기호, 가치) 일괄 설정 |
 | **다형성** | `Player.chooseMove()` | Game이 Human/AI 구분 없이 동일하게 호출 |

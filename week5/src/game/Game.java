@@ -89,9 +89,8 @@ public abstract class Game {
 
     /// <summary>
     /// 한 턴의 처리를 수행
-    /// 각 하위 클래스가 자기만의 턴 진행 방식으로 구현 (메서드 오버라이딩)
-    /// SimpleGame: 수 선택 → 이동 → afterMove 훅
-    /// SkillGame: 효과 정리 → 행동 선택(이동/스킬/아이템) → 아이템 트리거
+    /// SimpleGame이 템플릿으로 구현: beforeAction → doAction → afterAction
+    /// 하위 클래스는 각 훅 메서드를 오버라이드하여 턴 진행 방식을 확장
     /// true 반환 시 게임 종료 요청
     /// </summary>
     protected abstract boolean processTurn();

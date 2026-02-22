@@ -32,11 +32,11 @@ public class SkillGame extends ClassicGame {
     // 파란팀 아이템
     protected Item[] blueItems;
 
-    // 빨간팀 플레이어 (SkillPlayer 타입으로 스킬 메서드 호출용)
-    private SkillPlayer skillRedPlayer;
+    // 빨간팀 플레이어
+    private final SkillPlayer skillRedPlayer;
 
     // 파란팀 플레이어
-    private SkillPlayer skillBluePlayer;
+    private final SkillPlayer skillBluePlayer;
 
     // ========== 생성자 ==========
 
@@ -80,14 +80,79 @@ public class SkillGame extends ClassicGame {
     // ========== 훅 메서드 오버라이드 ==========
 
     /// <summary>
-    /// 이동 후 프로모션 확인
-    /// ClassicGame의 afterMove와 동일하지만 skillBoard를 사용
+    /// 턴 사전처리
+    /// 지난 턴의 방패/동결을 해제하고, 부활 스킬의 잡힌 기물 수를 갱신
     /// </summary>
     @Override
-    protected void afterMove(Move move) {
-        if (skillBoard.isPromotion(move)) {
+    protected void beforeAction() {
+        // 지난 턴에 건 방패 해제
+        skillBoard.clearShields(currentPlayer.color);
+
+        // 지난 턴에 걸린 동결 해제
+        skillBoard.clearFreezes(currentPlayer.color);
+
+        // 부활 스킬의 잡힌 기물 수 갱신 (격자에 없는 정보)
+        Skill[] skills = (currentPlayer.color == Piece.RED) ? redSkills : blueSkills;
+        ((ReviveSkill) skills[Chess.SKILL_REVIVE]).setCapturedCount(skillBoard.getCapturedCount(currentPlayer.color));
+    }
+
+    /// <summary>
+    /// 스킬 모드 액션 수행
+    /// 이동/스킬/아이템 중 하나를 선택하여 실행
+    /// 스킬/아이템 취소 시 재귀 호출로 행동을 다시 선택
+    /// </summary>
+    @Override
+    protected boolean doAction() {
+        lastMove = null;
+
+        // 현재 플레이어의 스킬/아이템 가져오기
+        Skill[] skills = (currentPlayer.color == Piece.RED) ? redSkills : blueSkills;
+        Item[] items = (currentPlayer.color == Piece.RED) ? redItems : blueItems;
+
+        // 행동 선택
+        int action = currentSkillPlayer().chooseAction(board, skills, items);
+
+        switch (action) {
+            case Chess.ACTION_SKILL:
+                // 스킬 사용
+                boolean skillUsed = handleSkill(skills);
+                if (!skillUsed) {
+                    // 스킬 취소 → 행동 다시 선택
+                    return doAction();
+                }
+                break;
+
+            case Chess.ACTION_ITEM:
+                // 아이템 설치
+                boolean itemPlaced = handleItem(items);
+                if (!itemPlaced) {
+                    // 아이템 취소 → 행동 다시 선택
+                    return doAction();
+                }
+                break;
+
+            default:
+                // 이동
+                boolean moved = handleMove();
+                if (!moved) {
+                    // 종료 요청
+                    return true;
+                }
+                break;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 프로모션 확인 (이동 시에만 해당)
+    /// skillBoard를 사용하여 프로모션 처리
+    /// </summary>
+    @Override
+    protected void afterAction() {
+        if (lastMove != null && skillBoard.isPromotion(lastMove)) {
             int choice = currentClassicPlayer().choosePromotion(board);
-            skillBoard.promote(move.toRow, move.toCol, choice);
+            skillBoard.promote(lastMove.toRow, lastMove.toCol, choice);
         }
     }
 
@@ -125,77 +190,6 @@ public class SkillGame extends ClassicGame {
         }
     }
 
-    // ========== 턴 처리 ==========
-
-    /// <summary>
-    /// 스킬 모드 턴 처리
-    /// 1. 지난 턴에 건 방패 해제
-    /// 2. 지난 턴에 걸린 동결 해제
-    /// 3. 부활 스킬의 잡힌 기물 수 갱신
-    /// 4. 행동 선택 (이동/스킬/아이템)
-    /// </summary>
-    @Override
-    protected boolean processTurn() {
-        // 현재 플레이어의 스킬/아이템 가져오기
-        Skill[] skills = (currentPlayer.color == Piece.RED) ? redSkills : blueSkills;
-        Item[] items = (currentPlayer.color == Piece.RED) ? redItems : blueItems;
-
-        // 1단계: 지난 턴에 건 방패 해제
-        skillBoard.clearShields(currentPlayer.color);
-
-        // 2단계: 지난 턴에 걸린 동결 해제
-        skillBoard.clearFreezes(currentPlayer.color);
-
-        // 모든 기물이 동결되어 있으면 턴 스킵
-        if (!skillBoard.hasUnfrozenPieces(currentPlayer.color)) {
-            Util.clearScreen();
-            skillBoard.print(currentPlayer.color);
-            System.out.println();
-            System.out.println(currentPlayer.name + "의 모든 기물이 동결되어 턴을 넘깁니다.");
-            Util.delay(2000);
-            return false;
-        }
-
-        // 3단계: 부활 스킬의 잡힌 기물 수 갱신 (격자에 없는 정보)
-        ((ReviveSkill) skills[Chess.SKILL_REVIVE]).setCapturedCount(
-            skillBoard.getCapturedCount(currentPlayer.color)
-        );
-
-        // 4단계: 행동 선택
-        int action = currentSkillPlayer().chooseAction(board, skills, items);
-
-        switch (action) {
-            case Chess.ACTION_SKILL:
-                // 스킬 사용
-                boolean skillUsed = handleSkill(skills);
-                if (!skillUsed) {
-                    // 스킬 취소 → 턴 다시 시작
-                    return processTurn();
-                }
-                break;
-
-            case Chess.ACTION_ITEM:
-                // 아이템 설치
-                boolean itemPlaced = handleItem(items);
-                if (!itemPlaced) {
-                    // 아이템 취소 → 턴 다시 시작
-                    return processTurn();
-                }
-                break;
-
-            default:
-                // 이동
-                boolean moved = handleMove();
-                if (!moved) {
-                    // null 반환 → 게임 종료
-                    return true;
-                }
-                break;
-        }
-
-        return false;
-    }
-
     // ========== 행동 처리 ==========
 
     /// <summary>
@@ -231,8 +225,8 @@ public class SkillGame extends ClassicGame {
             Util.delay(2000);
         }
 
-        // 프로모션 확인 (ClassicGame의 afterMove 훅에서 처리)
-        afterMove(move);
+        // 프로모션은 afterAction에서 처리 (processTurn 템플릿이 호출)
+        lastMove = move;
 
         return true;
     }

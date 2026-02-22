@@ -141,8 +141,9 @@ public class DemoClassicGame extends ClassicGame {
             // 검증 통과 → 이동 실행
             board.executeMove(move);
 
-            // 프로모션 확인 (ClassicGame의 afterMove 훅에서 처리)
-            afterMove(move);
+            // 프로모션 확인 (afterAction 훅에서 처리)
+            lastMove = move;
+            afterAction();
 
             return false;
         }

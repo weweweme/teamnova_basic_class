@@ -43,9 +43,6 @@ public class Main {
         // 터미널 raw 모드 활성화 (키 입력을 즉시 읽기 위해)
         Util.enableRawMode();
 
-        // 타이틀 화면 출력
-        printTitleScreen();
-
         // 게임 모드 선택 루프
         boolean running = true;
         while (running) {
@@ -108,9 +105,7 @@ public class Main {
                     break;
                 case MODE_DEMO:
                     startDemo();
-                    // 시연 종료 후 메인 메뉴로 복귀
-                    Util.clearScreen();
-                    printTitleScreen();
+                    // 시연 종료 후 메인 메뉴로 복귀 (selectMode가 화면을 다시 그림)
                     break;
                 default:
                     // MODE_QUIT → 종료
@@ -218,40 +213,32 @@ public class Main {
 
     /// <summary>
     /// 시연 모드 시작
-    /// 서브 메뉴에서 기본/공식/스킬 시연을 선택하여 진행
-    /// 0을 누르면 메인 메뉴로 돌아감
+    /// 커서로 기본/공식/스킬 시연을 선택하여 진행
+    /// q를 누르면 메인 메뉴로 돌아감
     /// </summary>
     private static void startDemo() {
-        final int DEMO_SIMPLE = 1;
-        final int DEMO_CLASSIC = 2;
-        final int DEMO_SKILL = 3;
-        final int DEMO_BACK = 0;
+        String[] labels = {"기본 체스", "공식 체스", "스킬 모드"};
+        String[] descriptions = {
+                "기물의 기본 이동 방법을 배웁니다.",
+                "캐슬링, 앙파상, 프로모션을 배웁니다.",
+                "스킬과 아이템 사용법을 배웁니다."
+        };
 
         while (true) {
-            Util.clearScreen();
-            System.out.println("========================================");
-            System.out.println("  튜토리얼");
-            System.out.println("========================================");
-            System.out.println();
-            System.out.println("[" + DEMO_SIMPLE + "] 기본 체스");
-            System.out.println("[" + DEMO_CLASSIC + "] 공식 체스");
-            System.out.println("[" + DEMO_SKILL + "] 스킬 모드");
-            System.out.println("[" + DEMO_BACK + "] 돌아가기");
-
-            int key = Util.readInt();
-
-            switch (key) {
-                case DEMO_SIMPLE:
+            int index = selectMenu("튜토리얼", labels, descriptions, true);
+            if (index == Util.NONE) {
+                return;
+            }
+            switch (index) {
+                case 0:
                     new DemoSimpleGame().run();
                     break;
-                case DEMO_CLASSIC:
+                case 1:
                     new DemoClassicGame().run();
                     break;
-                case DEMO_SKILL:
+                case 2:
                     new DemoSkillGame().run();
                     break;
-                case DEMO_BACK:
-                    return;
             }
         }
     }
@@ -259,108 +246,170 @@ public class Main {
     // ========== 화면 ==========
 
     /// <summary>
-    /// 타이틀 화면 출력
-    /// 체스 아스키 아트와 게임 소개 표시
+    /// 타이틀 헤더 문자열 생성
+    /// 체스 아스키 아트와 팀 표시를 포함한 문자열 반환
     /// </summary>
-    private static void printTitleScreen() {
-        System.out.println("========================================");
-        System.out.println("      _____ _                     ");
-        System.out.println("     / ____| |                    ");
-        System.out.println("    | |    | |__   ___  ___ ___   ");
-        System.out.println("    | |    | '_ \\ / _ \\/ __/ __|  ");
-        System.out.println("    | |____| | | |  __/\\__ \\__ \\  ");
-        System.out.println("     \\_____|_| |_|\\___||___/___/  ");
-        System.out.println();
-        System.out.println("        " + Util.RED + "RED" + Util.RESET
-                + " vs " + Util.BLUE + "BLUE" + Util.RESET);
-        System.out.println("========================================");
+    private static String getTitleHeader() {
+        return "========================================\n"
+                + "      _____ _\n"
+                + "     / ____| |\n"
+                + "    | |    | |__   ___  ___ ___\n"
+                + "    | |    | '_ \\ / _ \\/ __/ __|\n"
+                + "    | |____| | | |  __/\\__ \\__ \\\n"
+                + "     \\_____|_| |_|\\___||___/___/\n"
+                + "\n"
+                + "        " + Util.RED + "RED" + Util.RESET
+                + " vs " + Util.BLUE + "BLUE" + Util.RESET + "\n"
+                + "========================================";
     }
 
     // ========== 메뉴 ==========
 
     /// <summary>
-    /// 게임 모드 선택 메뉴 출력 및 입력 받기
-    /// 유효한 키가 눌릴 때까지 대기
+    /// 커서 기반 메뉴 선택
+    /// 화살표(↑↓) 또는 W/S로 커서 이동, Enter로 확정
+    /// header: 메뉴 상단에 표시할 텍스트 (null이면 생략)
+    /// labels: 옵션 이름 배열
+    /// descriptions: 옵션 설명 배열 (labels와 같은 길이)
+    /// canGoBack: true이면 q키로 뒤로가기 가능
+    /// 반환: 선택한 인덱스 (0부터) 또는 Util.NONE (뒤로가기)
     /// </summary>
-    private static int selectMode() {
-        System.out.println();
-        System.out.println("[" + MODE_SIMPLE_2P + "] 기본 체스 (2인)");
-        System.out.println("[" + MODE_SIMPLE_AI + "] 기본 체스 (AI)");
-        System.out.println("[" + MODE_CLASSIC_2P + "] 공식 체스 (2인)");
-        System.out.println("[" + MODE_CLASSIC_AI + "] 공식 체스 (AI)");
-        System.out.println("[" + MODE_SKILL_2P + "] 스킬 모드 (2인)");
-        System.out.println("[" + MODE_SKILL_AI + "] 스킬 모드 (AI)");
-        System.out.println("[" + MODE_DEMO + "] 튜토리얼");
-        System.out.println("[" + MODE_QUIT + "] 종료");
+    private static int selectMenu(String header, String[] labels, String[] descriptions, boolean canGoBack) {
+        int cursor = 0;
 
-        // 유효한 키가 입력될 때까지 반복
         while (true) {
-            int key = Util.readInt();
-            if (key >= MODE_QUIT && key <= MODE_DEMO) {
-                return key;
+            Util.clearScreen();
+
+            // 헤더 출력 (있으면)
+            if (header != null) {
+                System.out.println(header);
+            }
+
+            // 옵션 목록 출력
+            System.out.println();
+            for (int i = 0; i < labels.length; i++) {
+                if (i == cursor) {
+                    System.out.println("  > " + labels[i]);
+                } else {
+                    System.out.println("    " + labels[i]);
+                }
+            }
+
+            // 현재 커서 위치의 설명 출력
+            System.out.println();
+            System.out.println("  " + descriptions[cursor]);
+
+            // 조작 안내
+            System.out.println();
+            if (canGoBack) {
+                System.out.println("  ↑↓/WS: 이동  Enter: 선택  q: 뒤로");
+            } else {
+                System.out.println("  ↑↓/WS: 이동  Enter: 선택");
+            }
+
+            // 키 입력 처리
+            int key = Util.readKey();
+
+            switch (key) {
+                case Util.KEY_UP:
+                case 'w': case 'W':
+                    if (cursor > 0) {
+                        cursor--;
+                    }
+                    break;
+                case Util.KEY_DOWN:
+                case 's': case 'S':
+                    if (cursor < labels.length - 1) {
+                        cursor++;
+                    }
+                    break;
+                case Util.KEY_ENTER:
+                    return cursor;
+                case Util.KEY_QUIT:
+                    if (canGoBack) {
+                        return Util.NONE;
+                    }
+                    break;
             }
         }
+    }
+
+    /// <summary>
+    /// 게임 모드 선택
+    /// 커서로 모드를 선택하면 대응하는 MODE 상수 반환
+    /// </summary>
+    private static int selectMode() {
+        String header = getTitleHeader();
+
+        String[] labels = {
+                "기본 체스 (2인)",
+                "기본 체스 (AI)",
+                "공식 체스 (2인)",
+                "공식 체스 (AI)",
+                "스킬 모드 (2인)",
+                "스킬 모드 (AI)",
+                "튜토리얼",
+                "종료"
+        };
+
+        String[] descriptions = {
+                "기물의 기본 이동만 사용합니다. (캐슬링/앙파상/프로모션 없음)",
+                "기본 규칙으로 AI와 대전합니다.",
+                "캐슬링, 앙파상, 프로모션이 포함된 공식 규칙입니다.",
+                "공식 규칙으로 AI와 대전합니다.",
+                "스킬과 아이템을 사용하는 특별한 체스입니다.",
+                "스킬 모드로 AI와 대전합니다.",
+                "각 모드의 규칙을 단계별로 배웁니다.",
+                "게임을 종료합니다."
+        };
+
+        int index = selectMenu(header, labels, descriptions, false);
+
+        // 인덱스 → MODE 상수 변환
+        // 0~6 → MODE_SIMPLE_2P(1) ~ MODE_DEMO(7)
+        // 7 → MODE_QUIT(0)
+        if (index == labels.length - 1) {
+            return MODE_QUIT;
+        }
+        return index + 1;
     }
 
     /// <summary>
     /// AI 난이도 선택
-    /// 1: 쉬움(랜덤), 2: 보통(전략), 0: 돌아가기
-    /// 유효한 키가 눌릴 때까지 대기
+    /// 커서로 쉬움/보통 선택, q로 뒤로가기
     /// </summary>
     private static int selectDifficulty() {
-        final int KEY_BACK = 0;
-        final int KEY_EASY = 1;
-        final int KEY_NORMAL = 2;
+        String[] labels = {"쉬움", "보통"};
+        String[] descriptions = {
+                "AI가 랜덤으로 수를 선택합니다.",
+                "AI가 전략적으로 수를 선택합니다."
+        };
 
-        System.out.println();
-        System.out.println("난이도를 선택하세요:");
-        System.out.println("[" + KEY_EASY + "] 쉬움");
-        System.out.println("[" + KEY_NORMAL + "] 보통");
-        System.out.println("[" + KEY_BACK + "] 돌아가기");
-
-        // 유효한 키가 입력될 때까지 반복
-        while (true) {
-            int key = Util.readInt();
-            if (key == KEY_BACK) {
-                return Util.NONE;
-            }
-            if (key == KEY_EASY) {
-                return AiPlayer.EASY;
-            }
-            if (key == KEY_NORMAL) {
-                return AiPlayer.NORMAL;
-            }
+        int index = selectMenu("난이도를 선택하세요:", labels, descriptions, true);
+        if (index == Util.NONE) {
+            return Util.NONE;
         }
+        return (index == 0) ? AiPlayer.EASY : AiPlayer.NORMAL;
     }
 
     /// <summary>
     /// AI 대전 시 플레이어 색상 선택
-    /// 1: 빨간팀(선공), 2: 파란팀(후공), 0: 돌아가기
-    /// 유효한 키가 눌릴 때까지 대기
+    /// 커서로 빨간팀/파란팀 선택, q로 뒤로가기
     /// </summary>
     private static int selectColor() {
-        final int KEY_BACK = 0;
-        final int KEY_RED = 1;
-        final int KEY_BLUE = 2;
+        String[] labels = {
+                Util.RED + "빨간팀" + Util.RESET + " (선공)",
+                Util.BLUE + "파란팀" + Util.RESET + " (후공)"
+        };
+        String[] descriptions = {
+                "먼저 움직입니다.",
+                "나중에 움직입니다."
+        };
 
-        System.out.println();
-        System.out.println("팀을 선택하세요:");
-        System.out.println("[" + KEY_RED + "] " + Util.RED + "빨간팀" + Util.RESET + " (선공)");
-        System.out.println("[" + KEY_BLUE + "] " + Util.BLUE + "파란팀" + Util.RESET + " (후공)");
-        System.out.println("[" + KEY_BACK + "] 돌아가기");
-
-        // 유효한 키가 입력될 때까지 반복
-        while (true) {
-            int key = Util.readInt();
-            if (key == KEY_BACK) {
-                return Util.NONE;
-            }
-            if (key == KEY_RED) {
-                return Piece.RED;
-            }
-            if (key == KEY_BLUE) {
-                return Piece.BLUE;
-            }
+        int index = selectMenu("팀을 선택하세요:", labels, descriptions, true);
+        if (index == Util.NONE) {
+            return Util.NONE;
         }
+        return (index == 0) ? Piece.RED : Piece.BLUE;
     }
 }

@@ -284,8 +284,8 @@ out/                                컴파일된 클래스 파일 (gitignore)
 
 ### 상속 구조 (7개 계층)
 
-모드별 계층(board, cell, piece, player, game)은 모두 **직렬 체인**으로 통일:
-기본 → (공식 →) 스킬 순서로 기능을 단계적으로 추가.
+모드별 계층(board, cell, piece, game)은 **직렬 체인**: 기본 → (공식 →) 스킬 순서로 기능을 단계적으로 추가.
+player는 **모드 축 + 조작 축** 트리 구조: 모드 체인(Player → ClassicPlayer → SkillPlayer) 각 단계에 사람/AI가 분기.
 
 종류별 계층(skill, item)은 **병렬 구조**: 추상 부모 아래 독립적인 형제.
 

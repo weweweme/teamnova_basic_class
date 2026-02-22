@@ -37,7 +37,7 @@ java -cp out Main
 
 ```
 src/
-├── Main.java                       진입점 (타이틀, 모드 선택, 게임 시작)
+├── Main.java                       진입점 (타이틀, 커서 메뉴 선택, 게임 시작)
 │
 ├── board/                          체스판 계층 (3개)
 │   ├── SimpleBoard.java            기본 체스판 (격자, 이동, 체크)
@@ -438,7 +438,7 @@ graph TD
 
 | 클래스 | 역할 |
 |--------|------|
-| `Main` | 타이틀 화면, 모드 선택 (기본/공식/스킬 × 2인/AI + 튜토리얼), 게임 시작 |
+| `Main` | 커서 기반 메뉴 선택 (`selectMenu`), 모드/색상/난이도/튜토리얼 메뉴, 게임 시작 |
 
 **core 패키지 - 유틸리티**
 
@@ -619,7 +619,7 @@ graph TB
 **주요 상호작용 흐름**
 
 ```
-1. Main → Game.run() 호출
+1. Main → selectMode() → Game.run() 호출 → 게임 종료 후 메인 메뉴로 복귀 (종료 선택 시에만 프로그램 종료)
 2. Game → processTurn() → beforeAction/doAction/afterAction 훅 호출
 3. Player → Board.getFilteredMoves() 등으로 합법적인 수 조회
 4. Board → Piece.getValidMoves()로 기물별 이동 계산
@@ -700,7 +700,14 @@ graph TB
 - 이동 가능한 칸: `·` 표시
 - 선택된 기물: `[K]` 형태로 표시
 
-**조작 방식**: 터미널 (화살표 키)
+**메뉴 선택**: 커서 기반 (`selectMenu` 범용 메서드)
+- ↑↓ / W/S → 커서 이동
+- Enter → 선택 확정
+- `q` → 뒤로가기 (서브 메뉴에서만)
+- `>` 표시로 현재 커서 위치, 하단에 옵션 설명 표시
+- 메인 메뉴(모드), 색상, 난이도, 튜토리얼 4개 메뉴에 적용
+
+**게임 내 조작**: 터미널 (화살표 키)
 - 화살표 키 → 커서 즉시 이동 (Enter 불필요)
 - Enter → 기물 선택 / 이동 확정
 - `q` → 취소 / 뒤로가기

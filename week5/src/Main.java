@@ -52,7 +52,6 @@ public class Main {
                 case MODE_SIMPLE_2P:
                     Util.clearScreen();
                     startSimpleGame();
-                    running = false;
                     break;
                 case MODE_SIMPLE_AI:
                     int color2 = selectColor();
@@ -65,12 +64,10 @@ public class Main {
                     }
                     Util.clearScreen();
                     startSimpleAiGame(color2, diff2);
-                    running = false;
                     break;
                 case MODE_CLASSIC_2P:
                     Util.clearScreen();
                     startClassicGame();
-                    running = false;
                     break;
                 case MODE_CLASSIC_AI:
                     int color4 = selectColor();
@@ -83,12 +80,10 @@ public class Main {
                     }
                     Util.clearScreen();
                     startClassicAiGame(color4, diff4);
-                    running = false;
                     break;
                 case MODE_SKILL_2P:
                     Util.clearScreen();
                     startSkillGame();
-                    running = false;
                     break;
                 case MODE_SKILL_AI:
                     int color6 = selectColor();
@@ -101,7 +96,6 @@ public class Main {
                     }
                     Util.clearScreen();
                     startSkillAiGame(color6, diff6);
-                    running = false;
                     break;
                 case MODE_DEMO:
                     startDemo();

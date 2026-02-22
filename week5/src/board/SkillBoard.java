@@ -123,6 +123,42 @@ public class SkillBoard extends ClassicBoard {
         return "   ";
     }
 
+    /// <summary>
+    /// 커서 위치의 기물/아이템 설명 반환 (스킬 모드 확장)
+    /// 기물: 이름 + 설명 + 방패/동결 상태
+    /// 아이템: 이름 + 설명
+    /// </summary>
+    @Override
+    public String getCellDescription(int row, int col) {
+        String desc = null;
+
+        // 기물 설명 + 스킬 효과
+        if (grid[row][col].hasPiece()) {
+            SkillPiece piece = (SkillPiece) grid[row][col].getPiece();
+            String colorCode = (piece.color == Piece.RED) ? Util.RED : Util.BLUE;
+            desc = colorCode + piece.name + Util.RESET + " - " + piece.description;
+            if (piece.shielded) {
+                desc += " [방패]";
+            }
+            if (piece.frozen) {
+                desc += " [동결]";
+            }
+        }
+
+        // 아이템 설명
+        if (skillCell(row, col).hasItem()) {
+            Item item = skillCell(row, col).getItem();
+            String colorCode = (item.ownerColor == Piece.RED) ? Util.RED : Util.BLUE;
+            String itemDesc = colorCode + item.name + Util.RESET + " - " + item.description;
+            if (desc != null) {
+                return desc + " | " + itemDesc;
+            }
+            return itemDesc;
+        }
+
+        return desc;
+    }
+
     // ========== 아이템 관리 ==========
 
     /// <summary>

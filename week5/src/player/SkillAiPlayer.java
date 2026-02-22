@@ -67,7 +67,7 @@ public class SkillAiPlayer extends SkillPlayer {
     // ========== 스킬/아이템 AI 전략 ==========
 
     /// <summary>
-    /// AI 행동 선택 전략
+    /// AI 행동 선택 전략 (턴 내에서 스킬/아이템 사용 후 다시 호출됨)
     /// 1순위: 파괴 스킬로 상대 퀸 제거 가능하면 스킬 사용
     /// 2순위: 가치 5 이상인 잡힌 기물이 있고 부활 가능하면 스킬 사용
     /// 3순위: 20% 확률로 방패 스킬 사용
@@ -75,52 +75,57 @@ public class SkillAiPlayer extends SkillPlayer {
     /// 5순위: 일반 이동
     /// </summary>
     @Override
-    public int chooseAction(SimpleBoard board, Skill[] skills, Item[] items) {
+    public int chooseAction(SimpleBoard board, Skill[] skills, Item[] items, boolean skillUsed, boolean itemUsed) {
         int opponentColor = (color == Piece.RED) ? Piece.BLUE : Piece.RED;
 
-        // 파괴 스킬 확인: 상대 퀸이 있으면 파괴 우선
-        if (skills[Chess.SKILL_DESTROY].hasUses() && skills[Chess.SKILL_DESTROY].canUse(board.grid, color)) {
-            for (int r = 0; r < Chess.BOARD_SIZE; r++) {
-                for (int c = 0; c < Chess.BOARD_SIZE; c++) {
-                    if (board.grid[r][c].isEmpty()) {
-                        continue;
+        // 스킬 확인 (이번 턴 미사용일 때만)
+        if (!skillUsed) {
+            // 파괴 스킬 확인: 상대 퀸이 있으면 파괴 우선
+            if (skills[Chess.SKILL_DESTROY].hasUses() && skills[Chess.SKILL_DESTROY].canUse(board.grid, color)) {
+                for (int r = 0; r < Chess.BOARD_SIZE; r++) {
+                    for (int c = 0; c < Chess.BOARD_SIZE; c++) {
+                        if (board.grid[r][c].isEmpty()) {
+                            continue;
+                        }
+                        Piece piece = board.grid[r][c].getPiece();
+                        if (piece.type == PieceType.QUEEN && piece.color == opponentColor) {
+                            return Chess.ACTION_SKILL;
+                        }
                     }
-                    Piece piece = board.grid[r][c].getPiece();
-                    if (piece.type == PieceType.QUEEN && piece.color == opponentColor) {
+                }
+            }
+
+            // 부활 스킬 확인: 가치 높은 잡힌 기물이 있으면 부활
+            if (skills[Chess.SKILL_REVIVE].hasUses() && skills[Chess.SKILL_REVIVE].canUse(board.grid, color)) {
+                SkillBoard skillBoard = (SkillBoard) board;
+                Piece[] captured = skillBoard.getCapturedPieces(color);
+                for (Piece p : captured) {
+                    if (p.value >= REVIVE_VALUE_THRESHOLD) {
                         return Chess.ACTION_SKILL;
                     }
                 }
             }
+
+            // 방패 스킬 확인: 20% 확률로 사용
+            boolean shieldAvailable = skills[Chess.SKILL_SHIELD].hasUses() && skills[Chess.SKILL_SHIELD].canUse(board.grid, color);
+            boolean randomTrigger = Util.rand(SHIELD_CHANCE) == 0;
+            if (shieldAvailable && randomTrigger) {
+                return Chess.ACTION_SKILL;
+            }
         }
 
-        // 부활 스킬 확인: 가치 높은 잡힌 기물이 있으면 부활
-        if (skills[Chess.SKILL_REVIVE].hasUses() && skills[Chess.SKILL_REVIVE].canUse(board.grid, color)) {
-            SkillBoard skillBoard = (SkillBoard) board;
-            Piece[] captured = skillBoard.getCapturedPieces(color);
-            for (Piece p : captured) {
-                if (p.value >= REVIVE_VALUE_THRESHOLD) {
-                    return Chess.ACTION_SKILL;
+        // 아이템 확인 (이번 턴 미사용일 때만)
+        if (!itemUsed) {
+            boolean hasItem = false;
+            for (Item item : items) {
+                if (item.hasUses()) {
+                    hasItem = true;
+                    break;
                 }
             }
-        }
-
-        // 방패 스킬 확인: 20% 확률로 사용
-        boolean shieldAvailable = skills[Chess.SKILL_SHIELD].hasUses() && skills[Chess.SKILL_SHIELD].canUse(board.grid, color);
-        boolean randomTrigger = Util.rand(SHIELD_CHANCE) == 0;
-        if (shieldAvailable && randomTrigger) {
-            return Chess.ACTION_SKILL;
-        }
-
-        // 아이템 설치: 30% 확률로 사용
-        boolean hasItem = false;
-        for (Item item : items) {
-            if (item.hasUses()) {
-                hasItem = true;
-                break;
+            if (hasItem && Util.rand(ITEM_CHANCE_RANGE) < ITEM_CHANCE_THRESHOLD) {
+                return Chess.ACTION_ITEM;
             }
-        }
-        if (hasItem && Util.rand(ITEM_CHANCE_RANGE) < ITEM_CHANCE_THRESHOLD) {
-            return Chess.ACTION_ITEM;
         }
 
         return Chess.ACTION_MOVE;

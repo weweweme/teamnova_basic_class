@@ -98,50 +98,49 @@ public class SkillGame extends ClassicGame {
 
     /// <summary>
     /// 스킬 모드 액션 수행
-    /// 이동/스킬/아이템 중 하나를 선택하여 실행
-    /// 스킬/아이템 취소 시 재귀 호출로 행동을 다시 선택
+    /// 행동 루프: 스킬(선택, 1회) + 아이템(선택, 1회) + 이동(필수)
+    /// 스킬/아이템은 자유 순서로 사용 가능하며, 이동이 턴을 종료
+    /// 취소 시 메뉴로 복귀 (사용 횟수 소모 안 됨)
     /// </summary>
     @Override
     protected boolean doAction() {
         lastMove = null;
 
+        // 이번 턴 사용 상태 추적
+        boolean skillUsed = false;
+        boolean itemUsed = false;
+
         // 현재 플레이어의 스킬/아이템 가져오기
         Skill[] skills = (currentPlayer.color == Piece.RED) ? redSkills : blueSkills;
         Item[] items = (currentPlayer.color == Piece.RED) ? redItems : blueItems;
 
-        // 행동 선택
-        int action = currentSkillPlayer().chooseAction(board, skills, items);
+        // 행동 루프: 스킬/아이템은 각 1회, 이동이 턴을 종료
+        while (true) {
+            int action = currentSkillPlayer().chooseAction(board, skills, items, skillUsed, itemUsed);
 
-        switch (action) {
-            case Chess.ACTION_SKILL:
-                // 스킬 사용
-                boolean skillUsed = handleSkill(skills);
-                if (!skillUsed) {
-                    // 스킬 취소 → 행동 다시 선택
-                    return doAction();
-                }
-                break;
+            switch (action) {
+                case Chess.ACTION_SKILL:
+                    // 스킬 사용 (성공 시 사용 완료, 취소 시 메뉴로 복귀)
+                    if (handleSkill(skills)) {
+                        skillUsed = true;
+                    }
+                    break;
 
-            case Chess.ACTION_ITEM:
-                // 아이템 설치
-                boolean itemPlaced = handleItem(items);
-                if (!itemPlaced) {
-                    // 아이템 취소 → 행동 다시 선택
-                    return doAction();
-                }
-                break;
+                case Chess.ACTION_ITEM:
+                    // 아이템 설치 (성공 시 사용 완료, 취소 시 메뉴로 복귀)
+                    if (handleItem(items)) {
+                        itemUsed = true;
+                    }
+                    break;
 
-            default:
-                // 이동
-                boolean moved = handleMove();
-                if (!moved) {
-                    // 종료 요청
-                    return true;
-                }
-                break;
+                default:
+                    // 이동 → 턴 종료
+                    if (!handleMove()) {
+                        return true;  // 게임 종료 요청
+                    }
+                    return false;
+            }
         }
-
-        return false;
     }
 
     /// <summary>

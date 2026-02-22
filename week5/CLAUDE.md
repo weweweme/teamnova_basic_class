@@ -482,7 +482,7 @@ graph TD
 | `ClassicPlayer` | **추상** - Player + `choosePromotion()` 선언 |
 | `ClassicHumanPlayer` | 공식 모드 사람 (HumanInput 조합) |
 | `ClassicAiPlayer` | 공식 모드 AI (AiInput 조합, 항상 퀸으로 승격) |
-| `SkillPlayer` | **추상** - ClassicPlayer + 스킬/아이템 메서드 6개 선언 |
+| `SkillPlayer` | **추상** - ClassicPlayer + 스킬/아이템 메서드 6개 선언 (chooseAction은 턴당 여러 번 호출) |
 | `SkillHumanPlayer` | 스킬 모드 사람 (HumanInput 조합, 행동/스킬/아이템/부활 선택) |
 | `SkillAiPlayer` | 스킬 모드 AI (AiInput 조합, 확률 기반 행동 선택) |
 | `HumanInput` | 키보드 조작 코드 (chooseMove, chooseDest, moveCursor, choosePromotion) |
@@ -495,7 +495,7 @@ graph TD
 | `Game` | **추상** - 템플릿 메서드 패턴 (`run` → `processTurn` → 체크메이트 → `switchTurn`) |
 | `SimpleGame` | `processTurn` 템플릿: `beforeAction` → `doAction` → `afterAction` |
 | `ClassicGame` | SimpleGame + `afterAction` 오버라이드 (프로모션 확인) |
-| `SkillGame` | ClassicGame + `beforeAction`/`doAction`/`afterAction`/`run` 오버라이드 |
+| `SkillGame` | ClassicGame + `beforeAction`/`doAction`/`afterAction`/`run` 오버라이드, 행동 루프 |
 | `DemoSimpleGame` | SimpleGame + 15턴 스크립트 (나이트→비숍→룩→퀸→폰→킹→체크→체크메이트) |
 | `DemoClassicGame` | ClassicGame + 5턴 스크립트 (캐슬링→앙파상→프로모션) |
 | `DemoSkillGame` | SkillGame + 8턴 스크립트 (파괴→방패→함정→폭탄→동결체험→부활) |
@@ -543,22 +543,25 @@ graph TD
 | 훅 | SimpleGame | ClassicGame | SkillGame |
 |---|---|---|---|
 | `beforeAction()` | 빈 구현 | - | 방패/동결 해제, 부활 갱신 |
-| `doAction()` | chooseMove → executeMove | - | 행동 선택(이동/스킬/아이템) + 처리 |
+| `doAction()` | chooseMove → executeMove | - | 행동 루프 (스킬/아이템 각 1회 + 이동 필수) |
 | `afterAction()` | 빈 구현 | 프로모션 확인 | 프로모션 확인 (skillBoard 사용) |
 
-**SkillGame.doAction** - 스킬 모드 액션 수행
+**SkillGame.doAction** - 스킬 모드 행동 루프
+
+매 턴 스킬(1회) + 아이템(1회) + 이동(필수)을 자유 순서로 수행.
+이동을 선택하면 턴이 종료된다.
 
 ```mermaid
 graph TD
-    ACT[행동 선택] -->|이동| MV[수 선택 → 이동 실행]
+    MENU[행동 메뉴] -->|스킬| SK[Skill 선택 → 대상 선택 → Skill.execute]
+    SK --> MENU
+    MENU -->|아이템| IT[Item 선택 → 빈 칸에 설치]
+    IT --> MENU
+    MENU -->|이동| MV[수 선택 → 이동 실행]
     MV --> TRG{상대 Item 밟음?}
     TRG -->|yes| EFF[Item.trigger 발동]
     TRG -->|no| END[턴 종료]
     EFF --> END
-    ACT -->|스킬| SK[Skill 선택 → 대상 선택 → Skill.execute]
-    SK --> END
-    ACT -->|아이템| IT[Item 선택 → 빈 칸에 설치]
-    IT --> END
 ```
 
 ### 모듈 상호작용
@@ -621,7 +624,7 @@ graph TB
 3. Player → Board.getFilteredMoves() 등으로 합법적인 수 조회
 4. Board → Piece.getValidMoves()로 기물별 이동 계산
 5. Board → Cell.getPiece()/setPiece()로 격자 상태 변경
-6. SkillGame → Skill.execute(), Item.trigger()로 특수 효과 적용
+6. SkillGame → doAction 행동 루프 (스킬/아이템 각 1회 + 이동 필수), Skill.execute(), Item.trigger()
 7. SkillBoard → SkillPiece.frozen/shielded로 상태 확인
 8. SkillBoard → SkillCell.getItem()/setItem()으로 아이템 관리
 ```

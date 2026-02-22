@@ -52,31 +52,36 @@ public class SkillHumanPlayer extends SkillPlayer {
 
     /// <summary>
     /// 행동 선택 메뉴 (1: 이동, 2: 스킬, 3: 아이템)
-    /// 사용 가능한 스킬/아이템이 있을 때만 해당 옵션 표시
-    /// 이동만 가능하면 바로 0 반환
+    /// 턴 내에서 스킬/아이템 사용 후 다시 호출됨
+    /// 이미 사용한 행동은 "(이미 사용!)" 표시, 사용 불가 행동은 숨김
+    /// 선택 가능한 스킬/아이템이 없으면 바로 이동 반환
     /// </summary>
     @Override
-    public int chooseAction(SimpleBoard board, Skill[] skills, Item[] items) {
-        // 사용 가능한 스킬이 있는지 확인
+    public int chooseAction(SimpleBoard board, Skill[] skills, Item[] items, boolean skillUsed, boolean itemUsed) {
+        // 스킬 사용 가능 여부 (이번 턴 미사용 AND 잔여 횟수 AND 사용 조건 충족)
         boolean hasSkill = false;
-        for (Skill skill : skills) {
-            if (skill.hasUses() && skill.canUse(board.grid, color)) {
-                hasSkill = true;
-                break;
+        if (!skillUsed) {
+            for (Skill skill : skills) {
+                if (skill.hasUses() && skill.canUse(board.grid, color)) {
+                    hasSkill = true;
+                    break;
+                }
             }
         }
 
-        // 사용 가능한 아이템이 있는지 확인
+        // 아이템 사용 가능 여부 (이번 턴 미사용 AND 잔여 횟수)
         boolean hasItem = false;
-        for (Item item : items) {
-            if (item.hasUses()) {
-                hasItem = true;
-                break;
+        if (!itemUsed) {
+            for (Item item : items) {
+                if (item.hasUses()) {
+                    hasItem = true;
+                    break;
+                }
             }
         }
 
-        // 이동만 가능하면 바로 반환
-        if (!hasSkill && !hasItem) {
+        // 스킬/아이템 모두 사용 불가하고 피드백도 필요 없으면 바로 이동
+        if (!hasSkill && !hasItem && !skillUsed && !itemUsed) {
             return Chess.ACTION_MOVE;
         }
 
@@ -93,10 +98,18 @@ public class SkillHumanPlayer extends SkillPlayer {
         final int KEY_ITEM = 3;
 
         System.out.println("[" + KEY_MOVE + "] 기물 이동");
-        if (hasSkill) {
+
+        // 스킬: 이미 사용 → 피드백, 사용 가능 → 표시, 잔여 없음 → 숨김
+        if (skillUsed) {
+            System.out.println("[" + KEY_SKILL + "] 스킬 사용 (이미 사용!)");
+        } else if (hasSkill) {
             System.out.println("[" + KEY_SKILL + "] 스킬 사용");
         }
-        if (hasItem) {
+
+        // 아이템: 동일 패턴
+        if (itemUsed) {
+            System.out.println("[" + KEY_ITEM + "] 아이템 설치 (이미 사용!)");
+        } else if (hasItem) {
             System.out.println("[" + KEY_ITEM + "] 아이템 설치");
         }
 

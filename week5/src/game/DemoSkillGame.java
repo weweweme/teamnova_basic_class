@@ -134,7 +134,8 @@ public class DemoSkillGame extends SkillGame {
     private static final String COMPLETE_MESSAGE =
         "스킬 모드 튜토리얼 완료!\n"
         + "남은 스킬/아이템을 자유롭게 사용해보세요.\n"
-        + "[1]이동 선택 후 q를 눌러 메뉴로 돌아갈 수 있습니다.";
+        + "스킬과 아이템을 사용한 후 이동으로 턴을 마무리합니다.\n"
+        + "이동에서 q를 눌러 메뉴로 돌아갈 수 있습니다.";
 
     // ========== 생성자 ==========
 
@@ -251,7 +252,7 @@ public class DemoSkillGame extends SkillGame {
 
         // ===== 행동 선택 + 검증 =====
 
-        int action = currentSkillPlayer().chooseAction(board, skills, items);
+        int action = currentSkillPlayer().chooseAction(board, skills, items, false, false);
 
         // 기대하는 행동이 아니면 경고 후 재시도
         if (action != expectedAction) {

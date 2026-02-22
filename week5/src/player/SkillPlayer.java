@@ -21,9 +21,11 @@ public abstract class SkillPlayer extends ClassicPlayer {
 
     /// <summary>
     /// 이번 턴에 할 행동을 선택
-    /// 0: 이동, 1: 스킬, 2: 아이템
+    /// 턴 내에서 스킬/아이템 사용 후 다시 호출될 수 있음
+    /// skillUsed/itemUsed: 이번 턴에 이미 사용한 행동
+    /// 반환: 0(이동), 1(스킬), 2(아이템)
     /// </summary>
-    public abstract int chooseAction(SimpleBoard board, Skill[] skills, Item[] items);
+    public abstract int chooseAction(SimpleBoard board, Skill[] skills, Item[] items, boolean skillUsed, boolean itemUsed);
 
     /// <summary>
     /// 사용할 스킬을 선택 (스킬 번호 반환, Util.NONE이면 취소)

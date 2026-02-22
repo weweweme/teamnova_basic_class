@@ -122,7 +122,7 @@ public class Main {
     private static void startSimpleGame() {
         Player red = new HumanPlayer(Chess.RED, "플레이어 1");
         Player blue = new HumanPlayer(Chess.BLUE, "플레이어 2");
-        Game game = new SimpleGame(red, blue);
+        Game game = new Game(red, blue);
         game.run();
     }
 
@@ -141,7 +141,7 @@ public class Main {
             blue = new HumanPlayer(Chess.BLUE, "플레이어");
         }
 
-        Game game = new SimpleGame(red, blue);
+        Game game = new Game(red, blue);
         game.run();
     }
 

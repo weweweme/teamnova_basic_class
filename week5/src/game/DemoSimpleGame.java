@@ -12,7 +12,7 @@ import player.*;
 /// 턴마다 스크립트가 바뀌며 각 기물의 고유한 이동 규칙을 안내
 /// 스크립트와 다른 기물을 선택하면 이동을 실행하지 않고 다시 선택
 /// </summary>
-public class DemoSimpleGame extends SimpleGame {
+public class DemoSimpleGame extends Game {
 
     // ========== 시연 스크립트 ==========
 

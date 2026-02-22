@@ -33,7 +33,7 @@ java -cp out Main
 
 ## 프로젝트 구조
 
-총 **38개 소스 파일**, 8개 패키지
+총 **37개 소스 파일**, 8개 패키지
 
 ```
 src/
@@ -53,9 +53,8 @@ src/
 │   ├── Move.java                   이동 데이터 (출발/도착 좌표)
 │   └── Util.java                   범용 유틸리티 (입력, 화면, 딜레이, 랜덤)
 │
-├── game/                           게임 루프 계층 (7개)
-│   ├── Game.java                   게임 추상 클래스 (템플릿 메서드 패턴)
-│   ├── SimpleGame.java             기본 체스 게임
+├── game/                           게임 루프 계층 (6개)
+│   ├── Game.java                   기본 체스 게임 (게임 루프 + 턴 처리 + 훅 메서드)
 │   ├── ClassicGame.java            공식 체스 게임
 │   ├── SkillGame.java              스킬 모드 게임
 │   ├── DemoSimpleGame.java         기본 체스 튜토리얼
@@ -358,16 +357,15 @@ Game 측에서는 ClassicGame이 `ClassicPlayer` 타입, SkillGame이 `SkillPlay
 각 모드의 게임 루프가 직렬 체인, 각 모드의 튜토리얼이 서브클래스:
 
 ```
-Game (abstract - 템플릿 메서드 패턴)
- └── SimpleGame (processTurn 템플릿 + 훅 메서드 3개)
-      ├── DemoSimpleGame
-      └── ClassicGame (afterAction → 프로모션)
-           ├── DemoClassicGame
-           └── SkillGame (beforeAction/doAction/afterAction + run 오버라이드)
-                └── DemoSkillGame
+Game (게임 루프 + processTurn 템플릿 + 훅 메서드 3개)
+ ├── DemoSimpleGame
+ └── ClassicGame (afterAction → 프로모션)
+      ├── DemoClassicGame
+      └── SkillGame (beforeAction/doAction/afterAction + run 오버라이드)
+           └── DemoSkillGame
 ```
 
-- 훅 메서드: `beforeAction`(사전처리), `doAction`(액션 수행), `afterAction`(사후처리) — SimpleGame이 정의
+- 훅 메서드: `beforeAction`(사전처리), `doAction`(액션 수행), `afterAction`(사후처리) — Game이 정의
 
 **skill 패키지 (스킬)**
 
@@ -416,8 +414,8 @@ graph TD
         AI -.-|uses| SAP
     end
     subgraph "game"
-        GA[Game] --> SG[SimpleGame] --> CG[ClassicGame] --> SKG[SkillGame]
-        SG -.-> DSG[DemoSimpleGame]
+        GA[Game] --> CG[ClassicGame] --> SKG[SkillGame]
+        GA -.-> DSG[DemoSimpleGame]
         CG -.-> DCG[DemoClassicGame]
         SKG -.-> DSKG[DemoSkillGame]
     end
@@ -432,7 +430,7 @@ graph TD
     end
 ```
 
-### 클래스 구조 (38개)
+### 클래스 구조 (37개)
 
 **진입점**
 
@@ -492,11 +490,10 @@ graph TD
 
 | 클래스 | 역할 |
 |--------|------|
-| `Game` | **추상** - 템플릿 메서드 패턴 (`run` → `processTurn` → 체크메이트 → `switchTurn`) |
-| `SimpleGame` | `processTurn` 템플릿: `beforeAction` → `doAction` → `afterAction` |
-| `ClassicGame` | SimpleGame + `afterAction` 오버라이드 (프로모션 확인) |
+| `Game` | 게임 루프(`run`) + 턴 처리 템플릿(`processTurn` → `beforeAction`/`doAction`/`afterAction`) |
+| `ClassicGame` | Game + `afterAction` 오버라이드 (프로모션 확인) |
 | `SkillGame` | ClassicGame + `beforeAction`/`doAction`/`afterAction`/`run` 오버라이드, 행동 루프 |
-| `DemoSimpleGame` | SimpleGame + 15턴 스크립트 (나이트→비숍→룩→퀸→폰→킹→체크→체크메이트) |
+| `DemoSimpleGame` | Game + 15턴 스크립트 (나이트→비숍→룩→퀸→폰→킹→체크→체크메이트) |
 | `DemoClassicGame` | ClassicGame + 5턴 스크립트 (캐슬링→앙파상→프로모션) |
 | `DemoSkillGame` | SkillGame + 8턴 스크립트 (파괴→방패→함정→폭탄→동결체험→부활) |
 
@@ -540,7 +537,7 @@ graph TD
 
 **각 모드별 훅 오버라이드**
 
-| 훅 | SimpleGame | ClassicGame | SkillGame |
+| 훅 | Game | ClassicGame | SkillGame |
 |---|---|---|---|
 | `beforeAction()` | 빈 구현 | - | 방패/동결 해제, 부활 갱신 |
 | `doAction()` | chooseMove → executeMove | - | 행동 루프 (스킬/아이템 각 1회 + 이동 필수) |
@@ -573,7 +570,7 @@ graph TD
 ```mermaid
 graph TB
     Main["<b>Main</b><br/>진입점"]
-    game["<b>game</b><br/>Game, SimpleGame<br/>ClassicGame, SkillGame<br/>Demo*Game (3개)"]
+    game["<b>game</b><br/>Game<br/>ClassicGame, SkillGame<br/>Demo*Game (3개)"]
     player["<b>player</b><br/>Player → ClassicPlayer → SkillPlayer<br/>Human*Player (3단), Ai*Player (3단)<br/>HumanInput, AiInput"]
     board["<b>board</b><br/>SimpleBoard<br/>ClassicBoard<br/>SkillBoard"]
     piece["<b>piece</b><br/>Piece, SkillPiece<br/>PieceType, PieceFactory"]
@@ -634,8 +631,8 @@ graph TB
 
 | 패턴 | 적용 위치 | 설명 |
 |------|----------|------|
-| **템플릿 메서드** | `Game.run()` → `SimpleGame.processTurn()` | 공통 루프와 턴 처리를 정의하고 훅만 하위 클래스가 오버라이드 |
-| **훅 메서드** | `SimpleBoard` 5개, `SimpleGame` 3개 | Board: `addSpecialMoves`, `isMovementBlocked`, `isCaptureBlocked`, `createCell`/`createPiece`, `getCellDescription`; Game: `beforeAction`, `doAction`, `afterAction` |
+| **템플릿 메서드** | `Game.run()` → `Game.processTurn()` | 게임 루프와 턴 처리를 정의하고 훅만 하위 클래스가 오버라이드 |
+| **훅 메서드** | `SimpleBoard` 5개, `Game` 3개 | Board: `addSpecialMoves`, `isMovementBlocked`, `isCaptureBlocked`, `createCell`/`createPiece`, `getCellDescription`; Game: `beforeAction`, `doAction`, `afterAction` |
 | **팩토리 메서드** | `createBoard()`, `createCell()`, `createPiece()` | 하위 클래스가 자기 모드에 맞는 객체 생성 |
 | **정적 팩토리** | `PieceFactory.configure()` | PieceType에 따라 기물 속성(방향, 기호, 가치) 일괄 설정 |
 | **다형성** | `Player.chooseMove()`, `Board.getCellDescription()` | Game이 Human/AI 구분 없이 호출, HumanInput이 Board 타입 무관하게 설명 조회 |

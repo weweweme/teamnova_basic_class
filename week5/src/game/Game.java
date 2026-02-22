@@ -2,15 +2,15 @@ package game;
 
 import board.*;
 import core.*;
-import piece.Piece;
 import player.Player;
 
 /// <summary>
-/// 게임 추상 클래스 (템플릿 메서드 패턴)
-/// 게임 루프의 전체 흐름을 정의하고, 턴 처리 방식은 하위 클래스가 구현
-/// Game → SimpleGame → ClassicGame → SkillGame (직렬 상속 체인)
+/// 게임 클래스
+/// 게임 루프(run)와 턴 처리 템플릿(processTurn)을 제공
+/// 하위 클래스는 훅 메서드(beforeAction, doAction, afterAction)를 오버라이드하여 확장
+/// Game → ClassicGame → SkillGame (직렬 상속 체인)
 /// </summary>
-public abstract class Game {
+public class Game {
 
     // ========== 필드 ==========
 
@@ -29,6 +29,13 @@ public abstract class Game {
     // 턴 수
     protected int turnCount;
 
+    /// <summary>
+    /// 마지막으로 실행된 이동 (afterAction에서 프로모션 확인용)
+    /// doAction에서 저장하고, afterAction에서 참조
+    /// 스킬/아이템 사용 턴에는 null
+    /// </summary>
+    protected Move lastMove;
+
     // ========== 생성자 ==========
 
     /// <summary>
@@ -44,16 +51,15 @@ public abstract class Game {
         this.turnCount = 1;
     }
 
-    // ========== 게임 루프 (템플릿 메서드) ==========
+    // ========== 게임 루프 ==========
 
     /// <summary>
     /// 게임 시작 (메인 루프)
-    /// 전체 흐름을 정의하고, 턴 처리는 하위 클래스의 processTurn()에 위임
+    /// 턴 처리 → 체크메이트/스테일메이트 확인 → 턴 교대를 반복
     /// </summary>
     public void run() {
         while (true) {
-            // 턴 처리 (하위 클래스마다 다른 방식)
-            // true 반환 시 게임 종료 요청
+            // 턴 처리 (true 반환 시 게임 종료 요청)
             boolean quit = processTurn();
             if (quit) {
                 break;
@@ -79,21 +85,78 @@ public abstract class Game {
         }
     }
 
-    // ========== 추상 메서드 ==========
+    // ========== 보드 생성 ==========
 
     /// <summary>
     /// 게임에 맞는 보드를 생성하여 반환
-    /// SimpleGame: SimpleBoard, ClassicGame: ClassicBoard, SkillGame: SkillBoard
+    /// ClassicGame: ClassicBoard, SkillGame: SkillBoard
     /// </summary>
-    protected abstract SimpleBoard createBoard();
+    protected SimpleBoard createBoard() {
+        return new SimpleBoard();
+    }
+
+    // ========== 턴 처리 (템플릿) ==========
 
     /// <summary>
-    /// 한 턴의 처리를 수행
-    /// SimpleGame이 템플릿으로 구현: beforeAction → doAction → afterAction
-    /// 하위 클래스는 각 훅 메서드를 오버라이드하여 턴 진행 방식을 확장
+    /// 턴 처리 템플릿
+    /// 사전처리 → 액션 수행 → 사후처리 순서로 훅 메서드를 호출
+    /// 하위 클래스는 processTurn 대신 각 훅을 오버라이드
     /// true 반환 시 게임 종료 요청
     /// </summary>
-    protected abstract boolean processTurn();
+    protected boolean processTurn() {
+        // 사전처리
+        beforeAction();
+
+        // 액션 수행 (true 반환 시 게임 종료)
+        if (doAction()) {
+            return true;
+        }
+
+        // 사후처리
+        afterAction();
+        return false;
+    }
+
+    // ========== 훅 메서드 ==========
+
+    /// <summary>
+    /// 턴 사전처리 (훅 메서드)
+    /// SkillGame이 오버라이드하여 방패/동결 해제
+    /// </summary>
+    protected void beforeAction() {
+        // 기본 모드: 사전처리 없음
+    }
+
+    /// <summary>
+    /// 액션 수행 (훅 메서드)
+    /// 기본 모드: 수 선택 → 이동 실행
+    /// SkillGame이 오버라이드하여 행동 루프 (스킬/아이템 + 이동) 수행
+    /// true 반환 시 게임 종료 요청
+    /// </summary>
+    protected boolean doAction() {
+        // 현재 플레이어가 수를 선택
+        lastMove = currentPlayer.chooseMove(board);
+
+        // 종료 요청
+        if (lastMove == null) {
+            Util.clearScreen();
+            board.print();
+            System.out.println("\n게임을 종료합니다.");
+            return true;
+        }
+
+        // 이동 실행
+        board.executeMove(lastMove);
+        return false;
+    }
+
+    /// <summary>
+    /// 턴 사후처리 (훅 메서드)
+    /// ClassicGame이 오버라이드하여 프로모션 확인
+    /// </summary>
+    protected void afterAction() {
+        // 기본 모드: 사후처리 없음
+    }
 
     // ========== 공통 메서드 ==========
 

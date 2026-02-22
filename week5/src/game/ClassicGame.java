@@ -3,14 +3,13 @@ package game;
 import board.*;
 import core.*;
 import player.ClassicPlayer;
-import player.Player;
 
 /// <summary>
 /// 공식 체스 게임
-/// SimpleGame의 기본 이동에 프로모션 규칙을 추가
+/// Game의 기본 이동에 프로모션 규칙을 추가
 /// afterAction 훅을 오버라이드하여 폰이 끝 줄 도달 시 승격 처리
 /// </summary>
-public class ClassicGame extends SimpleGame {
+public class ClassicGame extends Game {
 
     // ========== 필드 ==========
 

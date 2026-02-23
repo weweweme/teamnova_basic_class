@@ -47,47 +47,38 @@ public class Main {
         boolean running = true;
         while (running) {
             int mode = selectMode();
+            Game game = null;
 
             switch (mode) {
                 case MODE_SIMPLE_2P:
-                    Util.clearScreen();
-                    startSimpleGame();
+                    game = createSimpleGame();
                     break;
                 case MODE_SIMPLE_AI:
                     int color2 = selectColor();
-                    if (color2 == Util.NONE) {
-                        break;
+                    if (color2 != Util.NONE) {
+                        game = createSimpleAiGame(color2);
                     }
-                    Util.clearScreen();
-                    startSimpleAiGame(color2);
                     break;
                 case MODE_CLASSIC_2P:
-                    Util.clearScreen();
-                    startClassicGame();
+                    game = createClassicGame();
                     break;
                 case MODE_CLASSIC_AI:
                     int color4 = selectColor();
-                    if (color4 == Util.NONE) {
-                        break;
+                    if (color4 != Util.NONE) {
+                        game = createClassicAiGame(color4);
                     }
-                    Util.clearScreen();
-                    startClassicAiGame(color4);
                     break;
                 case MODE_SKILL_2P:
-                    Util.clearScreen();
-                    startSkillGame();
+                    game = createSkillGame();
                     break;
                 case MODE_SKILL_AI:
                     int color6 = selectColor();
-                    if (color6 == Util.NONE) {
-                        break;
+                    if (color6 != Util.NONE) {
+                        game = createSkillAiGame(color6);
                     }
-                    Util.clearScreen();
-                    startSkillAiGame(color6);
                     break;
                 case MODE_DEMO:
                     startDemo();
-                    // 시연 종료 후 메인 메뉴로 복귀 (selectMode가 화면을 다시 그림)
                     break;
                 default:
                     // MODE_QUIT → 종료
@@ -95,29 +86,34 @@ public class Main {
                     running = false;
                     break;
             }
+
+            // 게임 실행 (다형성: Game/ClassicGame/SkillGame 모두 동일하게 호출)
+            if (game != null) {
+                Util.clearScreen();
+                game.run();
+            }
         }
 
         // 터미널 원래 모드로 복원
         Util.disableRawMode();
     }
 
-    // ========== 게임 시작 ==========
+    // ========== 게임 생성 ==========
 
     /// <summary>
-    /// 기본 체스 2인 대전 시작
+    /// 기본 체스 2인 대전 생성
     /// 기물의 기본 이동만 사용 (캐슬링/앙파상/프로모션 없음)
     /// </summary>
-    private static void startSimpleGame() {
+    private static Game createSimpleGame() {
         Player red = new HumanPlayer(Chess.RED, "플레이어 1");
         Player blue = new HumanPlayer(Chess.BLUE, "플레이어 2");
-        Game game = new Game(red, blue);
-        game.run();
+        return new Game(red, blue);
     }
 
     /// <summary>
-    /// 기본 체스 AI 대전 시작
+    /// 기본 체스 AI 대전 생성
     /// </summary>
-    private static void startSimpleAiGame(int playerColor) {
+    private static Game createSimpleAiGame(int playerColor) {
         Player red;
         Player blue;
 
@@ -129,25 +125,23 @@ public class Main {
             blue = new HumanPlayer(Chess.BLUE, "플레이어");
         }
 
-        Game game = new Game(red, blue);
-        game.run();
+        return new Game(red, blue);
     }
 
     /// <summary>
-    /// 공식 체스 2인 대전 시작
+    /// 공식 체스 2인 대전 생성
     /// 캐슬링, 앙파상, 프로모션 포함
     /// </summary>
-    private static void startClassicGame() {
+    private static Game createClassicGame() {
         ClassicPlayer red = new ClassicHumanPlayer(Chess.RED, "플레이어 1");
         ClassicPlayer blue = new ClassicHumanPlayer(Chess.BLUE, "플레이어 2");
-        Game game = new ClassicGame(red, blue);
-        game.run();
+        return new ClassicGame(red, blue);
     }
 
     /// <summary>
-    /// 공식 체스 AI 대전 시작
+    /// 공식 체스 AI 대전 생성
     /// </summary>
-    private static void startClassicAiGame(int playerColor) {
+    private static Game createClassicAiGame(int playerColor) {
         ClassicPlayer red;
         ClassicPlayer blue;
 
@@ -159,25 +153,23 @@ public class Main {
             blue = new ClassicHumanPlayer(Chess.BLUE, "플레이어");
         }
 
-        Game game = new ClassicGame(red, blue);
-        game.run();
+        return new ClassicGame(red, blue);
     }
 
     /// <summary>
-    /// 스킬 모드 2인 대전 시작
+    /// 스킬 모드 2인 대전 생성
     /// 스킬과 아이템을 사용할 수 있는 모드
     /// </summary>
-    private static void startSkillGame() {
+    private static Game createSkillGame() {
         SkillPlayer red = new SkillHumanPlayer(Chess.RED, "플레이어 1");
         SkillPlayer blue = new SkillHumanPlayer(Chess.BLUE, "플레이어 2");
-        Game game = new SkillGame(red, blue);
-        game.run();
+        return new SkillGame(red, blue);
     }
 
     /// <summary>
-    /// 스킬 모드 AI 대전 시작
+    /// 스킬 모드 AI 대전 생성
     /// </summary>
-    private static void startSkillAiGame(int playerColor) {
+    private static Game createSkillAiGame(int playerColor) {
         SkillPlayer red;
         SkillPlayer blue;
 
@@ -189,8 +181,7 @@ public class Main {
             blue = new SkillHumanPlayer(Chess.BLUE, "플레이어");
         }
 
-        Game game = new SkillGame(red, blue);
-        game.run();
+        return new SkillGame(red, blue);
     }
 
     /// <summary>

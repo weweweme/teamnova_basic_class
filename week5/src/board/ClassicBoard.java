@@ -126,6 +126,10 @@ public class ClassicBoard extends SimpleBoard {
     /// 폰이 상대편 끝 줄에 도착하면 프로모션
     /// </summary>
     public boolean isPromotion(Move move) {
+        // 도착 칸에 기물이 없으면 프로모션 아님 (폭탄 등으로 제거된 경우)
+        if (grid[move.toRow][move.toCol].isEmpty()) {
+            return false;
+        }
         Piece piece = grid[move.toRow][move.toCol].getPiece();
         if (piece.type != PieceType.PAWN) {
             return false;

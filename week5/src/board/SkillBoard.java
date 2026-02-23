@@ -211,23 +211,6 @@ public class SkillBoard extends ClassicBoard {
     // ========== 효과 관리 ==========
 
     /// <summary>
-    /// 특정 색상의 모든 기물에서 방패 상태 해제
-    /// 자기 턴 시작 시 호출 (지난 턴에 건 방패를 해제)
-    /// </summary>
-    public void clearShields(int color) {
-        for (int r = 0; r < Chess.BOARD_SIZE; r++) {
-            for (int c = 0; c < Chess.BOARD_SIZE; c++) {
-                if (grid[r][c].hasPiece()) {
-                    SkillPiece piece = (SkillPiece) grid[r][c].getPiece();
-                    if (piece.color == color && piece.shielded) {
-                        piece.shielded = false;
-                    }
-                }
-            }
-        }
-    }
-
-    /// <summary>
     /// 특정 색상의 모든 기물에서 동결 상태 해제
     /// 동결된 플레이어의 턴 시작 시 호출
     /// </summary>

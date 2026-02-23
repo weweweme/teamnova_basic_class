@@ -372,7 +372,7 @@ Game (게임 루프 + processTurn 템플릿 + 훅 메서드 3개)
 ```
 Skill (abstract - canUse/findTargets/execute)
  ├── DestroySkill  (상대 기물 1개 제거, 킹 제외)
- ├── ShieldSkill   (아군 기물 1개에 방패, 1턴간 잡기 방어)
+ ├── ShieldSkill   (아군 기물 1개에 방패, 기물 제거 시까지 잡기 방어)
  └── ReviveSkill   (잡힌 아군 기물 1개 부활, 빈 칸에 배치)
 ```
 
@@ -503,7 +503,7 @@ graph TD
 |--------|------|
 | `Skill` | **추상** - `canUse`/`findTargets`/`execute`, 사용 횟수 관리 |
 | `DestroySkill` | 상대 기물 1개 제거 (킹 제외), 1회 사용 |
-| `ShieldSkill` | 아군 기물 1개에 방패 (1턴간 잡기 방어), 2회 사용 |
+| `ShieldSkill` | 아군 기물 1개에 방패 (기물 제거 시까지 잡기 방어), 2회 사용 |
 | `ReviveSkill` | 잡힌 아군 기물 1개 부활 (빈 칸에 배치), 1회 사용 |
 
 **item 패키지 - 아이템**
@@ -539,7 +539,7 @@ graph TD
 
 | 훅 | Game | ClassicGame | SkillGame |
 |---|---|---|---|
-| `beforeAction()` | 빈 구현 | - | 방패/동결 해제, 부활 갱신 |
+| `beforeAction()` | 빈 구현 | - | 동결 해제, 부활 갱신 |
 | `doAction()` | chooseMove → executeMove | - | 행동 루프 (스킬/아이템 각 1회 + 이동 필수) |
 | `afterAction()` | 빈 구현 | 프로모션 확인 | 프로모션 확인 (skillBoard 사용) |
 

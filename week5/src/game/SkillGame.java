@@ -81,13 +81,10 @@ public class SkillGame extends ClassicGame {
 
     /// <summary>
     /// 턴 사전처리
-    /// 지난 턴의 방패/동결을 해제하고, 부활 스킬의 잡힌 기물 수를 갱신
+    /// 지난 턴의 동결을 해제하고, 부활 스킬의 잡힌 기물 수를 갱신
     /// </summary>
     @Override
     protected void beforeAction() {
-        // 지난 턴에 건 방패 해제
-        skillBoard.clearShields(currentPlayer.color);
-
         // 지난 턴에 걸린 동결 해제
         skillBoard.clearFreezes(currentPlayer.color);
 

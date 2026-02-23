@@ -35,12 +35,11 @@ public class DemoSkillGame extends SkillGame {
         // 턴 2 (파란팀) - 방패 스킬
         "[1/4] ▶ [2]스킬 → [2]방패 → 파란 룩(h8)을 선택하세요\n"
         + "방패: 아군 기물에 방패(!)를 씌웁니다.\n"
-        + "다음 턴까지 해당 기물은 잡히지 않습니다.",
+        + "방패가 씌워진 기물은 잡히지 않습니다.",
 
         // 턴 3 (빨간팀) - 함정 설치
         "[2/4] ▶ [3]아이템 → [2]함정 → h6에 설치하세요\n"
-        + "함정: 밟은 기물이 1턴간 움직일 수 없습니다.\n"
-        + "설치한 아이템은 상대에게 보이지 않습니다.",
+        + "함정: 밟은 기물이 1턴간 움직일 수 없습니다.\n",
 
         // 턴 4 (파란팀) - 이동 (함정 발동)
         "[2/4] ▶ 파란 폰(h7)을 h6으로 이동하세요\n"
@@ -226,9 +225,6 @@ public class DemoSkillGame extends SkillGame {
 
         Skill[] skills = (currentPlayer.color == Chess.RED) ? redSkills : blueSkills;
         Item[] items = (currentPlayer.color == Chess.RED) ? redItems : blueItems;
-
-        // 지난 턴에 건 방패 해제
-        skillBoard.clearShields(currentPlayer.color);
 
         // 지난 턴에 걸린 동결 해제 (동결 체험 턴에서는 건너뜀)
         if (scriptIndex != FREEZE_SKIP_TURN) {

@@ -372,7 +372,7 @@ Game (게임 루프 + processTurn 템플릿 + 훅 메서드 3개)
 ```
 Skill (abstract - canUse/findTargets/execute)
  ├── DestroySkill  (상대 기물 1개 제거, 킹 제외)
- ├── ShieldSkill   (아군 기물 1개에 방패, 기물 제거 시까지 잡기 방어)
+ ├── ShieldSkill   (아군 기물 1개에 방패, 스킬/아이템 1회 방어)
  └── ReviveSkill   (잡힌 아군 기물 1개 부활, 빈 칸에 배치)
 ```
 
@@ -503,7 +503,7 @@ graph TD
 |--------|------|
 | `Skill` | **추상** - `canUse`/`findTargets`/`execute`, 사용 횟수 관리 |
 | `DestroySkill` | 상대 기물 1개 제거 (킹 제외), 1회 사용 |
-| `ShieldSkill` | 아군 기물 1개에 방패 (기물 제거 시까지 잡기 방어), 2회 사용 |
+| `ShieldSkill` | 아군 기물 1개에 방패 (스킬/아이템 1회 방어, 일반 잡기는 허용), 2회 사용 |
 | `ReviveSkill` | 잡힌 아군 기물 1개 부활 (빈 칸에 배치), 1회 사용 |
 
 **item 패키지 - 아이템**

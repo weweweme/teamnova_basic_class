@@ -1,5 +1,6 @@
 package game;
 
+import board.SkillBoard;
 import core.Move;
 import core.Chess;
 import core.Util;
@@ -35,7 +36,7 @@ public class DemoSkillGame extends SkillGame {
         // 턴 2 (파란팀) - 방패 스킬
         "[1/4] ▶ [2]스킬 → [2]방패 → 파란 룩(h8)을 선택하세요\n"
         + "방패: 아군 기물에 방패(!)를 씌웁니다.\n"
-        + "방패가 씌워진 기물은 잡히지 않습니다.",
+        + "방패는 스킬/아이템 효과를 1회 막아줍니다.",
 
         // 턴 3 (빨간팀) - 함정 설치
         "[2/4] ▶ [3]아이템 → [2]함정 → h6에 설치하세요\n"
@@ -462,9 +463,13 @@ public class DemoSkillGame extends SkillGame {
                 board.print();
                 System.out.println();
 
+                // 방패가 아이템 효과를 흡수한 경우
+                if (triggeredItem.startsWith(SkillBoard.SHIELD_PREFIX)) {
+                    String itemName = triggeredItem.substring(SkillBoard.SHIELD_PREFIX.length());
+                    System.out.println(itemName + "에 걸렸지만 방패가 보호했습니다!");
+                }
                 // 폭탄인데 기물이 살아있으면 킹이 면역된 것
-                boolean bombImmune = triggeredItem.equals("폭탄") && board.grid[move.toRow][move.toCol].hasPiece();
-                if (bombImmune) {
+                else if (triggeredItem.equals("폭탄") && board.grid[move.toRow][move.toCol].hasPiece()) {
                     System.out.println("폭탄에 걸렸지만 킹은 폭탄으로 제거할 수 없습니다!");
                 } else {
                     System.out.println(triggeredItem + "에 걸렸습니다!");

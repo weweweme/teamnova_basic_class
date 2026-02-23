@@ -6,6 +6,7 @@ import core.Chess;
 import cell.Cell;
 import piece.Piece;
 import piece.PieceType;
+import piece.SkillPiece;
 
 /// <summary>
 /// 파괴 스킬
@@ -72,10 +73,16 @@ public class DestroySkill extends Skill {
 
     /// <summary>
     /// 효과: 지정한 칸의 상대 기물을 제거하고 잡힌 기물 목록에 추가
+    /// 방패가 있는 기물은 방패만 해제되고 기물은 생존
     /// </summary>
     @Override
     public void execute(SkillBoard board, int targetRow, int targetCol, int color) {
-        board.removePiece(targetRow, targetCol);
+        SkillPiece target = (SkillPiece) board.grid[targetRow][targetCol].getPiece();
+        if (target.shielded) {
+            target.shielded = false;
+        } else {
+            board.removePiece(targetRow, targetCol);
+        }
         useCharge();
     }
 }

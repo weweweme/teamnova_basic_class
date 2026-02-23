@@ -10,8 +10,9 @@ import piece.SkillPiece;
 
 /// <summary>
 /// 방패 스킬
-/// 아군 기물 하나를 보호 (상대가 잡을 수 없음, 킹 제외)
-/// 방패는 기물이 제거될 때까지 유지됨
+/// 아군 기물 하나에 방패를 씌워 스킬/아이템 효과로부터 보호 (킹 제외)
+/// 방패는 스킬/아이템을 1회 흡수하면 사라짐
+/// 일반 잡기(기물 이동)는 막지 않음
 /// 사용 횟수: 2회
 /// </summary>
 public class ShieldSkill extends Skill {
@@ -19,7 +20,7 @@ public class ShieldSkill extends Skill {
     // ========== 생성자 ==========
 
     public ShieldSkill() {
-        super("방패", "아군 기물 하나를 보호 (킹 제외)", 2);
+        super("방패", "아군 기물에 방패 (스킬/아이템 1회 방어, 킹 제외)", 2);
     }
 
     // ========== 스킬 로직 ==========

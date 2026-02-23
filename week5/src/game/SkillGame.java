@@ -3,6 +3,7 @@ package game;
 import board.*;
 import core.*;
 import piece.Piece;
+import piece.SkillPiece;
 import player.Player;
 import player.SkillPlayer;
 import skill.*;
@@ -211,9 +212,13 @@ public class SkillGame extends ClassicGame {
             board.print();
             System.out.println();
 
+            // 방패가 아이템 효과를 흡수한 경우
+            if (triggeredItem.startsWith(SkillBoard.SHIELD_PREFIX)) {
+                String itemName = triggeredItem.substring(SkillBoard.SHIELD_PREFIX.length());
+                System.out.println(itemName + "에 걸렸지만 방패가 보호했습니다!");
+            }
             // 폭탄인데 기물이 살아있으면 킹이 면역된 것
-            boolean bombImmune = triggeredItem.equals("폭탄") && board.grid[move.toRow][move.toCol].hasPiece();
-            if (bombImmune) {
+            else if (triggeredItem.equals("폭탄") && board.grid[move.toRow][move.toCol].hasPiece()) {
                 System.out.println("폭탄에 걸렸지만 킹은 폭탄으로 제거할 수 없습니다!");
             } else {
                 System.out.println(triggeredItem + "에 걸렸습니다!");
@@ -256,6 +261,10 @@ public class SkillGame extends ClassicGame {
             return false;
         }
 
+        // 파괴 대상이 방패를 가지고 있는지 확인 (실행 전에 저장)
+        boolean targetHadShield = board.grid[target[0]][target[1]].hasPiece()
+                && ((SkillPiece) board.grid[target[0]][target[1]].getPiece()).shielded;
+
         // 스킬 실행
         skill.execute(skillBoard, target[0], target[1], currentPlayer.color);
 
@@ -263,7 +272,11 @@ public class SkillGame extends ClassicGame {
         Util.clearScreen();
         board.print();
         System.out.println();
-        System.out.println(skill.name + " 스킬 사용! (" + Chess.toNotation(target[0], target[1]) + ")");
+        if (targetHadShield) {
+            System.out.println(skill.name + " 스킬을 사용했지만 방패가 보호했습니다!");
+        } else {
+            System.out.println(skill.name + " 스킬 사용! (" + Chess.toNotation(target[0], target[1]) + ")");
+        }
         Util.delay(1500);
 
         return true;

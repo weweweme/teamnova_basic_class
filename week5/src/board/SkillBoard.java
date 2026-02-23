@@ -23,6 +23,12 @@ public class SkillBoard extends ClassicBoard {
     /// </summary>
     public static final String NOT_TRIGGERED = "";
 
+    /// <summary>
+    /// 방패가 아이템 효과를 흡수했음을 나타내는 접두어
+    /// 반환값 형식: "방패:" + 아이템 이름 (예: "방패:폭탄")
+    /// </summary>
+    public static final String SHIELD_PREFIX = "방패:";
+
     // ========== 생성자 ==========
 
     public SkillBoard() {
@@ -64,14 +70,6 @@ public class SkillBoard extends ClassicBoard {
     @Override
     protected boolean isMovementBlocked(Piece piece) {
         return ((SkillPiece) piece).frozen;
-    }
-
-    /// <summary>
-    /// 방패가 걸린 기물은 잡기 불가
-    /// </summary>
-    @Override
-    protected boolean isCaptureBlocked(Piece target) {
-        return ((SkillPiece) target).shielded;
     }
 
     // ========== 보드 출력 (스킬 모드) ==========
@@ -183,8 +181,9 @@ public class SkillBoard extends ClassicBoard {
     /// <summary>
     /// 이동 후 도착 칸에 상대 아이템이 있으면 발동
     /// 자기 아이템 위에는 발동하지 않음 (설치자는 자기 아이템을 밟아도 안전)
+    /// 방패가 있는 기물은 아이템 효과를 흡수 (방패 해제, 효과 무효화)
     /// 발동 후 아이템 제거
-    /// 반환값: 발동된 아이템 이름 (발동되지 않았으면 빈 문자열)
+    /// 반환값: 아이템 이름 / SHIELD_PREFIX + 아이템 이름 / NOT_TRIGGERED
     /// </summary>
     public String triggerItem(int row, int col) {
         SkillCell cell = skillCell(row, col);
@@ -198,9 +197,18 @@ public class SkillBoard extends ClassicBoard {
             return NOT_TRIGGERED;
         }
 
-        // 아이템 효과 발동
         String itemName = item.name;
-        item.trigger(this, cell.getPiece());
+
+        // 방패가 아이템 효과를 흡수 (방패 해제, 효과 무효화)
+        SkillPiece piece = (SkillPiece) cell.getPiece();
+        if (piece.shielded) {
+            piece.shielded = false;
+            cell.removeItem();
+            return SHIELD_PREFIX + itemName;
+        }
+
+        // 아이템 효과 발동
+        item.trigger(this, piece);
 
         // 발동된 아이템 제거
         cell.removeItem();

@@ -83,7 +83,7 @@ src/
 │   ├── SkillHumanPlayer.java       사람 (스킬 - HumanInput 조합)
 │   ├── SkillAiPlayer.java          AI (스킬 - AiInput 조합)
 │   ├── HumanInput.java             사람 입력 처리 (커서, 프로모션)
-│   └── AiInput.java                AI 전략 처리 (우선순위 전략)
+│   └── AiInput.java                AI 전략 처리 (랜덤 선택)
 │
 └── skill/                          스킬 계층 (4개)
     ├── Skill.java                  스킬 추상 클래스
@@ -337,7 +337,7 @@ Player (abstract - chooseMove)
 
 조작 축 (조합):
 HumanInput ← 키보드 조작 코드 (~210줄: chooseMove, chooseDest, moveCursor, getColorName, choosePromotion)
-AiInput    ← AI 전략 코드 (~170줄: chooseMove, chooseEasy, chooseNormal, wouldCheckmate, wouldCheck)
+AiInput    ← AI 전략 코드 (~40줄: chooseMove)
 ```
 
 **조합(Composition) 패턴을 사용한 이유**
@@ -436,7 +436,7 @@ graph TD
 
 | 클래스 | 역할 |
 |--------|------|
-| `Main` | 커서 기반 메뉴 선택 (`selectMenu`), 모드/색상/난이도/튜토리얼 메뉴, 게임 시작 |
+| `Main` | 커서 기반 메뉴 선택 (`selectMenu`), 모드/색상/튜토리얼 메뉴, 게임 시작 |
 
 **core 패키지 - 유틸리티**
 
@@ -476,7 +476,7 @@ graph TD
 |--------|------|
 | `Player` | **추상** - `chooseMove()` 선언, 색상/이름 보유 |
 | `HumanPlayer` | 기본 모드 사람 (HumanInput에 위임) |
-| `AiPlayer` | 기본 모드 AI (AiInput에 위임), 난이도 상수 `EASY`/`NORMAL` |
+| `AiPlayer` | 기본 모드 AI (AiInput에 위임) |
 | `ClassicPlayer` | **추상** - Player + `choosePromotion()` 선언 |
 | `ClassicHumanPlayer` | 공식 모드 사람 (HumanInput 조합) |
 | `ClassicAiPlayer` | 공식 모드 AI (AiInput 조합, 항상 퀸으로 승격) |
@@ -484,7 +484,7 @@ graph TD
 | `SkillHumanPlayer` | 스킬 모드 사람 (HumanInput 조합, 행동/스킬/아이템/부활 선택) |
 | `SkillAiPlayer` | 스킬 모드 AI (AiInput 조합, 확률 기반 행동 선택) |
 | `HumanInput` | 키보드 조작 코드 (chooseMove, chooseDest, moveCursor, choosePromotion) |
-| `AiInput` | AI 전략 코드 (chooseMove, chooseEasy, chooseNormal, 시뮬레이션) |
+| `AiInput` | AI 전략 코드 (chooseMove — 랜덤 선택) |
 
 **game 패키지 - 게임 루프**
 
@@ -645,10 +645,7 @@ graph TB
 
 ### AI 전략
 
-1. 체크메이트 가능한 수 → 즉시 선택
-2. 상대 기물 잡기 (퀸9 > 룩5 > 비숍3 = 나이트3 > 폰1)
-3. 체크를 거는 수
-4. 랜덤 선택
+합법적인 수 중 랜덤으로 선택
 
 ### 구현 순서
 
@@ -706,7 +703,7 @@ graph TB
 - Enter → 선택 확정
 - `q` → 뒤로가기 (서브 메뉴에서만)
 - `>` 표시로 현재 커서 위치, 하단에 옵션 설명 표시
-- 메인 메뉴(모드), 색상, 난이도, 튜토리얼 4개 메뉴에 적용
+- 메인 메뉴(모드), 색상, 튜토리얼 3개 메뉴에 적용
 
 **게임 내 조작**: 터미널 (화살표 키)
 - 화살표 키 → 커서 즉시 이동 (Enter 불필요)

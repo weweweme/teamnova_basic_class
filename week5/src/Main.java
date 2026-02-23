@@ -58,12 +58,8 @@ public class Main {
                     if (color2 == Util.NONE) {
                         break;
                     }
-                    int diff2 = selectDifficulty();
-                    if (diff2 == Util.NONE) {
-                        break;
-                    }
                     Util.clearScreen();
-                    startSimpleAiGame(color2, diff2);
+                    startSimpleAiGame(color2);
                     break;
                 case MODE_CLASSIC_2P:
                     Util.clearScreen();
@@ -74,12 +70,8 @@ public class Main {
                     if (color4 == Util.NONE) {
                         break;
                     }
-                    int diff4 = selectDifficulty();
-                    if (diff4 == Util.NONE) {
-                        break;
-                    }
                     Util.clearScreen();
-                    startClassicAiGame(color4, diff4);
+                    startClassicAiGame(color4);
                     break;
                 case MODE_SKILL_2P:
                     Util.clearScreen();
@@ -90,12 +82,8 @@ public class Main {
                     if (color6 == Util.NONE) {
                         break;
                     }
-                    int diff6 = selectDifficulty();
-                    if (diff6 == Util.NONE) {
-                        break;
-                    }
                     Util.clearScreen();
-                    startSkillAiGame(color6, diff6);
+                    startSkillAiGame(color6);
                     break;
                 case MODE_DEMO:
                     startDemo();
@@ -129,15 +117,15 @@ public class Main {
     /// <summary>
     /// 기본 체스 AI 대전 시작
     /// </summary>
-    private static void startSimpleAiGame(int playerColor, int difficulty) {
+    private static void startSimpleAiGame(int playerColor) {
         Player red;
         Player blue;
 
         if (playerColor == Chess.RED) {
             red = new HumanPlayer(Chess.RED, "플레이어");
-            blue = new AiPlayer(Chess.BLUE, "AI", difficulty);
+            blue = new AiPlayer(Chess.BLUE, "AI");
         } else {
-            red = new AiPlayer(Chess.RED, "AI", difficulty);
+            red = new AiPlayer(Chess.RED, "AI");
             blue = new HumanPlayer(Chess.BLUE, "플레이어");
         }
 
@@ -159,15 +147,15 @@ public class Main {
     /// <summary>
     /// 공식 체스 AI 대전 시작
     /// </summary>
-    private static void startClassicAiGame(int playerColor, int difficulty) {
+    private static void startClassicAiGame(int playerColor) {
         ClassicPlayer red;
         ClassicPlayer blue;
 
         if (playerColor == Chess.RED) {
             red = new ClassicHumanPlayer(Chess.RED, "플레이어");
-            blue = new ClassicAiPlayer(Chess.BLUE, "AI", difficulty);
+            blue = new ClassicAiPlayer(Chess.BLUE, "AI");
         } else {
-            red = new ClassicAiPlayer(Chess.RED, "AI", difficulty);
+            red = new ClassicAiPlayer(Chess.RED, "AI");
             blue = new ClassicHumanPlayer(Chess.BLUE, "플레이어");
         }
 
@@ -189,15 +177,15 @@ public class Main {
     /// <summary>
     /// 스킬 모드 AI 대전 시작
     /// </summary>
-    private static void startSkillAiGame(int playerColor, int difficulty) {
+    private static void startSkillAiGame(int playerColor) {
         SkillPlayer red;
         SkillPlayer blue;
 
         if (playerColor == Chess.RED) {
             red = new SkillHumanPlayer(Chess.RED, "플레이어");
-            blue = new SkillAiPlayer(Chess.BLUE, "AI", difficulty);
+            blue = new SkillAiPlayer(Chess.BLUE, "AI");
         } else {
-            red = new SkillAiPlayer(Chess.RED, "AI", difficulty);
+            red = new SkillAiPlayer(Chess.RED, "AI");
             blue = new SkillHumanPlayer(Chess.BLUE, "플레이어");
         }
 
@@ -366,24 +354,6 @@ public class Main {
             return MODE_QUIT;
         }
         return index + 1;
-    }
-
-    /// <summary>
-    /// AI 난이도 선택
-    /// 커서로 쉬움/보통 선택, q로 뒤로가기
-    /// </summary>
-    private static int selectDifficulty() {
-        String[] labels = {"쉬움", "보통"};
-        String[] descriptions = {
-                "AI가 랜덤으로 수를 선택합니다.",
-                "AI가 전략적으로 수를 선택합니다."
-        };
-
-        int index = selectMenu("난이도를 선택하세요:", labels, descriptions, true);
-        if (index == Util.NONE) {
-            return Util.NONE;
-        }
-        return (index == 0) ? AiPlayer.EASY : AiPlayer.NORMAL;
     }
 
     /// <summary>

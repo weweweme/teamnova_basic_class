@@ -38,9 +38,9 @@ public class SkillAiPlayer extends SkillPlayer {
 
     // ========== 생성자 ==========
 
-    public SkillAiPlayer(int color, String name, int difficulty) {
+    public SkillAiPlayer(int color, String name) {
         super(color, name);
-        this.aiInput = new AiInput(difficulty);
+        this.aiInput = new AiInput();
     }
 
     // ========== 수 선택 ==========

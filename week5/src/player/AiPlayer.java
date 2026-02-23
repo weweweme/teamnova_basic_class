@@ -5,18 +5,10 @@ import core.*;
 
 /// <summary>
 /// AI 플레이어 (기본 모드)
-/// 난이도에 따라 다른 전략으로 수를 선택
+/// 랜덤으로 수를 선택
 /// 실제 전략 로직은 AiInput에 위임
 /// </summary>
 public class AiPlayer extends Player {
-
-    // ========== 난이도 상수 ==========
-
-    // 쉬움 (랜덤 선택)
-    public static final int EASY = 0;
-
-    // 보통 (우선순위 기반 전략)
-    public static final int NORMAL = 1;
 
     // ========== 필드 ==========
 
@@ -27,9 +19,9 @@ public class AiPlayer extends Player {
 
     // ========== 생성자 ==========
 
-    public AiPlayer(int color, String name, int difficulty) {
+    public AiPlayer(int color, String name) {
         super(color, name);
-        this.aiInput = new AiInput(difficulty);
+        this.aiInput = new AiInput();
     }
 
     // ========== 수 선택 ==========

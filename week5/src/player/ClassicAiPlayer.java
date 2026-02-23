@@ -19,9 +19,9 @@ public class ClassicAiPlayer extends ClassicPlayer {
 
     // ========== 생성자 ==========
 
-    public ClassicAiPlayer(int color, String name, int difficulty) {
+    public ClassicAiPlayer(int color, String name) {
         super(color, name);
-        this.aiInput = new AiInput(difficulty);
+        this.aiInput = new AiInput();
     }
 
     // ========== 수 선택 ==========

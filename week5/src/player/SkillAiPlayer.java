@@ -18,6 +18,9 @@ public class SkillAiPlayer extends SkillPlayer {
     // 부활 대상으로 삼을 최소 기물 가치
     private static final int REVIVE_VALUE_THRESHOLD = 5;
 
+    // 파괴 스킬 발동 확률 분모 (1/3 = 33%)
+    private static final int DESTROY_CHANCE = 3;
+
     // 방패 스킬 발동 확률 분모 (1/5 = 20%)
     private static final int SHIELD_CHANCE = 5;
 
@@ -68,7 +71,7 @@ public class SkillAiPlayer extends SkillPlayer {
 
     /// <summary>
     /// AI 행동 선택 전략 (턴 내에서 스킬/아이템 사용 후 다시 호출됨)
-    /// 1순위: 파괴 스킬로 상대 퀸 제거 가능하면 스킬 사용
+    /// 1순위: 33% 확률로 파괴 스킬 사용 (폰 제외 상대 기물이 있을 때)
     /// 2순위: 가치 5 이상인 잡힌 기물이 있고 부활 가능하면 스킬 사용
     /// 3순위: 20% 확률로 방패 스킬 사용
     /// 4순위: 30% 확률로 아이템 설치
@@ -80,18 +83,29 @@ public class SkillAiPlayer extends SkillPlayer {
 
         // 스킬 확인 (이번 턴 미사용일 때만)
         if (!skillUsed) {
-            // 파괴 스킬 확인: 상대 퀸이 있으면 파괴 우선
+            // 파괴 스킬 확인: 33% 확률로 사용 (폰 제외한 상대 기물이 있을 때)
             if (skills[Chess.SKILL_DESTROY].hasUses() && skills[Chess.SKILL_DESTROY].canUse(board.grid, color)) {
+                boolean hasNonPawnTarget = false;
                 for (int r = 0; r < Chess.BOARD_SIZE; r++) {
                     for (int c = 0; c < Chess.BOARD_SIZE; c++) {
                         if (board.grid[r][c].isEmpty()) {
                             continue;
                         }
                         Piece piece = board.grid[r][c].getPiece();
-                        if (piece.type == PieceType.QUEEN && piece.color == opponentColor) {
-                            return Chess.ACTION_SKILL;
+                        boolean isOpponent = piece.color == opponentColor;
+                        boolean isNotKing = piece.type != PieceType.KING;
+                        boolean isNotPawn = piece.type != PieceType.PAWN;
+                        if (isOpponent && isNotKing && isNotPawn) {
+                            hasNonPawnTarget = true;
+                            break;
                         }
                     }
+                    if (hasNonPawnTarget) {
+                        break;
+                    }
+                }
+                if (hasNonPawnTarget && Util.rand(DESTROY_CHANCE) == 0) {
+                    return Chess.ACTION_SKILL;
                 }
             }
 

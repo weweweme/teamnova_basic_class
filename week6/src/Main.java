@@ -1,3 +1,4 @@
+import system.Cursor;
 import system.GameMap;
 import system.MapGenerator;
 import system.Renderer;
@@ -12,7 +13,8 @@ public class Main {
     public static void main(String[] args) {
         GameMap gameMap = new GameMap();
         MapGenerator mapGenerator = new MapGenerator(gameMap);
-        Renderer renderer = new Renderer(gameMap);
+        Cursor cursor = new Cursor();
+        Renderer renderer = new Renderer(gameMap, cursor);
 
         // 맵에 자원 랜덤 배치
         mapGenerator.generate();
@@ -20,12 +22,16 @@ public class Main {
         Util.enableRawMode();
         renderer.render();
 
-        // q 키를 누르면 종료
+        // 입력 루프: 화살표로 커서 이동, q로 종료
         while (true) {
             int key = Util.readKey();
+
             if (key == Util.KEY_QUIT) {
                 break;
             }
+
+            cursor.move(key);
+            renderer.render();
         }
 
         Util.disableRawMode();

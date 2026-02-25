@@ -13,6 +13,11 @@ public class Renderer {
     private final GameMap gameMap;
 
     /// <summary>
+    /// 플레이어 커서
+    /// </summary>
+    private final Cursor cursor;
+
+    /// <summary>
     /// 화면 버퍼 [행][열], 매 프레임마다 새로 채움
     /// </summary>
     private final char[][] buffer;
@@ -38,10 +43,16 @@ public class Renderer {
     private static final String[] IRON_BLOCK = {"/==\\", "\\==/"};
 
     /// <summary>
-    /// 지정한 맵으로 렌더러 생성
+    /// 커서 심볼 (가로 4문자, 세로 1줄)
     /// </summary>
-    public Renderer(GameMap gameMap) {
+    private static final String CURSOR_SYMBOL = "[ ]";
+
+    /// <summary>
+    /// 지정한 맵과 커서로 렌더러 생성
+    /// </summary>
+    public Renderer(GameMap gameMap, Cursor cursor) {
         this.gameMap = gameMap;
+        this.cursor = cursor;
         this.buffer = new char[GameMap.HEIGHT][GameMap.WIDTH];
     }
 
@@ -52,6 +63,7 @@ public class Renderer {
     public void render() {
         clearBuffer();
         drawResources();
+        drawCursor();
         flush();
     }
 
@@ -76,6 +88,23 @@ public class Renderer {
 
             String[] block = getBlock(resource.getType());
             drawBlock(row, col, block);
+        }
+    }
+
+    /// <summary>
+    /// 커서를 버퍼에 그림
+    /// 자원보다 나중에 그려서 커서가 위에 표시됨
+    /// </summary>
+    private void drawCursor() {
+        int row = cursor.getPosition().getRow();
+        int col = cursor.getPosition().getCol();
+
+        for (int i = 0; i < CURSOR_SYMBOL.length(); i++) {
+            int bufferCol = col + i;
+
+            if (bufferCol >= 0 && bufferCol < GameMap.WIDTH) {
+                buffer[row][bufferCol] = CURSOR_SYMBOL.charAt(i);
+            }
         }
     }
 

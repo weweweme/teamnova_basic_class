@@ -1,0 +1,70 @@
+package system;
+
+/// <summary>
+/// 맵 위에 배치된 자원 하나를 나타내는 클래스
+/// 나무, 돌, 철광석 등이 해당하며, 정착민이 채집할 수 있음
+/// </summary>
+public class Resource {
+
+    /// <summary>
+    /// 맵 위의 위치
+    /// </summary>
+    private final Position position;
+
+    /// <summary>
+    /// 자원 종류 (나무, 돌, 철)
+    /// </summary>
+    private final ResourceType type;
+
+    /// <summary>
+    /// 남은 채집 횟수 (0이 되면 자원 소멸)
+    /// </summary>
+    private int harvestRemaining;
+
+    /// <summary>
+    /// 지정한 위치와 종류로 자원 생성
+    /// 남은 채집 횟수는 종류별 최대값으로 초기화
+    /// </summary>
+    public Resource(Position position, ResourceType type) {
+        this.position = position;
+        this.type = type;
+        this.harvestRemaining = type.getMaxHarvest();
+    }
+
+    /// <summary>
+    /// 위치 반환
+    /// </summary>
+    public Position getPosition() {
+        return position;
+    }
+
+    /// <summary>
+    /// 자원 종류 반환
+    /// </summary>
+    public ResourceType getType() {
+        return type;
+    }
+
+    /// <summary>
+    /// 남은 채집 횟수 반환
+    /// </summary>
+    public int getHarvestRemaining() {
+        return harvestRemaining;
+    }
+
+    /// <summary>
+    /// 채집 가능한지 확인 (남은 횟수가 있는지)
+    /// </summary>
+    public boolean isHarvestable() {
+        return harvestRemaining > 0;
+    }
+
+    /// <summary>
+    /// 채집 1회 수행, 남은 횟수를 1 줄임
+    /// </summary>
+    public void harvest() {
+        if (harvestRemaining > 0) {
+            harvestRemaining--;
+        }
+    }
+}

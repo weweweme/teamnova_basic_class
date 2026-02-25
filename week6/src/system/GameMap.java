@@ -1,8 +1,11 @@
 package system;
 
+import java.util.ArrayList;
+
 /// <summary>
 /// 게임 맵 전체를 관리하는 클래스
 /// 120x40 크기의 타일 배열을 가지며, 각 타일의 이동 가능 여부를 관리
+/// 맵 위의 자원 목록도 함께 관리
 /// </summary>
 public class GameMap {
 
@@ -20,6 +23,11 @@ public class GameMap {
     /// 맵 전체 타일 배열 [행][열]
     /// </summary>
     private final Tile[][] tiles;
+
+    /// <summary>
+    /// 맵 위에 배치된 자원 목록
+    /// </summary>
+    private final ArrayList<Resource> resources = new ArrayList<>();
 
     /// <summary>
     /// 맵 생성, 모든 타일을 이동 가능한 평지로 초기화
@@ -58,5 +66,19 @@ public class GameMap {
             return false;
         }
         return tiles[row][col].isWalkable();
+    }
+
+    /// <summary>
+    /// 맵에 자원 추가
+    /// </summary>
+    public void addResource(Resource resource) {
+        resources.add(resource);
+    }
+
+    /// <summary>
+    /// 맵의 자원 목록 반환
+    /// </summary>
+    public ArrayList<Resource> getResources() {
+        return resources;
     }
 }

@@ -1,0 +1,62 @@
+package system;
+
+/// <summary>
+/// 게임 맵 전체를 관리하는 클래스
+/// 120x40 크기의 타일 배열을 가지며, 각 타일의 이동 가능 여부를 관리
+/// </summary>
+public class GameMap {
+
+    /// <summary>
+    /// 맵 가로 크기 (문자 단위)
+    /// </summary>
+    public static final int WIDTH = 120;
+
+    /// <summary>
+    /// 맵 세로 크기 (문자 단위)
+    /// </summary>
+    public static final int HEIGHT = 40;
+
+    /// <summary>
+    /// 맵 전체 타일 배열 [행][열]
+    /// </summary>
+    private final Tile[][] tiles;
+
+    /// <summary>
+    /// 맵 생성, 모든 타일을 이동 가능한 평지로 초기화
+    /// </summary>
+    public GameMap() {
+        tiles = new Tile[HEIGHT][WIDTH];
+        for (int row = 0; row < HEIGHT; row++) {
+            for (int col = 0; col < WIDTH; col++) {
+                tiles[row][col] = new Tile(true);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 지정한 좌표가 맵 범위 안인지 확인
+    /// </summary>
+    public boolean isInBounds(int row, int col) {
+        boolean validRow = row >= 0 && row < HEIGHT;
+        boolean validCol = col >= 0 && col < WIDTH;
+        return validRow && validCol;
+    }
+
+    /// <summary>
+    /// 지정한 좌표의 타일 반환
+    /// </summary>
+    public Tile getTile(int row, int col) {
+        return tiles[row][col];
+    }
+
+    /// <summary>
+    /// 지정한 좌표로 이동할 수 있는지 확인
+    /// 맵 범위 안이고, 해당 타일이 이동 가능해야 함
+    /// </summary>
+    public boolean isWalkable(int row, int col) {
+        if (!isInBounds(row, col)) {
+            return false;
+        }
+        return tiles[row][col].isWalkable();
+    }
+}

@@ -7,6 +7,11 @@ package system;
 public enum ResourceType {
 
     /// <summary>
+    /// 열매 덤불 — 채집하면 식량 획득
+    /// </summary>
+    FOOD(3, 2),
+
+    /// <summary>
     /// 나무 — 채집하면 목재 획득
     /// </summary>
     TREE(3, 3),

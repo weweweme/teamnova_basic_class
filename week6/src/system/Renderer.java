@@ -18,6 +18,11 @@ public class Renderer {
     private final char[][] buffer;
 
     /// <summary>
+    /// 열매 덤불 4x2 블록 (1행: " %% ", 2행: " %% ")
+    /// </summary>
+    private static final String[] FOOD_BLOCK = {" %% ", " %% "};
+
+    /// <summary>
     /// 나무 4x2 블록 (1행: " ^  ", 2행: "/|\ ")
     /// </summary>
     private static final String[] TREE_BLOCK = {" ^  ", "/|\\ "};
@@ -79,6 +84,8 @@ public class Renderer {
     /// </summary>
     private String[] getBlock(ResourceType type) {
         switch (type) {
+            case FOOD:
+                return FOOD_BLOCK;
             case TREE:
                 return TREE_BLOCK;
             case ROCK:
@@ -86,7 +93,7 @@ public class Renderer {
             case IRON:
                 return IRON_BLOCK;
             default:
-                return TREE_BLOCK;
+                return FOOD_BLOCK;
         }
     }
 

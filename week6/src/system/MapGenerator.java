@@ -7,6 +7,11 @@ package system;
 public class MapGenerator {
 
     /// <summary>
+    /// 초기 열매 덤불 배치 수
+    /// </summary>
+    private static final int INITIAL_FOOD_COUNT = 12;
+
+    /// <summary>
     /// 초기 나무 배치 수
     /// </summary>
     private static final int INITIAL_TREE_COUNT = 15;
@@ -47,6 +52,7 @@ public class MapGenerator {
     /// 초기 맵에 자원을 랜덤 배치
     /// </summary>
     public void generate() {
+        placeResources(ResourceType.FOOD, INITIAL_FOOD_COUNT);
         placeResources(ResourceType.TREE, INITIAL_TREE_COUNT);
         placeResources(ResourceType.ROCK, INITIAL_ROCK_COUNT);
         placeResources(ResourceType.IRON, INITIAL_IRON_COUNT);

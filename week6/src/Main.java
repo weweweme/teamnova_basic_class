@@ -1,10 +1,12 @@
 import system.Colonist;
 import system.Cursor;
 import system.GameMap;
+import system.GatheringState;
 import system.MapGenerator;
 import system.MovingState;
 import system.Position;
 import system.Renderer;
+import system.Resource;
 import system.Util;
 
 /// <summary>
@@ -42,8 +44,14 @@ public class Main {
         final int RENDER_INTERVAL = 100;
         // 입력 체크 간격 (밀리초, 짧을수록 입력이 즉각적)
         final int INPUT_CHECK_INTERVAL = 16;
-        // 이동 명령 키
+        // 명령 키
         final int KEY_MOVE = '1';
+        final int KEY_GATHER = '2';
+
+        /// <summary>
+        /// 커서 모드에 진입하게 만든 명령 키 (이동인지 채집인지 구분)
+        /// </summary>
+        int pendingCommand = 0;
 
         long lastRenderTime = 0;
 
@@ -66,12 +74,24 @@ public class Main {
                                 cursor.move(key);
                                 break;
                             case Util.KEY_ENTER:
-                                // 목표 위치 확정 → 선택된 정착민에게 이동 명령
+                                // 목표 위치 확정 → 명령 종류에 따라 처리
                                 Colonist selected = gameMap.getColonists().get(renderer.getSelectedIndex());
                                 int targetRow = cursor.getPosition().getRow();
                                 int targetCol = cursor.getPosition().getCol();
-                                selected.changeState(new MovingState(new Position(targetRow, targetCol)));
-                                renderer.setCursorMode(false);
+
+                                if (pendingCommand == KEY_MOVE) {
+                                    // 이동 명령
+                                    selected.changeState(new MovingState(new Position(targetRow, targetCol)));
+                                    renderer.setCursorMode(false);
+                                } else if (pendingCommand == KEY_GATHER) {
+                                    // 채집 명령 — 커서 위치에 자원이 있어야 함
+                                    Resource resource = gameMap.findResourceAt(targetRow, targetCol);
+                                    if (resource != null) {
+                                        selected.changeState(new GatheringState(resource));
+                                        renderer.setCursorMode(false);
+                                    }
+                                    // 자원이 없으면 무시 (커서 모드 유지)
+                                }
                                 break;
                             case Util.KEY_QUIT:
                                 // 커서 모드 취소 → 시뮬레이션 모드로 복귀
@@ -92,6 +112,14 @@ public class Main {
                                 break;
                             case KEY_MOVE:
                                 // 이동 명령 → 커서 모드로 전환
+                                pendingCommand = KEY_MOVE;
+                                renderer.setCursorModeLabel("이동 위치 지정");
+                                renderer.setCursorMode(true);
+                                break;
+                            case KEY_GATHER:
+                                // 채집 명령 → 커서 모드로 전환 (자원 선택)
+                                pendingCommand = KEY_GATHER;
+                                renderer.setCursorModeLabel("채집 대상 지정");
                                 renderer.setCursorMode(true);
                                 break;
                         }

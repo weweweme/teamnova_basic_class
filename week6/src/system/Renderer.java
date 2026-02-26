@@ -44,6 +44,11 @@ public class Renderer {
     private boolean cursorMode;
 
     /// <summary>
+    /// 커서 모드에서 실행 중인 명령 이름 (예: "이동 위치 지정", "채집 대상 지정")
+    /// </summary>
+    private String cursorModeLabel;
+
+    /// <summary>
     /// 열매 덤불 4x2 블록 (1행: " %% ", 2행: " %% ")
     /// </summary>
     private static final String[] FOOD_BLOCK = {" %% ", " %% "};
@@ -126,6 +131,13 @@ public class Renderer {
     }
 
     /// <summary>
+    /// 커서 모드 라벨 설정 (패널에 표시할 명령 이름)
+    /// </summary>
+    public void setCursorModeLabel(String label) {
+        this.cursorModeLabel = label;
+    }
+
+    /// <summary>
     /// 맵 전체를 화면에 출력
     /// 버퍼를 초기화하고, 오브젝트를 그린 뒤 패널과 함께 출력
     /// </summary>
@@ -182,25 +194,33 @@ public class Renderer {
     }
 
     /// <summary>
-    /// 이동 중인 정착민의 목표 위치에 마커를 그림
+    /// 이동/채집 중인 정착민의 목표 위치에 마커를 그림
     /// </summary>
     private void drawTargetMarkers() {
         for (Colonist colonist : gameMap.getColonists()) {
             ColonistState state = colonist.getCurrentState();
 
+            // 목표 위치 추출 (이동 또는 채집 상태에서)
+            Position target = null;
             if (state instanceof MovingState) {
-                MovingState movingState = (MovingState) state;
-                Position target = movingState.getTarget();
-                int row = target.getRow();
-                int col = target.getCol();
+                target = ((MovingState) state).getTarget();
+            } else if (state instanceof GatheringState) {
+                target = ((GatheringState) state).getTarget().getPosition();
+            }
 
-                // 목표 마커를 버퍼에 그림
-                for (int i = 0; i < TARGET_SYMBOL.length(); i++) {
-                    int bufferCol = col + i;
+            if (target == null) {
+                continue;
+            }
 
-                    if (bufferCol >= 0 && bufferCol < GameMap.WIDTH) {
-                        buffer[row][bufferCol] = TARGET_SYMBOL.charAt(i);
-                    }
+            int row = target.getRow();
+            int col = target.getCol();
+
+            // 목표 마커를 버퍼에 그림
+            for (int i = 0; i < TARGET_SYMBOL.length(); i++) {
+                int bufferCol = col + i;
+
+                if (bufferCol >= 0 && bufferCol < GameMap.WIDTH) {
+                    buffer[row][bufferCol] = TARGET_SYMBOL.charAt(i);
                 }
             }
         }
@@ -306,14 +326,17 @@ public class Renderer {
         // 모드별 명령 안내
         if (cursorMode) {
             lines.add(" ──────────────");
-            lines.add(" [이동 위치 지정]");
+            // 커서 모드 라벨이 설정되어 있으면 사용, 없으면 기본값
+            String label = (cursorModeLabel != null) ? cursorModeLabel : "위치 지정";
+            lines.add(" [" + label + "]");
             lines.add(" 방향키: 커서 이동");
-            lines.add(" Enter: 위치 확정");
+            lines.add(" Enter: 확정");
             lines.add(" q: 취소");
         } else {
             lines.add(" ──────────────");
             lines.add(" [명령]");
             lines.add(" 1: 이동");
+            lines.add(" 2: 채집");
         }
 
         return lines;

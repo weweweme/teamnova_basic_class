@@ -88,6 +88,36 @@ public class GameMap {
     }
 
     /// <summary>
+    /// 지정한 좌표를 포함하는 4x2 블록 범위에 있는 자원 찾기
+    /// 커서가 자원 블록 위에 있으면 해당 자원 반환, 없으면 null
+    /// </summary>
+    public Resource findResourceAt(int row, int col) {
+        // 자원 블록 크기
+        int blockWidth = 4;
+        int blockHeight = 2;
+
+        for (Resource resource : resources) {
+            int resRow = resource.getPosition().getRow();
+            int resCol = resource.getPosition().getCol();
+
+            boolean inRow = row >= resRow && row < resRow + blockHeight;
+            boolean inCol = col >= resCol && col < resCol + blockWidth;
+
+            if (inRow && inCol) {
+                return resource;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// 맵에서 자원 제거 (채집 완료 시)
+    /// </summary>
+    public void removeResource(Resource resource) {
+        resources.remove(resource);
+    }
+
+    /// <summary>
     /// 맵에 정착민 추가
     /// </summary>
     public void addColonist(Colonist colonist) {

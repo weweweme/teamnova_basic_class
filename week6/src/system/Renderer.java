@@ -517,6 +517,14 @@ public class Renderer {
             lines.add(" 모든 정착민이");
             lines.add(" 사망했습니다.");
             lines.add("");
+            lines.add(" [통계]");
+            if (dayNightCycle != null) {
+                lines.add(" 생존: " + dayNightCycle.getDay() + "일");
+            }
+            lines.add(" 처치: " + gameMap.getEnemiesKilled() + "마리");
+            lines.add(" 건설: " + gameMap.getBuildings().size() + "채");
+            lines.add(" 채집: " + gameMap.getResourcesGathered() + "회");
+            lines.add("");
             lines.add(" q: 종료");
         } else if (cursorMode) {
             lines.add(" ──────────────");

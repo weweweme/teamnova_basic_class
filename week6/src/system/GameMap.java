@@ -50,6 +50,16 @@ public class GameMap {
     private final ArrayList<Enemy> enemies = new ArrayList<>();
 
     /// <summary>
+    /// 처치한 적 수
+    /// </summary>
+    private int enemiesKilled;
+
+    /// <summary>
+    /// 채집 완료 횟수
+    /// </summary>
+    private int resourcesGathered;
+
+    /// <summary>
     /// 맵 생성, 모든 타일을 이동 가능한 평지로 초기화
     /// </summary>
     public GameMap() {
@@ -230,6 +240,7 @@ public class GameMap {
         for (Enemy enemy : dead) {
             enemy.stopRunning();
             enemies.remove(enemy);
+            enemiesKilled++;
         }
     }
 
@@ -283,5 +294,26 @@ public class GameMap {
             enemy.stopRunning();
         }
         enemies.clear();
+    }
+
+    /// <summary>
+    /// 채집 완료 횟수 1 증가
+    /// </summary>
+    public void addResourceGathered() {
+        resourcesGathered++;
+    }
+
+    /// <summary>
+    /// 처치한 적 수 반환
+    /// </summary>
+    public int getEnemiesKilled() {
+        return enemiesKilled;
+    }
+
+    /// <summary>
+    /// 채집 완료 횟수 반환
+    /// </summary>
+    public int getResourcesGathered() {
+        return resourcesGathered;
     }
 }

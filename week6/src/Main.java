@@ -251,5 +251,21 @@ public class Main {
         }
 
         Util.disableRawMode();
+        Util.clearScreen();
+
+        // 게임 통계 출력
+        int survivors = 0;
+        for (Colonist colonist : gameMap.getColonists()) {
+            if (colonist.isLiving()) {
+                survivors++;
+            }
+        }
+
+        System.out.println("=== 게임 통계 ===");
+        System.out.println("생존 일수: " + dayNightCycle.getDay() + "일");
+        System.out.println("생존자: " + survivors + "/" + gameMap.getColonists().size() + "명");
+        System.out.println("처치한 적: " + gameMap.getEnemiesKilled() + "마리");
+        System.out.println("건설한 건물: " + gameMap.getBuildings().size() + "채");
+        System.out.println("채집 횟수: " + gameMap.getResourcesGathered() + "회");
     }
 }

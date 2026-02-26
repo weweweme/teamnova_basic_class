@@ -129,10 +129,12 @@ public class DayNightCycle extends Thread {
                     day++;
                     mapGenerator.respawnResources();
                     triggerDayEvents();
+                    gameMap.addLog("── " + day + "일차 낮 시작 ──");
                 } else {
                     // 낮 → 밤, 적 출현
                     night = true;
                     spawnEnemies();
+                    gameMap.addLog("── 밤이 찾아왔습니다 ──");
                 }
             }
 
@@ -234,6 +236,7 @@ public class DayNightCycle extends Thread {
 
         eventMessage = name + " 합류!";
         eventMessageTicks = 10;
+        gameMap.addLog(">> " + name + " 합류!");
     }
 
     /// <summary>
@@ -249,6 +252,7 @@ public class DayNightCycle extends Thread {
 
         eventMessage = "자원 발견!";
         eventMessageTicks = 10;
+        gameMap.addLog(">> 자원 발견!");
     }
 
     /// <summary>

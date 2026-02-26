@@ -19,6 +19,11 @@ public class Renderer {
     private static final int PANEL_WIDTH = 22;
 
     /// <summary>
+    /// 하단 로그 표시 줄 수
+    /// </summary>
+    private static final int LOG_LINES = 8;
+
+    /// <summary>
     /// 출력할 게임 맵
     /// </summary>
     private final GameMap gameMap;
@@ -600,24 +605,75 @@ public class Renderer {
     }
 
     /// <summary>
+    /// 한글 등 전각 문자를 고려한 터미널 표시 폭 계산
+    /// </summary>
+    private int displayWidth(String text) {
+        int width = 0;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            // 한글 음절(가~힣) 또는 CJK 문자는 2칸 차지
+            boolean isKorean = c >= 0xAC00 && c <= 0xD7A3;
+            boolean isCjk = c >= 0x3000 && c <= 0x9FFF;
+            if (isKorean || isCjk) {
+                width += 2;
+            } else {
+                width += 1;
+            }
+        }
+        return width;
+    }
+
+    /// <summary>
+    /// 문자열을 지정한 표시 폭에 맞춰 공백으로 패딩
+    /// </summary>
+    private String padToWidth(String text, int targetWidth) {
+        int currentWidth = displayWidth(text);
+        StringBuilder padded = new StringBuilder(text);
+        for (int i = currentWidth; i < targetWidth; i++) {
+            padded.append(' ');
+        }
+        return padded.toString();
+    }
+
+    /// <summary>
     /// 버퍼와 우측 패널을 합쳐서 화면에 한번에 출력
+    /// 맵 영역 + 구분선 + 로그 영역 모두 우측 패널과 나란히 표시
     /// </summary>
     private void flush() {
         ArrayList<String> panelLines = buildPanel();
+        ArrayList<String> logs = gameMap.getRecentLogs();
 
+        // 전체 높이: 맵(30) + 구분선(1) + 로그(8) = 39줄
+        int totalHeight = GameMap.HEIGHT + 1 + LOG_LINES;
         int totalWidth = GameMap.WIDTH + PANEL_SEPARATOR.length() + PANEL_WIDTH;
-        StringBuilder screen = new StringBuilder(totalWidth * GameMap.HEIGHT + GameMap.HEIGHT + 10);
+        StringBuilder screen = new StringBuilder(totalWidth * totalHeight + totalHeight + 10);
 
         // 커서를 맨 위로 이동 (문자열에 포함하여 한번에 출력)
         screen.append("\033[H");
 
-        for (int row = 0; row < GameMap.HEIGHT; row++) {
-            // 맵 버퍼
-            for (int col = 0; col < GameMap.WIDTH; col++) {
-                screen.append(buffer[row][col]);
+        for (int row = 0; row < totalHeight; row++) {
+            // 좌측 내용 (맵 / 구분선 / 로그)
+            if (row < GameMap.HEIGHT) {
+                // 맵 버퍼
+                for (int col = 0; col < GameMap.WIDTH; col++) {
+                    screen.append(buffer[row][col]);
+                }
+            } else if (row == GameMap.HEIGHT) {
+                // 로그 구분선
+                for (int i = 0; i < GameMap.WIDTH; i++) {
+                    screen.append('-');
+                }
+            } else {
+                // 로그 줄
+                int logIndex = row - GameMap.HEIGHT - 1;
+                String logContent = "";
+                if (logIndex < logs.size()) {
+                    logContent = " " + logs.get(logIndex);
+                }
+                screen.append(padToWidth(logContent, GameMap.WIDTH));
             }
 
-            // 구분선 + 패널
+            // 우측 패널 (모든 줄에 동일하게 표시)
             screen.append(PANEL_SEPARATOR);
             if (row < panelLines.size()) {
                 screen.append(padPanel(panelLines.get(row)));

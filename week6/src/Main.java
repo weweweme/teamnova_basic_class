@@ -76,9 +76,9 @@ public class Main {
         }
 
         // 정착민 3명 배치 및 맵에 등록
-        Colonist chulsoo = new Colonist("김철수", new Position(20, 55), gameMap);
-        Colonist younghee = new Colonist("이영희", new Position(20, 60), gameMap);
-        Colonist minsoo = new Colonist("박민수", new Position(20, 65), gameMap);
+        Colonist chulsoo = new Colonist("김철수", new Position(15, 55), gameMap);
+        Colonist younghee = new Colonist("이영희", new Position(15, 60), gameMap);
+        Colonist minsoo = new Colonist("박민수", new Position(15, 65), gameMap);
         gameMap.addColonist(chulsoo);
         gameMap.addColonist(younghee);
         gameMap.addColonist(minsoo);

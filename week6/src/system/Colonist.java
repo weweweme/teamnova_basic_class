@@ -129,6 +129,10 @@ public class Colonist extends Thread {
             consumeFood();
             Util.delay(TICK_DELAY);
         }
+
+        if (!isLiving()) {
+            gameMap.addLog("[" + label + "] " + name + " 사망");
+        }
     }
 
     /// <summary>
@@ -188,6 +192,7 @@ public class Colonist extends Thread {
         currentState.exit(this);
         currentState = newState;
         currentState.enter(this);
+        gameMap.addLog("[" + label + "] " + name + ": " + newState.getDisplayName());
     }
 
     /// <summary>

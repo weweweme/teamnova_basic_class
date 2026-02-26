@@ -4,8 +4,8 @@ import java.util.ArrayList;
 
 /// <summary>
 /// 게임 맵 전체를 관리하는 클래스
-/// 120x40 크기의 타일 배열을 가지며, 각 타일의 이동 가능 여부를 관리
-/// 맵 위의 자원 목록도 함께 관리
+/// 120x30 크기의 타일 배열을 가지며, 각 타일의 이동 가능 여부를 관리
+/// 맵 위의 자원 목록과 게임 로그도 함께 관리
 /// </summary>
 public class GameMap {
 
@@ -17,7 +17,7 @@ public class GameMap {
     /// <summary>
     /// 맵 세로 크기 (문자 단위)
     /// </summary>
-    public static final int HEIGHT = 40;
+    public static final int HEIGHT = 30;
 
     /// <summary>
     /// 맵 전체 타일 배열 [행][열]
@@ -48,6 +48,16 @@ public class GameMap {
     /// 현재 맵에 있는 적 목록
     /// </summary>
     private final ArrayList<Enemy> enemies = new ArrayList<>();
+
+    /// <summary>
+    /// 최대 로그 보관 수
+    /// </summary>
+    private static final int LOG_CAPACITY = 8;
+
+    /// <summary>
+    /// 게임 로그 메시지 목록 (오래된 순서)
+    /// </summary>
+    private final ArrayList<String> logs = new ArrayList<>();
 
     /// <summary>
     /// 처치한 적 수
@@ -315,5 +325,23 @@ public class GameMap {
     /// </summary>
     public int getResourcesGathered() {
         return resourcesGathered;
+    }
+
+    /// <summary>
+    /// 로그 메시지 추가 (최대 보관 수 초과 시 오래된 것부터 삭제)
+    /// 여러 스레드에서 동시에 호출될 수 있어 동기화 처리
+    /// </summary>
+    public synchronized void addLog(String message) {
+        logs.add(message);
+        if (logs.size() > LOG_CAPACITY) {
+            logs.remove(0);
+        }
+    }
+
+    /// <summary>
+    /// 현재 로그 목록 복사본 반환 (렌더링용)
+    /// </summary>
+    public synchronized ArrayList<String> getRecentLogs() {
+        return new ArrayList<>(logs);
     }
 }

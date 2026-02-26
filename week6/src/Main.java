@@ -2,6 +2,7 @@ import system.Colonist;
 import system.Cursor;
 import system.GameMap;
 import system.MapGenerator;
+import system.MovingState;
 import system.Position;
 import system.Renderer;
 import system.Util;
@@ -41,6 +42,8 @@ public class Main {
         final int RENDER_INTERVAL = 100;
         // 입력 체크 간격 (밀리초, 짧을수록 입력이 즉각적)
         final int INPUT_CHECK_INTERVAL = 16;
+        // 이동 명령 키
+        final int KEY_MOVE = '1';
 
         long lastRenderTime = 0;
 
@@ -59,16 +62,35 @@ public class Main {
                     }
 
                     if (renderer.isCursorMode()) {
-                        // 커서 모드: 화살표로 커서 이동
-                        cursor.move(key);
+                        // 커서 모드
+                        switch (key) {
+                            case Util.KEY_UP:
+                            case Util.KEY_DOWN:
+                            case Util.KEY_LEFT:
+                            case Util.KEY_RIGHT:
+                                cursor.move(key);
+                                break;
+                            case Util.KEY_ENTER:
+                                // 목표 위치 확정 → 선택된 정착민에게 이동 명령
+                                Colonist selected = gameMap.getColonists().get(renderer.getSelectedIndex());
+                                int targetRow = cursor.getPosition().getRow();
+                                int targetCol = cursor.getPosition().getCol();
+                                selected.changeState(new MovingState(new Position(targetRow, targetCol)));
+                                renderer.setCursorMode(false);
+                                break;
+                        }
                     } else {
-                        // 시뮬레이션 모드: ↑↓로 정착민 선택
+                        // 시뮬레이션 모드
                         switch (key) {
                             case Util.KEY_UP:
                                 renderer.selectPrevious();
                                 break;
                             case Util.KEY_DOWN:
                                 renderer.selectNext();
+                                break;
+                            case KEY_MOVE:
+                                // 이동 명령 → 커서 모드로 전환
+                                renderer.setCursorMode(true);
                                 break;
                         }
                     }

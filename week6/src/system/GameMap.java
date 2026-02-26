@@ -40,6 +40,11 @@ public class GameMap {
     private final Supply supply = new Supply();
 
     /// <summary>
+    /// 건설된 건물 목록
+    /// </summary>
+    private final ArrayList<Building> buildings = new ArrayList<>();
+
+    /// <summary>
     /// 맵 생성, 모든 타일을 이동 가능한 평지로 초기화
     /// </summary>
     public GameMap() {
@@ -127,6 +132,56 @@ public class GameMap {
     /// </summary>
     public Supply getSupply() {
         return supply;
+    }
+
+    /// <summary>
+    /// 맵에 건물 추가, 벽이면 해당 타일을 이동 불가로 변경
+    /// </summary>
+    public void addBuilding(Building building) {
+        buildings.add(building);
+
+        // 벽은 4x2 블록 전체를 이동 불가로 설정
+        if (building.getType() == BuildingType.WALL) {
+            int startRow = building.getPosition().getRow();
+            int startCol = building.getPosition().getCol();
+
+            for (int row = startRow; row < startRow + 2; row++) {
+                for (int col = startCol; col < startCol + 4; col++) {
+                    if (isInBounds(row, col)) {
+                        tiles[row][col].setWalkable(false);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 건물 목록 반환
+    /// </summary>
+    public ArrayList<Building> getBuildings() {
+        return buildings;
+    }
+
+    /// <summary>
+    /// 지정한 좌표 근처(맨해튼 거리)에 특정 종류의 건물이 있는지 확인
+    /// </summary>
+    public boolean hasBuildingNearby(int row, int col, BuildingType type, int range) {
+        for (Building building : buildings) {
+            if (building.getType() != type) {
+                continue;
+            }
+
+            int buildRow = building.getPosition().getRow();
+            int buildCol = building.getPosition().getCol();
+            int distRow = Math.abs(row - buildRow);
+            int distCol = Math.abs(col - buildCol);
+            int distance = distRow + distCol;
+
+            if (distance <= range) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /// <summary>

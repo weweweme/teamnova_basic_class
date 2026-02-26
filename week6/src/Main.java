@@ -1,3 +1,6 @@
+import system.Building;
+import system.BuildingState;
+import system.BuildingType;
 import system.Colonist;
 import system.Cursor;
 import system.GameMap;
@@ -8,6 +11,7 @@ import system.Position;
 import system.Renderer;
 import system.Resource;
 import system.RestingState;
+import system.Supply;
 import system.Util;
 
 /// <summary>
@@ -24,6 +28,17 @@ public class Main {
 
         // 맵에 자원 랜덤 배치
         mapGenerator.generate();
+
+        // 테스트용 초기 물자
+        Supply initialSupply = gameMap.getSupply();
+        for (int i = 0; i < 30; i++) {
+            initialSupply.add(system.ResourceType.TREE);
+            initialSupply.add(system.ResourceType.ROCK);
+        }
+        for (int i = 0; i < 15; i++) {
+            initialSupply.add(system.ResourceType.FOOD);
+            initialSupply.add(system.ResourceType.IRON);
+        }
 
         // 정착민 3명 배치 및 맵에 등록
         Colonist chulsoo = new Colonist("김철수", new Position(20, 55), gameMap);
@@ -49,11 +64,27 @@ public class Main {
         final int KEY_MOVE = '1';
         final int KEY_GATHER = '2';
         final int KEY_REST = '3';
+        final int KEY_BUILD = '4';
+
+        // 건물 선택 키
+        final int KEY_BUILD_WALL = 'a';
+        final int KEY_BUILD_STORAGE = 'b';
+        final int KEY_BUILD_BEDROOM = 'c';
 
         /// <summary>
         /// 커서 모드에 진입하게 만든 명령 키 (이동인지 채집인지 구분)
         /// </summary>
         int pendingCommand = 0;
+
+        /// <summary>
+        /// 건설할 건물 종류 (건물 선택 후 커서 모드에서 사용)
+        /// </summary>
+        BuildingType pendingBuildingType = null;
+
+        /// <summary>
+        /// 건물 선택 모드 여부 (true면 a/b/c로 건물 종류 선택 대기)
+        /// </summary>
+        boolean buildSelectMode = false;
 
         long lastRenderTime = 0;
 
@@ -66,7 +97,39 @@ public class Main {
                 if (System.in.available() > 0) {
                     int key = Util.readKey();
 
-                    if (renderer.isCursorMode()) {
+                    if (buildSelectMode) {
+                        // 건물 선택 모드 — a/b/c로 건물 종류 선택
+                        BuildingType selectedType = null;
+                        switch (key) {
+                            case KEY_BUILD_WALL:
+                                selectedType = BuildingType.WALL;
+                                break;
+                            case KEY_BUILD_STORAGE:
+                                selectedType = BuildingType.STORAGE;
+                                break;
+                            case KEY_BUILD_BEDROOM:
+                                selectedType = BuildingType.BEDROOM;
+                                break;
+                            case Util.KEY_QUIT:
+                                buildSelectMode = false;
+                                renderer.setBuildSelectMode(false);
+                                break;
+                        }
+
+                        if (selectedType != null) {
+                            // 자원이 충분한지 확인
+                            Supply supply = gameMap.getSupply();
+                            if (supply.canAfford(selectedType)) {
+                                pendingBuildingType = selectedType;
+                                pendingCommand = KEY_BUILD;
+                                buildSelectMode = false;
+                                renderer.setBuildSelectMode(false);
+                                renderer.setCursorModeLabel("건설 위치 지정");
+                                renderer.setCursorMode(true);
+                            }
+                            // 자원 부족하면 무시 (선택 모드 유지)
+                        }
+                    } else if (renderer.isCursorMode()) {
                         // 커서 모드
                         switch (key) {
                             case Util.KEY_UP:
@@ -93,6 +156,14 @@ public class Main {
                                         renderer.setCursorMode(false);
                                     }
                                     // 자원이 없으면 무시 (커서 모드 유지)
+                                } else if (pendingCommand == KEY_BUILD) {
+                                    // 건설 명령 — 자원 차감 후 건설 상태로 전환
+                                    Supply supply = gameMap.getSupply();
+                                    if (supply.spend(pendingBuildingType)) {
+                                        Position buildPos = new Position(targetRow, targetCol);
+                                        selected.changeState(new BuildingState(pendingBuildingType, buildPos));
+                                        renderer.setCursorMode(false);
+                                    }
                                 }
                                 break;
                             case Util.KEY_QUIT:
@@ -128,6 +199,11 @@ public class Main {
                                 // 휴식 명령 → 즉시 휴식 상태로 전환
                                 Colonist restTarget = gameMap.getColonists().get(renderer.getSelectedIndex());
                                 restTarget.changeState(new RestingState());
+                                break;
+                            case KEY_BUILD:
+                                // 건설 명령 → 건물 선택 모드로 전환
+                                buildSelectMode = true;
+                                renderer.setBuildSelectMode(true);
                                 break;
                         }
                     }

@@ -49,6 +49,11 @@ public class Renderer {
     private String cursorModeLabel;
 
     /// <summary>
+    /// 건물 선택 모드 여부
+    /// </summary>
+    private boolean buildSelectMode;
+
+    /// <summary>
     /// 열매 덤불 4x2 블록 (1행: " %% ", 2행: " %% ")
     /// </summary>
     private static final String[] FOOD_BLOCK = {" %% ", " %% "};
@@ -67,6 +72,21 @@ public class Renderer {
     /// 철광석 4x2 블록 (1행: "/==\", 2행: "\==/")
     /// </summary>
     private static final String[] IRON_BLOCK = {"/==\\", "\\==/"};
+
+    /// <summary>
+    /// 벽 4x2 블록 (1행: "####", 2행: "####")
+    /// </summary>
+    private static final String[] WALL_BLOCK = {"####", "####"};
+
+    /// <summary>
+    /// 저장소 4x2 블록 (1행: "[==]", 2행: "[==]")
+    /// </summary>
+    private static final String[] STORAGE_BLOCK = {"[==]", "[==]"};
+
+    /// <summary>
+    /// 침실 4x2 블록 (1행: "[~~]", 2행: "[~~]")
+    /// </summary>
+    private static final String[] BEDROOM_BLOCK = {"[~~]", "[~~]"};
 
     /// <summary>
     /// 커서 심볼 (가로 3문자, 세로 1줄)
@@ -138,12 +158,20 @@ public class Renderer {
     }
 
     /// <summary>
+    /// 건물 선택 모드 설정
+    /// </summary>
+    public void setBuildSelectMode(boolean buildSelectMode) {
+        this.buildSelectMode = buildSelectMode;
+    }
+
+    /// <summary>
     /// 맵 전체를 화면에 출력
     /// 버퍼를 초기화하고, 오브젝트를 그린 뒤 패널과 함께 출력
     /// </summary>
     public void render() {
         clearBuffer();
         drawResources();
+        drawBuildings();
         drawTargetMarkers();
         drawColonists();
 
@@ -179,6 +207,19 @@ public class Renderer {
     }
 
     /// <summary>
+    /// 맵의 모든 건물을 버퍼에 4x2 블록으로 그림
+    /// </summary>
+    private void drawBuildings() {
+        for (Building building : gameMap.getBuildings()) {
+            int row = building.getPosition().getRow();
+            int col = building.getPosition().getCol();
+
+            String[] block = getBuildingBlock(building.getType());
+            drawBlock(row, col, block);
+        }
+    }
+
+    /// <summary>
     /// 모든 정착민을 버퍼에 4x2 블록으로 그림
     /// 이니셜로 구분: (A) / " | "
     /// </summary>
@@ -200,12 +241,14 @@ public class Renderer {
         for (Colonist colonist : gameMap.getColonists()) {
             ColonistState state = colonist.getCurrentState();
 
-            // 목표 위치 추출 (이동 또는 채집 상태에서)
+            // 목표 위치 추출 (이동, 채집, 건설 상태에서)
             Position target = null;
             if (state instanceof MovingState) {
                 target = ((MovingState) state).getTarget();
             } else if (state instanceof GatheringState) {
                 target = ((GatheringState) state).getTarget().getPosition();
+            } else if (state instanceof BuildingState) {
+                target = ((BuildingState) state).getBuildPosition();
             }
 
             if (target == null) {
@@ -257,6 +300,22 @@ public class Renderer {
                 return IRON_BLOCK;
             default:
                 return FOOD_BLOCK;
+        }
+    }
+
+    /// <summary>
+    /// 건물 종류에 맞는 4x2 블록 반환
+    /// </summary>
+    private String[] getBuildingBlock(BuildingType type) {
+        switch (type) {
+            case WALL:
+                return WALL_BLOCK;
+            case STORAGE:
+                return STORAGE_BLOCK;
+            case BEDROOM:
+                return BEDROOM_BLOCK;
+            default:
+                return WALL_BLOCK;
         }
     }
 
@@ -341,12 +400,23 @@ public class Renderer {
             lines.add(" 방향키: 커서 이동");
             lines.add(" Enter: 확정");
             lines.add(" q: 취소");
+        } else if (buildSelectMode) {
+            lines.add(" ──────────────");
+            lines.add(" [건물 선택]");
+            lines.add(" a: 벽");
+            lines.add("    목재" + BuildingType.WALL.getWoodCost());
+            lines.add(" b: 저장소");
+            lines.add("    목재" + BuildingType.STORAGE.getWoodCost() + " 석재" + BuildingType.STORAGE.getStoneCost());
+            lines.add(" c: 침실");
+            lines.add("    목재" + BuildingType.BEDROOM.getWoodCost() + " 석재" + BuildingType.BEDROOM.getStoneCost());
+            lines.add(" q: 취소");
         } else {
             lines.add(" ──────────────");
             lines.add(" [명령]");
             lines.add(" 1: 이동");
             lines.add(" 2: 채집");
             lines.add(" 3: 휴식");
+            lines.add(" 4: 건설");
         }
 
         return lines;

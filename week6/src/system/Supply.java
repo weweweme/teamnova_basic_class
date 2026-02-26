@@ -85,4 +85,30 @@ public class Supply {
     public synchronized int getIron() {
         return iron;
     }
+
+    /// <summary>
+    /// 건물 건설 비용을 감당할 수 있는지 확인
+    /// </summary>
+    public synchronized boolean canAfford(BuildingType buildingType) {
+        boolean enoughWood = wood >= buildingType.getWoodCost();
+        boolean enoughStone = stone >= buildingType.getStoneCost();
+        boolean enoughFood = food >= buildingType.getFoodCost();
+        boolean enoughIron = iron >= buildingType.getIronCost();
+        return enoughWood && enoughStone && enoughFood && enoughIron;
+    }
+
+    /// <summary>
+    /// 건물 건설 비용만큼 자원 차감
+    /// 비용이 부족하면 차감하지 않고 false 반환
+    /// </summary>
+    public synchronized boolean spend(BuildingType buildingType) {
+        if (!canAfford(buildingType)) {
+            return false;
+        }
+        wood -= buildingType.getWoodCost();
+        stone -= buildingType.getStoneCost();
+        food -= buildingType.getFoodCost();
+        iron -= buildingType.getIronCost();
+        return true;
+    }
 }

@@ -7,9 +7,19 @@ package system;
 public class RestingState extends ColonistState {
 
     /// <summary>
-    /// 틱당 피로 회복량
+    /// 기본 틱당 피로 회복량
     /// </summary>
     private static final int RECOVERY_PER_TICK = 2;
+
+    /// <summary>
+    /// 침실 근처에서 휴식할 때 회복 배율
+    /// </summary>
+    private static final int BEDROOM_MULTIPLIER = 2;
+
+    /// <summary>
+    /// 침실 효과 범위 (맨해튼 거리)
+    /// </summary>
+    private static final int BEDROOM_RANGE = 5;
 
     @Override
     public void enter(Colonist colonist) {
@@ -18,7 +28,17 @@ public class RestingState extends ColonistState {
 
     @Override
     public void update(Colonist colonist) {
-        colonist.reduceFatigue(RECOVERY_PER_TICK);
+        int recovery = RECOVERY_PER_TICK;
+
+        // 침실 근처에서 휴식하면 회복 속도 2배
+        int row = colonist.getPosition().getRow();
+        int col = colonist.getPosition().getCol();
+        boolean nearBedroom = colonist.getGameMap().hasBuildingNearby(row, col, BuildingType.BEDROOM, BEDROOM_RANGE);
+        if (nearBedroom) {
+            recovery *= BEDROOM_MULTIPLIER;
+        }
+
+        colonist.reduceFatigue(recovery);
 
         // 피로가 0이 되면 대기 상태로 복귀
         if (colonist.getFatigue() <= 0) {

@@ -27,6 +27,11 @@ public class MapGenerator {
     private static final int INITIAL_IRON_COUNT = 5;
 
     /// <summary>
+    /// 매 낮마다 종류별 최대 재생성 수
+    /// </summary>
+    private static final int RESPAWN_PER_DAY = 2;
+
+    /// <summary>
     /// 4x2 블록의 가로 크기
     /// </summary>
     private static final int BLOCK_WIDTH = 4;
@@ -102,10 +107,44 @@ public class MapGenerator {
         }
     }
 
-    // TODO: ResourceManager 스레드에서 주기적으로 호출할 자원 재생 메서드
-    //  - 현재 맵의 자원 수가 초기 배치 수보다 적으면 부족한 만큼 재생성
-    //  - 나무, 돌, 철광석만 재생 (부품은 재생 안 됨)
-    //  - 건물, 정착민, 적과 겹치지 않는 위치에 배치
+    /// <summary>
+    /// 낮이 시작될 때 부족한 자원을 보충
+    /// 각 종류별로 초기 배치 수 대비 부족한 만큼 최대 2개씩 재생성
+    /// </summary>
+    public void respawnResources() {
+        respawnIfNeeded(ResourceType.FOOD, INITIAL_FOOD_COUNT);
+        respawnIfNeeded(ResourceType.TREE, INITIAL_TREE_COUNT);
+        respawnIfNeeded(ResourceType.ROCK, INITIAL_ROCK_COUNT);
+        respawnIfNeeded(ResourceType.IRON, INITIAL_IRON_COUNT);
+    }
+
+    /// <summary>
+    /// 한 종류의 자원이 초기 배치 수보다 적으면 최대 2개까지 재생성
+    /// </summary>
+    private void respawnIfNeeded(ResourceType type, int initialCount) {
+        int currentCount = countResources(type);
+        int deficit = initialCount - currentCount;
+
+        // 부족분과 매일 최대 재생량 중 작은 값만큼 보충
+        int toRespawn = Math.min(deficit, RESPAWN_PER_DAY);
+
+        for (int i = 0; i < toRespawn; i++) {
+            respawnResource(type);
+        }
+    }
+
+    /// <summary>
+    /// 맵에 있는 특정 종류의 자원 수를 셈
+    /// </summary>
+    private int countResources(ResourceType type) {
+        int count = 0;
+        for (Resource resource : gameMap.getResources()) {
+            if (resource.getType() == type) {
+                count++;
+            }
+        }
+        return count;
+    }
 
     /// <summary>
     /// 지정한 위치의 4x2 영역이 다른 자원과 겹치지 않는지 확인

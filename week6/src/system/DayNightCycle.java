@@ -127,6 +127,7 @@ public class DayNightCycle extends Thread {
                     gameMap.clearEnemies();
                     night = false;
                     day++;
+                    mapGenerator.respawnResources();
                     triggerDayEvents();
                 } else {
                     // 낮 → 밤, 적 출현

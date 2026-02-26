@@ -59,6 +59,17 @@ public class Supply {
     }
 
     /// <summary>
+    /// 식량 1 소비, 식량이 있으면 차감 후 true, 없으면 false
+    /// </summary>
+    public synchronized boolean consumeFood() {
+        if (food > 0) {
+            food--;
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
     /// 보유 식량 반환
     /// </summary>
     public synchronized int getFood() {

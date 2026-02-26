@@ -489,7 +489,11 @@ public class Renderer {
             lines.add(" ──────────────");
             lines.add(" " + selected.getColonistName());
             if (selected.isLiving()) {
-                lines.add(" 상태: " + selected.getCurrentState().getDisplayName());
+                String stateName = selected.getCurrentState().getDisplayName();
+                if (selected.isStarving()) {
+                    stateName += " (굶주림)";
+                }
+                lines.add(" 상태: " + stateName);
                 lines.add(" 체력: " + buildBar(selected.getHp(), selected.getMaxHp()));
                 lines.add(" 피로: " + buildBar(selected.getFatigue(), selected.getMaxFatigue()));
             } else {

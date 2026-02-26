@@ -33,6 +33,16 @@ public class Colonist extends Thread {
     private static final int TICK_DELAY = 500;
 
     /// <summary>
+    /// 식량 소비 주기 (틱 수, 10초 = 20틱)
+    /// </summary>
+    private static final int HUNGER_INTERVAL = 20;
+
+    /// <summary>
+    /// 굶주림 상태에서 틱당 HP 감소량
+    /// </summary>
+    private static final int STARVATION_DAMAGE = 1;
+
+    /// <summary>
     /// 다음에 부여할 알파벳 (A부터 순서대로)
     /// </summary>
     private static char nextLabel = 'A';
@@ -73,6 +83,16 @@ public class Colonist extends Thread {
     private ColonistState currentState;
 
     /// <summary>
+    /// 식량 소비 카운터 (HUNGER_INTERVAL에 도달하면 식량 1 소비)
+    /// </summary>
+    private int hungerTicks;
+
+    /// <summary>
+    /// 굶주림 상태인지 여부 (식량 부족 시 true)
+    /// </summary>
+    private boolean starving;
+
+    /// <summary>
     /// 스레드 실행 여부 (false가 되면 스레드 종료)
     /// </summary>
     private volatile boolean running;
@@ -89,6 +109,8 @@ public class Colonist extends Thread {
         this.gameMap = gameMap;
         this.hp = MAX_HP;
         this.fatigue = 0;
+        this.hungerTicks = 0;
+        this.starving = false;
         this.currentState = new IdleState();
         this.running = true;
     }
@@ -104,6 +126,7 @@ public class Colonist extends Thread {
         while (running && isLiving()) {
             currentState.update(this);
             attackNearbyEnemy();
+            consumeFood();
             Util.delay(TICK_DELAY);
         }
     }
@@ -129,6 +152,31 @@ public class Colonist extends Thread {
 
         if (closest != null) {
             closest.takeDamage(ATTACK_DAMAGE);
+        }
+    }
+
+    /// <summary>
+    /// 일정 주기마다 식량을 1 소비, 식량이 없으면 굶주림으로 HP 감소
+    /// </summary>
+    private void consumeFood() {
+        hungerTicks++;
+
+        if (hungerTicks >= HUNGER_INTERVAL) {
+            hungerTicks = 0;
+
+            Supply supply = gameMap.getSupply();
+            if (supply.consumeFood()) {
+                // 식량 소비 성공 — 굶주림 해제
+                starving = false;
+            } else {
+                // 식량 부족 — 굶주림 상태
+                starving = true;
+            }
+        }
+
+        // 굶주림 상태면 틱마다 HP 감소
+        if (starving) {
+            hp = Math.max(hp - STARVATION_DAMAGE, 0);
         }
     }
 
@@ -238,6 +286,13 @@ public class Colonist extends Thread {
     /// </summary>
     public boolean isLiving() {
         return hp > 0;
+    }
+
+    /// <summary>
+    /// 굶주림 상태인지 확인
+    /// </summary>
+    public boolean isStarving() {
+        return starving;
     }
 
     /// <summary>

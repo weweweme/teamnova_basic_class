@@ -50,7 +50,7 @@ public class Main {
         gameMap.addColonist(minsoo);
 
         // 낮/밤 주기 생성 및 렌더러에 연결
-        DayNightCycle dayNightCycle = new DayNightCycle();
+        DayNightCycle dayNightCycle = new DayNightCycle(gameMap);
         renderer.setDayNightCycle(dayNightCycle);
 
         Util.enableRawMode();
@@ -236,6 +236,7 @@ public class Main {
 
         // 스레드 종료
         dayNightCycle.stopRunning();
+        gameMap.clearEnemies();
         for (Colonist colonist : gameMap.getColonists()) {
             colonist.stopRunning();
         }

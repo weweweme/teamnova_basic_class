@@ -45,6 +45,11 @@ public class GameMap {
     private final ArrayList<Building> buildings = new ArrayList<>();
 
     /// <summary>
+    /// 현재 맵에 있는 적 목록
+    /// </summary>
+    private final ArrayList<Enemy> enemies = new ArrayList<>();
+
+    /// <summary>
     /// 맵 생성, 모든 타일을 이동 가능한 평지로 초기화
     /// </summary>
     public GameMap() {
@@ -196,5 +201,45 @@ public class GameMap {
     /// </summary>
     public ArrayList<Colonist> getColonists() {
         return colonists;
+    }
+
+    /// <summary>
+    /// 맵에 적 추가
+    /// </summary>
+    public void addEnemy(Enemy enemy) {
+        enemies.add(enemy);
+    }
+
+    /// <summary>
+    /// 적 목록 반환
+    /// </summary>
+    public ArrayList<Enemy> getEnemies() {
+        return enemies;
+    }
+
+    /// <summary>
+    /// 죽은 적을 목록에서 제거하고 스레드 종료
+    /// </summary>
+    public void removeDeadEnemies() {
+        ArrayList<Enemy> dead = new ArrayList<>();
+        for (Enemy enemy : enemies) {
+            if (!enemy.isLiving()) {
+                dead.add(enemy);
+            }
+        }
+        for (Enemy enemy : dead) {
+            enemy.stopRunning();
+            enemies.remove(enemy);
+        }
+    }
+
+    /// <summary>
+    /// 모든 적을 제거하고 스레드 종료 (밤 종료 시)
+    /// </summary>
+    public void clearEnemies() {
+        for (Enemy enemy : enemies) {
+            enemy.stopRunning();
+        }
+        enemies.clear();
     }
 }

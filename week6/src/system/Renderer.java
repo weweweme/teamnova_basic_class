@@ -94,6 +94,11 @@ public class Renderer {
     private static final String[] BEDROOM_BLOCK = {"[~~]", "[~~]"};
 
     /// <summary>
+    /// 적 4x2 블록 (1행: " XX ", 2행: " XX ")
+    /// </summary>
+    private static final String[] ENEMY_BLOCK = {" XX ", " XX "};
+
+    /// <summary>
     /// 커서 심볼 (가로 3문자, 세로 1줄)
     /// </summary>
     private static final String CURSOR_SYMBOL = "[ ]";
@@ -186,6 +191,7 @@ public class Renderer {
         drawBuildings();
         drawTargetMarkers();
         drawColonists();
+        drawEnemies();
 
         if (cursorMode) {
             drawCursor();
@@ -248,6 +254,20 @@ public class Renderer {
 
             String[] block = {"(" + label + ")", " |  "};
             drawBlock(row, col, block);
+        }
+    }
+
+    /// <summary>
+    /// 맵의 모든 적을 버퍼에 4x2 블록으로 그림
+    /// </summary>
+    private void drawEnemies() {
+        for (Enemy enemy : gameMap.getEnemies()) {
+            if (!enemy.isLiving()) {
+                continue;
+            }
+            int row = enemy.getPosition().getRow();
+            int col = enemy.getPosition().getCol();
+            drawBlock(row, col, ENEMY_BLOCK);
         }
     }
 
@@ -403,6 +423,12 @@ public class Renderer {
             int remaining = dayNightCycle.getRemainingSeconds();
             lines.add(" [시간] " + dayNightCycle.getDay() + "일차 " + phase);
             lines.add("  전환까지 " + remaining + "초");
+
+            // 밤이면 적 수 표시
+            if (dayNightCycle.isNight()) {
+                int enemyCount = gameMap.getEnemies().size();
+                lines.add("  적: " + enemyCount + "마리");
+            }
             lines.add("");
         }
 

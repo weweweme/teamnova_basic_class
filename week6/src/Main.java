@@ -1,6 +1,8 @@
+import system.Colonist;
 import system.Cursor;
 import system.GameMap;
 import system.MapGenerator;
+import system.Position;
 import system.Renderer;
 import system.Util;
 
@@ -18,6 +20,11 @@ public class Main {
 
         // 맵에 자원 랜덤 배치
         mapGenerator.generate();
+
+        // 테스트용 정착민 3명 배치
+        gameMap.addColonist(new Colonist("김철수", new Position(20, 55)));
+        gameMap.addColonist(new Colonist("이영희", new Position(20, 60)));
+        gameMap.addColonist(new Colonist("박민수", new Position(20, 65)));
 
         Util.enableRawMode();
         renderer.render();

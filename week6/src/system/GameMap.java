@@ -30,6 +30,11 @@ public class GameMap {
     private final ArrayList<Resource> resources = new ArrayList<>();
 
     /// <summary>
+    /// 정착민 목록
+    /// </summary>
+    private final ArrayList<Colonist> colonists = new ArrayList<>();
+
+    /// <summary>
     /// 맵 생성, 모든 타일을 이동 가능한 평지로 초기화
     /// </summary>
     public GameMap() {
@@ -80,5 +85,19 @@ public class GameMap {
     /// </summary>
     public ArrayList<Resource> getResources() {
         return resources;
+    }
+
+    /// <summary>
+    /// 맵에 정착민 추가
+    /// </summary>
+    public void addColonist(Colonist colonist) {
+        colonists.add(colonist);
+    }
+
+    /// <summary>
+    /// 정착민 목록 반환
+    /// </summary>
+    public ArrayList<Colonist> getColonists() {
+        return colonists;
     }
 }

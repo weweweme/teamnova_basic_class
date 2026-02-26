@@ -63,6 +63,7 @@ public class Renderer {
     public void render() {
         clearBuffer();
         drawResources();
+        drawColonists();
         drawCursor();
         flush();
     }
@@ -87,6 +88,21 @@ public class Renderer {
             int col = resource.getPosition().getCol();
 
             String[] block = getBlock(resource.getType());
+            drawBlock(row, col, block);
+        }
+    }
+
+    /// <summary>
+    /// 모든 정착민을 버퍼에 4x2 블록으로 그림
+    /// 이니셜로 구분: (A) / " | "
+    /// </summary>
+    private void drawColonists() {
+        for (Colonist colonist : gameMap.getColonists()) {
+            int row = colonist.getPosition().getRow();
+            int col = colonist.getPosition().getCol();
+            char initial = colonist.getInitial();
+
+            String[] block = {"(" + initial + ")", " |  "};
             drawBlock(row, col, block);
         }
     }

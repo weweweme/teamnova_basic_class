@@ -234,6 +234,48 @@ public class GameMap {
     }
 
     /// <summary>
+    /// 방어탑 자동 공격 — 범위 내 적에게 피해
+    /// </summary>
+    public void towerAttack() {
+        // 방어탑 공격력
+        int towerDamage = 10;
+        // 방어탑 공격 범위 (맨해튼 거리)
+        int towerRange = 8;
+
+        for (Building building : buildings) {
+            if (building.getType() != BuildingType.TOWER) {
+                continue;
+            }
+
+            int towerRow = building.getPosition().getRow();
+            int towerCol = building.getPosition().getCol();
+
+            // 범위 내 가장 가까운 적 공격
+            Enemy closest = null;
+            int minDistance = Integer.MAX_VALUE;
+
+            for (Enemy enemy : enemies) {
+                if (!enemy.isLiving()) {
+                    continue;
+                }
+
+                int distRow = Math.abs(enemy.getPosition().getRow() - towerRow);
+                int distCol = Math.abs(enemy.getPosition().getCol() - towerCol);
+                int distance = distRow + distCol;
+
+                if (distance <= towerRange && distance < minDistance) {
+                    minDistance = distance;
+                    closest = enemy;
+                }
+            }
+
+            if (closest != null) {
+                closest.takeDamage(towerDamage);
+            }
+        }
+    }
+
+    /// <summary>
     /// 모든 적을 제거하고 스레드 종료 (밤 종료 시)
     /// </summary>
     public void clearEnemies() {

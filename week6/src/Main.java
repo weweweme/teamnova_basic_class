@@ -78,6 +78,7 @@ public class Main {
         final int KEY_BUILD_WALL = 'a';
         final int KEY_BUILD_STORAGE = 'b';
         final int KEY_BUILD_BEDROOM = 'c';
+        final int KEY_BUILD_TOWER = 'd';
 
         /// <summary>
         /// 커서 모드에 진입하게 만든 명령 키 (이동인지 채집인지 구분)
@@ -117,6 +118,9 @@ public class Main {
                                 break;
                             case KEY_BUILD_BEDROOM:
                                 selectedType = BuildingType.BEDROOM;
+                                break;
+                            case KEY_BUILD_TOWER:
+                                selectedType = BuildingType.TOWER;
                                 break;
                             case Util.KEY_QUIT:
                                 buildSelectMode = false;

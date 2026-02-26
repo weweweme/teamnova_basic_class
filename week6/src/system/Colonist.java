@@ -18,6 +18,16 @@ public class Colonist extends Thread {
     private static final int MAX_FATIGUE = 100;
 
     /// <summary>
+    /// 반격 공격력
+    /// </summary>
+    private static final int ATTACK_DAMAGE = 3;
+
+    /// <summary>
+    /// 반격 범위 (맨해튼 거리)
+    /// </summary>
+    private static final int ATTACK_RANGE = 2;
+
+    /// <summary>
     /// 행동 틱 간격 (밀리초)
     /// </summary>
     private static final int TICK_DELAY = 500;
@@ -93,7 +103,32 @@ public class Colonist extends Thread {
 
         while (running && isLiving()) {
             currentState.update(this);
+            attackNearbyEnemy();
             Util.delay(TICK_DELAY);
+        }
+    }
+
+    /// <summary>
+    /// 범위 내 가장 가까운 적에게 자동 반격
+    /// </summary>
+    private void attackNearbyEnemy() {
+        Enemy closest = null;
+        int minDistance = Integer.MAX_VALUE;
+
+        for (Enemy enemy : gameMap.getEnemies()) {
+            if (!enemy.isLiving()) {
+                continue;
+            }
+
+            int distance = position.distanceTo(enemy.getPosition());
+            if (distance <= ATTACK_RANGE && distance < minDistance) {
+                minDistance = distance;
+                closest = enemy;
+            }
+        }
+
+        if (closest != null) {
+            closest.takeDamage(ATTACK_DAMAGE);
         }
     }
 
@@ -203,5 +238,12 @@ public class Colonist extends Thread {
     /// </summary>
     public boolean isLiving() {
         return hp > 0;
+    }
+
+    /// <summary>
+    /// 피해를 받아 체력 감소
+    /// </summary>
+    public void takeDamage(int damage) {
+        hp = Math.max(hp - damage, 0);
     }
 }

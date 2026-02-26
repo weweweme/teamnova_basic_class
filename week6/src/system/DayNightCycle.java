@@ -90,6 +90,12 @@ public class DayNightCycle extends Thread {
                 }
             }
 
+            // 밤이면 방어탑 공격 + 죽은 적 제거
+            if (night) {
+                gameMap.towerAttack();
+                gameMap.removeDeadEnemies();
+            }
+
             Util.delay(TICK_DELAY);
         }
     }

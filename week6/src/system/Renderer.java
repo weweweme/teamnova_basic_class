@@ -94,6 +94,11 @@ public class Renderer {
     private static final String[] BEDROOM_BLOCK = {"[~~]", "[~~]"};
 
     /// <summary>
+    /// 방어탑 4x2 블록 (1행: "/||\", 2행: "|  |")
+    /// </summary>
+    private static final String[] TOWER_BLOCK = {"/||\\", "|  |"};
+
+    /// <summary>
     /// 적 4x2 블록 (1행: " XX ", 2행: " XX ")
     /// </summary>
     private static final String[] ENEMY_BLOCK = {" XX ", " XX "};
@@ -374,6 +379,8 @@ public class Renderer {
                 return STORAGE_BLOCK;
             case BEDROOM:
                 return BEDROOM_BLOCK;
+            case TOWER:
+                return TOWER_BLOCK;
             default:
                 return WALL_BLOCK;
         }
@@ -484,6 +491,8 @@ public class Renderer {
             lines.add("    목재" + BuildingType.STORAGE.getWoodCost() + " 석재" + BuildingType.STORAGE.getStoneCost());
             lines.add(" c: 침실");
             lines.add("    목재" + BuildingType.BEDROOM.getWoodCost() + " 석재" + BuildingType.BEDROOM.getStoneCost());
+            lines.add(" d: 방어탑");
+            lines.add("    목재" + BuildingType.TOWER.getWoodCost() + " 석재" + BuildingType.TOWER.getStoneCost() + " 철" + BuildingType.TOWER.getIronCost());
             lines.add(" q: 취소");
         } else {
             lines.add(" ──────────────");

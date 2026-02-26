@@ -19,7 +19,12 @@ public enum BuildingType {
     /// <summary>
     /// 침실 — 근처에서 휴식 시 회복 속도 2배
     /// </summary>
-    BEDROOM(8, 5, 0, 0, 4);
+    BEDROOM(8, 5, 0, 0, 4),
+
+    /// <summary>
+    /// 방어탑 — 범위 내 적에게 자동 공격
+    /// </summary>
+    TOWER(5, 5, 0, 5, 6);
 
     /// <summary>
     /// 건설에 필요한 목재

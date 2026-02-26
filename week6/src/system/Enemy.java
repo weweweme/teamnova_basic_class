@@ -17,6 +17,16 @@ public class Enemy extends Thread {
     private static final int TICK_DELAY = 300;
 
     /// <summary>
+    /// 공격 범위 (맨해튼 거리)
+    /// </summary>
+    private static final int ATTACK_RANGE = 2;
+
+    /// <summary>
+    /// 틱당 공격력
+    /// </summary>
+    private static final int ATTACK_DAMAGE = 5;
+
+    /// <summary>
     /// 맵 위의 위치
     /// </summary>
     private final Position position;
@@ -49,21 +59,24 @@ public class Enemy extends Thread {
     @Override
     public void run() {
         while (running && isLiving()) {
-            moveTowardClosestColonist();
+            // 가장 가까운 정착민 공격 범위 안이면 공격, 아니면 이동
+            Colonist closest = findClosestColonist();
+            if (closest != null) {
+                int distance = position.distanceTo(closest.getPosition());
+                if (distance <= ATTACK_RANGE) {
+                    closest.takeDamage(ATTACK_DAMAGE);
+                } else {
+                    moveToward(closest.getPosition());
+                }
+            }
             Util.delay(TICK_DELAY);
         }
     }
 
     /// <summary>
-    /// 가장 가까운 정착민을 향해 한 칸 이동
+    /// 지정한 위치를 향해 한 칸 이동
     /// </summary>
-    private void moveTowardClosestColonist() {
-        Colonist closest = findClosestColonist();
-        if (closest == null) {
-            return;
-        }
-
-        Position targetPos = closest.getPosition();
+    private void moveToward(Position targetPos) {
         int rowDiff = targetPos.getRow() - position.getRow();
         int colDiff = targetPos.getCol() - position.getCol();
 

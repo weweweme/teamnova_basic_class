@@ -2,9 +2,10 @@ package system;
 
 /// <summary>
 /// 정착민 한 명을 나타내는 클래스
-/// 맵 위에서 자율적으로 행동하며, 플레이어의 명령을 수행
+/// 각 정착민은 자기 스레드에서 자율적으로 행동
+/// 상태 패턴으로 행동을 관리 (IdleState, MovingState 등)
 /// </summary>
-public class Colonist {
+public class Colonist extends Thread {
 
     /// <summary>
     /// 최대 체력
@@ -17,19 +18,34 @@ public class Colonist {
     private static final int MAX_FATIGUE = 100;
 
     /// <summary>
-    /// 정착민 이름
+    /// 행동 틱 간격 (밀리초)
+    /// </summary>
+    private static final int TICK_DELAY = 500;
+
+    /// <summary>
+    /// 다음에 부여할 알파벳 (A부터 순서대로)
+    /// </summary>
+    private static char nextLabel = 'A';
+
+    /// <summary>
+    /// 정착민 이름 (한글, 패널에서만 표시)
     /// </summary>
     private final String name;
 
     /// <summary>
-    /// 이름의 첫 글자 (맵에 표시할 이니셜)
+    /// 맵에 표시할 알파벳 라벨 (A, B, C 순서)
     /// </summary>
-    private final char initial;
+    private final char label;
 
     /// <summary>
     /// 맵 위의 위치
     /// </summary>
     private final Position position;
+
+    /// <summary>
+    /// 이 정착민이 속한 맵 (이동 시 범위/충돌 체크용)
+    /// </summary>
+    private final GameMap gameMap;
 
     /// <summary>
     /// 현재 체력
@@ -42,29 +58,74 @@ public class Colonist {
     private int fatigue;
 
     /// <summary>
-    /// 지정한 이름과 위치로 정착민 생성
-    /// 체력은 최대, 피로도는 0으로 시작
+    /// 현재 행동 상태
     /// </summary>
-    public Colonist(String name, Position position) {
+    private ColonistState currentState;
+
+    /// <summary>
+    /// 스레드 실행 여부 (false가 되면 스레드 종료)
+    /// </summary>
+    private volatile boolean running;
+
+    /// <summary>
+    /// 지정한 이름, 위치, 맵으로 정착민 생성
+    /// 체력은 최대, 피로도는 0, 대기 상태로 시작
+    /// </summary>
+    public Colonist(String name, Position position, GameMap gameMap) {
         this.name = name;
-        this.initial = name.charAt(0);
+        this.label = nextLabel;
+        nextLabel++;
         this.position = position;
+        this.gameMap = gameMap;
         this.hp = MAX_HP;
         this.fatigue = 0;
+        this.currentState = new IdleState();
+        this.running = true;
     }
 
     /// <summary>
-    /// 이름 반환
+    /// 스레드 실행 루프
+    /// 매 틱마다 현재 상태의 update를 호출
     /// </summary>
-    public String getName() {
+    @Override
+    public void run() {
+        currentState.enter(this);
+
+        while (running && isLiving()) {
+            currentState.update(this);
+            Util.delay(TICK_DELAY);
+        }
+    }
+
+    /// <summary>
+    /// 상태 전환
+    /// 현재 상태의 exit → 새 상태의 enter 순서로 호출
+    /// </summary>
+    public void changeState(ColonistState newState) {
+        currentState.exit(this);
+        currentState = newState;
+        currentState.enter(this);
+    }
+
+    /// <summary>
+    /// 스레드를 안전하게 종료
+    /// </summary>
+    public void stopRunning() {
+        running = false;
+    }
+
+    /// <summary>
+    /// 정착민 이름 반환
+    /// </summary>
+    public String getColonistName() {
         return name;
     }
 
     /// <summary>
-    /// 이니셜 반환
+    /// 맵 표시용 알파벳 라벨 반환
     /// </summary>
-    public char getInitial() {
-        return initial;
+    public char getLabel() {
+        return label;
     }
 
     /// <summary>
@@ -72,6 +133,13 @@ public class Colonist {
     /// </summary>
     public Position getPosition() {
         return position;
+    }
+
+    /// <summary>
+    /// 이 정착민이 속한 맵 반환
+    /// </summary>
+    public GameMap getGameMap() {
+        return gameMap;
     }
 
     /// <summary>
@@ -103,9 +171,16 @@ public class Colonist {
     }
 
     /// <summary>
-    /// 살아있는지 확인
+    /// 현재 상태 반환
     /// </summary>
-    public boolean isAlive() {
+    public ColonistState getCurrentState() {
+        return currentState;
+    }
+
+    /// <summary>
+    /// 체력이 남아있는지 확인
+    /// </summary>
+    public boolean isLiving() {
         return hp > 0;
     }
 }

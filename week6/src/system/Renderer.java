@@ -168,9 +168,9 @@ public class Renderer {
         for (Colonist colonist : gameMap.getColonists()) {
             int row = colonist.getPosition().getRow();
             int col = colonist.getPosition().getCol();
-            char initial = colonist.getInitial();
+            char label = colonist.getLabel();
 
-            String[] block = {"(" + initial + ")", " |  "};
+            String[] block = {"(" + label + ")", " |  "};
             drawBlock(row, col, block);
         }
     }
@@ -254,7 +254,7 @@ public class Renderer {
 
             // 선택된 정착민에 > 표시
             String marker = (i == selectedIndex) ? " > " : "   ";
-            lines.add(marker + colonist.getName());
+            lines.add(marker + "[" + colonist.getLabel() + "] " + colonist.getColonistName());
         }
 
         lines.add("");
@@ -316,12 +316,13 @@ public class Renderer {
     /// 버퍼와 우측 패널을 합쳐서 화면에 한번에 출력
     /// </summary>
     private void flush() {
-        Util.clearScreen();
-
         ArrayList<String> panelLines = buildPanel();
 
         int totalWidth = GameMap.WIDTH + PANEL_SEPARATOR.length() + PANEL_WIDTH;
-        StringBuilder screen = new StringBuilder(totalWidth * GameMap.HEIGHT + GameMap.HEIGHT);
+        StringBuilder screen = new StringBuilder(totalWidth * GameMap.HEIGHT + GameMap.HEIGHT + 10);
+
+        // 커서를 맨 위로 이동 (문자열에 포함하여 한번에 출력)
+        screen.append("\033[H");
 
         for (int row = 0; row < GameMap.HEIGHT; row++) {
             // 맵 버퍼
@@ -339,6 +340,9 @@ public class Renderer {
 
             screen.append('\n');
         }
+
+        // 화면 아래 잔여 내용 지움 (한번에 출력되므로 깜빡임 없음)
+        screen.append("\033[J");
 
         System.out.print(screen);
         System.out.flush();

@@ -69,8 +69,9 @@ public class GatheringState extends ColonistState {
         gatherTicks++;
 
         if (gatherTicks >= requiredTicks) {
-            // 1회 채집 완료
+            // 1회 채집 완료 — 자원 횟수 차감 + 식민지 물자에 추가
             target.harvest();
+            colonist.getGameMap().getSupply().add(target.getType());
             gatherTicks = 0;
 
             // 자원이 소진되었으면 맵에서 제거하고 대기로 전환

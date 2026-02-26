@@ -35,6 +35,11 @@ public class GameMap {
     private final ArrayList<Colonist> colonists = new ArrayList<>();
 
     /// <summary>
+    /// 식민지 공유 자원 보유량
+    /// </summary>
+    private final Supply supply = new Supply();
+
+    /// <summary>
     /// 맵 생성, 모든 타일을 이동 가능한 평지로 초기화
     /// </summary>
     public GameMap() {
@@ -115,6 +120,13 @@ public class GameMap {
     /// </summary>
     public void removeResource(Resource resource) {
         resources.remove(resource);
+    }
+
+    /// <summary>
+    /// 식민지 공유 자원 보유량 반환
+    /// </summary>
+    public Supply getSupply() {
+        return supply;
     }
 
     /// <summary>

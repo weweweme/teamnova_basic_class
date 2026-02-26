@@ -298,6 +298,15 @@ public class Renderer {
         ArrayList<String> lines = new ArrayList<>();
         ArrayList<Colonist> colonists = gameMap.getColonists();
 
+        // 자원 보유량
+        Supply supply = gameMap.getSupply();
+        lines.add(" [물자]");
+        lines.add("  식량: " + supply.getFood());
+        lines.add("  목재: " + supply.getWood());
+        lines.add("  석재: " + supply.getStone());
+        lines.add("  철: " + supply.getIron());
+        lines.add("");
+
         // 정착민 목록
         lines.add(" [정착민]");
         for (int i = 0; i < colonists.size(); i++) {

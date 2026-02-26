@@ -29,7 +29,7 @@ public class Main {
         Util.enableRawMode();
         renderer.render();
 
-        // 입력 루프: 화살표로 커서 이동, q로 종료
+        // 입력 루프
         while (true) {
             int key = Util.readKey();
 
@@ -37,7 +37,21 @@ public class Main {
                 break;
             }
 
-            cursor.move(key);
+            if (renderer.isCursorMode()) {
+                // 커서 모드: 화살표로 커서 이동
+                cursor.move(key);
+            } else {
+                // 시뮬레이션 모드: ↑↓로 정착민 선택
+                switch (key) {
+                    case Util.KEY_UP:
+                        renderer.selectPrevious();
+                        break;
+                    case Util.KEY_DOWN:
+                        renderer.selectNext();
+                        break;
+                }
+            }
+
             renderer.render();
         }
 

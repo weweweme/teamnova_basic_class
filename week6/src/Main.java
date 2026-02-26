@@ -30,23 +30,31 @@ public class Main {
         gameMap.addColonist(minsoo);
 
         Util.enableRawMode();
+        Util.clearScreen();
 
         // 정착민 스레드 시작
         chulsoo.start();
         younghee.start();
         minsoo.start();
 
-        // 입력 루프
-        while (true) {
-            renderer.render();
+        // 렌더링 간격 (밀리초)
+        final int RENDER_INTERVAL = 100;
+        // 입력 체크 간격 (밀리초, 짧을수록 입력이 즉각적)
+        final int INPUT_CHECK_INTERVAL = 16;
 
-            // 입력이 있을 때만 처리 (없으면 렌더링만 반복)
+        long lastRenderTime = 0;
+
+        // 메인 루프
+        boolean running = true;
+        while (running) {
+            // 입력 체크 (매 루프마다, 약 16ms 간격)
             // 주의: System.in.available()은 checked exception이라 try-catch 필수 (컴파일러 요구)
             try {
                 if (System.in.available() > 0) {
                     int key = Util.readKey();
 
                     if (key == Util.KEY_QUIT) {
+                        running = false;
                         break;
                     }
 
@@ -64,13 +72,23 @@ public class Main {
                                 break;
                         }
                     }
+
+                    // 입력 즉시 화면 갱신
+                    renderer.render();
+                    lastRenderTime = System.currentTimeMillis();
                 }
             } catch (Exception e) {
                 // IOException (컴파일러 요구사항)
             }
 
-            // 렌더링 주기 (100ms)
-            Util.delay(100);
+            // 일정 간격마다 화면 갱신 (정착민 이동 반영)
+            long now = System.currentTimeMillis();
+            if (now - lastRenderTime >= RENDER_INTERVAL) {
+                renderer.render();
+                lastRenderTime = now;
+            }
+
+            Util.delay(INPUT_CHECK_INTERVAL);
         }
 
         // 정착민 스레드 종료

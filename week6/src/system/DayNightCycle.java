@@ -27,9 +27,42 @@ public class DayNightCycle extends Thread {
     private static final int ENEMIES_PER_NIGHT = 5;
 
     /// <summary>
+    /// 새 정착민 합류 확률 (퍼센트, 0~100)
+    /// </summary>
+    private static final int NEW_COLONIST_CHANCE = 30;
+
+    /// <summary>
+    /// 자원 드랍 확률 (퍼센트, 0~100)
+    /// </summary>
+    private static final int RESOURCE_DROP_CHANCE = 50;
+
+    /// <summary>
+    /// 최대 정착민 수
+    /// </summary>
+    private static final int MAX_COLONISTS = 6;
+
+    /// <summary>
+    /// 자원 드랍 시 추가되는 자원 수
+    /// </summary>
+    private static final int RESOURCE_DROP_COUNT = 3;
+
+    /// <summary>
+    /// 새 정착민 이름 후보
+    /// </summary>
+    private static final String[] COLONIST_NAMES = {
+        "정하늘", "최은수", "강도윤", "윤서진",
+        "한지민", "송우진", "임수빈", "오태현"
+    };
+
+    /// <summary>
     /// 이 주기가 관리하는 맵 (적 스폰/제거용)
     /// </summary>
     private final GameMap gameMap;
+
+    /// <summary>
+    /// 맵 생성기 (자원 드랍용)
+    /// </summary>
+    private final MapGenerator mapGenerator;
 
     /// <summary>
     /// 현재 일차 (1부터 시작)
@@ -52,10 +85,21 @@ public class DayNightCycle extends Thread {
     private volatile boolean running;
 
     /// <summary>
+    /// 현재 이벤트 메시지 (없으면 null)
+    /// </summary>
+    private volatile String eventMessage;
+
+    /// <summary>
+    /// 이벤트 메시지 남은 표시 틱 수
+    /// </summary>
+    private int eventMessageTicks;
+
+    /// <summary>
     /// 지정한 맵으로 낮/밤 주기 생성, 1일차 낮부터 시작
     /// </summary>
-    public DayNightCycle(GameMap gameMap) {
+    public DayNightCycle(GameMap gameMap, MapGenerator mapGenerator) {
         this.gameMap = gameMap;
+        this.mapGenerator = mapGenerator;
         this.day = 1;
         this.night = false;
         this.elapsedInPhase = 0;
@@ -83,6 +127,7 @@ public class DayNightCycle extends Thread {
                     gameMap.clearEnemies();
                     night = false;
                     day++;
+                    triggerDayEvents();
                 } else {
                     // 낮 → 밤, 적 출현
                     night = true;
@@ -94,6 +139,14 @@ public class DayNightCycle extends Thread {
             if (night) {
                 gameMap.towerAttack();
                 gameMap.removeDeadEnemies();
+            }
+
+            // 이벤트 메시지 표시 시간 차감
+            if (eventMessageTicks > 0) {
+                eventMessageTicks--;
+                if (eventMessageTicks <= 0) {
+                    eventMessage = null;
+                }
             }
 
             Util.delay(TICK_DELAY);
@@ -131,6 +184,70 @@ public class DayNightCycle extends Thread {
             remaining = 0;
         }
         return (int) (remaining / 1000);
+    }
+
+    /// <summary>
+    /// 현재 이벤트 메시지 반환 (없으면 null)
+    /// </summary>
+    public String getEventMessage() {
+        return eventMessage;
+    }
+
+    /// <summary>
+    /// 새로운 날이 시작될 때 랜덤 이벤트 발생
+    /// 새 정착민 합류 또는 자원 드랍 중 하나만 발생
+    /// </summary>
+    private void triggerDayEvents() {
+        // 새 정착민 합류 판정
+        int livingCount = 0;
+        for (Colonist colonist : gameMap.getColonists()) {
+            if (colonist.isLiving()) {
+                livingCount++;
+            }
+        }
+
+        boolean canAddColonist = livingCount < MAX_COLONISTS;
+        boolean colonistRoll = Util.rand(100) < NEW_COLONIST_CHANCE;
+
+        if (canAddColonist && colonistRoll) {
+            spawnNewColonist();
+            return;
+        }
+
+        // 자원 드랍 판정
+        boolean resourceRoll = Util.rand(100) < RESOURCE_DROP_CHANCE;
+        if (resourceRoll) {
+            dropResources();
+        }
+    }
+
+    /// <summary>
+    /// 새 정착민을 맵 가장자리에 합류시키고 스레드 시작
+    /// </summary>
+    private void spawnNewColonist() {
+        String name = COLONIST_NAMES[Util.rand(COLONIST_NAMES.length)];
+        Position spawnPos = randomEdgePosition();
+        Colonist newColonist = new Colonist(name, spawnPos, gameMap);
+        gameMap.addColonist(newColonist);
+        newColonist.start();
+
+        eventMessage = name + " 합류!";
+        eventMessageTicks = 10;
+    }
+
+    /// <summary>
+    /// 맵에 랜덤 자원을 추가로 배치
+    /// </summary>
+    private void dropResources() {
+        ResourceType[] types = {ResourceType.FOOD, ResourceType.TREE, ResourceType.ROCK, ResourceType.IRON};
+
+        for (int i = 0; i < RESOURCE_DROP_COUNT; i++) {
+            ResourceType type = types[Util.rand(types.length)];
+            mapGenerator.respawnResource(type);
+        }
+
+        eventMessage = "자원 발견!";
+        eventMessageTicks = 10;
     }
 
     /// <summary>

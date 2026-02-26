@@ -454,6 +454,13 @@ public class Renderer {
                 int enemyCount = gameMap.getEnemies().size();
                 lines.add("  적: " + enemyCount + "마리");
             }
+
+            // 이벤트 메시지 표시
+            String event = dayNightCycle.getEventMessage();
+            if (event != null) {
+                lines.add("  >> " + event);
+            }
+
             lines.add("");
         }
 

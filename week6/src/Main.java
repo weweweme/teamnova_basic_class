@@ -50,7 +50,7 @@ public class Main {
         gameMap.addColonist(minsoo);
 
         // 낮/밤 주기 생성 및 렌더러에 연결
-        DayNightCycle dayNightCycle = new DayNightCycle(gameMap);
+        DayNightCycle dayNightCycle = new DayNightCycle(gameMap, mapGenerator);
         renderer.setDayNightCycle(dayNightCycle);
 
         Util.enableRawMode();

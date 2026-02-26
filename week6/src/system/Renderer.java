@@ -180,6 +180,18 @@ public class Renderer {
     }
 
     /// <summary>
+    /// 모든 정착민이 사망했는지 확인
+    /// </summary>
+    public boolean isGameOver() {
+        for (Colonist colonist : gameMap.getColonists()) {
+            if (colonist.isLiving()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
     /// 낮/밤 주기 설정
     /// </summary>
     public void setDayNightCycle(DayNightCycle dayNightCycle) {
@@ -253,6 +265,9 @@ public class Renderer {
     /// </summary>
     private void drawColonists() {
         for (Colonist colonist : gameMap.getColonists()) {
+            if (!colonist.isLiving()) {
+                continue;
+            }
             int row = colonist.getPosition().getRow();
             int col = colonist.getPosition().getCol();
             char label = colonist.getLabel();
@@ -281,6 +296,9 @@ public class Renderer {
     /// </summary>
     private void drawTargetMarkers() {
         for (Colonist colonist : gameMap.getColonists()) {
+            if (!colonist.isLiving()) {
+                continue;
+            }
             ColonistState state = colonist.getCurrentState();
 
             // 목표 위치 추출 (이동, 채집, 건설 상태에서)
@@ -455,8 +473,12 @@ public class Renderer {
 
             // 선택된 정착민에 > 표시, 상태도 함께 표시
             String marker = (i == selectedIndex) ? " > " : "   ";
-            String stateName = colonist.getCurrentState().getDisplayName();
-            lines.add(marker + "[" + colonist.getLabel() + "] " + stateName);
+            if (colonist.isLiving()) {
+                String stateName = colonist.getCurrentState().getDisplayName();
+                lines.add(marker + "[" + colonist.getLabel() + "] " + stateName);
+            } else {
+                lines.add(marker + "[" + colonist.getLabel() + "] 사망");
+            }
         }
 
         lines.add("");
@@ -466,15 +488,26 @@ public class Renderer {
             Colonist selected = colonists.get(selectedIndex);
             lines.add(" ──────────────");
             lines.add(" " + selected.getColonistName());
-            lines.add(" 상태: " + selected.getCurrentState().getDisplayName());
-            lines.add(" 체력: " + buildBar(selected.getHp(), selected.getMaxHp()));
-            lines.add(" 피로: " + buildBar(selected.getFatigue(), selected.getMaxFatigue()));
+            if (selected.isLiving()) {
+                lines.add(" 상태: " + selected.getCurrentState().getDisplayName());
+                lines.add(" 체력: " + buildBar(selected.getHp(), selected.getMaxHp()));
+                lines.add(" 피로: " + buildBar(selected.getFatigue(), selected.getMaxFatigue()));
+            } else {
+                lines.add(" 상태: 사망");
+            }
         }
 
         lines.add("");
 
         // 모드별 명령 안내
-        if (cursorMode) {
+        if (isGameOver()) {
+            lines.add(" ──────────────");
+            lines.add(" [게임 오버]");
+            lines.add(" 모든 정착민이");
+            lines.add(" 사망했습니다.");
+            lines.add("");
+            lines.add(" q: 종료");
+        } else if (cursorMode) {
             lines.add(" ──────────────");
             // 커서 모드 라벨이 설정되어 있으면 사용, 없으면 기본값
             String label = (cursorModeLabel != null) ? cursorModeLabel : "위치 지정";

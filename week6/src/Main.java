@@ -106,7 +106,12 @@ public class Main {
                 if (System.in.available() > 0) {
                     int key = Util.readKey();
 
-                    if (buildSelectMode) {
+                    // 게임오버 시 q키만 허용
+                    if (renderer.isGameOver()) {
+                        if (key == Util.KEY_QUIT) {
+                            running = false;
+                        }
+                    } else if (buildSelectMode) {
                         // 건물 선택 모드 — a/b/c로 건물 종류 선택
                         BuildingType selectedType = null;
                         switch (key) {

@@ -32,6 +32,13 @@ public class MovingState extends ColonistState {
 
     @Override
     public void update(Colonist colonist) {
+        // 피로 증가 — 한계 도달 시 강제 휴식
+        colonist.addFatigue(1);
+        if (colonist.isExhausted()) {
+            colonist.changeState(new RestingState());
+            return;
+        }
+
         Position current = colonist.getPosition();
 
         // 목표에 도착했으면 대기 상태로 전환

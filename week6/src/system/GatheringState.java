@@ -53,6 +53,13 @@ public class GatheringState extends ColonistState {
 
     @Override
     public void update(Colonist colonist) {
+        // 피로 증가 — 한계 도달 시 강제 휴식
+        colonist.addFatigue(1);
+        if (colonist.isExhausted()) {
+            colonist.changeState(new RestingState());
+            return;
+        }
+
         // 자원이 이미 소진되었으면 대기로 전환
         if (!target.isHarvestable()) {
             colonist.changeState(new IdleState());

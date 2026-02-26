@@ -7,6 +7,7 @@ import system.MovingState;
 import system.Position;
 import system.Renderer;
 import system.Resource;
+import system.RestingState;
 import system.Util;
 
 /// <summary>
@@ -47,6 +48,7 @@ public class Main {
         // 명령 키
         final int KEY_MOVE = '1';
         final int KEY_GATHER = '2';
+        final int KEY_REST = '3';
 
         /// <summary>
         /// 커서 모드에 진입하게 만든 명령 키 (이동인지 채집인지 구분)
@@ -121,6 +123,11 @@ public class Main {
                                 pendingCommand = KEY_GATHER;
                                 renderer.setCursorModeLabel("채집 대상 지정");
                                 renderer.setCursorMode(true);
+                                break;
+                            case KEY_REST:
+                                // 휴식 명령 → 즉시 휴식 상태로 전환
+                                Colonist restTarget = gameMap.getColonists().get(renderer.getSelectedIndex());
+                                restTarget.changeState(new RestingState());
                                 break;
                         }
                     }

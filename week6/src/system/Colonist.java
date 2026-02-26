@@ -171,6 +171,27 @@ public class Colonist extends Thread {
     }
 
     /// <summary>
+    /// 피로도를 지정한 양만큼 증가 (최대치 초과 방지)
+    /// </summary>
+    public void addFatigue(int amount) {
+        fatigue = Math.min(fatigue + amount, MAX_FATIGUE);
+    }
+
+    /// <summary>
+    /// 피로도를 지정한 양만큼 감소 (0 미만 방지)
+    /// </summary>
+    public void reduceFatigue(int amount) {
+        fatigue = Math.max(fatigue - amount, 0);
+    }
+
+    /// <summary>
+    /// 피로가 최대치에 도달했는지 확인
+    /// </summary>
+    public boolean isExhausted() {
+        return fatigue >= MAX_FATIGUE;
+    }
+
+    /// <summary>
     /// 현재 상태 반환
     /// </summary>
     public ColonistState getCurrentState() {

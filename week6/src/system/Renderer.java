@@ -346,6 +346,7 @@ public class Renderer {
             lines.add(" [명령]");
             lines.add(" 1: 이동");
             lines.add(" 2: 채집");
+            lines.add(" 3: 휴식");
         }
 
         return lines;

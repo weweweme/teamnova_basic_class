@@ -17,11 +17,45 @@ import system.Util;
 
 /// <summary>
 /// 게임 진입점
-/// 맵 생성, 렌더링, 입력 루프 담당
+/// 타이틀 화면 → 게임 초기화 → 입력 루프 → 통계 출력
 /// </summary>
 public class Main {
 
     public static void main(String[] args) {
+        Util.enableRawMode();
+
+        // ===== 타이틀 화면 =====
+        StringBuilder title = new StringBuilder();
+        title.append("\033[H\033[2J");
+        title.append("\n\n\n\n\n\n");
+        title.append("             ╔═════════════════════════════════╗\n");
+        title.append("             ║                                 ║\n");
+        title.append("             ║        표  류  자  들           ║\n");
+        title.append("             ║       - The Castaways -         ║\n");
+        title.append("             ║                                 ║\n");
+        title.append("             ╚═════════════════════════════════╝\n");
+        title.append("\n");
+        title.append("         낯선 행성에 불시착한 생존자들의 식민지 서바이벌\n");
+        title.append("\n\n");
+        title.append("              [조작법]\n");
+        title.append("               ↑↓ : 정착민 선택\n");
+        title.append("               1  : 이동       2  : 채집\n");
+        title.append("               3  : 휴식       4  : 건설\n");
+        title.append("               q  : 종료\n");
+        title.append("\n\n");
+        title.append("              1번을 눌러 시작하세요...\n");
+        System.out.print(title);
+        System.out.flush();
+
+        // 1번 키 입력 대기 (다른 키는 무시)
+        // 실행 시 버퍼에 남은 Enter 등이 있어도 '1'이 아니면 무시됨
+        final int KEY_START = '1';
+        int startKey;
+        do {
+            startKey = Util.readKey();
+        } while (startKey != KEY_START);
+
+        // ===== 게임 초기화 =====
         GameMap gameMap = new GameMap();
         MapGenerator mapGenerator = new MapGenerator(gameMap);
         Cursor cursor = new Cursor();
@@ -53,7 +87,6 @@ public class Main {
         DayNightCycle dayNightCycle = new DayNightCycle(gameMap, mapGenerator);
         renderer.setDayNightCycle(dayNightCycle);
 
-        Util.enableRawMode();
         Util.clearScreen();
 
         // 낮/밤 주기 스레드 시작
@@ -97,7 +130,7 @@ public class Main {
 
         long lastRenderTime = 0;
 
-        // 메인 루프
+        // ===== 메인 루프 =====
         boolean running = true;
         while (running) {
             // 입력 체크 (매 루프마다, 약 16ms 간격)
@@ -243,7 +276,7 @@ public class Main {
             Util.delay(INPUT_CHECK_INTERVAL);
         }
 
-        // 스레드 종료
+        // ===== 종료 =====
         dayNightCycle.stopRunning();
         gameMap.clearEnemies();
         for (Colonist colonist : gameMap.getColonists()) {

@@ -3,6 +3,7 @@ import system.BuildingState;
 import system.BuildingType;
 import system.Colonist;
 import system.Cursor;
+import system.DayNightCycle;
 import system.GameMap;
 import system.GatheringState;
 import system.MapGenerator;
@@ -48,8 +49,15 @@ public class Main {
         gameMap.addColonist(younghee);
         gameMap.addColonist(minsoo);
 
+        // 낮/밤 주기 생성 및 렌더러에 연결
+        DayNightCycle dayNightCycle = new DayNightCycle();
+        renderer.setDayNightCycle(dayNightCycle);
+
         Util.enableRawMode();
         Util.clearScreen();
+
+        // 낮/밤 주기 스레드 시작
+        dayNightCycle.start();
 
         // 정착민 스레드 시작
         chulsoo.start();
@@ -226,7 +234,8 @@ public class Main {
             Util.delay(INPUT_CHECK_INTERVAL);
         }
 
-        // 정착민 스레드 종료
+        // 스레드 종료
+        dayNightCycle.stopRunning();
         for (Colonist colonist : gameMap.getColonists()) {
             colonist.stopRunning();
         }

@@ -54,6 +54,11 @@ public class Renderer {
     private boolean buildSelectMode;
 
     /// <summary>
+    /// 낮/밤 주기 (시간 표시용)
+    /// </summary>
+    private DayNightCycle dayNightCycle;
+
+    /// <summary>
     /// 열매 덤불 4x2 블록 (1행: " %% ", 2행: " %% ")
     /// </summary>
     private static final String[] FOOD_BLOCK = {" %% ", " %% "};
@@ -165,6 +170,13 @@ public class Renderer {
     }
 
     /// <summary>
+    /// 낮/밤 주기 설정
+    /// </summary>
+    public void setDayNightCycle(DayNightCycle dayNightCycle) {
+        this.dayNightCycle = dayNightCycle;
+    }
+
+    /// <summary>
     /// 맵 전체를 화면에 출력
     /// 버퍼를 초기화하고, 오브젝트를 그린 뒤 패널과 함께 출력
     /// </summary>
@@ -177,6 +189,11 @@ public class Renderer {
 
         if (cursorMode) {
             drawCursor();
+        }
+
+        // 밤이면 맵 테두리에 점 표시
+        if (dayNightCycle != null && dayNightCycle.isNight()) {
+            drawNightBorder();
         }
 
         flush();
@@ -286,6 +303,29 @@ public class Renderer {
     }
 
     /// <summary>
+    /// 밤일 때 맵 테두리에 점을 그려 밤 분위기 표현
+    /// 상단/하단 1줄, 좌측/우측 1열에 점 표시
+    /// </summary>
+    private void drawNightBorder() {
+        // 상단 테두리
+        for (int col = 0; col < GameMap.WIDTH; col++) {
+            buffer[0][col] = '.';
+        }
+        // 하단 테두리
+        for (int col = 0; col < GameMap.WIDTH; col++) {
+            buffer[GameMap.HEIGHT - 1][col] = '.';
+        }
+        // 좌측 테두리
+        for (int row = 0; row < GameMap.HEIGHT; row++) {
+            buffer[row][0] = '.';
+        }
+        // 우측 테두리
+        for (int row = 0; row < GameMap.HEIGHT; row++) {
+            buffer[row][GameMap.WIDTH - 1] = '.';
+        }
+    }
+
+    /// <summary>
     /// 자원 종류에 맞는 4x2 블록 반환
     /// </summary>
     private String[] getBlock(ResourceType type) {
@@ -356,6 +396,15 @@ public class Renderer {
     private ArrayList<String> buildPanel() {
         ArrayList<String> lines = new ArrayList<>();
         ArrayList<Colonist> colonists = gameMap.getColonists();
+
+        // 시간 표시
+        if (dayNightCycle != null) {
+            String phase = dayNightCycle.isNight() ? "밤" : "낮";
+            int remaining = dayNightCycle.getRemainingSeconds();
+            lines.add(" [시간] " + dayNightCycle.getDay() + "일차 " + phase);
+            lines.add("  전환까지 " + remaining + "초");
+            lines.add("");
+        }
 
         // 자원 보유량
         Supply supply = gameMap.getSupply();

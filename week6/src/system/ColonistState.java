@@ -23,4 +23,9 @@ public abstract class ColonistState {
     /// 정리 작업 (리소스 해제 등)
     /// </summary>
     public abstract void exit(Colonist colonist);
+
+    /// <summary>
+    /// 패널에 표시할 상태 이름 반환
+    /// </summary>
+    public abstract String getDisplayName();
 }

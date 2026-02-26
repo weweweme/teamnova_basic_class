@@ -36,4 +36,9 @@ public class IdleState extends ColonistState {
     public void exit(Colonist colonist) {
         // 대기 상태 퇴장 시 별도 정리 없음
     }
+
+    @Override
+    public String getDisplayName() {
+        return "대기";
+    }
 }

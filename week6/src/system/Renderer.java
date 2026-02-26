@@ -69,6 +69,11 @@ public class Renderer {
     private static final String CURSOR_SYMBOL = "[ ]";
 
     /// <summary>
+    /// 이동 목표 마커 심볼
+    /// </summary>
+    private static final String TARGET_SYMBOL = " x ";
+
+    /// <summary>
     /// 지정한 맵과 커서로 렌더러 생성
     /// </summary>
     public Renderer(GameMap gameMap, Cursor cursor) {
@@ -127,6 +132,7 @@ public class Renderer {
     public void render() {
         clearBuffer();
         drawResources();
+        drawTargetMarkers();
         drawColonists();
 
         if (cursorMode) {
@@ -172,6 +178,31 @@ public class Renderer {
 
             String[] block = {"(" + label + ")", " |  "};
             drawBlock(row, col, block);
+        }
+    }
+
+    /// <summary>
+    /// 이동 중인 정착민의 목표 위치에 마커를 그림
+    /// </summary>
+    private void drawTargetMarkers() {
+        for (Colonist colonist : gameMap.getColonists()) {
+            ColonistState state = colonist.getCurrentState();
+
+            if (state instanceof MovingState) {
+                MovingState movingState = (MovingState) state;
+                Position target = movingState.getTarget();
+                int row = target.getRow();
+                int col = target.getCol();
+
+                // 목표 마커를 버퍼에 그림
+                for (int i = 0; i < TARGET_SYMBOL.length(); i++) {
+                    int bufferCol = col + i;
+
+                    if (bufferCol >= 0 && bufferCol < GameMap.WIDTH) {
+                        buffer[row][bufferCol] = TARGET_SYMBOL.charAt(i);
+                    }
+                }
+            }
         }
     }
 
@@ -252,9 +283,10 @@ public class Renderer {
         for (int i = 0; i < colonists.size(); i++) {
             Colonist colonist = colonists.get(i);
 
-            // 선택된 정착민에 > 표시
+            // 선택된 정착민에 > 표시, 상태도 함께 표시
             String marker = (i == selectedIndex) ? " > " : "   ";
-            lines.add(marker + "[" + colonist.getLabel() + "] " + colonist.getColonistName());
+            String stateName = colonist.getCurrentState().getDisplayName();
+            lines.add(marker + "[" + colonist.getLabel() + "] " + stateName);
         }
 
         lines.add("");
@@ -263,9 +295,25 @@ public class Renderer {
         if (!colonists.isEmpty()) {
             Colonist selected = colonists.get(selectedIndex);
             lines.add(" ──────────────");
-            lines.add(" " + selected.getName());
+            lines.add(" " + selected.getColonistName());
+            lines.add(" 상태: " + selected.getCurrentState().getDisplayName());
             lines.add(" 체력: " + buildBar(selected.getHp(), selected.getMaxHp()));
             lines.add(" 피로: " + buildBar(selected.getFatigue(), selected.getMaxFatigue()));
+        }
+
+        lines.add("");
+
+        // 모드별 명령 안내
+        if (cursorMode) {
+            lines.add(" ──────────────");
+            lines.add(" [이동 위치 지정]");
+            lines.add(" 방향키: 커서 이동");
+            lines.add(" Enter: 위치 확정");
+            lines.add(" q: 취소");
+        } else {
+            lines.add(" ──────────────");
+            lines.add(" [명령]");
+            lines.add(" 1: 이동");
         }
 
         return lines;

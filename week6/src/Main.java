@@ -56,11 +56,6 @@ public class Main {
                 if (System.in.available() > 0) {
                     int key = Util.readKey();
 
-                    if (key == Util.KEY_QUIT) {
-                        running = false;
-                        break;
-                    }
-
                     if (renderer.isCursorMode()) {
                         // 커서 모드
                         switch (key) {
@@ -78,10 +73,17 @@ public class Main {
                                 selected.changeState(new MovingState(new Position(targetRow, targetCol)));
                                 renderer.setCursorMode(false);
                                 break;
+                            case Util.KEY_QUIT:
+                                // 커서 모드 취소 → 시뮬레이션 모드로 복귀
+                                renderer.setCursorMode(false);
+                                break;
                         }
                     } else {
                         // 시뮬레이션 모드
                         switch (key) {
+                            case Util.KEY_QUIT:
+                                running = false;
+                                break;
                             case Util.KEY_UP:
                                 renderer.selectPrevious();
                                 break;

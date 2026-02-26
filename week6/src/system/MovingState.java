@@ -18,6 +18,13 @@ public class MovingState extends ColonistState {
         this.target = target;
     }
 
+    /// <summary>
+    /// 이동 목표 위치 반환
+    /// </summary>
+    public Position getTarget() {
+        return target;
+    }
+
     @Override
     public void enter(Colonist colonist) {
         // 이동 시작 시 별도 초기화 없음
@@ -63,5 +70,10 @@ public class MovingState extends ColonistState {
     @Override
     public void exit(Colonist colonist) {
         // 이동 종료 시 별도 정리 없음
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "이동중";
     }
 }

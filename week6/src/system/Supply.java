@@ -13,28 +13,22 @@ public class Supply {
     private int food;
 
     /// <summary>
-    /// 보유 목재
+    /// 보유 자재
     /// </summary>
-    private int wood;
+    private int material;
 
     /// <summary>
-    /// 보유 석재
+    /// 보유 광석
     /// </summary>
-    private int stone;
-
-    /// <summary>
-    /// 보유 철
-    /// </summary>
-    private int iron;
+    private int ore;
 
     /// <summary>
     /// 모든 자원 0으로 시작
     /// </summary>
     public Supply() {
         this.food = 0;
-        this.wood = 0;
-        this.stone = 0;
-        this.iron = 0;
+        this.material = 0;
+        this.ore = 0;
     }
 
     /// <summary>
@@ -46,14 +40,11 @@ public class Supply {
             case FOOD:
                 food++;
                 break;
-            case TREE:
-                wood++;
+            case MATERIAL:
+                material++;
                 break;
-            case ROCK:
-                stone++;
-                break;
-            case IRON:
-                iron++;
+            case ORE:
+                ore++;
                 break;
         }
     }
@@ -77,35 +68,27 @@ public class Supply {
     }
 
     /// <summary>
-    /// 보유 목재 반환
+    /// 보유 자재 반환
     /// </summary>
-    public synchronized int getWood() {
-        return wood;
+    public synchronized int getMaterial() {
+        return material;
     }
 
     /// <summary>
-    /// 보유 석재 반환
+    /// 보유 광석 반환
     /// </summary>
-    public synchronized int getStone() {
-        return stone;
-    }
-
-    /// <summary>
-    /// 보유 철 반환
-    /// </summary>
-    public synchronized int getIron() {
-        return iron;
+    public synchronized int getOre() {
+        return ore;
     }
 
     /// <summary>
     /// 건물 건설 비용을 감당할 수 있는지 확인
     /// </summary>
     public synchronized boolean canAfford(BuildingType buildingType) {
-        boolean enoughWood = wood >= buildingType.getWoodCost();
-        boolean enoughStone = stone >= buildingType.getStoneCost();
+        boolean enoughMaterial = material >= buildingType.getMaterialCost();
+        boolean enoughOre = ore >= buildingType.getOreCost();
         boolean enoughFood = food >= buildingType.getFoodCost();
-        boolean enoughIron = iron >= buildingType.getIronCost();
-        return enoughWood && enoughStone && enoughFood && enoughIron;
+        return enoughMaterial && enoughOre && enoughFood;
     }
 
     /// <summary>
@@ -116,10 +99,9 @@ public class Supply {
         if (!canAfford(buildingType)) {
             return false;
         }
-        wood -= buildingType.getWoodCost();
-        stone -= buildingType.getStoneCost();
+        material -= buildingType.getMaterialCost();
+        ore -= buildingType.getOreCost();
         food -= buildingType.getFoodCost();
-        iron -= buildingType.getIronCost();
         return true;
     }
 }

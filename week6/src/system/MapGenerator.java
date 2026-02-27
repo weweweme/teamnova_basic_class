@@ -2,29 +2,25 @@ package system;
 
 /// <summary>
 /// 맵에 자원을 배치하는 클래스
-/// 초기 맵 생성 시 랜덤 배치, 시간 경과 시 자원 재생성 담당
+/// 초기 맵 생성 시 배치, 시간 경과 시 자원 재생성 담당
+/// 광산(ORE)은 맵 가장자리에 고정 배치, 나머지는 랜덤 배치
 /// </summary>
 public class MapGenerator {
 
     /// <summary>
     /// 초기 열매 덤불 배치 수
     /// </summary>
-    private static final int INITIAL_FOOD_COUNT = 12;
+    private static final int INITIAL_FOOD_COUNT = 4;
 
     /// <summary>
-    /// 초기 나무 배치 수
+    /// 초기 자재 더미 배치 수
     /// </summary>
-    private static final int INITIAL_TREE_COUNT = 15;
+    private static final int INITIAL_MATERIAL_COUNT = 6;
 
     /// <summary>
-    /// 초기 바위 배치 수
+    /// 초기 광산 배치 수 (맵 4모서리에 고정)
     /// </summary>
-    private static final int INITIAL_ROCK_COUNT = 10;
-
-    /// <summary>
-    /// 초기 철광석 배치 수
-    /// </summary>
-    private static final int INITIAL_IRON_COUNT = 5;
+    private static final int INITIAL_ORE_COUNT = 4;
 
     /// <summary>
     /// 매 낮마다 종류별 최대 재생성 수
@@ -32,14 +28,14 @@ public class MapGenerator {
     private static final int RESPAWN_PER_DAY = 2;
 
     /// <summary>
-    /// 4x2 블록의 가로 크기
+    /// 자원 블록의 가로 크기
     /// </summary>
-    private static final int BLOCK_WIDTH = 4;
+    private static final int BLOCK_WIDTH = 10;
 
     /// <summary>
-    /// 4x2 블록의 세로 크기
+    /// 자원 블록의 세로 크기
     /// </summary>
-    private static final int BLOCK_HEIGHT = 2;
+    private static final int BLOCK_HEIGHT = 6;
 
     /// <summary>
     /// 자원을 배치할 맵
@@ -54,18 +50,36 @@ public class MapGenerator {
     }
 
     /// <summary>
-    /// 초기 맵에 자원을 랜덤 배치
+    /// 초기 맵에 자원을 배치
+    /// 광산을 먼저 고정 배치한 뒤, 식량과 자재를 랜덤 배치
     /// </summary>
     public void generate() {
+        placeOreMines();
         placeResources(ResourceType.FOOD, INITIAL_FOOD_COUNT);
-        placeResources(ResourceType.TREE, INITIAL_TREE_COUNT);
-        placeResources(ResourceType.ROCK, INITIAL_ROCK_COUNT);
-        placeResources(ResourceType.IRON, INITIAL_IRON_COUNT);
+        placeResources(ResourceType.MATERIAL, INITIAL_MATERIAL_COUNT);
+    }
+
+    /// <summary>
+    /// 맵 가장자리 고정 위치에 광산(ORE) 배치
+    /// 광산은 영구 자원으로, 한번 배치되면 사라지지 않음
+    /// </summary>
+    private void placeOreMines() {
+        // 4개 모서리 근처에 배치 (블록 크기를 고려하여 여백 확보)
+        int[][] positions = {
+            {2, 5},
+            {2, GameMap.WIDTH - BLOCK_WIDTH - 5},
+            {GameMap.HEIGHT - BLOCK_HEIGHT - 2, 5},
+            {GameMap.HEIGHT - BLOCK_HEIGHT - 2, GameMap.WIDTH - BLOCK_WIDTH - 5}
+        };
+
+        for (int[] pos : positions) {
+            gameMap.addResource(new Resource(new Position(pos[0], pos[1]), ResourceType.ORE));
+        }
     }
 
     /// <summary>
     /// 지정한 종류의 자원을 지정한 수만큼 랜덤 위치에 배치
-    /// 다른 자원의 4x2 블록과 겹치지 않는 위치에만 배치
+    /// 다른 자원의 블록과 겹치지 않는 위치에만 배치
     /// </summary>
     private void placeResources(ResourceType type, int count) {
         // 배치 시도 최대 횟수 (무한 루프 방지)
@@ -90,7 +104,6 @@ public class MapGenerator {
     /// <summary>
     /// 빈 랜덤 위치에 자원 하나를 재생성
     /// 채집으로 사라진 자원을 보충할 때 사용
-    /// 부품(IRON과 별도)은 재생 안 되므로 호출 시 종류를 지정
     /// </summary>
     public void respawnResource(ResourceType type) {
         // 배치 시도 최대 횟수
@@ -109,13 +122,11 @@ public class MapGenerator {
 
     /// <summary>
     /// 낮이 시작될 때 부족한 자원을 보충
-    /// 각 종류별로 초기 배치 수 대비 부족한 만큼 최대 2개씩 재생성
+    /// 식량과 자재만 재생성 (광산은 영구 자원이므로 재생성 불필요)
     /// </summary>
     public void respawnResources() {
         respawnIfNeeded(ResourceType.FOOD, INITIAL_FOOD_COUNT);
-        respawnIfNeeded(ResourceType.TREE, INITIAL_TREE_COUNT);
-        respawnIfNeeded(ResourceType.ROCK, INITIAL_ROCK_COUNT);
-        respawnIfNeeded(ResourceType.IRON, INITIAL_IRON_COUNT);
+        respawnIfNeeded(ResourceType.MATERIAL, INITIAL_MATERIAL_COUNT);
     }
 
     /// <summary>
@@ -147,7 +158,7 @@ public class MapGenerator {
     }
 
     /// <summary>
-    /// 지정한 위치의 4x2 영역이 다른 자원과 겹치지 않는지 확인
+    /// 지정한 위치의 블록 영역이 다른 자원과 겹치지 않는지 확인
     /// </summary>
     private boolean isAreaEmpty(int row, int col) {
         for (Resource existing : gameMap.getResources()) {

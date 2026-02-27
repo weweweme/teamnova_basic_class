@@ -2,7 +2,7 @@ package system;
 
 /// <summary>
 /// 맵 위에 배치된 자원 하나를 나타내는 클래스
-/// 나무, 돌, 철광석 등이 해당하며, 정착민이 채집할 수 있음
+/// 열매 덤불, 자재 더미, 광산이 해당하며, 정착민이 채집할 수 있음
 /// </summary>
 public class Resource {
 
@@ -12,12 +12,12 @@ public class Resource {
     private final Position position;
 
     /// <summary>
-    /// 자원 종류 (나무, 돌, 철)
+    /// 자원 종류 (식량, 자재, 광석)
     /// </summary>
     private final ResourceType type;
 
     /// <summary>
-    /// 남은 채집 횟수 (0이 되면 자원 소멸)
+    /// 남은 채집 횟수 (무한 자원은 이 값을 사용하지 않음)
     /// </summary>
     private int harvestRemaining;
 
@@ -53,16 +53,24 @@ public class Resource {
     }
 
     /// <summary>
-    /// 채집 가능한지 확인 (남은 횟수가 있는지)
+    /// 채집 가능한지 확인
+    /// 무한 자원(광산)은 항상 채집 가능
     /// </summary>
     public boolean isHarvestable() {
+        if (type.isInfinite()) {
+            return true;
+        }
         return harvestRemaining > 0;
     }
 
     /// <summary>
     /// 채집 1회 수행, 남은 횟수를 1 줄임
+    /// 무한 자원(광산)은 횟수가 줄지 않음
     /// </summary>
     public void harvest() {
+        if (type.isInfinite()) {
+            return;
+        }
         if (harvestRemaining > 0) {
             harvestRemaining--;
         }

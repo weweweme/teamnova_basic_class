@@ -243,7 +243,7 @@ public class DayNightCycle extends Thread {
     /// 맵에 랜덤 자원을 추가로 배치
     /// </summary>
     private void dropResources() {
-        ResourceType[] types = {ResourceType.FOOD, ResourceType.TREE, ResourceType.ROCK, ResourceType.IRON};
+        ResourceType[] types = {ResourceType.FOOD, ResourceType.MATERIAL};
 
         for (int i = 0; i < RESOURCE_DROP_COUNT; i++) {
             ResourceType type = types[Util.rand(types.length)];

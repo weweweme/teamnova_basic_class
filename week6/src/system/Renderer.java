@@ -64,42 +64,58 @@ public class Renderer {
     private DayNightCycle dayNightCycle;
 
     /// <summary>
-    /// 열매 덤불 4x2 블록 (1행: " %% ", 2행: " %% ")
+    /// 열매 덤불 10x6 블록
     /// </summary>
-    private static final String[] FOOD_BLOCK = {" %% ", " %% "};
+    private static final String[] FOOD_BLOCK = {
+        " o  o  o  ",
+        " o oo oo  ",
+        " oo@@@@o  ",
+        "  @@@@@@  ",
+        "  /|||\\   ",
+        "  -FOOD-  "
+    };
 
     /// <summary>
-    /// 나무 4x2 블록 (1행: " ^  ", 2행: "/|\ ")
+    /// 자재 더미 10x6 블록 (목재와 석재 묶음)
     /// </summary>
-    private static final String[] TREE_BLOCK = {" ^  ", "/|\\ "};
+    private static final String[] MATERIAL_BLOCK = {
+        "  ===     ",
+        "  === ___ ",
+        " ====/  /|",
+        " ====/  / ",
+        "     |_/  ",
+        "  -MATL-  "
+    };
 
     /// <summary>
-    /// 바위 4x2 블록 (1행: " __ ", 2행: "|__|")
+    /// 광산 10x6 블록 (맵 가장자리에 고정 배치)
     /// </summary>
-    private static final String[] ROCK_BLOCK = {" __ ", "|__|"};
+    private static final String[] ORE_BLOCK = {
+        "    /\\    ",
+        "   /  \\   ",
+        "  / ^^ \\  ",
+        " /______\\ ",
+        " |XXXXXX| ",
+        "  -MINE-  "
+    };
 
     /// <summary>
-    /// 철광석 4x2 블록 (1행: "/==\", 2행: "\==/")
-    /// </summary>
-    private static final String[] IRON_BLOCK = {"/==\\", "\\==/"};
-
-    /// <summary>
-    /// 벽 4x2 블록 (1행: "####", 2행: "####")
+    /// 벽 4x2 블록
     /// </summary>
     private static final String[] WALL_BLOCK = {"####", "####"};
 
     /// <summary>
-    /// 저장소 4x2 블록 (1행: "[==]", 2행: "[==]")
+    /// 저장소 4x2 블록
     /// </summary>
     private static final String[] STORAGE_BLOCK = {"[==]", "[==]"};
 
     /// <summary>
-    /// 침실 4x2 블록 (1행: "[~~]", 2행: "[~~]")
+    /// 침실 4x2 블록
     /// </summary>
     private static final String[] BEDROOM_BLOCK = {"[~~]", "[~~]"};
 
     /// <summary>
-    /// 방어탑 4x2 블록 (1행: "/||\", 2행: "|  |")
+    /// 방어탑 4x2 블록
     /// </summary>
     private static final String[] TOWER_BLOCK = {"/||\\", "|  |"};
 
@@ -380,12 +396,10 @@ public class Renderer {
         switch (type) {
             case FOOD:
                 return FOOD_BLOCK;
-            case TREE:
-                return TREE_BLOCK;
-            case ROCK:
-                return ROCK_BLOCK;
-            case IRON:
-                return IRON_BLOCK;
+            case MATERIAL:
+                return MATERIAL_BLOCK;
+            case ORE:
+                return ORE_BLOCK;
             default:
                 return FOOD_BLOCK;
         }
@@ -473,9 +487,8 @@ public class Renderer {
         Supply supply = gameMap.getSupply();
         lines.add(" [물자]");
         lines.add("  식량: " + supply.getFood());
-        lines.add("  목재: " + supply.getWood());
-        lines.add("  석재: " + supply.getStone());
-        lines.add("  철: " + supply.getIron());
+        lines.add("  자재: " + supply.getMaterial());
+        lines.add("  광석: " + supply.getOre());
         lines.add("");
 
         // 정착민 목록
@@ -543,13 +556,13 @@ public class Renderer {
             lines.add(" ──────────────");
             lines.add(" [건물 선택]");
             lines.add(" a: 벽");
-            lines.add("    목재" + BuildingType.WALL.getWoodCost());
+            lines.add("    자재" + BuildingType.WALL.getMaterialCost());
             lines.add(" b: 저장소");
-            lines.add("    목재" + BuildingType.STORAGE.getWoodCost() + " 석재" + BuildingType.STORAGE.getStoneCost());
+            lines.add("    자재" + BuildingType.STORAGE.getMaterialCost());
             lines.add(" c: 침실");
-            lines.add("    목재" + BuildingType.BEDROOM.getWoodCost() + " 석재" + BuildingType.BEDROOM.getStoneCost());
+            lines.add("    자재" + BuildingType.BEDROOM.getMaterialCost());
             lines.add(" d: 방어탑");
-            lines.add("    목재" + BuildingType.TOWER.getWoodCost() + " 석재" + BuildingType.TOWER.getStoneCost() + " 철" + BuildingType.TOWER.getIronCost());
+            lines.add("    자재" + BuildingType.TOWER.getMaterialCost() + " 광석" + BuildingType.TOWER.getOreCost());
             lines.add(" q: 취소");
         } else {
             lines.add(" ──────────────");

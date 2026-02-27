@@ -66,13 +66,14 @@ public class Main {
 
         // 테스트용 초기 물자
         Supply initialSupply = gameMap.getSupply();
-        for (int i = 0; i < 30; i++) {
-            initialSupply.add(system.ResourceType.TREE);
-            initialSupply.add(system.ResourceType.ROCK);
-        }
         for (int i = 0; i < 15; i++) {
             initialSupply.add(system.ResourceType.FOOD);
-            initialSupply.add(system.ResourceType.IRON);
+        }
+        for (int i = 0; i < 40; i++) {
+            initialSupply.add(system.ResourceType.MATERIAL);
+        }
+        for (int i = 0; i < 10; i++) {
+            initialSupply.add(system.ResourceType.ORE);
         }
 
         // 정착민 3명 배치 및 맵에 등록

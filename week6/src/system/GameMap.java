@@ -128,8 +128,8 @@ public class GameMap {
     /// </summary>
     public Resource findResourceAt(int row, int col) {
         // 자원 블록 크기
-        int blockWidth = 4;
-        int blockHeight = 2;
+        int blockWidth = 10;
+        int blockHeight = 6;
 
         for (Resource resource : resources) {
             int resRow = resource.getPosition().getRow();

@@ -60,7 +60,7 @@ public class GatheringState extends ColonistState {
             return;
         }
 
-        // 자원이 이미 소진되었으면 대기로 전환
+        // 유한 자원이 이미 소진되었으면 대기로 전환 (광산은 항상 채집 가능)
         if (!target.isHarvestable()) {
             colonist.changeState(new IdleState());
             return;
@@ -82,7 +82,7 @@ public class GatheringState extends ColonistState {
             colonist.getGameMap().addResourceGathered();
             gatherTicks = 0;
 
-            // 자원이 소진되었으면 맵에서 제거하고 대기로 전환
+            // 유한 자원이 소진되었으면 맵에서 제거하고 대기로 전환 (광산은 무한)
             if (!target.isHarvestable()) {
                 colonist.getGameMap().removeResource(target);
                 colonist.changeState(new IdleState());

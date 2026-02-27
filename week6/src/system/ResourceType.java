@@ -2,32 +2,27 @@ package system;
 
 /// <summary>
 /// 맵에 배치되는 자원의 종류
-/// 각 자원은 채집 시 얻는 재화, 채집 횟수, 채집 시간이 다름
+/// 식량(생존용), 자재(건설 기본), 광석(건설 희귀) 3가지
 /// </summary>
 public enum ResourceType {
 
     /// <summary>
-    /// 열매 덤불 — 채집하면 식량 획득
+    /// 열매 덤불 — 채집하면 식량 획득 (정착민 생존용)
     /// </summary>
     FOOD(3, 2),
 
     /// <summary>
-    /// 나무 — 채집하면 목재 획득
+    /// 자재 더미 — 채집하면 자재 획득 (기본 건설 재료)
     /// </summary>
-    TREE(3, 3),
+    MATERIAL(4, 3),
 
     /// <summary>
-    /// 돌 — 채집하면 석재 획득
+    /// 광산 — 채집하면 광석 획득 (희귀 건설 재료, 무한 채집)
     /// </summary>
-    ROCK(3, 5),
+    ORE(-1, 5);
 
     /// <summary>
-    /// 철광석 — 채집하면 철 획득
-    /// </summary>
-    IRON(3, 5);
-
-    /// <summary>
-    /// 최대 채집 횟수 (다 소진하면 자원 사라짐)
+    /// 최대 채집 횟수 (-1이면 무제한)
     /// </summary>
     private final int maxHarvest;
 
@@ -53,5 +48,12 @@ public enum ResourceType {
     /// </summary>
     public int getHarvestTime() {
         return harvestTime;
+    }
+
+    /// <summary>
+    /// 채집 횟수가 무제한인지 확인 (광산처럼 영구 자원인 경우)
+    /// </summary>
+    public boolean isInfinite() {
+        return maxHarvest == -1;
     }
 }

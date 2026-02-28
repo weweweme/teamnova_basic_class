@@ -38,6 +38,11 @@ public class Enemy extends Thread {
     private volatile boolean running;
 
     /// <summary>
+    /// 사망 시각 (0이면 살아있음, 양수면 사망 시점의 밀리초)
+    /// </summary>
+    private long deathTime;
+
+    /// <summary>
     /// 지정한 종류, 위치, 맵으로 적 생성
     /// </summary>
     public Enemy(EnemyType type, Position position, GameMap gameMap) {
@@ -118,9 +123,20 @@ public class Enemy extends Thread {
     }
 
     /// <summary>
-    /// 피해를 받아 체력 감소
+    /// 피해를 받아 체력 감소, 사망 시 시각 기록
     /// </summary>
     public void takeDamage(int damage) {
         hp = Math.max(hp - damage, 0);
+
+        if (hp == 0 && deathTime == 0) {
+            deathTime = System.currentTimeMillis();
+        }
+    }
+
+    /// <summary>
+    /// 사망 시각 반환 (0이면 살아있음)
+    /// </summary>
+    public long getDeathTime() {
+        return deathTime;
     }
 }

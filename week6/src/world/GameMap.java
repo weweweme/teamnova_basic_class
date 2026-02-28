@@ -60,6 +60,11 @@ public class GameMap {
     private final ArrayList<String> logs = new ArrayList<>();
 
     /// <summary>
+    /// 사망 애니메이션 지속 시간 (밀리초)
+    /// </summary>
+    private static final int DEATH_ANIM_DURATION = 800;
+
+    /// <summary>
     /// 처치한 적 수
     /// </summary>
     private int enemiesKilled;
@@ -127,9 +132,15 @@ public class GameMap {
     /// </summary>
     public void removeDeadEnemies() {
         ArrayList<Enemy> dead = new ArrayList<>();
+        long now = System.currentTimeMillis();
+
         for (Enemy enemy : enemies) {
             if (!enemy.isLiving()) {
-                dead.add(enemy);
+                // 사망 애니메이션이 끝난 적만 제거
+                boolean animDone = now - enemy.getDeathTime() > DEATH_ANIM_DURATION;
+                if (animDone) {
+                    dead.add(enemy);
+                }
             }
         }
         // 처치 보상: 적 1마리당 보급품 3

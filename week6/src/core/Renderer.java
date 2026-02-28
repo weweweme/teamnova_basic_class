@@ -36,6 +36,11 @@ public class Renderer {
     private final char[][] buffer;
 
     /// <summary>
+    /// 색상 버퍼 [행][열], ANSI 색상 코드 (0이면 기본색, 31=빨강, 90=짙은 회색)
+    /// </summary>
+    private final int[][] colorBuffer;
+
+    /// <summary>
     /// 출력할 게임 맵
     /// </summary>
     private final GameMap gameMap;
@@ -57,6 +62,7 @@ public class Renderer {
     public Renderer(GameMap gameMap) {
         this.gameMap = gameMap;
         this.buffer = new char[GameMap.HEIGHT][GameMap.WIDTH];
+        this.colorBuffer = new int[GameMap.HEIGHT][GameMap.WIDTH];
         this.selectedIndex = 0;
     }
 
@@ -126,6 +132,7 @@ public class Renderer {
         for (int row = 0; row < GameMap.HEIGHT; row++) {
             for (int col = 0; col < GameMap.WIDTH; col++) {
                 buffer[row][col] = ' ';
+                colorBuffer[row][col] = 0;
             }
         }
     }
@@ -164,15 +171,57 @@ public class Renderer {
 
     /// <summary>
     /// 맵의 모든 적을 버퍼에 그림
+    /// 살아있는 적: HP 비율에 따라 위에서부터 빨간색
+    /// 죽은 적: 짙은 회색 → 아래부터 소멸 애니메이션
     /// </summary>
     private void drawEnemies() {
+        long now = System.currentTimeMillis();
+
         for (Enemy enemy : gameMap.getEnemies()) {
-            if (!enemy.isLiving()) {
-                continue;
-            }
             int row = enemy.getPosition().getRow();
             int col = enemy.getPosition().getCol();
-            drawBlock(row, col, enemy.getType().getBlock());
+            String[] block = enemy.getType().getBlock();
+            int blockHeight = block.length;
+
+            if (enemy.isLiving()) {
+                // 살아있는 적: HP 비율에 따라 위에서부터 빨간색
+                double hpRatio = (double) enemy.getHp() / enemy.getMaxHp();
+                int redRows = (int) Math.ceil((1.0 - hpRatio) * blockHeight);
+
+                int[] rowColors = new int[blockHeight];
+                for (int i = 0; i < redRows; i++) {
+                    rowColors[i] = 31;
+                }
+                drawColoredBlock(row, col, block, rowColors);
+            } else {
+                // 죽은 적: 사망 애니메이션
+                long elapsed = now - enemy.getDeathTime();
+
+                if (elapsed < 400) {
+                    // Phase 1: 전체 짙은 회색으로 정지
+                    int[] rowColors = new int[blockHeight];
+                    for (int i = 0; i < blockHeight; i++) {
+                        rowColors[i] = 90;
+                    }
+                    drawColoredBlock(row, col, block, rowColors);
+                } else if (elapsed < 800) {
+                    // Phase 2: 아래부터 한 줄씩 소멸
+                    double progress = (double) (elapsed - 400) / 400;
+                    int removedRows = (int) Math.ceil(progress * blockHeight);
+                    int visibleRows = blockHeight - removedRows;
+
+                    if (visibleRows > 0) {
+                        String[] partialBlock = new String[visibleRows];
+                        int[] rowColors = new int[visibleRows];
+                        for (int i = 0; i < visibleRows; i++) {
+                            partialBlock[i] = block[i];
+                            rowColors[i] = 90;
+                        }
+                        drawColoredBlock(row, col, partialBlock, rowColors);
+                    }
+                }
+                // Phase 3 (800ms+): 아무것도 안 그림 (제거 대기)
+            }
         }
     }
 
@@ -212,6 +261,34 @@ public class Renderer {
                 }
 
                 buffer[bufferRow][bufferCol] = line.charAt(blockCol);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 지정한 위치에 블록을 버퍼에 그리면서 행별 색상도 기록
+    /// rowColors[i]가 0이 아니면 해당 행에 ANSI 색상 적용
+    /// </summary>
+    private void drawColoredBlock(int startRow, int startCol, String[] block, int[] rowColors) {
+        for (int blockRow = 0; blockRow < block.length; blockRow++) {
+            int bufferRow = startRow + blockRow;
+
+            if (bufferRow < 0 || bufferRow >= GameMap.HEIGHT) {
+                continue;
+            }
+
+            String line = block[blockRow];
+            int color = rowColors[blockRow];
+
+            for (int blockCol = 0; blockCol < line.length(); blockCol++) {
+                int bufferCol = startCol + blockCol;
+
+                if (bufferCol < 0 || bufferCol >= GameMap.WIDTH) {
+                    continue;
+                }
+
+                buffer[bufferRow][bufferCol] = line.charAt(blockCol);
+                colorBuffer[bufferRow][bufferCol] = color;
             }
         }
     }
@@ -404,9 +481,18 @@ public class Renderer {
         for (int row = 0; row < totalHeight; row++) {
             // 좌측 내용 (맵 / 구분선 / 로그)
             if (row < GameMap.HEIGHT) {
-                // 맵 버퍼
+                // 맵 버퍼 (색상 적용)
                 for (int col = 0; col < GameMap.WIDTH; col++) {
-                    screen.append(buffer[row][col]);
+                    int color = colorBuffer[row][col];
+                    if (color != 0) {
+                        screen.append("\033[");
+                        screen.append(color);
+                        screen.append('m');
+                        screen.append(buffer[row][col]);
+                        screen.append("\033[0m");
+                    } else {
+                        screen.append(buffer[row][col]);
+                    }
                 }
             } else if (row == GameMap.HEIGHT) {
                 // 로그 구분선

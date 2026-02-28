@@ -92,6 +92,9 @@ public class Main {
                             running = false;
                         }
                     } else {
+                        // 밤 건너뛰기 키
+                        final int KEY_SKIP_NIGHT = 'n';
+
                         switch (key) {
                             case Util.KEY_QUIT:
                                 running = false;
@@ -101,6 +104,9 @@ public class Main {
                                 break;
                             case Util.KEY_DOWN:
                                 renderer.selectNext();
+                                break;
+                            case KEY_SKIP_NIGHT:
+                                dayNightCycle.skipToNight();
                                 break;
                         }
                     }

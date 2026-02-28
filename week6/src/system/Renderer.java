@@ -291,6 +291,7 @@ public class Renderer {
             lines.add(" ──────────────");
             lines.add(" [조작]");
             lines.add(" 방향키: 정착민 선택");
+            lines.add(" n: 밤 건너뛰기");
             lines.add(" q: 종료");
         }
 

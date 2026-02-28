@@ -99,6 +99,15 @@ public class DayNightCycle extends Thread {
     }
 
     /// <summary>
+    /// 낮을 건너뛰고 즉시 밤으로 전환 (낮일 때만 동작)
+    /// </summary>
+    public void skipToNight() {
+        if (!night) {
+            elapsedInPhase = DAY_DURATION;
+        }
+    }
+
+    /// <summary>
     /// 스레드 안전하게 종료
     /// </summary>
     public void stopRunning() {

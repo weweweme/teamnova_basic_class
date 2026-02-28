@@ -2,6 +2,7 @@ package system;
 
 /// <summary>
 /// 사격 상태 — 밤에 바리케이드에 붙어서 가장 가까운 적을 조준 사격
+/// 자연 전환 시 바리케이드까지 걸어서 이동, 건너뛰기 시 즉시 배치
 /// </summary>
 public class ShootingState extends ColonistState {
 
@@ -21,20 +22,61 @@ public class ShootingState extends ColonistState {
     private static final int SHOOT_COL = Barricade.COLUMN - 3;
 
     /// <summary>
+    /// 즉시 배치 여부 (밤 건너뛰기 시 true)
+    /// </summary>
+    private final boolean instant;
+
+    /// <summary>
+    /// 목표 행 (사격 위치)
+    /// </summary>
+    private int targetRow;
+
+    /// <summary>
+    /// 목표에 도착했는지 여부
+    /// </summary>
+    private boolean arrived;
+
+    /// <summary>
     /// 발사 카운터 (SHOOT_INTERVAL에 도달하면 발사)
     /// </summary>
     private int tickCount;
 
+    /// <summary>
+    /// 즉시 배치 여부를 지정하여 생성
+    /// </summary>
+    public ShootingState(boolean instant) {
+        this.instant = instant;
+    }
+
     @Override
     public void enter(Colonist colonist) {
         tickCount = 0;
+        arrived = false;
 
-        // 바리케이드 옆으로 이동 (행은 유지)
-        colonist.getPosition().setCol(SHOOT_COL);
+        // 정착민 목록에서 자기 순번으로 목표 행 계산 (겹침 방지)
+        GameMap gameMap = colonist.getGameMap();
+        int index = gameMap.getColonists().indexOf(colonist);
+        int count = gameMap.getColonists().size();
+        int spacing = GameMap.HEIGHT / (count + 1);
+        targetRow = spacing * (index + 1);
+
+        if (instant) {
+            // 밤 건너뛰기: 즉시 배치
+            colonist.getPosition().setRow(targetRow);
+            colonist.getPosition().setCol(SHOOT_COL);
+            arrived = true;
+        }
     }
 
     @Override
     public void update(Colonist colonist) {
+        // 아직 목표에 도착하지 않았으면 이동
+        if (!arrived) {
+            moveToward(colonist);
+            return;
+        }
+
+        // 사격 로직
         tickCount++;
 
         if (tickCount < SHOOT_INTERVAL) {
@@ -55,12 +97,42 @@ public class ShootingState extends ColonistState {
 
         // 적 블록 중앙을 조준
         String[] block = target.getType().getBlock();
-        int targetRow = target.getPosition().getRow() + block.length / 2;
-        int targetCol = target.getPosition().getCol() + block[0].length() / 2;
+        int aimRow = target.getPosition().getRow() + block.length / 2;
+        int aimCol = target.getPosition().getCol() + block[0].length() / 2;
 
         int damage = colonist.getWeaponLevel() * BASE_DAMAGE;
-        Bullet bullet = new Bullet(bulletRow, bulletCol, targetRow, targetCol, damage);
+        Bullet bullet = new Bullet(bulletRow, bulletCol, aimRow, aimCol, damage);
         colonist.getGameMap().addBullet(bullet);
+    }
+
+    /// <summary>
+    /// 목표 위치를 향해 한 칸씩 이동
+    /// 행과 열을 동시에 움직여 대각선 이동
+    /// </summary>
+    private void moveToward(Colonist colonist) {
+        int currentRow = colonist.getPosition().getRow();
+        int currentCol = colonist.getPosition().getCol();
+
+        // 행 이동
+        if (currentRow < targetRow) {
+            colonist.getPosition().setRow(currentRow + 1);
+        } else if (currentRow > targetRow) {
+            colonist.getPosition().setRow(currentRow - 1);
+        }
+
+        // 열 이동
+        if (currentCol < SHOOT_COL) {
+            colonist.getPosition().setCol(currentCol + 1);
+        } else if (currentCol > SHOOT_COL) {
+            colonist.getPosition().setCol(currentCol - 1);
+        }
+
+        // 도착 확인
+        boolean rowArrived = colonist.getPosition().getRow() == targetRow;
+        boolean colArrived = colonist.getPosition().getCol() == SHOOT_COL;
+        if (rowArrived && colArrived) {
+            arrived = true;
+        }
     }
 
     @Override
@@ -70,6 +142,9 @@ public class ShootingState extends ColonistState {
 
     @Override
     public String getDisplayName() {
+        if (!arrived) {
+            return "배치 중";
+        }
         return "사격";
     }
 

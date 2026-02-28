@@ -21,6 +21,14 @@ public class DayNightCycle extends Thread {
     /// <summary>
     /// 매일 자동 지급되는 보급품 양
     /// </summary>
+    /// <summary>
+    /// 밤 전 사격 배치 시작 시점 (밀리초, 밤까지 남은 시간)
+    /// </summary>
+    private static final int PREPARE_DURATION = 5000;
+
+    /// <summary>
+    /// 매일 자동 지급되는 보급품 양
+    /// </summary>
     private static final int DAILY_SUPPLY = 20;
 
     /// <summary>
@@ -47,6 +55,16 @@ public class DayNightCycle extends Thread {
     /// 스레드 실행 여부
     /// </summary>
     private volatile boolean running;
+
+    /// <summary>
+    /// 밤 건너뛰기가 요청되었는지 여부 (즉시 배치용)
+    /// </summary>
+    private volatile boolean skipRequested;
+
+    /// <summary>
+    /// 밤 전 사격 배치가 시작되었는지 여부
+    /// </summary>
+    private boolean preparing;
 
     /// <summary>
     /// 지정한 맵으로 낮/밤 주기 생성, 1일차 낮부터 시작
@@ -88,9 +106,21 @@ public class DayNightCycle extends Thread {
                 if (elapsedInPhase >= DAY_DURATION) {
                     night = true;
                     elapsedInPhase = 0;
-                    switchToShooting();
+
+                    if (skipRequested || !preparing) {
+                        // 건너뛰기 또는 준비 없이 밤이 된 경우: 즉시 배치
+                        switchToShooting(true);
+                    }
+
+                    skipRequested = false;
+                    preparing = false;
                     spawnEnemies();
                     gameMap.addLog("── 밤이 찾아왔습니다 ──");
+                } else if (!preparing && DAY_DURATION - elapsedInPhase <= PREPARE_DURATION) {
+                    // 밤 5초 전: 사격 위치로 이동 시작
+                    preparing = true;
+                    switchToShooting(false);
+                    gameMap.addLog(">> 정착민들이 바리케이드로 이동합니다");
                 }
             }
 
@@ -103,6 +133,7 @@ public class DayNightCycle extends Thread {
     /// </summary>
     public void skipToNight() {
         if (!night) {
+            skipRequested = true;
             elapsedInPhase = DAY_DURATION;
         }
     }
@@ -147,10 +178,10 @@ public class DayNightCycle extends Thread {
     /// 살아있는 모든 정착민을 사격 상태로 전환
     /// 각 정착민마다 별도 상태 객체 생성 (tickCount 등 개별 관리)
     /// </summary>
-    private void switchToShooting() {
+    private void switchToShooting(boolean instant) {
         for (Colonist colonist : gameMap.getColonists()) {
             if (colonist.isLiving()) {
-                colonist.changeState(new ShootingState());
+                colonist.changeState(new ShootingState(instant));
             }
         }
     }

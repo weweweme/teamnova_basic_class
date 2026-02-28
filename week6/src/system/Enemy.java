@@ -1,8 +1,8 @@
 package system;
 
 /// <summary>
-/// 밤에 맵 가장자리에서 출현하는 적
-/// 자기 스레드에서 가장 가까운 정착민을 향해 이동
+/// 밤에 오른쪽에서 출현하여 좌측으로 이동하는 적
+/// 자기 스레드에서 매 틱마다 왼쪽으로 한 칸씩 이동
 /// </summary>
 public class Enemy extends Thread {
 
@@ -12,14 +12,9 @@ public class Enemy extends Thread {
     private static final int MAX_HP = 50;
 
     /// <summary>
-    /// 행동 틱 간격 (밀리초, 정착민보다 빠름)
+    /// 행동 틱 간격 (밀리초)
     /// </summary>
     private static final int TICK_DELAY = 300;
-
-    /// <summary>
-    /// 공격 범위 (맨해튼 거리)
-    /// </summary>
-    private static final int ATTACK_RANGE = 2;
 
     /// <summary>
     /// 틱당 공격력
@@ -56,70 +51,20 @@ public class Enemy extends Thread {
         this.running = true;
     }
 
+    /// <summary>
+    /// 스레드 실행 루프
+    /// 매 틱마다 왼쪽으로 한 칸 이동
+    /// </summary>
     @Override
     public void run() {
         while (running && isLiving()) {
-            // 가장 가까운 정착민 공격 범위 안이면 공격, 아니면 이동
-            Colonist closest = findClosestColonist();
-            if (closest != null) {
-                int distance = position.distanceTo(closest.getPosition());
-                if (distance <= ATTACK_RANGE) {
-                    closest.takeDamage(ATTACK_DAMAGE);
-                } else {
-                    moveToward(closest.getPosition());
-                }
+            // 왼쪽으로 한 칸 이동
+            int nextCol = position.getCol() - 1;
+            if (nextCol >= 0) {
+                position.setCol(nextCol);
             }
             Util.delay(TICK_DELAY);
         }
-    }
-
-    /// <summary>
-    /// 지정한 위치를 향해 한 칸 이동
-    /// </summary>
-    private void moveToward(Position targetPos) {
-        int rowDiff = targetPos.getRow() - position.getRow();
-        int colDiff = targetPos.getCol() - position.getCol();
-
-        int nextRow = position.getRow();
-        int nextCol = position.getCol();
-
-        if (rowDiff > 0) {
-            nextRow++;
-        } else if (rowDiff < 0) {
-            nextRow--;
-        }
-
-        if (colDiff > 0) {
-            nextCol++;
-        } else if (colDiff < 0) {
-            nextCol--;
-        }
-
-        if (gameMap.isWalkable(nextRow, nextCol)) {
-            position.moveTo(nextRow, nextCol);
-        }
-    }
-
-    /// <summary>
-    /// 맵의 정착민 중 가장 가까운 정착민 찾기
-    /// 정착민이 없으면 null 반환
-    /// </summary>
-    private Colonist findClosestColonist() {
-        Colonist closest = null;
-        int minDistance = Integer.MAX_VALUE;
-
-        for (Colonist colonist : gameMap.getColonists()) {
-            if (!colonist.isLiving()) {
-                continue;
-            }
-
-            int distance = position.distanceTo(colonist.getPosition());
-            if (distance < minDistance) {
-                minDistance = distance;
-                closest = colonist;
-            }
-        }
-        return closest;
     }
 
     /// <summary>

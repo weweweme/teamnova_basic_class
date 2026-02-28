@@ -127,10 +127,14 @@ public class GameMap {
                 dead.add(enemy);
             }
         }
+        // 처치 보상: 적 1마리당 보급품 3
+        int killReward = 3;
+
         for (Enemy enemy : dead) {
             enemy.stopRunning();
             enemies.remove(enemy);
             enemiesKilled++;
+            supply.add(killReward);
         }
     }
 

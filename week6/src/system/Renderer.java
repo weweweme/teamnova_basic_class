@@ -289,10 +289,22 @@ public class Renderer {
             lines.add(" q: 종료");
         } else {
             lines.add(" ──────────────");
-            lines.add(" [조작]");
-            lines.add(" 방향키: 정착민 선택");
-            lines.add(" n: 밤 건너뛰기");
-            lines.add(" q: 종료");
+
+            boolean isNight = dayNightCycle != null && dayNightCycle.isNight();
+            if (isNight) {
+                // 밤: 전투 상태 표시
+                lines.add(" [전투 중]");
+                lines.add(" 적: " + gameMap.getEnemies().size() + "마리");
+                lines.add(" q: 종료");
+            } else {
+                // 낮: 관리 명령
+                lines.add(" [명령] (낮)");
+                lines.add(" 1: 수리 (보급10)");
+                lines.add(" 2: 강화 (보급15)");
+                lines.add(" 3: 치료 (보급10)");
+                lines.add(" n: 밤 건너뛰기");
+                lines.add(" q: 종료");
+            }
         }
 
         return lines;

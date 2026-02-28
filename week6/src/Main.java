@@ -92,8 +92,18 @@ public class Main {
                             running = false;
                         }
                     } else {
-                        // 밤 건너뛰기 키
+                        // 명령 키
+                        final int KEY_REPAIR = '1';
+                        final int KEY_UPGRADE = '2';
+                        final int KEY_HEAL = '3';
                         final int KEY_SKIP_NIGHT = 'n';
+
+                        // 명령 비용
+                        final int REPAIR_COST = 10;
+                        final int REPAIR_AMOUNT = 30;
+                        final int UPGRADE_COST = 15;
+                        final int HEAL_COST = 10;
+                        final int HEAL_AMOUNT = 30;
 
                         switch (key) {
                             case Util.KEY_QUIT:
@@ -107,6 +117,31 @@ public class Main {
                                 break;
                             case KEY_SKIP_NIGHT:
                                 dayNightCycle.skipToNight();
+                                break;
+                            case KEY_REPAIR:
+                                // 낮에만 사용 가능
+                                if (!dayNightCycle.isNight() && gameMap.getSupply().spend(REPAIR_COST)) {
+                                    gameMap.getBarricade().repair(REPAIR_AMOUNT);
+                                    gameMap.addLog(">> 바리케이드 수리 (+" + REPAIR_AMOUNT + ")");
+                                }
+                                break;
+                            case KEY_UPGRADE:
+                                if (!dayNightCycle.isNight() && gameMap.getSupply().spend(UPGRADE_COST)) {
+                                    Colonist selected = gameMap.getColonists().get(renderer.getSelectedIndex());
+                                    if (selected.isLiving()) {
+                                        selected.upgradeWeapon();
+                                        gameMap.addLog(">> " + selected.getColonistName() + " 무기 강화 (Lv" + selected.getWeaponLevel() + ")");
+                                    }
+                                }
+                                break;
+                            case KEY_HEAL:
+                                if (!dayNightCycle.isNight() && gameMap.getSupply().spend(HEAL_COST)) {
+                                    Colonist selected = gameMap.getColonists().get(renderer.getSelectedIndex());
+                                    if (selected.isLiving()) {
+                                        selected.heal(HEAL_AMOUNT);
+                                        gameMap.addLog(">> " + selected.getColonistName() + " 치료 (+" + HEAL_AMOUNT + ")");
+                                    }
+                                }
                                 break;
                         }
                     }

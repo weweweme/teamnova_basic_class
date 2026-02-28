@@ -43,10 +43,6 @@ public class Renderer {
     /// </summary>
     private int selectedIndex;
 
-    /// <summary>
-    /// 적 블록 (4x2)
-    /// </summary>
-    private static final String[] ENEMY_BLOCK = {" XX ", " XX "};
 
     /// <summary>
     /// 지정한 맵으로 렌더러 생성
@@ -109,6 +105,7 @@ public class Renderer {
     /// </summary>
     public void render() {
         clearBuffer();
+        drawBarricade();
         drawColonists();
         drawEnemies();
         flush();
@@ -122,6 +119,20 @@ public class Renderer {
             for (int col = 0; col < GameMap.WIDTH; col++) {
                 buffer[row][col] = ' ';
             }
+        }
+    }
+
+    /// <summary>
+    /// 바리케이드를 세로로 그림 (## 문자, 맵 전체 높이)
+    /// 파괴되었으면 .. 으로 표시
+    /// </summary>
+    private void drawBarricade() {
+        Barricade barricade = gameMap.getBarricade();
+        char wallChar = barricade.isDestroyed() ? '.' : '#';
+
+        for (int row = 0; row < GameMap.HEIGHT; row++) {
+            buffer[row][Barricade.COLUMN] = wallChar;
+            buffer[row][Barricade.COLUMN + 1] = wallChar;
         }
     }
 
@@ -153,7 +164,7 @@ public class Renderer {
             }
             int row = enemy.getPosition().getRow();
             int col = enemy.getPosition().getCol();
-            drawBlock(row, col, ENEMY_BLOCK);
+            drawBlock(row, col, enemy.getType().getBlock());
         }
     }
 
@@ -207,8 +218,10 @@ public class Renderer {
             lines.add("");
         }
 
-        // 보급품
+        // 보급품 + 바리케이드
+        Barricade barricade = gameMap.getBarricade();
         lines.add(" [보급] " + gameMap.getSupply().getAmount());
+        lines.add(" [바리] " + buildBar(barricade.getHp(), barricade.getMaxHp()));
         lines.add(" [처치] " + gameMap.getEnemiesKilled() + "마리");
         lines.add("");
 

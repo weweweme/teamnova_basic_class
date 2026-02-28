@@ -1,5 +1,7 @@
 package system;
 
+import java.util.ArrayList;
+
 /// <summary>
 /// 낮/밤 주기를 관리하는 스레드
 /// 낮(30초)과 밤(적 섬멸까지)을 반복
@@ -15,11 +17,6 @@ public class DayNightCycle extends Thread {
     /// 틱 간격 (밀리초)
     /// </summary>
     private static final int TICK_DELAY = 500;
-
-    /// <summary>
-    /// 밤마다 출현하는 적 수
-    /// </summary>
-    private static final int ENEMIES_PER_NIGHT = 5;
 
     /// <summary>
     /// 매일 자동 지급되는 보급품 양
@@ -137,18 +134,62 @@ public class DayNightCycle extends Thread {
 
     /// <summary>
     /// 맵 오른쪽 가장자리에 적을 출현시키고 스레드 시작
-    /// 지면(HEIGHT-2) 위쪽 랜덤 행에 배치
+    /// 일차에 따라 등장하는 몬스터 종류와 수가 달라짐
+    /// 적끼리 위아래 1칸 이상 간격을 두고 배치
     /// </summary>
     private void spawnEnemies() {
-        // 지면 위 영역에서 랜덤 행 선택 (row 0 ~ HEIGHT-3)
-        int maxRow = GameMap.HEIGHT - 3;
+        // 일차별 스폰 구성: 초반엔 늑대만, 점차 거미/곰 추가
+        int wolfCount = 3 + day;
+        int spiderCount = Math.max(0, day - 1);
+        int bearCount = Math.max(0, (day - 2) / 2);
 
-        for (int i = 0; i < ENEMIES_PER_NIGHT; i++) {
-            int row = Util.rand(maxRow + 1);
+        // 스폰할 적 목록 모으기 (곰 → 늑대 → 거미 순서로 큰 것부터 배치)
+        ArrayList<EnemyType> spawnList = new ArrayList<>();
+        for (int i = 0; i < bearCount; i++) {
+            spawnList.add(EnemyType.BEAR);
+        }
+        for (int i = 0; i < wolfCount; i++) {
+            spawnList.add(EnemyType.WOLF);
+        }
+        for (int i = 0; i < spiderCount; i++) {
+            spawnList.add(EnemyType.SPIDER);
+        }
+
+        if (spawnList.isEmpty()) {
+            return;
+        }
+
+        // 전체 필요 높이 계산 (블록 높이 합 + 간격)
+        int totalHeight = 0;
+        for (EnemyType type : spawnList) {
+            totalHeight += type.getBlock().length;
+        }
+        // 적 사이 간격 (마지막 적 아래는 제외)
+        totalHeight += spawnList.size() - 1;
+
+        // 중앙 기준으로 시작 행 계산
+        int startRow = (GameMap.HEIGHT - totalHeight) / 2;
+        if (startRow < 0) {
+            startRow = 0;
+        }
+
+        int currentRow = startRow;
+        for (EnemyType type : spawnList) {
+            int blockHeight = type.getBlock().length;
+
+            // 맵 높이를 넘으면 맨 위부터 다시 배치
+            int maxRow = GameMap.HEIGHT - blockHeight;
+            if (currentRow > maxRow) {
+                currentRow = 0;
+            }
+
             int col = GameMap.WIDTH - 1;
-            Enemy enemy = new Enemy(new Position(row, col), gameMap);
+            Enemy enemy = new Enemy(type, new Position(currentRow, col), gameMap);
             gameMap.addEnemy(enemy);
             enemy.start();
+
+            // 블록 높이 + 간격 1칸
+            currentRow += blockHeight + 1;
         }
     }
 }

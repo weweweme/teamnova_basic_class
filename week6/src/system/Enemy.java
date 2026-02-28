@@ -2,24 +2,15 @@ package system;
 
 /// <summary>
 /// 밤에 오른쪽에서 출현하여 좌측으로 이동하는 적
+/// 종류(EnemyType)에 따라 체력, 공격력, 속도, 외형이 다름
 /// 자기 스레드에서 매 틱마다 왼쪽으로 한 칸씩 이동
 /// </summary>
 public class Enemy extends Thread {
 
     /// <summary>
-    /// 최대 체력
+    /// 이 적의 종류 (체력/공격력/속도/외형 결정)
     /// </summary>
-    private static final int MAX_HP = 50;
-
-    /// <summary>
-    /// 행동 틱 간격 (밀리초)
-    /// </summary>
-    private static final int TICK_DELAY = 300;
-
-    /// <summary>
-    /// 틱당 공격력
-    /// </summary>
-    private static final int ATTACK_DAMAGE = 5;
+    private final EnemyType type;
 
     /// <summary>
     /// 맵 위의 위치
@@ -42,28 +33,40 @@ public class Enemy extends Thread {
     private volatile boolean running;
 
     /// <summary>
-    /// 지정한 위치와 맵으로 적 생성
+    /// 지정한 종류, 위치, 맵으로 적 생성
     /// </summary>
-    public Enemy(Position position, GameMap gameMap) {
+    public Enemy(EnemyType type, Position position, GameMap gameMap) {
+        this.type = type;
         this.position = position;
         this.gameMap = gameMap;
-        this.hp = MAX_HP;
+        this.hp = type.getMaxHp();
         this.running = true;
     }
 
     /// <summary>
     /// 스레드 실행 루프
-    /// 매 틱마다 왼쪽으로 한 칸 이동
+    /// 매 틱마다 왼쪽으로 이동, 바리케이드 도달 시 공격
     /// </summary>
     @Override
     public void run() {
+        // 바리케이드 바로 오른쪽에서 멈춤
+        int stopCol = Barricade.COLUMN + 2;
+
         while (running && isLiving()) {
-            // 왼쪽으로 한 칸 이동
-            int nextCol = position.getCol() - 1;
-            if (nextCol >= 0) {
-                position.setCol(nextCol);
+            int currentCol = position.getCol();
+
+            if (currentCol > stopCol) {
+                // 아직 바리케이드에 도달하지 않음 — 왼쪽으로 이동
+                position.setCol(currentCol - 1);
+            } else {
+                // 바리케이드에 도달 — 공격
+                Barricade barricade = gameMap.getBarricade();
+                if (!barricade.isDestroyed()) {
+                    barricade.takeDamage(type.getDamage());
+                }
             }
-            Util.delay(TICK_DELAY);
+
+            Util.delay(type.getTickDelay());
         }
     }
 
@@ -72,6 +75,13 @@ public class Enemy extends Thread {
     /// </summary>
     public void stopRunning() {
         running = false;
+    }
+
+    /// <summary>
+    /// 적 종류 반환
+    /// </summary>
+    public EnemyType getType() {
+        return type;
     }
 
     /// <summary>
@@ -92,7 +102,7 @@ public class Enemy extends Thread {
     /// 최대 체력 반환
     /// </summary>
     public int getMaxHp() {
-        return MAX_HP;
+        return type.getMaxHp();
     }
 
     /// <summary>

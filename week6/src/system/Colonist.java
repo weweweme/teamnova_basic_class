@@ -74,7 +74,7 @@ public class Colonist extends Thread {
         this.gameMap = gameMap;
         this.hp = MAX_HP;
         this.weaponLevel = 1;
-        this.currentState = new IdleState();
+        this.currentState = new WanderingState();
         this.running = true;
     }
 

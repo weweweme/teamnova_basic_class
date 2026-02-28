@@ -30,6 +30,11 @@ public class GameMap {
     private final Supply supply = new Supply();
 
     /// <summary>
+    /// 안전지대와 전장을 나누는 바리케이드
+    /// </summary>
+    private final Barricade barricade = new Barricade();
+
+    /// <summary>
     /// 현재 맵에 있는 적 목록
     /// </summary>
     private final ArrayList<Enemy> enemies = new ArrayList<>();
@@ -70,6 +75,13 @@ public class GameMap {
     /// </summary>
     public Supply getSupply() {
         return supply;
+    }
+
+    /// <summary>
+    /// 바리케이드 반환
+    /// </summary>
+    public Barricade getBarricade() {
+        return barricade;
     }
 
     /// <summary>

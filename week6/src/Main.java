@@ -49,11 +49,11 @@ public class Main {
         // 초기 보급품
         gameMap.getSupply().add(30);
 
-        // 정착민 3명 배치 (화면 중앙 부근)
+        // 정착민 3명 배치 (안전지대 내)
         int centerRow = GameMap.HEIGHT / 2;
-        Colonist chulsoo = new Colonist("김철수", new Position(centerRow, 5), gameMap);
-        Colonist younghee = new Colonist("이영희", new Position(centerRow, 10), gameMap);
-        Colonist minsoo = new Colonist("박민수", new Position(centerRow, 15), gameMap);
+        Colonist chulsoo = new Colonist("김철수", new Position(centerRow, 3), gameMap);
+        Colonist younghee = new Colonist("이영희", new Position(centerRow, 7), gameMap);
+        Colonist minsoo = new Colonist("박민수", new Position(centerRow, 11), gameMap);
         gameMap.addColonist(chulsoo);
         gameMap.addColonist(younghee);
         gameMap.addColonist(minsoo);

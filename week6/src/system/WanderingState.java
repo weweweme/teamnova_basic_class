@@ -1,18 +1,23 @@
 package system;
 
 /// <summary>
-/// 대기 상태 — 명령이 없을 때 랜덤으로 배회
+/// 배회 상태 — 안전지대(바리케이드 왼쪽)에서 랜덤으로 돌아다님
 /// </summary>
-public class IdleState extends ColonistState {
+public class WanderingState extends ColonistState {
 
     /// <summary>
-    /// 8방향 중 이동할 수 있는 방향 목록
+    /// 8방향 이동 방향 목록
     /// </summary>
     private static final Direction[] DIRECTIONS = Direction.values();
 
+    /// <summary>
+    /// 안전지대 오른쪽 끝 (정착민 블록이 바리케이드와 겹치지 않도록 여유 확보)
+    /// </summary>
+    private static final int MAX_COL = Barricade.COLUMN - 4;
+
     @Override
     public void enter(Colonist colonist) {
-        // 대기 상태 진입 시 별도 초기화 없음
+        // 배회 상태 진입 시 별도 초기화 없음
     }
 
     @Override
@@ -25,20 +30,21 @@ public class IdleState extends ColonistState {
         int newRow = colonist.getPosition().getRow() + direction.getDeltaRow();
         int newCol = colonist.getPosition().getCol() + direction.getDeltaCol();
 
-        // 맵 범위 안이고 이동 가능한 타일이면 이동
-        GameMap gameMap = colonist.getGameMap();
-        if (gameMap.isWalkable(newRow, newCol)) {
+        // 안전지대 범위 안에서만 이동
+        boolean validRow = newRow >= 0 && newRow < GameMap.HEIGHT;
+        boolean validCol = newCol >= 0 && newCol <= MAX_COL;
+        if (validRow && validCol) {
             colonist.getPosition().moveTo(newRow, newCol);
         }
     }
 
     @Override
     public void exit(Colonist colonist) {
-        // 대기 상태 퇴장 시 별도 정리 없음
+        // 배회 상태 퇴장 시 별도 정리 없음
     }
 
     @Override
     public String getDisplayName() {
-        return "대기";
+        return "배회";
     }
 }

@@ -168,26 +168,11 @@ public class DayNightCycle extends Thread {
 
     /// <summary>
     /// 맵 오른쪽 가장자리에 적을 출현시키고 스레드 시작
-    /// 일차에 따라 등장하는 몬스터 종류와 수가 달라짐
+    /// buildWave()로 구성된 적 목록을 중앙 기준으로 배치
     /// 적끼리 위아래 1칸 이상 간격을 두고 배치
     /// </summary>
     private void spawnEnemies() {
-        // 일차별 스폰 구성: 초반엔 늑대만, 점차 거미/곰 추가
-        int wolfCount = 3 + day;
-        int spiderCount = Math.max(0, day - 1);
-        int bearCount = Math.max(0, (day - 2) / 2);
-
-        // 스폰할 적 목록 모으기 (곰 → 늑대 → 거미 순서로 큰 것부터 배치)
-        ArrayList<EnemyType> spawnList = new ArrayList<>();
-        for (int i = 0; i < bearCount; i++) {
-            spawnList.add(EnemyType.BEAR);
-        }
-        for (int i = 0; i < wolfCount; i++) {
-            spawnList.add(EnemyType.WOLF);
-        }
-        for (int i = 0; i < spiderCount; i++) {
-            spawnList.add(EnemyType.SPIDER);
-        }
+        ArrayList<EnemyType> spawnList = buildWave();
 
         if (spawnList.isEmpty()) {
             return;
@@ -224,6 +209,85 @@ public class DayNightCycle extends Thread {
 
             // 블록 높이 + 간격 1칸
             currentRow += blockHeight + 1;
+        }
+    }
+
+    /// <summary>
+    /// 일차에 따라 출현할 적 목록을 구성
+    /// 큰 적부터 작은 적 순서로 추가 (배치 시 중앙 정렬용)
+    /// 1~5일차는 고정 웨이브, 6일차부터 무작위 구성, 5일마다 보스
+    /// </summary>
+    private ArrayList<EnemyType> buildWave() {
+        ArrayList<EnemyType> wave = new ArrayList<>();
+
+        if (day <= 5) {
+            // 1~5일차: 고정 웨이브
+            switch (day) {
+                case 1:
+                    addToWave(wave, EnemyType.WOLF, 3);
+                    break;
+                case 2:
+                    addToWave(wave, EnemyType.WOLF, 4);
+                    addToWave(wave, EnemyType.SPIDER, 2);
+                    break;
+                case 3:
+                    addToWave(wave, EnemyType.BEAR, 1);
+                    addToWave(wave, EnemyType.WOLF, 3);
+                    addToWave(wave, EnemyType.SKELETON, 3);
+                    break;
+                case 4:
+                    addToWave(wave, EnemyType.BEAR, 1);
+                    addToWave(wave, EnemyType.SCORPION, 2);
+                    addToWave(wave, EnemyType.ZOMBIE, 2);
+                    addToWave(wave, EnemyType.WOLF, 2);
+                    break;
+                case 5:
+                    addToWave(wave, EnemyType.DRAGON, 1);
+                    addToWave(wave, EnemyType.ORC, 1);
+                    addToWave(wave, EnemyType.BANDIT, 2);
+                    addToWave(wave, EnemyType.SPIDER, 2);
+                    addToWave(wave, EnemyType.RAT, 2);
+                    break;
+            }
+        } else {
+            // 6일차 이후: 일차 기반 무작위 구성
+            // 보스 → 강한 → 일반 순서로 추가 (큰 것부터)
+
+            // 5일마다 보스 등장
+            boolean isBossDay = day % 5 == 0;
+            if (isBossDay) {
+                EnemyType[] bosses = {EnemyType.DRAGON, EnemyType.GOLEM};
+                int index = (int) (Math.random() * bosses.length);
+                wave.add(bosses[index]);
+            }
+
+            // 강한 몬스터 (일차 / 2 마리)
+            EnemyType[] strongs = {EnemyType.BEAR, EnemyType.BANDIT, EnemyType.SCORPION, EnemyType.ORC};
+            int strongCount = day / 2;
+            for (int i = 0; i < strongCount; i++) {
+                int index = (int) (Math.random() * strongs.length);
+                wave.add(strongs[index]);
+            }
+
+            // 일반 몬스터 (3 + 일차 마리)
+            EnemyType[] normals = {EnemyType.WOLF, EnemyType.SPIDER, EnemyType.SKELETON,
+                                   EnemyType.ZOMBIE, EnemyType.RAT, EnemyType.SLIME};
+            int normalCount = 3 + day;
+            for (int i = 0; i < normalCount; i++) {
+                int index = (int) (Math.random() * normals.length);
+                wave.add(normals[index]);
+            }
+        }
+
+        return wave;
+    }
+
+    /// <summary>
+    /// 웨이브 목록에 지정한 적을 여러 마리 추가
+    /// </summary>
+    private void addToWave(ArrayList<EnemyType> wave, EnemyType type, int count) {
+        for (int i = 0; i < count; i++) {
+            wave.add(type);
         }
     }
 }

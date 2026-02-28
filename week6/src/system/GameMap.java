@@ -40,6 +40,11 @@ public class GameMap {
     private final ArrayList<Enemy> enemies = new ArrayList<>();
 
     /// <summary>
+    /// 날아가는 총알 목록 (스레드가 아닌 데이터 객체)
+    /// </summary>
+    private final ArrayList<Bullet> bullets = new ArrayList<>();
+
+    /// <summary>
     /// 최대 로그 보관 수
     /// </summary>
     private static final int LOG_CAPACITY = 8;
@@ -144,6 +149,65 @@ public class GameMap {
     /// </summary>
     public int getEnemiesKilled() {
         return enemiesKilled;
+    }
+
+    /// <summary>
+    /// 총알 추가 (정착민 스레드에서 호출)
+    /// </summary>
+    public synchronized void addBullet(Bullet bullet) {
+        bullets.add(bullet);
+    }
+
+    /// <summary>
+    /// 현재 총알 목록 복사본 반환 (렌더링용)
+    /// </summary>
+    public synchronized ArrayList<Bullet> getBullets() {
+        return new ArrayList<>(bullets);
+    }
+
+    /// <summary>
+    /// 모든 총알을 전진시키고, 적과 충돌 검사
+    /// 적에 명중하면 피해를 주고 총알 제거, 화면 밖이면 제거
+    /// Main 루프에서 매 렌더 틱마다 호출
+    /// </summary>
+    public synchronized void advanceBullets() {
+        ArrayList<Bullet> toRemove = new ArrayList<>();
+
+        for (Bullet bullet : bullets) {
+            bullet.advance();
+
+            // 화면 밖으로 나간 총알 제거
+            if (bullet.isOffScreen()) {
+                toRemove.add(bullet);
+                continue;
+            }
+
+            // 적과 충돌 검사
+            for (Enemy enemy : enemies) {
+                if (!enemy.isLiving()) {
+                    continue;
+                }
+
+                // 적 블록 범위 계산
+                String[] block = enemy.getType().getBlock();
+                int enemyRow = enemy.getPosition().getRow();
+                int enemyCol = enemy.getPosition().getCol();
+                int blockHeight = block.length;
+                int blockWidth = block[0].length();
+
+                // 총알이 적 블록 범위 안에 있으면 명중
+                boolean hitRow = bullet.getRow() >= enemyRow && bullet.getRow() < enemyRow + blockHeight;
+                boolean hitCol = bullet.getCol() >= enemyCol && bullet.getCol() < enemyCol + blockWidth;
+
+                if (hitRow && hitCol) {
+                    enemy.takeDamage(bullet.getDamage());
+                    toRemove.add(bullet);
+                    break;
+                }
+            }
+        }
+
+        bullets.removeAll(toRemove);
     }
 
     /// <summary>

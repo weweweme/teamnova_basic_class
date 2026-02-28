@@ -80,6 +80,7 @@ public class DayNightCycle extends Thread {
                     day++;
                     elapsedInPhase = 0;
                     gameMap.getSupply().add(DAILY_SUPPLY);
+                    switchToWandering();
                     gameMap.addLog("── " + day + "일차 낮 시작 (보급 +" + DAILY_SUPPLY + ") ──");
                 }
             } else {
@@ -87,6 +88,7 @@ public class DayNightCycle extends Thread {
                 if (elapsedInPhase >= DAY_DURATION) {
                     night = true;
                     elapsedInPhase = 0;
+                    switchToShooting();
                     spawnEnemies();
                     gameMap.addLog("── 밤이 찾아왔습니다 ──");
                 }
@@ -130,6 +132,29 @@ public class DayNightCycle extends Thread {
             remaining = 0;
         }
         return (int) (remaining / 1000);
+    }
+
+    /// <summary>
+    /// 살아있는 모든 정착민을 사격 상태로 전환
+    /// 각 정착민마다 별도 상태 객체 생성 (tickCount 등 개별 관리)
+    /// </summary>
+    private void switchToShooting() {
+        for (Colonist colonist : gameMap.getColonists()) {
+            if (colonist.isLiving()) {
+                colonist.changeState(new ShootingState());
+            }
+        }
+    }
+
+    /// <summary>
+    /// 살아있는 모든 정착민을 배회 상태로 전환
+    /// </summary>
+    private void switchToWandering() {
+        for (Colonist colonist : gameMap.getColonists()) {
+            if (colonist.isLiving()) {
+                colonist.changeState(new WanderingState());
+            }
+        }
     }
 
     /// <summary>

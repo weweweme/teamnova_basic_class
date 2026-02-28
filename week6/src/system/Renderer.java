@@ -108,6 +108,7 @@ public class Renderer {
         drawBarricade();
         drawColonists();
         drawEnemies();
+        drawBullets();
         flush();
     }
 
@@ -165,6 +166,20 @@ public class Renderer {
             int row = enemy.getPosition().getRow();
             int col = enemy.getPosition().getCol();
             drawBlock(row, col, enemy.getType().getBlock());
+        }
+    }
+
+    /// <summary>
+    /// 날아가는 총알을 버퍼에 * 로 그림
+    /// </summary>
+    private void drawBullets() {
+        for (Bullet bullet : gameMap.getBullets()) {
+            int row = bullet.getRow();
+            int col = bullet.getCol();
+
+            if (row >= 0 && row < GameMap.HEIGHT && col >= 0 && col < GameMap.WIDTH) {
+                buffer[row][col] = '*';
+            }
         }
     }
 

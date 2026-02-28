@@ -113,9 +113,10 @@ public class Main {
                 // IOException (컴파일러 요구사항)
             }
 
-            // 일정 간격마다 화면 갱신
+            // 일정 간격마다 총알 전진 + 화면 갱신
             long now = System.currentTimeMillis();
             if (now - lastRenderTime >= RENDER_INTERVAL) {
+                gameMap.advanceBullets();
                 renderer.render();
                 lastRenderTime = now;
             }

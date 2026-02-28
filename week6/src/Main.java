@@ -1,9 +1,9 @@
-import system.Colonist;
-import system.DayNightCycle;
-import system.GameMap;
-import system.Position;
-import system.Renderer;
-import system.Util;
+import entity.Colonist;
+import world.DayNightCycle;
+import world.GameMap;
+import core.Position;
+import core.Renderer;
+import core.Util;
 
 /// <summary>
 /// 게임 진입점

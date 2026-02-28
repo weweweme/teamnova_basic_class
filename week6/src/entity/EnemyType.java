@@ -1,4 +1,4 @@
-package system;
+package entity;
 
 /// <summary>
 /// 적의 종류를 정의하는 열거형

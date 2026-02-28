@@ -1,4 +1,8 @@
-package system;
+package entity;
+
+import core.Position;
+import world.Barricade;
+import world.GameMap;
 
 /// <summary>
 /// 사격 상태 — 밤에 바리케이드에 붙어서 가장 가까운 적을 조준 사격

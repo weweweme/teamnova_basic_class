@@ -1,4 +1,9 @@
-package system;
+package entity;
+
+import core.Position;
+import core.Util;
+import world.Barricade;
+import world.GameMap;
 
 /// <summary>
 /// 밤에 오른쪽에서 출현하여 좌측으로 이동하는 적

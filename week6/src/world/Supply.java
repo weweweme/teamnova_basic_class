@@ -1,4 +1,4 @@
-package system;
+package world;
 
 /// <summary>
 /// 식민지 전체가 공유하는 보급품 관리

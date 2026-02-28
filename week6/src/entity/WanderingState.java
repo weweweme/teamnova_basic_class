@@ -1,4 +1,9 @@
-package system;
+package entity;
+
+import core.Direction;
+import core.Util;
+import world.Barricade;
+import world.GameMap;
 
 /// <summary>
 /// 배회 상태 — 안전지대(바리케이드 왼쪽)에서 랜덤으로 돌아다님

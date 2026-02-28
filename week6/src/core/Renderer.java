@@ -1,4 +1,11 @@
-package system;
+package core;
+
+import entity.Bullet;
+import entity.Colonist;
+import entity.Enemy;
+import world.Barricade;
+import world.DayNightCycle;
+import world.GameMap;
 
 import java.util.ArrayList;
 

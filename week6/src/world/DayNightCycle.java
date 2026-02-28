@@ -1,4 +1,12 @@
-package system;
+package world;
+
+import core.Position;
+import core.Util;
+import entity.Colonist;
+import entity.Enemy;
+import entity.EnemyType;
+import entity.ShootingState;
+import entity.WanderingState;
 
 import java.util.ArrayList;
 

@@ -1,4 +1,8 @@
-package system;
+package entity;
+
+import core.Position;
+import core.Util;
+import world.GameMap;
 
 /// <summary>
 /// 정착민 한 명을 나타내는 클래스

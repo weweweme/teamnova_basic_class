@@ -1,4 +1,6 @@
-package system;
+package entity;
+
+import world.GameMap;
 
 /// <summary>
 /// 정착민이 발사한 총알

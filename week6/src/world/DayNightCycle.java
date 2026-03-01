@@ -143,6 +143,7 @@ public class DayNightCycle extends Thread {
                 // 바리케이드 파괴 감지
                 if (!barricadeBroken && gameMap.getBarricade().isDestroyed()) {
                     barricadeBroken = true;
+                    Util.beep();
                     gameMap.addLog("!! 바리케이드가 무너졌습니다 !!");
                 }
 
@@ -173,6 +174,7 @@ public class DayNightCycle extends Thread {
                     switchToWandering();
                     if (day > settings.getWinDay()) {
                         victory = true;
+                        Util.beep();
                         gameMap.addLog("══ 승리! " + settings.getWinDay() + "일을 버텨냈습니다! ══");
                     } else {
                         gameMap.addLog("── " + day + "일차 낮 시작 (보급 +" + dailySupply + ") ──");
@@ -192,6 +194,7 @@ public class DayNightCycle extends Thread {
                     skipRequested = false;
                     preparing = false;
                     spawnEnemies();
+                    Util.beep();
                     gameMap.addLog("── 밤이 찾아왔습니다 ──");
                 } else if (!preparing && DAY_DURATION - elapsedInPhase <= PREPARE_DURATION) {
                     // 밤 5초 전: 사격 위치로 이동 시작

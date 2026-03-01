@@ -199,4 +199,12 @@ public class Util {
     public static int rand(int max) {
         return random.nextInt(max);
     }
+
+    /// <summary>
+    /// 터미널 비프음 출력 (BEL 문자)
+    /// </summary>
+    public static void beep() {
+        System.out.print('\007');
+        System.out.flush();
+    }
 }

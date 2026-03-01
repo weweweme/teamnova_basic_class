@@ -80,6 +80,7 @@ public class Colonist extends GameEntity {
         }
 
         if (!isLiving()) {
+            Util.beep();
             getGameMap().addLog("[" + label + "] " + name + " 사망");
         }
     }

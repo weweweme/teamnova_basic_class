@@ -265,7 +265,10 @@ public class GameMap {
                         addLog("[" + bullet.getShooterLabel() + "] " + enemyName + " 처치!");
                     }
 
-                    toRemove.add(bullet);
+                    // 관통 총알은 제거하지 않고 계속 전진
+                    if (!bullet.isPiercing()) {
+                        toRemove.add(bullet);
+                    }
                     break;
                 }
             }

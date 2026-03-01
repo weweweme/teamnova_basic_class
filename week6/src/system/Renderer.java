@@ -303,7 +303,10 @@ public class Renderer {
             int col = bullet.getCol();
 
             if (row >= 0 && row < GameMap.HEIGHT && col >= 0 && col < GameMap.WIDTH) {
-                buffer[row][col] = '*';
+                buffer[row][col] = bullet.getBulletChar();
+                if (bullet.getBulletColor() != 0) {
+                    colorBuffer[row][col] = bullet.getBulletColor();
+                }
             }
         }
     }

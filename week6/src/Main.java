@@ -89,8 +89,8 @@ public class Main {
                 if (System.in.available() > 0) {
                     int key = Util.readKey();
 
-                    if (renderer.isGameOver()) {
-                        // 게임오버 시 q키만 허용
+                    if (renderer.isVictory() || renderer.isGameOver()) {
+                        // 승리 또는 게임오버 시 q키만 허용
                         if (key == Util.KEY_QUIT) {
                             running = false;
                         }

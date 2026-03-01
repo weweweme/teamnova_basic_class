@@ -116,6 +116,13 @@ public class Renderer {
     }
 
     /// <summary>
+    /// 승리 조건 달성 여부 확인
+    /// </summary>
+    public boolean isVictory() {
+        return dayNightCycle != null && dayNightCycle.isVictory();
+    }
+
+    /// <summary>
     /// 맵 전체를 화면에 출력
     /// 버퍼를 초기화하고, 오브젝트를 그린 뒤 패널과 함께 출력
     /// </summary>
@@ -408,8 +415,18 @@ public class Renderer {
 
         lines.add("");
 
-        // 게임오버 또는 명령 안내
-        if (isGameOver()) {
+        // 승리 / 게임오버 / 명령 안내
+        if (isVictory()) {
+            lines.add(" ──────────────");
+            lines.add(" [승리!]");
+            lines.add(" " + dayNightCycle.getDay() + "일을");
+            lines.add(" 버텨냈습니다!");
+            lines.add("");
+            lines.add(" [통계]");
+            lines.add(" 처치: " + gameMap.getEnemiesKilled() + "마리");
+            lines.add("");
+            lines.add(" q: 종료");
+        } else if (isGameOver()) {
             lines.add(" ──────────────");
             lines.add(" [게임 오버]");
             lines.add(" 모든 정착민이");

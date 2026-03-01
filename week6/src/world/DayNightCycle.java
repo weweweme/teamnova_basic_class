@@ -51,6 +51,11 @@ public class DayNightCycle extends Thread {
     private static final int DAILY_SUPPLY = 20;
 
     /// <summary>
+    /// 승리에 필요한 생존 일차
+    /// </summary>
+    private static final int WIN_DAY = 10;
+
+    /// <summary>
     /// 이 주기가 관리하는 맵 (적 스폰/제거용)
     /// </summary>
     private final GameMap gameMap;
@@ -89,6 +94,11 @@ public class DayNightCycle extends Thread {
     /// 이번 밤에 바리케이드가 파괴되었는지 여부 (중복 로그 방지)
     /// </summary>
     private boolean barricadeBroken;
+
+    /// <summary>
+    /// 승리 조건 달성 여부
+    /// </summary>
+    private volatile boolean victory;
 
     /// <summary>
     /// 아직 출현하지 않은 대기 중인 적 목록
@@ -153,7 +163,12 @@ public class DayNightCycle extends Thread {
                     gameMap.getSupply().add(DAILY_SUPPLY);
                     gameMap.removeDestroyedSpikes();
                     switchToWandering();
-                    gameMap.addLog("── " + day + "일차 낮 시작 (보급 +" + DAILY_SUPPLY + ") ──");
+                    if (day > WIN_DAY) {
+                        victory = true;
+                        gameMap.addLog("══ 승리! " + WIN_DAY + "일을 버텨냈습니다! ══");
+                    } else {
+                        gameMap.addLog("── " + day + "일차 낮 시작 (보급 +" + DAILY_SUPPLY + ") ──");
+                    }
                 }
             } else {
                 // 낮: 시간이 다 되면 밤으로 전환
@@ -204,6 +219,13 @@ public class DayNightCycle extends Thread {
     /// </summary>
     public int getDay() {
         return day;
+    }
+
+    /// <summary>
+    /// 승리 조건을 달성했는지 확인
+    /// </summary>
+    public boolean isVictory() {
+        return victory;
     }
 
     /// <summary>

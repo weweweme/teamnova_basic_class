@@ -2,7 +2,7 @@ package game;
 
 import gun.Bullet;
 import entity.enemy.Enemy;
-import game.GameMap.HitEffect;
+import game.HitEffect;
 
 import java.util.ArrayList;
 

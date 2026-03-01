@@ -1,6 +1,7 @@
 package structure;
 
 import game.GameMap;
+import game.HitEffect;
 
 import entity.enemy.Enemy;
 
@@ -55,7 +56,7 @@ public class Landmine extends Trap {
         for (int col = mineCol - BLAST_RANGE; col <= mineCol + BLAST_RANGE; col++) {
             boolean validCol = col >= 0 && col < GameMap.WIDTH;
             if (validCol) {
-                gameMap.getEffects().add(new GameMap.HitEffect(groundRow, col, now, '*', 31));
+                gameMap.getEffects().add(new HitEffect(groundRow, col, now, '*', 31));
             }
         }
 

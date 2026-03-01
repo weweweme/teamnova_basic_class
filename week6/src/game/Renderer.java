@@ -5,7 +5,7 @@ import entity.colonist.Colonist;
 import entity.enemy.Enemy;
 import structure.AmmoBox;
 import structure.Barricade;
-import game.GameMap.HitEffect;
+import game.HitEffect;
 import structure.Landmine;
 import structure.Spike;
 

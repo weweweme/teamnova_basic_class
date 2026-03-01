@@ -33,14 +33,20 @@ public class ColonistSpec {
     private final int knockback;
 
     /// <summary>
+    /// 블록 템플릿 (화면에 그릴 모양, '@'는 라벨 치환용 플레이스홀더)
+    /// </summary>
+    private final String[] blockTemplate;
+
+    /// <summary>
     /// 모든 속성을 지정하여 생성
     /// </summary>
-    public ColonistSpec(String displayName, int maxHp, double fireRateBonus, double critChance, int knockback) {
+    public ColonistSpec(String displayName, int maxHp, double fireRateBonus, double critChance, int knockback, String[] blockTemplate) {
         this.displayName = displayName;
         this.maxHp = maxHp;
         this.fireRateBonus = fireRateBonus;
         this.critChance = critChance;
         this.knockback = knockback;
+        this.blockTemplate = blockTemplate;
     }
 
     /// <summary>
@@ -76,5 +82,12 @@ public class ColonistSpec {
     /// </summary>
     public int getKnockback() {
         return knockback;
+    }
+
+    /// <summary>
+    /// 블록 템플릿 반환
+    /// </summary>
+    public String[] getBlockTemplate() {
+        return blockTemplate;
     }
 }

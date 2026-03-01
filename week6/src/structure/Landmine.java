@@ -40,7 +40,6 @@ public class Landmine extends Structure {
         super(column, MAX_HP);
     }
 
-
     /// <summary>
     /// 폭발 처리: 범위 내 모든 적에게 데미지
     /// 폭발 후 자동 파괴됨

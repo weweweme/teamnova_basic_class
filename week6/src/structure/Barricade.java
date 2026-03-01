@@ -18,11 +18,6 @@ public class Barricade extends Structure {
     private static final int MAX_HP = 100;
 
     /// <summary>
-    /// 최대 레벨
-    /// </summary>
-    private final int MAX_LEVEL = 3;
-
-    /// <summary>
     /// 레벨별 최대 내구도 (레벨 1=100, 2=150, 3=200)
     /// </summary>
     private final int[] LEVEL_HP = {100, 150, 200};
@@ -69,6 +64,7 @@ public class Barricade extends Structure {
     /// 업그레이드 가능 여부 (최대 레벨 미만인지)
     /// </summary>
     public boolean canUpgrade() {
+        final int MAX_LEVEL = 3;
         return level < MAX_LEVEL;
     }
 

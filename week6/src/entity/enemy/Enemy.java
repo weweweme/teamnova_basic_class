@@ -36,16 +36,6 @@ public class Enemy extends GameEntity {
     private int regenTick;
 
     /// <summary>
-    /// 재생 간격 (틱 수)
-    /// </summary>
-    private final int REGEN_INTERVAL = 3;
-
-    /// <summary>
-    /// 돌진 특성이 발동하는 바리케이드까지의 거리 (열 수)
-    /// </summary>
-    private final int CHARGE_RANGE = 8;
-
-    /// <summary>
     /// 지정한 종류, 속성, 위치, 맵으로 적 생성
     /// </summary>
     public Enemy(EnemyType type, EnemySpec spec, Position position, GameMap gameMap) {
@@ -53,16 +43,6 @@ public class Enemy extends GameEntity {
         this.type = type;
         this.spec = spec;
     }
-
-    /// <summary>
-    /// 바리케이드 바로 오른쪽에서 멈추는 열
-    /// </summary>
-    private final int BARRICADE_STOP = Barricade.COLUMN + 2;
-
-    /// <summary>
-    /// 정착민 블록 가로 크기 (공격 멈춤 거리 계산용)
-    /// </summary>
-    private final int COLONIST_BLOCK_WIDTH = 3;
 
     /// <summary>
     /// 스레드 실행 루프
@@ -78,6 +58,9 @@ public class Enemy extends GameEntity {
             // 재생 특성: 일정 틱마다 체력 1 회복
             if (spec.getTrait() == EnemyTrait.REGENERATING) {
                 regenTick++;
+
+                // 재생 간격 (틱 수)
+                final int REGEN_INTERVAL = 3;
                 if (regenTick >= REGEN_INTERVAL) {
                     regenTick = 0;
                     if (getHp() < getMaxHp()) {
@@ -88,7 +71,13 @@ public class Enemy extends GameEntity {
 
             // 이동량 결정 (돌진 특성: 바리케이드 근처에서 2칸 이동)
             int moveAmount = 1;
+
+            // 바리케이드 바로 오른쪽에서 멈추는 열
+            final int BARRICADE_STOP = Barricade.COLUMN + 2;
             if (spec.getTrait() == EnemyTrait.CHARGER) {
+
+                // 돌진 특성이 발동하는 바리케이드까지의 거리 (열 수)
+                final int CHARGE_RANGE = 8;
                 boolean nearBarricade = currentCol - BARRICADE_STOP <= CHARGE_RANGE;
                 if (nearBarricade) {
                     moveAmount = 2;
@@ -113,7 +102,7 @@ public class Enemy extends GameEntity {
 
                 if (target != null) {
                     // 정착민 블록 오른쪽 바로 옆에서 멈춤
-                    int colonistStop = target.getPosition().getCol() + COLONIST_BLOCK_WIDTH;
+                    int colonistStop = target.getPosition().getCol() + target.getBlock()[0].length();
 
                     if (currentCol > colonistStop) {
                         int newCol = currentCol - moveAmount;
@@ -125,6 +114,7 @@ public class Enemy extends GameEntity {
                     } else {
                         target.takeDamage(spec.getDamage());
                     }
+
                 } else if (currentCol > 0) {
                     // 살아있는 정착민 없음: 왼쪽으로 계속 이동
                     int newCol = currentCol - moveAmount;
@@ -176,7 +166,6 @@ public class Enemy extends GameEntity {
                 break;
             }
         }
-
     }
 
     /// <summary>

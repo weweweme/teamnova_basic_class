@@ -16,11 +16,6 @@ import game.GameMap;
 public class Colonist extends GameEntity {
 
     /// <summary>
-    /// 행동 틱 간격 (밀리초)
-    /// </summary>
-    private final int TICK_DELAY = 500;
-
-    /// <summary>
     /// 정착민 유형 (타입 식별용)
     /// </summary>
     private final ColonistType type;
@@ -39,6 +34,11 @@ public class Colonist extends GameEntity {
     /// 맵에 표시할 알파벳 라벨 (A, B, C 순서)
     /// </summary>
     private final char label;
+
+    /// <summary>
+    /// 화면에 그릴 블록 (템플릿의 '@'를 라벨로 치환한 결과)
+    /// </summary>
+    private final String[] block;
 
     /// <summary>
     /// 장착한 무기 (발사 패턴과 데미지 결정)
@@ -65,6 +65,14 @@ public class Colonist extends GameEntity {
         this.spec = spec;
         this.name = name;
         this.label = label;
+
+        // 블록 템플릿의 플레이스홀더('@')를 이 정착민의 라벨로 치환
+        String[] template = spec.getBlockTemplate();
+        this.block = new String[template.length];
+        for (int i = 0; i < template.length; i++) {
+            this.block[i] = template[i].replace('@', label);
+        }
+
         this.gun = new Pistol();
         this.currentState = new WanderingState();
     }
@@ -79,6 +87,9 @@ public class Colonist extends GameEntity {
 
         while (isRunning() && isLiving()) {
             currentState.update(this);
+
+            // 행동 틱 간격 (밀리초)
+            final int TICK_DELAY = 500;
             Util.delay(TICK_DELAY);
         }
 
@@ -156,6 +167,13 @@ public class Colonist extends GameEntity {
     /// </summary>
     public char getLabel() {
         return label;
+    }
+
+    /// <summary>
+    /// 화면에 그릴 블록 반환
+    /// </summary>
+    public String[] getBlock() {
+        return block;
     }
 
     /// <summary>

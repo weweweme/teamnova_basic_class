@@ -1,8 +1,5 @@
 package game;
 
-import game.DifficultySettings;
-import game.Position;
-import game.Util;
 import entity.colonist.Colonist;
 import entity.enemy.Enemy;
 import entity.enemy.EnemyFactory;

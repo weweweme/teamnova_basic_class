@@ -17,14 +17,17 @@ public class ColonistFactory {
     /// 팩토리 생성 시 모든 유형의 속성을 등록
     /// </summary>
     public ColonistFactory() {
+        // 모든 유형이 공유하는 블록 모양 ('@'는 개별 라벨로 치환됨)
+        String[] block = {"(@)", " |  "};
+
         // 사격수 — 패시브: 속사 (발사 간격 20% 감소)
-        specs.put(ColonistType.GUNNER, new ColonistSpec("사격수", 100, 0.8, 0.0, 0));
+        specs.put(ColonistType.GUNNER, new ColonistSpec("사격수", 100, 0.8, 0.0, 0, block));
 
         // 저격수 — 패시브: 치명타 (30% 확률로 2배 데미지)
-        specs.put(ColonistType.SNIPER, new ColonistSpec("저격수", 100, 1.0, 0.3, 0));
+        specs.put(ColonistType.SNIPER, new ColonistSpec("저격수", 100, 1.0, 0.3, 0, block));
 
         // 돌격수 — 패시브: 넉백 (명중 시 적 1칸 밀어냄)
-        specs.put(ColonistType.ASSAULT, new ColonistSpec("돌격수", 100, 1.0, 0.0, 1));
+        specs.put(ColonistType.ASSAULT, new ColonistSpec("돌격수", 100, 1.0, 0.0, 1, block));
     }
 
     /// <summary>

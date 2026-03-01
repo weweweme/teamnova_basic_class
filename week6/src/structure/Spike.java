@@ -14,11 +14,6 @@ public class Spike extends Structure {
     private static final int MAX_HP = 10;
 
     /// <summary>
-    /// 적이 밟을 때 주는 피해량
-    /// </summary>
-    private final int SPIKE_DAMAGE = 3;
-
-    /// <summary>
     /// 설치 비용
     /// </summary>
     public static final int COST = 20;
@@ -30,11 +25,10 @@ public class Spike extends Structure {
         super(column, MAX_HP);
     }
 
-
     /// <summary>
     /// 적이 밟을 때 주는 피해량 반환
     /// </summary>
     public int getSpikeDamage() {
-        return SPIKE_DAMAGE;
+        return 3;
     }
 }

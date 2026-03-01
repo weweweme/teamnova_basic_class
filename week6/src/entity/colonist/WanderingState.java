@@ -16,21 +16,6 @@ public class WanderingState extends ColonistState {
     private final Direction[] DIRECTIONS = Direction.values();
 
     /// <summary>
-    /// 안전지대 오른쪽 끝 (정착민 블록이 바리케이드와 겹치지 않도록 여유 확보)
-    /// </summary>
-    private final int MAX_COL = Barricade.COLUMN - 4;
-
-    /// <summary>
-    /// 자동 회복 간격 (틱 수, 6틱 = 3초마다 1 회복)
-    /// </summary>
-    private final int HEAL_INTERVAL = 6;
-
-    /// <summary>
-    /// 자동 회복량
-    /// </summary>
-    private final int HEAL_AMOUNT = 1;
-
-    /// <summary>
     /// 회복 틱 카운터
     /// </summary>
     private int healTick;
@@ -44,9 +29,15 @@ public class WanderingState extends ColonistState {
     public void update(Colonist colonist) {
         // 자동 회복 (체력이 최대가 아닐 때만)
         healTick++;
+
+        // 자동 회복 간격 (틱 수, 6틱 = 3초마다 1 회복)
+        final int HEAL_INTERVAL = 6;
         if (healTick >= HEAL_INTERVAL) {
             healTick = 0;
             if (colonist.getHp() < colonist.getMaxHp()) {
+
+                // 자동 회복량
+                final int HEAL_AMOUNT = 1;
                 colonist.heal(HEAL_AMOUNT);
             }
         }
@@ -61,6 +52,16 @@ public class WanderingState extends ColonistState {
 
         // 안전지대 범위 안에서만 이동
         boolean validRow = newRow >= 0 && newRow < GameMap.HEIGHT;
+
+        // 안전지대 오른쪽 끝 (블록에서 가장 넓은 행이 바리케이드와 겹치지 않도록)
+        String[] block = colonist.getBlock();
+        int maxWidth = 0;
+        for (String row : block) {
+            if (row.length() > maxWidth) {
+                maxWidth = row.length();
+            }
+        }
+        final int MAX_COL = Barricade.COLUMN - maxWidth;
         boolean validCol = newCol >= 0 && newCol <= MAX_COL;
         if (validRow && validCol) {
             colonist.getPosition().moveTo(newRow, newCol);

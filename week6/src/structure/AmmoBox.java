@@ -13,11 +13,6 @@ public class AmmoBox extends Structure {
     private static final int MAX_HP = 1;
 
     /// <summary>
-    /// 발사 간격 배율 (0.7 = 30% 빨라짐)
-    /// </summary>
-    private final double FIRE_RATE_MULTIPLIER = 0.7;
-
-    /// <summary>
     /// 설치 비용
     /// </summary>
     public static final int COST = 20;
@@ -33,6 +28,6 @@ public class AmmoBox extends Structure {
     /// 발사 간격 배율 반환
     /// </summary>
     public double getFireRateMultiplier() {
-        return FIRE_RATE_MULTIPLIER;
+        return 0.7;
     }
 }

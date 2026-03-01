@@ -19,11 +19,6 @@ import java.util.Arrays;
 public class Renderer {
 
     /// <summary>
-    /// 우측 패널 가로 크기 (구분선 제외)
-    /// </summary>
-    private final int PANEL_WIDTH = 22;
-
-    /// <summary>
     /// 사망 애니메이션 1단계 시간 (짙은 회색 정지)
     /// </summary>
     private final int DEATH_PHASE1_MS = 400;
@@ -296,8 +291,7 @@ public class Renderer {
         for (Colonist colonist : gameMap.getColonists()) {
             int row = colonist.getPosition().getRow();
             int col = colonist.getPosition().getCol();
-            char label = colonist.getLabel();
-            String[] block = {"(" + label + ")", " |  "};
+            String[] block = colonist.getBlock();
             int blockHeight = block.length;
 
             if (colonist.isLiving()) {
@@ -518,14 +512,15 @@ public class Renderer {
     /// 짧으면 공백으로 채우고, 길면 잘라냄
     /// </summary>
     private void appendPadPanel(StringBuilder dest, String text) {
+
+        // 우측 패널 가로 크기 (구분선 제외)
+        final int PANEL_WIDTH = 22;
         if (text.length() >= PANEL_WIDTH) {
             dest.append(text, 0, PANEL_WIDTH);
         } else {
             dest.append(text);
             int padding = PANEL_WIDTH - text.length();
-            for (int i = 0; i < padding; i++) {
-                dest.append(' ');
-            }
+            dest.append(" ".repeat(padding));
         }
     }
 

@@ -21,46 +21,6 @@ import structure.Spike;
 public class InputHandler {
 
     /// <summary>
-    /// 수리 비용 (보급품)
-    /// </summary>
-    private final int REPAIR_COST = 10;
-
-    /// <summary>
-    /// 수리량 (HP)
-    /// </summary>
-    private final int REPAIR_AMOUNT = 30;
-
-    /// <summary>
-    /// 치료 비용 (보급품)
-    /// </summary>
-    private final int HEAL_COST = 10;
-
-    /// <summary>
-    /// 치료량 (HP)
-    /// </summary>
-    private final int HEAL_AMOUNT = 30;
-
-    /// <summary>
-    /// 모집 비용 (보급품)
-    /// </summary>
-    private final int RECRUIT_COST = 40;
-
-    /// <summary>
-    /// 최대 정착민 수
-    /// </summary>
-    private final int MAX_COLONISTS = 5;
-
-    /// <summary>
-    /// 구조물 간격 (바리케이드 기준 오른쪽으로)
-    /// </summary>
-    private final int STRUCTURE_SPACING = 5;
-
-    /// <summary>
-    /// 탄약 상자 설치 열 (바리케이드 왼쪽 안전지대)
-    /// </summary>
-    private final int AMMOBOX_COL = 1;
-
-    /// <summary>
     /// 게임 맵
     /// </summary>
     private final GameMap gameMap;
@@ -236,6 +196,8 @@ public class InputHandler {
         final int KEY_AMMOBOX = '3';
         final int KEY_UPGRADE = '4';
 
+        // 구조물 간격 (바리케이드 기준 오른쪽으로)
+        final int STRUCTURE_SPACING = 5;
         switch (key) {
             case KEY_SPIKE:
                 if (gameMap.getSupply().spend(Spike.COST)) {
@@ -257,6 +219,9 @@ public class InputHandler {
                 break;
             case KEY_AMMOBOX:
                 if (gameMap.getSupply().spend(AmmoBox.COST)) {
+
+                    // 탄약 상자 설치 열 (바리케이드 왼쪽 안전지대)
+                    final int AMMOBOX_COL = 1;
                     int ammoCol = AMMOBOX_COL + gameMap.getAmmoBoxes().size() * 2;
                     gameMap.addAmmoBox(new AmmoBox(ammoCol));
                     gameMap.addLog(">> 탄약 상자 설치");
@@ -302,6 +267,9 @@ public class InputHandler {
         }
 
         if (recruitType != null) {
+
+            // 모집 비용 (보급품)
+            final int RECRUIT_COST = 40;
             if (gameMap.getSupply().spend(RECRUIT_COST)) {
                 recruitCount++;
                 String recruitName = "신병" + recruitCount;
@@ -343,6 +311,14 @@ public class InputHandler {
         final int KEY_SKIP_NIGHT = 'n';
         final int KEY_CHEAT = '0';
 
+        // 수리 비용 (보급품)
+        final int REPAIR_COST = 10;
+
+        // 치료 비용 (보급품)
+        final int HEAL_COST = 10;
+
+        // 최대 정착민 수
+        final int MAX_COLONISTS = 5;
         switch (key) {
             case Util.KEY_QUIT:
                 running = false;
@@ -359,6 +335,9 @@ public class InputHandler {
             case KEY_REPAIR:
                 // 낮에만 사용 가능
                 if (!dayNightCycle.isNight() && gameMap.getSupply().spend(REPAIR_COST)) {
+
+                    // 수리량 (HP)
+                    final int REPAIR_AMOUNT = 30;
                     gameMap.getBarricade().repair(REPAIR_AMOUNT);
                     gameMap.addLog(">> 바리케이드 수리 (+" + REPAIR_AMOUNT + ")");
                 }
@@ -373,6 +352,9 @@ public class InputHandler {
                 if (!dayNightCycle.isNight() && gameMap.getSupply().spend(HEAL_COST)) {
                     Colonist selected = gameMap.getColonists().get(renderer.getSelectedIndex());
                     if (selected.isLiving()) {
+
+                        // 치료량 (HP)
+                        final int HEAL_AMOUNT = 30;
                         selected.heal(HEAL_AMOUNT);
                         gameMap.addLog(">> " + selected.getColonistName() + " 치료 (+" + HEAL_AMOUNT + ")");
                     }

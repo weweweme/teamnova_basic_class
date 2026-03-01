@@ -98,24 +98,9 @@ public class GameMap {
     private final ArrayList<HitEffect> effects = new ArrayList<>();
 
     /// <summary>
-    /// 화면에 동시에 표시할 수 있는 최대 로그 수
-    /// </summary>
-    private final int LOG_CAPACITY = 8;
-
-    /// <summary>
-    /// 로그가 화면에 남아있는 시간 (밀리초)
-    /// </summary>
-    private final int LOG_EXPIRE_MS = 5000;
-
-    /// <summary>
     /// 게임 로그 큐 (오래된 순서, 앞쪽이 가장 오래된 것)
     /// </summary>
     private final ArrayDeque<LogEntry> logs = new ArrayDeque<>();
-
-    /// <summary>
-    /// 사망 애니메이션 지속 시간 (밀리초)
-    /// </summary>
-    private final int DEATH_ANIM_DURATION = 800;
 
     /// <summary>
     /// 다음 정착민에게 부여할 알파벳 라벨 (A부터 순서대로)
@@ -156,15 +141,6 @@ public class GameMap {
     /// </summary>
     public void setInvincible(boolean invincible) {
         this.invincible = invincible;
-    }
-
-    /// <summary>
-    /// 지정한 좌표가 이동 가능한지 확인 (맵 범위 안이고 지면 아래가 아님)
-    /// </summary>
-    public boolean isWalkable(int row, int col) {
-        boolean validRow = row >= 0 && row < HEIGHT - 2;
-        boolean validCol = col >= 0 && col < WIDTH;
-        return validRow && validCol;
     }
 
     /// <summary>
@@ -269,13 +245,6 @@ public class GameMap {
     }
 
     /// <summary>
-    /// 파괴된 탄약 상자 제거
-    /// </summary>
-    public void removeDestroyedAmmoBoxes() {
-        ammoBoxes.removeIf(Structure::isDestroyed);
-    }
-
-    /// <summary>
     /// 탄약 상자가 살아있으면 발사 간격 배율 반환 (0.7 = 빨라짐, 1.0 = 보통)
     /// </summary>
     public double getFireRateMultiplier() {
@@ -334,6 +303,9 @@ public class GameMap {
         for (Enemy enemy : enemies) {
             if (!enemy.isLiving()) {
                 // 사망 애니메이션이 끝난 적만 제거
+
+                // 사망 애니메이션 지속 시간 (밀리초)
+                final int DEATH_ANIM_DURATION = 800;
                 boolean animDone = now - enemy.getDeathTime() > DEATH_ANIM_DURATION;
                 if (animDone) {
                     deadEnemies.add(enemy);
@@ -405,6 +377,9 @@ public class GameMap {
     /// </summary>
     public synchronized void addLog(String message) {
         logs.add(new LogEntry(message, System.currentTimeMillis()));
+
+        // 화면에 동시에 표시할 수 있는 최대 로그 수
+        final int LOG_CAPACITY = 8;
         if (logs.size() > LOG_CAPACITY) {
             logs.poll();
         }
@@ -418,6 +393,9 @@ public class GameMap {
         long now = System.currentTimeMillis();
 
         // 큐 앞쪽부터 만료된 로그 제거
+
+        // 로그가 화면에 남아있는 시간 (밀리초)
+        final int LOG_EXPIRE_MS = 5000;
         while (!logs.isEmpty() && now - logs.peek().getCreatedTime() > LOG_EXPIRE_MS) {
             logs.poll();
         }

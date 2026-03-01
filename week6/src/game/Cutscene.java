@@ -49,7 +49,7 @@ public class Cutscene {
                 // 주의: System.in.available()은 checked exception이라 try-catch 필수 (컴파일러 요구)
                 try {
                     if (System.in.available() > 0) {
-                        Util.readKey();
+                        InputHandler.readKey();
                         break;
                     }
                 } catch (Exception e) {

@@ -66,7 +66,7 @@ public class Main {
 
         Difficulty selectedDifficulty = null;
         while (selectedDifficulty == null) {
-            int key = Util.readKey();
+            int key = InputHandler.readKey();
             switch (key) {
                 case KEY_EASY:
                     selectedDifficulty = Difficulty.EASY;
@@ -138,7 +138,7 @@ public class Main {
             // 주의: System.in.available()은 checked exception이라 try-catch 필수 (컴파일러 요구)
             try {
                 if (System.in.available() > 0) {
-                    int key = Util.readKey();
+                    int key = InputHandler.readKey();
                     inputHandler.handleInput(key);
 
                     // 입력 즉시 화면 갱신

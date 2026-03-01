@@ -13,33 +13,6 @@ public class Util {
     /// </summary>
     private Util() {}
 
-    // ========== 상수 ==========
-
-    // 잘못된 입력을 나타내는 값
-    private static final int INVALID_INPUT = -1;
-
-    // ========== 키 상수 ==========
-
-    // 화살표 위
-    public static final int KEY_UP = 1000;
-
-    // 화살표 아래
-    public static final int KEY_DOWN = 1001;
-
-    // 화살표 왼쪽
-    private static final int KEY_LEFT = 1002;
-
-    // 화살표 오른쪽
-    private static final int KEY_RIGHT = 1003;
-
-    // Enter 키
-    private static final int KEY_ENTER = 1004;
-
-    // q 키 (종료/취소)
-    public static final int KEY_QUIT = 1005;
-
-    // ========== 내부 필드 ==========
-
     // 랜덤 숫자 생성용
     private static final Random random = new Random();
 
@@ -86,85 +59,6 @@ public class Util {
         } catch (Exception e) {
             // 컴파일러 요구사항
         }
-    }
-
-    // ========== 입력 관련 ==========
-
-    /// <summary>
-    /// 키 하나를 읽어서 반환
-    /// 화살표 키는 KEY_UP/DOWN/LEFT/RIGHT 상수로 반환
-    /// Enter는 KEY_ENTER, q는 KEY_QUIT 반환
-    /// 그 외 키는 문자 코드 그대로 반환
-    /// </summary>
-    public static int readKey() {
-        // ESC 키의 아스키 코드 (화살표 키가 이 코드로 시작됨)
-        final int ESC_KEY = 27;
-        // Enter 키의 아스키 코드 (운영체제마다 다른 코드를 보냄)
-        final int ENTER_UNIX = 10;
-        final int ENTER_WINDOWS = 13;
-        // 화살표 키 후속 바이트 대기 시간 (밀리초)
-        final int ARROW_KEY_DELAY = 10;
-
-        // 주의: System.in.read()와 Thread.sleep()은 checked exception이라 try-catch 필수 (컴파일러 요구)
-        try {
-            int ch = System.in.read();
-
-            // ESC (화살표 키의 시작 바이트)
-            if (ch == ESC_KEY) {
-                // 화살표 키는 ESC + [ + 방향 문자가 연속으로 전송됨
-                // 잠깐 대기하여 후속 바이트가 도착하도록 함
-                Thread.sleep(ARROW_KEY_DELAY);
-
-                if (System.in.available() > 0) {
-                    int next = System.in.read();
-                    if (next == '[' && System.in.available() > 0) {
-                        int arrow = System.in.read();
-                        switch (arrow) {
-                            case 'A':
-                                return KEY_UP;
-                            case 'B':
-                                return KEY_DOWN;
-                            case 'C':
-                                return KEY_RIGHT;
-                            case 'D':
-                                return KEY_LEFT;
-                        }
-                    }
-                }
-                // ESC 단독 또는 인식할 수 없는 키 조합
-                return INVALID_INPUT;
-            }
-
-            // Enter 키 (운영체제에 따라 다른 코드가 올 수 있음)
-            if (ch == ENTER_UNIX || ch == ENTER_WINDOWS) {
-                return KEY_ENTER;
-            }
-
-            // q 또는 Q → 종료/취소
-            if (ch == 'q' || ch == 'Q') {
-                return KEY_QUIT;
-            }
-
-            // 그 외 → 문자 코드 그대로 반환
-            return ch;
-        } catch (Exception e) {
-            // IOException, InterruptedException 등 (컴파일러 요구사항)
-            return INVALID_INPUT;
-        }
-    }
-
-    /// <summary>
-    /// 숫자 키 하나를 읽어서 정수로 반환
-    /// 숫자가 아니면 INVALID_INPUT(-1) 반환
-    /// </summary>
-    public static int readInt() {
-        int key = readKey();
-
-        // 숫자 키(0~9)인 경우만 정수로 변환
-        if (key >= '0' && key <= '9') {
-            return key - '0';
-        }
-        return INVALID_INPUT;
     }
 
     // ========== 콘솔 관련 ==========

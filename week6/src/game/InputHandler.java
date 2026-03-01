@@ -20,6 +20,47 @@ import structure.Spike;
 /// </summary>
 public class InputHandler {
 
+    // ========== 키 상수 ==========
+    // readKey()는 InputHandler 생성 전(난이도 선택 등)에도 호출되므로 static 메서드
+    // static 메서드에서 사용하는 상수도 static이어야 함
+
+    /// <summary>
+    /// 잘못된 입력을 나타내는 값
+    /// </summary>
+    private static final int INVALID_INPUT = -1;
+
+    /// <summary>
+    /// 화살표 위 키
+    /// </summary>
+    private static final int KEY_UP = 1000;
+
+    /// <summary>
+    /// 화살표 아래 키
+    /// </summary>
+    private static final int KEY_DOWN = 1001;
+
+    /// <summary>
+    /// 화살표 왼쪽 키
+    /// </summary>
+    private static final int KEY_LEFT = 1002;
+
+    /// <summary>
+    /// 화살표 오른쪽 키
+    /// </summary>
+    private static final int KEY_RIGHT = 1003;
+
+    /// <summary>
+    /// Enter 키
+    /// </summary>
+    private static final int KEY_ENTER = 1004;
+
+    /// <summary>
+    /// 종료/취소 키 (q)
+    /// </summary>
+    private static final int KEY_QUIT = 1005;
+
+    // ========== 의존 객체 ==========
+
     /// <summary>
     /// 게임 맵
     /// </summary>
@@ -140,7 +181,7 @@ public class InputHandler {
     /// 승리 또는 게임오버 화면: q키만 허용
     /// </summary>
     private void handleEndScreen(int key) {
-        if (key == Util.KEY_QUIT) {
+        if (key == KEY_QUIT) {
             running = false;
         }
     }
@@ -168,7 +209,7 @@ public class InputHandler {
             case KEY_MINIGUN:
                 purchased = new Minigun();
                 break;
-            case Util.KEY_QUIT:
+            case KEY_QUIT:
                 shopMode = false;
                 break;
         }
@@ -241,7 +282,7 @@ public class InputHandler {
                 }
                 buildMode = false;
                 break;
-            case Util.KEY_QUIT:
+            case KEY_QUIT:
                 buildMode = false;
                 break;
         }
@@ -266,7 +307,7 @@ public class InputHandler {
             case KEY_ASSAULT:
                 recruitType = ColonistType.ASSAULT;
                 break;
-            case Util.KEY_QUIT:
+            case KEY_QUIT:
                 recruitMode = false;
                 break;
         }
@@ -325,13 +366,13 @@ public class InputHandler {
         // 최대 정착민 수
         final int MAX_COLONISTS = 5;
         switch (key) {
-            case Util.KEY_QUIT:
+            case KEY_QUIT:
                 running = false;
                 break;
-            case Util.KEY_UP:
+            case KEY_UP:
                 renderer.selectPrevious();
                 break;
-            case Util.KEY_DOWN:
+            case KEY_DOWN:
                 renderer.selectNext();
                 break;
             case KEY_SKIP_NIGHT:
@@ -447,9 +488,74 @@ public class InputHandler {
                 gameMap.addLog(">> [치트] 전원 미니건 장착");
                 cheatMode = false;
                 break;
-            case Util.KEY_QUIT:
+            case KEY_QUIT:
                 cheatMode = false;
                 break;
+        }
+    }
+
+    // ========== 키 입력 읽기 ==========
+
+    /// <summary>
+    /// 키 하나를 읽어서 반환
+    /// 화살표 키는 KEY_UP/DOWN/LEFT/RIGHT 상수로 반환
+    /// Enter는 KEY_ENTER, q는 KEY_QUIT 반환
+    /// 그 외 키는 문자 코드 그대로 반환
+    /// </summary>
+    public static int readKey() {
+        // ESC 키의 아스키 코드 (화살표 키가 이 코드로 시작됨)
+        final int ESC_KEY = 27;
+        // Enter 키의 아스키 코드 (운영체제마다 다른 코드를 보냄)
+        final int ENTER_UNIX = 10;
+        final int ENTER_WINDOWS = 13;
+        // 화살표 키 후속 바이트 대기 시간 (밀리초)
+        final int ARROW_KEY_DELAY = 10;
+
+        // 주의: System.in.read()와 Thread.sleep()은 checked exception이라 try-catch 필수 (컴파일러 요구)
+        try {
+            int ch = System.in.read();
+
+            // ESC (화살표 키의 시작 바이트)
+            if (ch == ESC_KEY) {
+                // 화살표 키는 ESC + [ + 방향 문자가 연속으로 전송됨
+                // 잠깐 대기하여 후속 바이트가 도착하도록 함
+                Thread.sleep(ARROW_KEY_DELAY);
+
+                if (System.in.available() > 0) {
+                    int next = System.in.read();
+                    if (next == '[' && System.in.available() > 0) {
+                        int arrow = System.in.read();
+                        switch (arrow) {
+                            case 'A':
+                                return KEY_UP;
+                            case 'B':
+                                return KEY_DOWN;
+                            case 'C':
+                                return KEY_RIGHT;
+                            case 'D':
+                                return KEY_LEFT;
+                        }
+                    }
+                }
+                // ESC 단독 또는 인식할 수 없는 키 조합
+                return INVALID_INPUT;
+            }
+
+            // Enter 키 (운영체제에 따라 다른 코드가 올 수 있음)
+            if (ch == ENTER_UNIX || ch == ENTER_WINDOWS) {
+                return KEY_ENTER;
+            }
+
+            // q 또는 Q → 종료/취소
+            if (ch == 'q' || ch == 'Q') {
+                return KEY_QUIT;
+            }
+
+            // 그 외 → 문자 코드 그대로 반환
+            return ch;
+        } catch (Exception e) {
+            // IOException, InterruptedException 등 (컴파일러 요구사항)
+            return INVALID_INPUT;
         }
     }
 }

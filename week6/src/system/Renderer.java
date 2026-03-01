@@ -140,12 +140,18 @@ public class Renderer {
     /// </summary>
     public void render() {
         clearBuffer();
-        drawBarricade();
-        drawSpikes();
-        drawColonists();
-        drawEnemies();
-        drawBullets();
-        drawEffects();
+
+        if (isGameOver()) {
+            drawGameOverScreen();
+        } else {
+            drawBarricade();
+            drawSpikes();
+            drawColonists();
+            drawEnemies();
+            drawBullets();
+            drawEffects();
+        }
+
         flush();
     }
 
@@ -334,6 +340,52 @@ public class Renderer {
             if (row >= 0 && row < GameMap.HEIGHT && col >= 0 && col < GameMap.WIDTH) {
                 buffer[row][col] = '!';
                 colorBuffer[row][col] = 33;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 게임오버 시 맵 영역에 ASCII 아트를 그림
+    /// </summary>
+    private void drawGameOverScreen() {
+        String[] art = {
+            "  ████   ███  ██   ██ ██████ ",
+            " ██     ██ ██ ███ ███ ██     ",
+            " ██ ██ ██████ ██ █ ██ ████   ",
+            " ██  █ ██  ██ ██   ██ ██     ",
+            "  ████ ██  ██ ██   ██ ██████ ",
+            "",
+            "  ████  ██  ██ ██████ █████  ",
+            " ██  ██ ██  ██ ██     ██  ██ ",
+            " ██  ██ ██  ██ ████   █████  ",
+            " ██  ██  ████  ██     ██  ██ ",
+            "  ████    ██   ██████ ██  ██ "
+        };
+
+        // 세로 중앙 정렬
+        int startRow = (GameMap.HEIGHT - art.length) / 2;
+        // 가로 중앙 정렬
+        int artWidth = art[0].length();
+        int startCol = (GameMap.WIDTH - artWidth) / 2;
+
+        for (int i = 0; i < art.length; i++) {
+            int row = startRow + i;
+            if (row < 0 || row >= GameMap.HEIGHT) {
+                continue;
+            }
+
+            String line = art[i];
+            for (int j = 0; j < line.length(); j++) {
+                int col = startCol + j;
+                if (col < 0 || col >= GameMap.WIDTH) {
+                    continue;
+                }
+
+                char ch = line.charAt(j);
+                if (ch != ' ') {
+                    buffer[row][col] = ch;
+                    colorBuffer[row][col] = 31;
+                }
             }
         }
     }

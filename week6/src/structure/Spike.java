@@ -8,27 +8,14 @@ package structure;
 public class Spike extends Trap {
 
     /// <summary>
-    /// 최대 내구도 (적이 밟을 때마다 1씩 감소)
-    /// </summary>
-    private static final int MAX_HP = 10;
-
-    /// <summary>
-    /// 적에게 주는 피해량
-    /// </summary>
-    private static final int DAMAGE = 3;
-
-    /// <summary>
     /// 설치 비용
     /// </summary>
     public static final int COST = 20;
 
     /// <summary>
-    /// 지정한 열에 가시덫 설치
+    /// 지정한 열에 가시덫 설치 (내구도 10, 피해량 3)
     /// </summary>
     public Spike(int column) {
-        super(column);
-        setMaxHp(MAX_HP);
-        setHp(MAX_HP);
-        setDamage(DAMAGE);
+        super(column, 10, 3);
     }
 }

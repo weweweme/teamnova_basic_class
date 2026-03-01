@@ -23,11 +23,12 @@ public abstract class Structure {
     private int hp;
 
     /// <summary>
-    /// 지정한 열에 건물 생성
-    /// 서브클래스에서 setMaxHp(), setHp()를 호출하여 내구도 설정
+    /// 지정한 열에 건물 생성, 내구도를 최대치로 초기화
     /// </summary>
-    protected Structure(int column) {
+    protected Structure(int column, int maxHp) {
         this.column = column;
+        this.maxHp = maxHp;
+        this.hp = maxHp;
     }
 
     /// <summary>

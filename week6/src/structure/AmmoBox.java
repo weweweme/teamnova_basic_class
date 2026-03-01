@@ -7,22 +7,15 @@ package structure;
 public class AmmoBox extends Structure {
 
     /// <summary>
-    /// 최대 내구도 (안전지대에 있으므로 파괴되지 않지만 구조상 필요)
-    /// </summary>
-    private static final int MAX_HP = 1;
-
-    /// <summary>
     /// 설치 비용
     /// </summary>
     public static final int COST = 20;
 
     /// <summary>
-    /// 지정한 열에 탄약 상자 설치
+    /// 지정한 열에 탄약 상자 설치 (내구도 1)
     /// </summary>
     public AmmoBox(int column) {
-        super(column);
-        setMaxHp(MAX_HP);
-        setHp(MAX_HP);
+        super(column, 1);
     }
 
     /// <summary>

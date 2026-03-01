@@ -13,16 +13,6 @@ import java.util.ArrayList;
 public class Landmine extends Trap {
 
     /// <summary>
-    /// 내구도 (일회용이므로 1)
-    /// </summary>
-    private static final int MAX_HP = 1;
-
-    /// <summary>
-    /// 폭발 데미지
-    /// </summary>
-    private static final int DAMAGE = 15;
-
-    /// <summary>
     /// 폭발 범위 (좌우 칸 수)
     /// </summary>
     private static final int BLAST_RANGE = 3;
@@ -33,13 +23,10 @@ public class Landmine extends Trap {
     public static final int COST = 25;
 
     /// <summary>
-    /// 지정한 열에 지뢰 설치
+    /// 지정한 열에 지뢰 설치 (일회용, 폭발 데미지 15)
     /// </summary>
     public Landmine(int column) {
-        super(column);
-        setMaxHp(MAX_HP);
-        setHp(MAX_HP);
-        setDamage(DAMAGE);
+        super(column, 1, 15);
     }
 
     /// <summary>
@@ -78,7 +65,7 @@ public class Landmine extends Trap {
         }
 
         // 지뢰 파괴
-        takeDamage(MAX_HP);
+        takeDamage(getMaxHp());
     }
 
     /// <summary>

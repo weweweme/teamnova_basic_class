@@ -12,11 +12,6 @@ public class Barricade extends Structure {
     public static final int COLUMN = 15;
 
     /// <summary>
-    /// 최대 내구도
-    /// </summary>
-    private static final int MAX_HP = 100;
-
-    /// <summary>
     /// 레벨별 최대 내구도 (레벨 1=100, 2=150, 3=200)
     /// </summary>
     private final int[] LEVEL_HP = {100, 150, 200};
@@ -55,9 +50,7 @@ public class Barricade extends Structure {
     /// 최대 내구도로 바리케이드 생성
     /// </summary>
     public Barricade() {
-        super(COLUMN);
-        setMaxHp(MAX_HP);
-        setHp(MAX_HP);
+        super(COLUMN, 100);
         this.level = 1;
     }
 

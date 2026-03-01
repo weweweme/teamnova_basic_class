@@ -151,6 +151,7 @@ public class DayNightCycle extends Thread {
                     elapsedInPhase = 0;
                     barricadeBroken = false;
                     gameMap.getSupply().add(DAILY_SUPPLY);
+                    gameMap.removeDestroyedSpikes();
                     switchToWandering();
                     gameMap.addLog("── " + day + "일차 낮 시작 (보급 +" + DAILY_SUPPLY + ") ──");
                 }

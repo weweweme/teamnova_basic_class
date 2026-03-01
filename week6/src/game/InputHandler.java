@@ -2,6 +2,7 @@ package game;
 
 import entity.colonist.Colonist;
 import entity.colonist.ColonistFactory;
+import entity.colonist.ColonistSpec;
 import entity.colonist.ColonistType;
 import gun.Gun;
 import gun.Pistol;
@@ -97,9 +98,9 @@ public class InputHandler {
     private boolean buildMode;
 
     /// <summary>
-    /// 모집 모드 여부
+    /// 승격 모드 여부
     /// </summary>
-    private boolean recruitMode;
+    private boolean promoteMode;
 
     /// <summary>
     /// 치트 모드 여부
@@ -145,10 +146,10 @@ public class InputHandler {
     }
 
     /// <summary>
-    /// 모집 모드 여부 반환
+    /// 승격 모드 여부 반환
     /// </summary>
-    public boolean isRecruitMode() {
-        return recruitMode;
+    public boolean isPromoteMode() {
+        return promoteMode;
     }
 
     /// <summary>
@@ -168,10 +169,10 @@ public class InputHandler {
             handleCheatMode(key);
         } else if (shopMode) {
             handleShopMode(key);
+        } else if (promoteMode) {
+            handlePromoteMode(key);
         } else if (buildMode) {
             handleBuildMode(key);
-        } else if (recruitMode) {
-            handleRecruitMode(key);
         } else {
             handleDayCommand(key);
         }
@@ -289,50 +290,24 @@ public class InputHandler {
     }
 
     /// <summary>
-    /// 모집 모드: 유형 선택 또는 취소
+    /// BASIC 정착민 모집 (유형 선택 없이 즉시 모집)
     /// </summary>
-    private void handleRecruitMode(int key) {
-        final int KEY_GUNNER = '1';
-        final int KEY_SNIPER = '2';
-        final int KEY_ASSAULT = '3';
+    private void recruit() {
+        // 모집 비용 (보급품)
+        final int RECRUIT_COST = 40;
+        if (gameMap.getSupply().spend(RECRUIT_COST)) {
+            recruitCount++;
+            String recruitName = "신병" + recruitCount;
+            // 왼쪽 바깥에서 등장하여 안전지대로 걸어 들어옴
+            int row = GameMap.HEIGHT / 2;
+            int col = 0;
+            ColonistSpec basicSpec = colonistFactory.getSpec(ColonistType.BASIC);
+            Colonist recruit = new Colonist(ColonistType.BASIC, basicSpec, recruitName, gameMap.issueNextLabel(), new Position(row, col), gameMap);
+            recruit.setGun(new Pistol());
 
-        ColonistType recruitType = null;
-        switch (key) {
-            case KEY_GUNNER:
-                recruitType = ColonistType.GUNNER;
-                break;
-            case KEY_SNIPER:
-                recruitType = ColonistType.SNIPER;
-                break;
-            case KEY_ASSAULT:
-                recruitType = ColonistType.ASSAULT;
-                break;
-            case KEY_QUIT:
-                recruitMode = false;
-                break;
-        }
-
-        if (recruitType != null) {
-
-            // 모집 비용 (보급품)
-            final int RECRUIT_COST = 40;
-            if (gameMap.getSupply().spend(RECRUIT_COST)) {
-                recruitCount++;
-                String recruitName = "신병" + recruitCount;
-                // 왼쪽 바깥에서 등장하여 안전지대로 걸어 들어옴
-                int row = GameMap.HEIGHT / 2;
-                int col = 0;
-                Colonist recruit = new Colonist(recruitType, colonistFactory.getSpec(recruitType), recruitName, gameMap.issueNextLabel(), new Position(row, col), gameMap);
-
-                // 모든 신병 피스톨로 시작
-                recruit.setGun(new Pistol());
-
-                gameMap.addColonist(recruit);
-                recruit.start();
-                gameMap.addLog(">> " + recruitName + " (" + colonistFactory.getSpec(recruitType).getDisplayName() + ") 합류!");
-            }
-
-            recruitMode = false;
+            gameMap.addColonist(recruit);
+            recruit.start();
+            gameMap.addLog(">> " + recruitName + " 합류!");
         }
     }
 
@@ -345,6 +320,7 @@ public class InputHandler {
         final int KEY_HEAL = '3';
         final int KEY_BUILD = '4';
         final int KEY_RECRUIT = '5';
+        final int KEY_PROMOTE = '6';
         final int KEY_SKIP_NIGHT = 'n';
         final int KEY_CHEAT = '0';
 
@@ -404,15 +380,62 @@ public class InputHandler {
                 }
                 break;
             case KEY_RECRUIT:
-                // 낮에만 모집 모드 진입 (최대 인원 미만일 때만)
+                // 낮에만 모집 (최대 인원 미만일 때만)
                 boolean canRecruit = !dayNightCycle.isNight() && gameMap.getColonists().size() < MAX_COLONISTS;
                 if (canRecruit) {
-                    recruitMode = true;
+                    recruit();
+                }
+                break;
+            case KEY_PROMOTE:
+                // 낮에만 승격 모드 진입 (선택된 정착민이 BASIC일 때만)
+                if (!dayNightCycle.isNight()) {
+                    Colonist target = gameMap.getColonists().get(renderer.getSelectedIndex());
+                    boolean canPromote = target.isLiving() && target.getType() == ColonistType.BASIC;
+                    if (canPromote) {
+                        promoteMode = true;
+                    }
                 }
                 break;
             case KEY_CHEAT:
                 cheatMode = true;
                 break;
+        }
+    }
+
+    /// <summary>
+    /// 승격 모드: 유형 선택 또는 취소
+    /// </summary>
+    private void handlePromoteMode(int key) {
+        final int KEY_GUNNER = '1';
+        final int KEY_SNIPER = '2';
+        final int KEY_ASSAULT = '3';
+
+        ColonistType promoteType = null;
+        switch (key) {
+            case KEY_GUNNER:
+                promoteType = ColonistType.GUNNER;
+                break;
+            case KEY_SNIPER:
+                promoteType = ColonistType.SNIPER;
+                break;
+            case KEY_ASSAULT:
+                promoteType = ColonistType.ASSAULT;
+                break;
+            case KEY_QUIT:
+                promoteMode = false;
+                break;
+        }
+
+        if (promoteType != null) {
+            // 승격 비용 (보급품)
+            final int PROMOTE_COST = 30;
+            if (gameMap.getSupply().spend(PROMOTE_COST)) {
+                Colonist target = gameMap.getColonists().get(renderer.getSelectedIndex());
+                ColonistSpec newSpec = colonistFactory.getSpec(promoteType);
+                target.promote(promoteType, newSpec);
+                gameMap.addLog(">> " + target.getColonistName() + " → " + newSpec.getDisplayName() + " 승격!");
+            }
+            promoteMode = false;
         }
     }
 

@@ -16,14 +16,14 @@ import game.GameMap;
 public class Colonist extends GameEntity {
 
     /// <summary>
-    /// 정착민 유형 (타입 식별용)
+    /// 정착민 유형 (타입 식별용, 승격 시 변경됨)
     /// </summary>
-    private final ColonistType type;
+    private ColonistType type;
 
     /// <summary>
-    /// 정착민 속성 데이터 (체력/패시브 등)
+    /// 정착민 속성 데이터 (체력/패시브 등, 승격 시 변경됨)
     /// </summary>
-    private final ColonistSpec spec;
+    private ColonistSpec spec;
 
     /// <summary>
     /// 정착민 이름 (한글, 패널에서만 표시)
@@ -135,6 +135,29 @@ public class Colonist extends GameEntity {
     /// </summary>
     public ColonistSpec getSpec() {
         return spec;
+    }
+
+    /// <summary>
+    /// 정착민 유형 반환
+    /// </summary>
+    public ColonistType getType() {
+        return type;
+    }
+
+    /// <summary>
+    /// BASIC에서 전문 유형으로 승격
+    /// 유형과 속성이 변경되고, 최대 체력이 올라가면 그만큼 회복
+    /// </summary>
+    public void promote(ColonistType newType, ColonistSpec newSpec) {
+        int oldMaxHp = spec.getMaxHp();
+        this.type = newType;
+        this.spec = newSpec;
+
+        // 최대 체력 증가분만큼 회복
+        int hpGain = newSpec.getMaxHp() - oldMaxHp;
+        if (hpGain > 0) {
+            heal(hpGain);
+        }
     }
 
     /// <summary>

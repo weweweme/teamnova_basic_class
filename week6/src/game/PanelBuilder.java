@@ -197,9 +197,9 @@ public class PanelBuilder {
                 panelLines.add(" 3: 라이플 (보급20)");
                 panelLines.add(" 4: 미니건 (보급30)");
                 panelLines.add(" q: 취소");
-            } else if (inputHandler.isRecruitMode()) {
-                // 모집 모드
-                panelLines.add(" [모집] (보급40)");
+            } else if (inputHandler.isPromoteMode()) {
+                // 승격 모드
+                panelLines.add(" [승격] (보급30)");
                 panelLines.add(" 1: 사격수 (속사)");
                 panelLines.add(" 2: 저격수 (치명타)");
                 panelLines.add(" 3: 돌격수 (넉백)");
@@ -224,6 +224,7 @@ public class PanelBuilder {
                 panelLines.add(" 3: 치료 (보급10)");
                 panelLines.add(" 4: 건설");
                 panelLines.add(" 5: 모집 (보급40)");
+                panelLines.add(" 6: 승격 (보급30)");
                 panelLines.add(" n: 밤 건너뛰기");
                 panelLines.add(" q: 종료");
             }

@@ -20,6 +20,9 @@ public class ColonistFactory {
         // 모든 유형이 공유하는 블록 모양 ('@'는 개별 라벨로 치환됨)
         String[] block = {"(@)", " |  "};
 
+        // 기본 — 패시브 없음
+        specs.put(ColonistType.BASIC, new ColonistSpec("정착민", 100, 1.0, 0.0, 0, block));
+
         // 사격수 — 패시브: 속사 (발사 간격 20% 감소)
         specs.put(ColonistType.GUNNER, new ColonistSpec("사격수", 100, 0.8, 0.0, 0, block));
 

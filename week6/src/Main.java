@@ -1,5 +1,6 @@
 import entity.colonist.Colonist;
 import entity.colonist.ColonistFactory;
+import entity.colonist.ColonistSpec;
 import entity.colonist.ColonistType;
 import gun.Pistol;
 import entity.enemy.EnemyFactory;
@@ -41,10 +42,8 @@ public class Main {
         title.append("         바리케이드 너머에서 밀려오는 적을 막아 생존하라\n");
         title.append("\n");
         title.append("      ┌─────────────────────────────────────────────┐\n");
-        title.append("      │  [정착민] 모두 피스톨 / HP 100              │\n");
-        title.append("      │   사격수: 속사 (발사 간격 20% 감소)         │\n");
-        title.append("      │   저격수: 치명타 (30% 확률 2배)             │\n");
-        title.append("      │   돌격수: 넉백 (명중 시 적 밀어냄)          │\n");
+        title.append("      │  [정착민] 피스톨 / HP 100 / 패시브 없음     │\n");
+        title.append("      │  [모집] 사격수 / 저격수 / 돌격수            │\n");
         title.append("      │  [무기] 피스톨 / 샷건 / 라이플 / 미니건     │\n");
         title.append("      ├─────────────────────────────────────────────┤\n");
         title.append("      │  [조작]  ↑↓ 정착민 선택 / q 종료            │\n");
@@ -93,11 +92,12 @@ public class Main {
         ColonistFactory colonistFactory = new ColonistFactory();
         EnemyFactory enemyFactory = new EnemyFactory();
 
-        // 정착민 3명 배치 (안전지대 내, 각기 다른 유형)
+        // 정착민 3명 배치 (안전지대 내, 기본 유형)
+        ColonistSpec basicSpec = colonistFactory.getSpec(ColonistType.BASIC);
         int centerRow = GameMap.HEIGHT / 2;
-        Colonist chulsoo = new Colonist(ColonistType.GUNNER, colonistFactory.getSpec(ColonistType.GUNNER), "김철수", gameMap.issueNextLabel(), new Position(centerRow, 3), gameMap);
-        Colonist younghee = new Colonist(ColonistType.SNIPER, colonistFactory.getSpec(ColonistType.SNIPER), "이영희", gameMap.issueNextLabel(), new Position(centerRow, 7), gameMap);
-        Colonist minsoo = new Colonist(ColonistType.ASSAULT, colonistFactory.getSpec(ColonistType.ASSAULT), "박민수", gameMap.issueNextLabel(), new Position(centerRow, 11), gameMap);
+        Colonist chulsoo = new Colonist(ColonistType.BASIC, basicSpec, "김철수", gameMap.issueNextLabel(), new Position(centerRow, 3), gameMap);
+        Colonist younghee = new Colonist(ColonistType.BASIC, basicSpec, "이영희", gameMap.issueNextLabel(), new Position(centerRow, 7), gameMap);
+        Colonist minsoo = new Colonist(ColonistType.BASIC, basicSpec, "박민수", gameMap.issueNextLabel(), new Position(centerRow, 11), gameMap);
         // 모든 정착민 피스톨로 시작
         chulsoo.setGun(new Pistol());
         younghee.setGun(new Pistol());

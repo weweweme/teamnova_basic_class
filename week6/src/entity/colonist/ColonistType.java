@@ -5,6 +5,7 @@ package entity.colonist;
 /// 실제 속성 데이터는 ColonistFactory에서 ColonistSpec으로 제공
 /// </summary>
 public enum ColonistType {
+    BASIC,
     GUNNER,
     SNIPER,
     ASSAULT

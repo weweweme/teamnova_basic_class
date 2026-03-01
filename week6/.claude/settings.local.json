@@ -6,7 +6,9 @@
       "Bash(git mv:*)",
       "Bash(find:*)",
       "Bash(gh issue create:*)",
-      "Bash(brew list:*)"
+      "Bash(brew list:*)",
+      "WebSearch",
+      "Bash(curl:*)"
     ]
   }
 }

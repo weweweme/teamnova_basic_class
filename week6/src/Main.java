@@ -8,6 +8,7 @@ import entity.enemy.EnemyFactory;
 import entity.enemy.EnemyType;
 import game.DayNightCycle;
 import game.GameMap;
+import game.BgmPlayer;
 import game.Cutscene;
 import game.Difficulty;
 import game.DifficultySettings;
@@ -117,6 +118,10 @@ public class Main {
         InputHandler inputHandler = new InputHandler(gameMap, renderer, dayNightCycle, colonistFactory);
         renderer.setInputHandler(inputHandler);
 
+        // BGM 재생 시작
+        BgmPlayer bgmPlayer = new BgmPlayer("bgm/Claim_To_Fame-The_Grey_Room_Clark_Sims.mp3");
+        bgmPlayer.start();
+
         Util.clearScreen();
 
         // 스레드 시작
@@ -162,6 +167,7 @@ public class Main {
         }
 
         // ===== 종료 =====
+        bgmPlayer.stopPlaying();
         dayNightCycle.stopRunning();
         gameMap.clearEnemies();
         for (Colonist colonist : gameMap.getColonists()) {

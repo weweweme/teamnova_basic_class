@@ -396,7 +396,11 @@ public class Renderer {
             }
 
             if (dayNightCycle.isNight()) {
-                lines.add("  적: " + gameMap.getEnemies().size() + "마리");
+                int alive = gameMap.getEnemies().size();
+                int pending = dayNightCycle.getPendingCount();
+                int total = dayNightCycle.getTotalWaveSize();
+                int defeated = total - alive - pending;
+                lines.add("  처치 " + defeated + "/" + total);
             }
 
             lines.add("");
@@ -474,8 +478,13 @@ public class Renderer {
             boolean isNight = dayNightCycle != null && dayNightCycle.isNight();
             if (isNight) {
                 // 밤: 전투 상태 표시
+                int alive = gameMap.getEnemies().size();
+                int pending = dayNightCycle.getPendingCount();
+                int total = dayNightCycle.getTotalWaveSize();
+                int defeated = total - alive - pending;
                 lines.add(" [전투 중]");
-                lines.add(" 적: " + gameMap.getEnemies().size() + "마리");
+                lines.add(" 진행: " + defeated + "/" + total);
+                lines.add(" 남은 적: " + (alive + pending));
                 lines.add(" q: 종료");
             } else {
                 // 낮: 관리 명령

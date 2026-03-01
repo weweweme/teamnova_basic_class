@@ -107,6 +107,11 @@ public class DayNightCycle extends Thread {
     private final ArrayList<Enemy> pendingSpawns = new ArrayList<>();
 
     /// <summary>
+    /// 이번 밤 웨이브의 총 적 수
+    /// </summary>
+    private int totalWaveSize;
+
+    /// <summary>
     /// 다음 적이 출현할 시각 (밀리초)
     /// </summary>
     private long nextSpawnTime;
@@ -232,6 +237,20 @@ public class DayNightCycle extends Thread {
     }
 
     /// <summary>
+    /// 이번 밤 웨이브의 총 적 수 반환
+    /// </summary>
+    public int getTotalWaveSize() {
+        return totalWaveSize;
+    }
+
+    /// <summary>
+    /// 아직 출현하지 않은 대기 중인 적 수 반환
+    /// </summary>
+    public int getPendingCount() {
+        return pendingSpawns.size();
+    }
+
+    /// <summary>
     /// 선택된 난이도 이름 반환 (패널 표시용)
     /// </summary>
     public String getDifficultyName() {
@@ -326,6 +345,9 @@ public class DayNightCycle extends Thread {
             // 블록 높이 + 간격 1칸
             currentRow += blockHeight + 1;
         }
+
+        // 총 마릿수 기록
+        totalWaveSize = pendingSpawns.size();
 
         // 출현 순서 섞기 (위치는 고정, 등장 순서만 랜덤)
         Collections.shuffle(pendingSpawns);

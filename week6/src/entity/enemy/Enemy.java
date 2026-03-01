@@ -26,6 +26,21 @@ public class Enemy extends GameEntity {
     private long deathTime;
 
     /// <summary>
+    /// 재생 특성용 틱 카운터
+    /// </summary>
+    private int regenTick;
+
+    /// <summary>
+    /// 재생 간격 (틱 수)
+    /// </summary>
+    private static final int REGEN_INTERVAL = 3;
+
+    /// <summary>
+    /// 돌진 특성이 발동하는 바리케이드까지의 거리 (열 수)
+    /// </summary>
+    private static final int CHARGE_RANGE = 8;
+
+    /// <summary>
     /// 지정한 종류, 위치, 맵으로 적 생성
     /// </summary>
     public Enemy(EnemyType type, Position position, GameMap gameMap) {
@@ -54,10 +69,34 @@ public class Enemy extends GameEntity {
             int currentCol = getPosition().getCol();
             Barricade barricade = getGameMap().getBarricade();
 
+            // 재생 특성: 일정 틱마다 체력 1 회복
+            if (type.getTrait() == EnemyTrait.REGENERATING) {
+                regenTick++;
+                if (regenTick >= REGEN_INTERVAL) {
+                    regenTick = 0;
+                    if (getHp() < getMaxHp()) {
+                        heal(1);
+                    }
+                }
+            }
+
+            // 이동량 결정 (돌진 특성: 바리케이드 근처에서 2칸 이동)
+            int moveAmount = 1;
+            if (type.getTrait() == EnemyTrait.CHARGER) {
+                boolean nearBarricade = currentCol - BARRICADE_STOP <= CHARGE_RANGE;
+                if (nearBarricade) {
+                    moveAmount = 2;
+                }
+            }
+
             if (!barricade.isDestroyed()) {
                 // 바리케이드 건재: 바리케이드까지 이동 후 공격
                 if (currentCol > BARRICADE_STOP) {
-                    getPosition().setCol(currentCol - 1);
+                    int newCol = currentCol - moveAmount;
+                    if (newCol < BARRICADE_STOP) {
+                        newCol = BARRICADE_STOP;
+                    }
+                    getPosition().setCol(newCol);
                     checkSpikes();
                 } else {
                     barricade.takeDamage(type.getDamage());
@@ -71,14 +110,22 @@ public class Enemy extends GameEntity {
                     int colonistStop = target.getPosition().getCol() + COLONIST_BLOCK_WIDTH;
 
                     if (currentCol > colonistStop) {
-                        getPosition().setCol(currentCol - 1);
+                        int newCol = currentCol - moveAmount;
+                        if (newCol < colonistStop) {
+                            newCol = colonistStop;
+                        }
+                        getPosition().setCol(newCol);
                         checkSpikes();
                     } else {
                         target.takeDamage(type.getDamage());
                     }
                 } else if (currentCol > 0) {
                     // 살아있는 정착민 없음: 왼쪽으로 계속 이동
-                    getPosition().setCol(currentCol - 1);
+                    int newCol = currentCol - moveAmount;
+                    if (newCol < 0) {
+                        newCol = 0;
+                    }
+                    getPosition().setCol(newCol);
                     checkSpikes();
                 }
             }
@@ -135,10 +182,17 @@ public class Enemy extends GameEntity {
 
     /// <summary>
     /// 피해를 받아 체력 감소, 사망 시 시각 기록
+    /// 방어 특성은 받는 피해가 50% 감소
     /// </summary>
     @Override
     public void takeDamage(int damage) {
-        super.takeDamage(damage);
+        // 방어 특성: 피해 절반으로 감소 (최소 1)
+        int actualDamage = damage;
+        if (type.getTrait() == EnemyTrait.ARMORED && damage > 1) {
+            actualDamage = damage / 2;
+        }
+
+        super.takeDamage(actualDamage);
 
         if (getHp() == 0 && deathTime == 0) {
             deathTime = System.currentTimeMillis();

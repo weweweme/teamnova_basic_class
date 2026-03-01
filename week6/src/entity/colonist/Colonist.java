@@ -38,9 +38,9 @@ public class Colonist extends GameEntity {
     private final char label;
 
     /// <summary>
-    /// 무기 레벨 (높을수록 공격력 증가, 기본 1)
+    /// 장착한 무기 (발사 패턴과 데미지 결정)
     /// </summary>
-    private int weaponLevel;
+    private Gun gun;
 
     /// <summary>
     /// 현재 행동 상태
@@ -62,7 +62,7 @@ public class Colonist extends GameEntity {
         this.name = name;
         this.label = nextLabel;
         nextLabel++;
-        this.weaponLevel = 1;
+        this.gun = new Pistol();
         this.currentState = new WanderingState();
     }
 
@@ -145,17 +145,17 @@ public class Colonist extends GameEntity {
     }
 
     /// <summary>
-    /// 무기 레벨 반환
+    /// 장착한 무기 반환
     /// </summary>
-    public int getWeaponLevel() {
-        return weaponLevel;
+    public Gun getGun() {
+        return gun;
     }
 
     /// <summary>
-    /// 무기 레벨 1 증가
+    /// 무기 교체
     /// </summary>
-    public void upgradeWeapon() {
-        weaponLevel++;
+    public void setGun(Gun gun) {
+        this.gun = gun;
     }
 
     /// <summary>

@@ -440,7 +440,7 @@ public class Renderer {
             if (selected.isLiving()) {
                 lines.add(" 상태: " + selected.getCurrentState().getDisplayName());
                 lines.add(" 체력: " + buildBar(selected.getHp(), selected.getMaxHp()));
-                lines.add(" 무기: Lv" + selected.getWeaponLevel());
+                lines.add(" 무기: " + selected.getGun().getName());
             } else {
                 lines.add(" 상태: 사망");
             }
@@ -490,7 +490,6 @@ public class Renderer {
                 // 낮: 관리 명령
                 lines.add(" [명령] (낮)");
                 lines.add(" 1: 수리 (보급10)");
-                lines.add(" 2: 강화 (보급15)");
                 lines.add(" 3: 치료 (보급10)");
                 lines.add(" 4: 가시덫 (보급20)");
                 lines.add(" n: 밤 건너뛰기");

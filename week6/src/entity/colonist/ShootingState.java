@@ -1,9 +1,6 @@
 package entity.colonist;
 
-import entity.Bullet;
 import entity.enemy.Enemy;
-import entity.enemy.EnemyType;
-import system.Position;
 import world.Barricade;
 import world.GameMap;
 
@@ -76,9 +73,9 @@ public class ShootingState extends ColonistState {
         // 사격 로직
         tickCount++;
 
-        // 발사 간격은 정착민 유형에 따라 다름
-        int shootInterval = colonist.getType().getShootInterval();
-        if (tickCount < shootInterval) {
+        // 발사 간격은 장착한 무기에 따라 다름
+        Gun gun = colonist.getGun();
+        if (tickCount < gun.getFireInterval()) {
             return;
         }
 
@@ -90,20 +87,8 @@ public class ShootingState extends ColonistState {
             return;
         }
 
-        // 총알 발사 위치 (바리케이드 오른쪽)
-        int bulletRow = colonist.getPosition().getRow();
-        int bulletCol = Barricade.COLUMN + 2;
-
-        // 적 블록 중앙을 조준
-        String[] block = target.getType().getBlock();
-        int aimRow = target.getPosition().getRow() + block.length / 2;
-        int aimCol = target.getPosition().getCol() + block[0].length() / 2;
-
-        // 피해량은 정착민 유형의 기본 피해 × 무기 레벨
-        int baseDamage = colonist.getType().getBaseDamage();
-        int damage = colonist.getWeaponLevel() * baseDamage;
-        Bullet bullet = new Bullet(bulletRow, bulletCol, aimRow, aimCol, damage, colonist.getLabel());
-        colonist.getGameMap().addBullet(bullet);
+        // 무기에 발사를 위임 (무기마다 총알 패턴이 다름)
+        gun.fire(colonist, target, colonist.getGameMap());
     }
 
     /// <summary>

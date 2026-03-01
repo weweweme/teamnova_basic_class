@@ -117,7 +117,6 @@ public class Main {
                     } else {
                         // 명령 키
                         final int KEY_REPAIR = '1';
-                        final int KEY_UPGRADE = '2';
                         final int KEY_HEAL = '3';
                         final int KEY_SPIKE = '4';
                         final int KEY_SKIP_NIGHT = 'n';
@@ -125,7 +124,6 @@ public class Main {
                         // 명령 비용
                         final int REPAIR_COST = 10;
                         final int REPAIR_AMOUNT = 30;
-                        final int UPGRADE_COST = 15;
                         final int HEAL_COST = 10;
                         final int HEAL_AMOUNT = 30;
                         final int SPIKE_COST = 20;
@@ -151,15 +149,7 @@ public class Main {
                                     gameMap.addLog(">> 바리케이드 수리 (+" + REPAIR_AMOUNT + ")");
                                 }
                                 break;
-                            case KEY_UPGRADE:
-                                if (!dayNightCycle.isNight() && gameMap.getSupply().spend(UPGRADE_COST)) {
-                                    Colonist selected = gameMap.getColonists().get(renderer.getSelectedIndex());
-                                    if (selected.isLiving()) {
-                                        selected.upgradeWeapon();
-                                        gameMap.addLog(">> " + selected.getColonistName() + " 무기 강화 (Lv" + selected.getWeaponLevel() + ")");
-                                    }
-                                }
-                                break;
+                            // KEY_UPGRADE: Step 6에서 무기 상점으로 교체 예정
                             case KEY_HEAL:
                                 if (!dayNightCycle.isNight() && gameMap.getSupply().spend(HEAL_COST)) {
                                     Colonist selected = gameMap.getColonists().get(renderer.getSelectedIndex());

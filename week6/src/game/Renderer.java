@@ -55,19 +55,14 @@ public class Renderer {
     private final int[] reusableColors = new int[GameMap.HEIGHT];
 
     /// <summary>
-    /// 우측 패널 줄 재사용 버퍼
-    /// </summary>
-    private final ArrayList<String> panelLines = new ArrayList<>();
-
-    /// <summary>
     /// 화면 출력 재사용 버퍼
     /// </summary>
     private final StringBuilder screenBuilder = new StringBuilder(8192);
 
     /// <summary>
-    /// 체력바 조립 재사용 버퍼
+    /// 우측 패널 빌더
     /// </summary>
-    private final StringBuilder barBuilder = new StringBuilder();
+    private PanelBuilder panelBuilder;
 
     /// <summary>
     /// 화면 버퍼 [행][열], 매 프레임마다 새로 채움
@@ -95,19 +90,9 @@ public class Renderer {
     private int selectedIndex;
 
     /// <summary>
-    /// 무기 상점 모드 여부
+    /// 입력 처리기 (메뉴 모드 상태 조회용)
     /// </summary>
-    private boolean shopMode;
-
-    /// <summary>
-    /// 건설 모드 여부
-    /// </summary>
-    private boolean buildMode;
-
-    /// <summary>
-    /// 모집 모드 여부
-    /// </summary>
-    private boolean recruitMode;
+    private InputHandler inputHandler;
 
     /// <summary>
     /// 지정한 맵으로 렌더러 생성
@@ -134,24 +119,10 @@ public class Renderer {
     }
 
     /// <summary>
-    /// 무기 상점 모드 설정
+    /// 입력 처리기 설정 (메뉴 모드 상태 조회용)
     /// </summary>
-    public void setShopMode(boolean shopMode) {
-        this.shopMode = shopMode;
-    }
-
-    /// <summary>
-    /// 건설 모드 설정
-    /// </summary>
-    public void setBuildMode(boolean buildMode) {
-        this.buildMode = buildMode;
-    }
-
-    /// <summary>
-    /// 모집 모드 설정
-    /// </summary>
-    public void setRecruitMode(boolean recruitMode) {
-        this.recruitMode = recruitMode;
+    public void setInputHandler(InputHandler inputHandler) {
+        this.inputHandler = inputHandler;
     }
 
     /// <summary>
@@ -660,7 +631,7 @@ public class Renderer {
                 }
 
                 panelLines.add(" q: 종료");
-            } else if (shopMode) {
+            } else if (inputHandler.isShopMode()) {
                 // 무기 상점 모드
                 panelLines.add(" [무기 상점]");
                 panelLines.add(" 1: 피스톨 (무료)");
@@ -668,14 +639,14 @@ public class Renderer {
                 panelLines.add(" 3: 라이플 (보급20)");
                 panelLines.add(" 4: 미니건 (보급30)");
                 panelLines.add(" q: 취소");
-            } else if (recruitMode) {
+            } else if (inputHandler.isRecruitMode()) {
                 // 모집 모드
                 panelLines.add(" [모집] (보급40)");
                 panelLines.add(" 1: 사격수 (속사)");
                 panelLines.add(" 2: 저격수 (치명타)");
                 panelLines.add(" 3: 돌격수 (넉백)");
                 panelLines.add(" q: 취소");
-            } else if (buildMode) {
+            } else if (inputHandler.isBuildMode()) {
                 // 건설 모드
                 panelLines.add(" [건설]");
                 panelLines.add(" 1: 가시덫 (보급20)");

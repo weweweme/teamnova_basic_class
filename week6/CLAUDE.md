@@ -94,6 +94,7 @@ PanelBuilder (오른쪽 정보 패널 생성)
 InputHandler (키 입력 읽기 + 명령 디스패치)
 Supply (보급품 자원 관리)
 Cutscene (스토리 애니메이션)
+BgmPlayer (Thread — JLayer MP3 루프 재생)
 HitEffect (명중 이펙트 데이터)
 LogEntry (로그 메시지 데이터)
 Util (터미널 모드, 화면 클리어, 딜레이, 랜덤)
@@ -184,7 +185,7 @@ graph TD
 ```mermaid
 graph TB
     Main["<b>Main</b><br/>진입점"]
-    game["<b>game</b><br/>DayNightCycle, GameMap<br/>BulletSystem, Renderer<br/>PanelBuilder, InputHandler<br/>WaveBuilder, Supply, Cutscene"]
+    game["<b>game</b><br/>DayNightCycle, GameMap<br/>BulletSystem, Renderer<br/>PanelBuilder, InputHandler<br/>WaveBuilder, Supply<br/>Cutscene, BgmPlayer"]
     colonist["<b>entity/colonist</b><br/>Colonist, ColonistState<br/>WanderingState, ShootingState<br/>ColonistSpec, ColonistFactory"]
     enemy["<b>entity/enemy</b><br/>Enemy, EnemySpec<br/>EnemyFactory, EnemyTrait"]
     gun["<b>gun</b><br/>Gun, Bullet<br/>Pistol, Shotgun<br/>Rifle, Minigun"]
@@ -304,11 +305,13 @@ IntelliJ IDEA의 **Terminal 탭**에서 실행합니다 (Run 콘솔 아님).
 
 ```bash
 # 컴파일
-javac -d out $(find src -name "*.java")
+javac -cp lib/jl1.0.1.jar -d out $(find src -name "*.java")
 
 # 실행
-java -cp out Main
+java -cp lib/jl1.0.1.jar:out Main
 ```
+
+**외부 라이브러리**: `lib/jl1.0.1.jar` (JLayer — MP3 디코딩/재생)
 
 **실행 환경**: 터미널 raw 모드 (`stty -icanon -echo`)
 - 화살표 키 입력을 위해 터미널 raw 모드 사용

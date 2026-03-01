@@ -319,8 +319,9 @@ public class InputHandler {
             if (gameMap.getSupply().spend(RECRUIT_COST)) {
                 recruitCount++;
                 String recruitName = "신병" + recruitCount;
+                // 왼쪽 바깥에서 등장하여 안전지대로 걸어 들어옴
                 int row = GameMap.HEIGHT / 2;
-                int col = 3 + gameMap.getColonists().size() * 4;
+                int col = 0;
                 Colonist recruit = new Colonist(recruitType, colonistFactory.getSpec(recruitType), recruitName, gameMap.issueNextLabel(), new Position(row, col), gameMap);
 
                 // 유형별 기본 무기 배정

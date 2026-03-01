@@ -135,6 +135,16 @@ public class DayNightCycle extends Thread {
     private final ArrayList<Enemy> pendingSpawns = new ArrayList<>();
 
     /// <summary>
+    /// 웨이브 미리보기 종류별 카운트 재사용 버퍼
+    /// </summary>
+    private final java.util.HashMap<EnemyType, Integer> previewCounts = new java.util.HashMap<>();
+
+    /// <summary>
+    /// 웨이브 미리보기 문자열 재사용 버퍼
+    /// </summary>
+    private final ArrayList<String> wavePreviewLines = new ArrayList<>();
+
+    /// <summary>
     /// 이번 밤 웨이브의 총 적 수
     /// </summary>
     private int totalWaveSize;
@@ -385,28 +395,28 @@ public class DayNightCycle extends Thread {
     /// 종류별 마릿수를 "늑대×3" 형태로 반환
     /// </summary>
     public ArrayList<String> getWavePreview() {
-        ArrayList<String> preview = new ArrayList<>();
+        wavePreviewLines.clear();
         if (pendingSpawns.isEmpty() && gameMap.getEnemies().isEmpty()) {
-            return preview;
+            return wavePreviewLines;
         }
 
         // 대기 + 출현 중인 적 합쳐서 종류별 카운트
-        java.util.HashMap<EnemyType, Integer> counts = new java.util.HashMap<>();
+        previewCounts.clear();
         for (Enemy enemy : pendingSpawns) {
-            counts.put(enemy.getType(), counts.getOrDefault(enemy.getType(), 0) + 1);
+            previewCounts.put(enemy.getType(), previewCounts.getOrDefault(enemy.getType(), 0) + 1);
         }
         for (Enemy enemy : gameMap.getEnemies()) {
-            counts.put(enemy.getType(), counts.getOrDefault(enemy.getType(), 0) + 1);
+            previewCounts.put(enemy.getType(), previewCounts.getOrDefault(enemy.getType(), 0) + 1);
         }
 
         for (EnemyType type : EnemyType.values()) {
-            int count = counts.getOrDefault(type, 0);
+            int count = previewCounts.getOrDefault(type, 0);
             if (count > 0) {
-                preview.add(enemyFactory.getSpec(type).getDisplayName() + "x" + count);
+                wavePreviewLines.add(enemyFactory.getSpec(type).getDisplayName() + "x" + count);
             }
         }
 
-        return preview;
+        return wavePreviewLines;
     }
 
     /// <summary>

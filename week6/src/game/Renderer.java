@@ -60,6 +60,16 @@ public class Renderer {
     private final ArrayList<String> panelLines = new ArrayList<>();
 
     /// <summary>
+    /// 화면 출력 재사용 버퍼
+    /// </summary>
+    private final StringBuilder screenBuilder = new StringBuilder(8192);
+
+    /// <summary>
+    /// 체력바 조립 재사용 버퍼
+    /// </summary>
+    private final StringBuilder barBuilder = new StringBuilder();
+
+    /// <summary>
     /// 화면 버퍼 [행][열], 매 프레임마다 새로 채움
     /// </summary>
     private final char[][] buffer;
@@ -697,37 +707,37 @@ public class Renderer {
     /// 전체 10칸 중 비율만큼 채움
     /// </summary>
     private String buildBar(int current, int max) {
+        barBuilder.setLength(0);
         int barLength = 10;
         int filled = (int) ((double) current / max * barLength);
 
-        StringBuilder bar = new StringBuilder();
         for (int i = 0; i < barLength; i++) {
             if (i < filled) {
-                bar.append('#');
+                barBuilder.append('#');
             } else {
-                bar.append('.');
+                barBuilder.append('.');
             }
         }
-        bar.append(' ');
-        bar.append(current);
+        barBuilder.append(' ');
+        barBuilder.append(current);
 
-        return bar.toString();
+        return barBuilder.toString();
     }
 
     /// <summary>
-    /// 패널 한 줄을 고정 폭에 맞춰 반환
+    /// 패널 한 줄을 고정 폭에 맞춰 대상 버퍼에 직접 추가
     /// 짧으면 공백으로 채우고, 길면 잘라냄
     /// </summary>
-    private String padPanel(String text) {
+    private void appendPadPanel(StringBuilder dest, String text) {
         if (text.length() >= PANEL_WIDTH) {
-            return text.substring(0, PANEL_WIDTH);
+            dest.append(text, 0, PANEL_WIDTH);
+        } else {
+            dest.append(text);
+            int padding = PANEL_WIDTH - text.length();
+            for (int i = 0; i < padding; i++) {
+                dest.append(' ');
+            }
         }
-
-        StringBuilder padded = new StringBuilder(text);
-        while (padded.length() < PANEL_WIDTH) {
-            padded.append(' ');
-        }
-        return padded.toString();
     }
 
     /// <summary>
@@ -770,17 +780,14 @@ public class Renderer {
         ArrayList<String> logs = gameMap.getRecentLogs();
 
         // 전체 높이: 맵(20) + 구분선(1) + 로그(8) = 29줄
-        // 하단 로그 표시 줄 수
         int LOG_LINES = 8;
         int totalHeight = GameMap.HEIGHT + 1 + LOG_LINES;
-
-        // 우측 패널 구분선
         String PANEL_SEPARATOR = "|||";
-        int totalWidth = GameMap.WIDTH + PANEL_SEPARATOR.length() + PANEL_WIDTH;
-        StringBuilder screen = new StringBuilder(totalWidth * totalHeight + totalHeight + 10);
+
+        screenBuilder.setLength(0);
 
         // 커서를 맨 위로 이동
-        screen.append("\033[H");
+        screenBuilder.append("\033[H");
 
         for (int row = 0; row < totalHeight; row++) {
             // 좌측 내용 (맵 / 구분선 / 로그)
@@ -789,18 +796,18 @@ public class Renderer {
                 for (int col = 0; col < GameMap.WIDTH; col++) {
                     int color = colorBuffer[row][col];
                     if (color != 0) {
-                        screen.append("\033[");
-                        screen.append(color);
-                        screen.append('m');
-                        screen.append(buffer[row][col]);
-                        screen.append("\033[0m");
+                        screenBuilder.append("\033[");
+                        screenBuilder.append(color);
+                        screenBuilder.append('m');
+                        screenBuilder.append(buffer[row][col]);
+                        screenBuilder.append("\033[0m");
                     } else {
-                        screen.append(buffer[row][col]);
+                        screenBuilder.append(buffer[row][col]);
                     }
                 }
             } else if (row == GameMap.HEIGHT) {
                 // 로그 구분선
-                screen.append("-".repeat(GameMap.WIDTH));
+                screenBuilder.append("-".repeat(GameMap.WIDTH));
             } else {
                 // 로그 줄 (하단 정렬: 새 로그가 아래, 기존 로그가 위로)
                 int logLine = row - GameMap.HEIGHT - 1;
@@ -812,24 +819,24 @@ public class Renderer {
                 if (hasLog) {
                     logContent = " " + logs.get(logIndex);
                 }
-                screen.append(padToWidth(logContent));
+                screenBuilder.append(padToWidth(logContent));
             }
 
             // 우측 패널
-            screen.append(PANEL_SEPARATOR);
+            screenBuilder.append(PANEL_SEPARATOR);
             if (row < panelLines.size()) {
-                screen.append(padPanel(panelLines.get(row)));
+                appendPadPanel(screenBuilder, panelLines.get(row));
             } else {
-                screen.append(padPanel(""));
+                appendPadPanel(screenBuilder, "");
             }
 
-            screen.append('\n');
+            screenBuilder.append('\n');
         }
 
         // 화면 아래 잔여 내용 지움
-        screen.append("\033[J");
+        screenBuilder.append("\033[J");
 
-        System.out.print(screen);
+        System.out.print(screenBuilder);
         System.out.flush();
     }
 }

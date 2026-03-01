@@ -78,6 +78,31 @@ public class GameMap {
     private final int EFFECT_DURATION = 200;
 
     /// <summary>
+    /// 총알 복사본 재사용 버퍼 (렌더링용)
+    /// </summary>
+    private final ArrayList<Bullet> bulletsCopy = new ArrayList<>();
+
+    /// <summary>
+    /// 이펙트 복사본 재사용 버퍼 (렌더링용)
+    /// </summary>
+    private final ArrayList<HitEffect> effectsCopy = new ArrayList<>();
+
+    /// <summary>
+    /// 로그 문자열 재사용 버퍼 (렌더링용)
+    /// </summary>
+    private final ArrayList<String> logsCopy = new ArrayList<>();
+
+    /// <summary>
+    /// 제거 대상 총알 재사용 버퍼
+    /// </summary>
+    private final ArrayList<Bullet> bulletsToRemove = new ArrayList<>();
+
+    /// <summary>
+    /// 제거 대상 적 재사용 버퍼
+    /// </summary>
+    private final ArrayList<Enemy> deadEnemies = new ArrayList<>();
+
+    /// <summary>
     /// 화면에 표시 중인 이펙트 목록
     /// </summary>
     private final ArrayList<HitEffect> effects = new ArrayList<>();
@@ -294,7 +319,7 @@ public class GameMap {
     /// 죽은 적을 목록에서 제거하고 스레드 종료
     /// </summary>
     public void removeDeadEnemies() {
-        ArrayList<Enemy> dead = new ArrayList<>();
+        deadEnemies.clear();
         long now = System.currentTimeMillis();
 
         for (Enemy enemy : enemies) {
@@ -302,11 +327,11 @@ public class GameMap {
                 // 사망 애니메이션이 끝난 적만 제거
                 boolean animDone = now - enemy.getDeathTime() > DEATH_ANIM_DURATION;
                 if (animDone) {
-                    dead.add(enemy);
+                    deadEnemies.add(enemy);
                 }
             }
         }
-        for (Enemy enemy : dead) {
+        for (Enemy enemy : deadEnemies) {
             enemy.stopRunning();
             enemies.remove(enemy);
             enemiesKilled++;
@@ -353,7 +378,9 @@ public class GameMap {
     /// 현재 총알 목록 복사본 반환 (렌더링용)
     /// </summary>
     public synchronized ArrayList<Bullet> getBullets() {
-        return new ArrayList<>(bullets);
+        bulletsCopy.clear();
+        bulletsCopy.addAll(bullets);
+        return bulletsCopy;
     }
 
     /// <summary>
@@ -362,14 +389,14 @@ public class GameMap {
     /// Main 루프에서 매 렌더 틱마다 호출
     /// </summary>
     public synchronized void advanceBullets() {
-        ArrayList<Bullet> toRemove = new ArrayList<>();
+        bulletsToRemove.clear();
 
         for (Bullet bullet : bullets) {
             bullet.advance();
 
             // 화면 밖으로 나간 총알 제거
             if (bullet.isOffScreen()) {
-                toRemove.add(bullet);
+                bulletsToRemove.add(bullet);
                 continue;
             }
 
@@ -414,14 +441,14 @@ public class GameMap {
 
                     // 관통 총알은 제거하지 않고 계속 전진
                     if (!bullet.isPiercing()) {
-                        toRemove.add(bullet);
+                        bulletsToRemove.add(bullet);
                     }
                     break;
                 }
             }
         }
 
-        bullets.removeAll(toRemove);
+        bullets.removeAll(bulletsToRemove);
     }
 
     /// <summary>
@@ -448,11 +475,11 @@ public class GameMap {
             logs.poll();
         }
 
-        ArrayList<String> result = new ArrayList<>();
+        logsCopy.clear();
         for (LogEntry entry : logs) {
-            result.add(entry.getMessage());
+            logsCopy.add(entry.getMessage());
         }
-        return result;
+        return logsCopy;
     }
 
     /// <summary>
@@ -461,7 +488,9 @@ public class GameMap {
     public synchronized ArrayList<HitEffect> getEffects() {
         long now = System.currentTimeMillis();
         effects.removeIf(effect -> now - effect.getCreatedTime() > EFFECT_DURATION);
-        return new ArrayList<>(effects);
+        effectsCopy.clear();
+        effectsCopy.addAll(effects);
+        return effectsCopy;
     }
 
     /// <summary>

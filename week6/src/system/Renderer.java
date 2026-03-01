@@ -58,6 +58,11 @@ public class Renderer {
     /// </summary>
     private int selectedIndex;
 
+    /// <summary>
+    /// 무기 상점 모드 여부
+    /// </summary>
+    private boolean shopMode;
+
 
     /// <summary>
     /// 지정한 맵으로 렌더러 생성
@@ -81,6 +86,13 @@ public class Renderer {
     /// </summary>
     public int getSelectedIndex() {
         return selectedIndex;
+    }
+
+    /// <summary>
+    /// 무기 상점 모드 설정
+    /// </summary>
+    public void setShopMode(boolean shopMode) {
+        this.shopMode = shopMode;
     }
 
     /// <summary>
@@ -489,10 +501,19 @@ public class Renderer {
                 lines.add(" 진행: " + defeated + "/" + total);
                 lines.add(" 남은 적: " + (alive + pending));
                 lines.add(" q: 종료");
+            } else if (shopMode) {
+                // 무기 상점 모드
+                lines.add(" [무기 상점]");
+                lines.add(" 1: 피스톨 (무료)");
+                lines.add(" 2: 샷건  (보급25)");
+                lines.add(" 3: 라이플 (보급20)");
+                lines.add(" 4: 미니건 (보급30)");
+                lines.add(" q: 취소");
             } else {
                 // 낮: 관리 명령
                 lines.add(" [명령] (낮)");
                 lines.add(" 1: 수리 (보급10)");
+                lines.add(" 2: 무기 구매");
                 lines.add(" 3: 치료 (보급10)");
                 lines.add(" 4: 가시덫 (보급20)");
                 lines.add(" n: 밤 건너뛰기");

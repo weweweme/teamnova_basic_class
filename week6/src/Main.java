@@ -1,5 +1,10 @@
 import entity.colonist.Colonist;
 import entity.colonist.ColonistType;
+import entity.colonist.Gun;
+import entity.colonist.Pistol;
+import entity.colonist.Shotgun;
+import entity.colonist.Rifle;
+import entity.colonist.Minigun;
 import world.Barricade;
 import world.DayNightCycle;
 import world.GameMap;
@@ -76,6 +81,11 @@ public class Main {
         Colonist chulsoo = new Colonist(ColonistType.GUNNER, "김철수", new Position(centerRow, 3), gameMap);
         Colonist younghee = new Colonist(ColonistType.SNIPER, "이영희", new Position(centerRow, 7), gameMap);
         Colonist minsoo = new Colonist(ColonistType.ASSAULT, "박민수", new Position(centerRow, 11), gameMap);
+        // 유형별 기본 무기 배정
+        chulsoo.setGun(new Pistol());
+        younghee.setGun(new Rifle());
+        minsoo.setGun(new Shotgun());
+
         gameMap.addColonist(chulsoo);
         gameMap.addColonist(younghee);
         gameMap.addColonist(minsoo);
@@ -100,6 +110,15 @@ public class Main {
 
         long lastRenderTime = 0;
 
+        // 무기 상점 모드 여부
+        boolean shopMode = false;
+
+        // 무기 목록 (상점 메뉴 번호와 대응)
+        final int SHOP_PISTOL = '1';
+        final int SHOP_SHOTGUN = '2';
+        final int SHOP_RIFLE = '3';
+        final int SHOP_MINIGUN = '4';
+
         // ===== 메인 루프 =====
         boolean running = true;
         while (running) {
@@ -114,9 +133,45 @@ public class Main {
                         if (key == Util.KEY_QUIT) {
                             running = false;
                         }
+                    } else if (shopMode) {
+                        // 무기 상점 모드: 무기 선택 또는 취소
+                        Gun purchased = null;
+                        switch (key) {
+                            case SHOP_PISTOL:
+                                purchased = new Pistol();
+                                break;
+                            case SHOP_SHOTGUN:
+                                purchased = new Shotgun();
+                                break;
+                            case SHOP_RIFLE:
+                                purchased = new Rifle();
+                                break;
+                            case SHOP_MINIGUN:
+                                purchased = new Minigun();
+                                break;
+                            case Util.KEY_QUIT:
+                                shopMode = false;
+                                renderer.setShopMode(false);
+                                break;
+                        }
+
+                        if (purchased != null) {
+                            Colonist selected = gameMap.getColonists().get(renderer.getSelectedIndex());
+                            boolean alive = selected.isLiving();
+                            boolean affordable = gameMap.getSupply().spend(purchased.getCost());
+
+                            if (alive && affordable) {
+                                selected.setGun(purchased);
+                                gameMap.addLog(">> " + selected.getColonistName() + " → " + purchased.getName() + " 장착");
+                            }
+
+                            shopMode = false;
+                            renderer.setShopMode(false);
+                        }
                     } else {
-                        // 명령 키
+                        // 일반 명령 키
                         final int KEY_REPAIR = '1';
+                        final int KEY_WEAPON = '2';
                         final int KEY_HEAL = '3';
                         final int KEY_SPIKE = '4';
                         final int KEY_SKIP_NIGHT = 'n';
@@ -149,7 +204,13 @@ public class Main {
                                     gameMap.addLog(">> 바리케이드 수리 (+" + REPAIR_AMOUNT + ")");
                                 }
                                 break;
-                            // KEY_UPGRADE: Step 6에서 무기 상점으로 교체 예정
+                            case KEY_WEAPON:
+                                // 낮에만 무기 상점 진입
+                                if (!dayNightCycle.isNight()) {
+                                    shopMode = true;
+                                    renderer.setShopMode(true);
+                                }
+                                break;
                             case KEY_HEAL:
                                 if (!dayNightCycle.isNight() && gameMap.getSupply().spend(HEAL_COST)) {
                                     Colonist selected = gameMap.getColonists().get(renderer.getSelectedIndex());

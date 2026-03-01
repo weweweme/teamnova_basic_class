@@ -24,6 +24,27 @@ public class Renderer {
     private final int PANEL_WIDTH = 22;
 
     /// <summary>
+    /// 사망 애니메이션 1단계 시간 (짙은 회색 정지)
+    /// </summary>
+    private final int DEATH_PHASE1_MS = 400;
+
+    /// <summary>
+    /// 사망 애니메이션 전체 시간 (1단계 정지 + 2단계 분해)
+    /// </summary>
+    private final int DEATH_ANIM_MS = 800;
+
+    /// <summary>
+    /// 짙은 회색 ANSI 색상 코드
+    /// </summary>
+    private final int COLOR_DARK_GRAY = 90;
+
+    /// <summary>
+    /// 행별 색상 재사용 버퍼 (매 프레임 배열 재생성 방지)
+    /// 맵 높이만큼 확보하면 모든 블록에 대응 가능
+    /// </summary>
+    private final int[] reusableColors = new int[GameMap.HEIGHT];
+
+    /// <summary>
     /// 화면 버퍼 [행][열], 매 프레임마다 새로 채움
     /// </summary>
     private final char[][] buffer;
@@ -277,6 +298,7 @@ public class Renderer {
             int col = colonist.getPosition().getCol();
             char label = colonist.getLabel();
             String[] block = {"(" + label + ")", " |  "};
+            int blockHeight = block.length;
 
             if (colonist.isLiving()) {
                 drawBlock(row, col, block);
@@ -284,27 +306,25 @@ public class Renderer {
                 // 사망 애니메이션
                 long elapsed = now - colonist.getDeathTime();
 
-                if (elapsed < 400) {
+                if (elapsed < DEATH_PHASE1_MS) {
                     // Phase 1: 전체 짙은 회색으로 정지
-                    int[] rowColors = {90, 90};
-                    drawColoredBlock(row, col, block, rowColors);
-                } else if (elapsed < 800) {
+
+                    Arrays.fill(reusableColors, 0, blockHeight, COLOR_DARK_GRAY);
+                    drawColoredBlock(row, col, block, reusableColors, blockHeight);
+                } else if (elapsed < DEATH_ANIM_MS) {
                     // Phase 2: 아래부터 한 줄씩 소멸
-                    double progress = (double) (elapsed - 400) / 400;
-                    int removedRows = (int) Math.ceil(progress * block.length);
-                    int visibleRows = block.length - removedRows;
+                    int phase2Duration = DEATH_ANIM_MS - DEATH_PHASE1_MS;
+                    double progress = (double) (elapsed - DEATH_PHASE1_MS) / phase2Duration;
+                    int removedRows = (int) Math.ceil(progress * blockHeight);
+                    int visibleRows = blockHeight - removedRows;
 
                     if (visibleRows > 0) {
-                        String[] partialBlock = new String[visibleRows];
-                        int[] rowColors = new int[visibleRows];
-                        for (int i = 0; i < visibleRows; i++) {
-                            partialBlock[i] = block[i];
-                            rowColors[i] = 90;
-                        }
-                        drawColoredBlock(row, col, partialBlock, rowColors);
+
+                        Arrays.fill(reusableColors, 0, visibleRows, COLOR_DARK_GRAY);
+                        drawColoredBlock(row, col, block, reusableColors, visibleRows);
                     }
                 }
-                // Phase 3 (800ms+): 아무것도 안 그림
+                // Phase 3 (DEATH_ANIM_MS 이후): 아무것도 안 그림
             }
         }
     }
@@ -316,6 +336,7 @@ public class Renderer {
     /// </summary>
     private void drawEnemies() {
         long now = System.currentTimeMillis();
+        final int COLOR_RED = 31;
 
         for (Enemy enemy : gameMap.getEnemies()) {
             int row = enemy.getPosition().getRow();
@@ -325,40 +346,38 @@ public class Renderer {
 
             if (enemy.isLiving()) {
                 // 살아있는 적: HP 비율에 따라 위에서부터 빨간색
+
+                Arrays.fill(reusableColors, 0, blockHeight, 0);
+
                 double hpRatio = (double) enemy.getHp() / enemy.getMaxHp();
                 int redRows = (int) Math.ceil((1.0 - hpRatio) * blockHeight);
-
-                int[] rowColors = new int[blockHeight];
                 for (int i = 0; i < redRows; i++) {
-                    rowColors[i] = 31;
+                    reusableColors[i] = COLOR_RED;
                 }
-                drawColoredBlock(row, col, block, rowColors);
+                drawColoredBlock(row, col, block, reusableColors, blockHeight);
             } else {
                 // 죽은 적: 사망 애니메이션
                 long elapsed = now - enemy.getDeathTime();
 
-                if (elapsed < 400) {
+                if (elapsed < DEATH_PHASE1_MS) {
                     // Phase 1: 전체 짙은 회색으로 정지
-                    int[] rowColors = new int[blockHeight];
-                    Arrays.fill(rowColors, 90);
-                    drawColoredBlock(row, col, block, rowColors);
-                } else if (elapsed < 800) {
+
+                    Arrays.fill(reusableColors, 0, blockHeight, COLOR_DARK_GRAY);
+                    drawColoredBlock(row, col, block, reusableColors, blockHeight);
+                } else if (elapsed < DEATH_ANIM_MS) {
                     // Phase 2: 아래부터 한 줄씩 소멸
-                    double progress = (double) (elapsed - 400) / 400;
+                    int phase2Duration = DEATH_ANIM_MS - DEATH_PHASE1_MS;
+                    double progress = (double) (elapsed - DEATH_PHASE1_MS) / phase2Duration;
                     int removedRows = (int) Math.ceil(progress * blockHeight);
                     int visibleRows = blockHeight - removedRows;
 
                     if (visibleRows > 0) {
-                        String[] partialBlock = new String[visibleRows];
-                        int[] rowColors = new int[visibleRows];
-                        for (int i = 0; i < visibleRows; i++) {
-                            partialBlock[i] = block[i];
-                            rowColors[i] = 90;
-                        }
-                        drawColoredBlock(row, col, partialBlock, rowColors);
+
+                        Arrays.fill(reusableColors, 0, visibleRows, COLOR_DARK_GRAY);
+                        drawColoredBlock(row, col, block, reusableColors, visibleRows);
                     }
                 }
-                // Phase 3 (800ms+): 아무것도 안 그림 (제거 대기)
+                // Phase 3 (DEATH_ANIM_MS 이후): 아무것도 안 그림 (제거 대기)
             }
         }
     }
@@ -468,11 +487,11 @@ public class Renderer {
     }
 
     /// <summary>
-    /// 지정한 위치에 블록을 버퍼에 그리면서 행별 색상도 기록
+    /// 지정한 위치에 블록의 앞쪽 rows행을 버퍼에 그리면서 행별 색상도 기록
     /// rowColors[i]가 0이 아니면 해당 행에 ANSI 색상 적용
     /// </summary>
-    private void drawColoredBlock(int startRow, int startCol, String[] block, int[] rowColors) {
-        for (int blockRow = 0; blockRow < block.length; blockRow++) {
+    private void drawColoredBlock(int startRow, int startCol, String[] block, int[] rowColors, int rows) {
+        for (int blockRow = 0; blockRow < rows; blockRow++) {
             int bufferRow = startRow + blockRow;
 
             if (bufferRow < 0 || bufferRow >= GameMap.HEIGHT) {

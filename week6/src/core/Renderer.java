@@ -7,6 +7,7 @@ import entity.Enemy;
 import world.Barricade;
 import world.DayNightCycle;
 import world.GameMap;
+import world.GameMap.HitEffect;
 import world.Spike;
 
 import java.util.ArrayList;
@@ -125,6 +126,7 @@ public class Renderer {
         drawColonists();
         drawEnemies();
         drawBullets();
+        drawEffects();
         flush();
     }
 
@@ -262,6 +264,21 @@ public class Renderer {
 
             if (row >= 0 && row < GameMap.HEIGHT && col >= 0 && col < GameMap.WIDTH) {
                 buffer[row][col] = '*';
+            }
+        }
+    }
+
+    /// <summary>
+    /// 명중 이펙트를 버퍼에 노란색 ! 로 그림
+    /// </summary>
+    private void drawEffects() {
+        for (HitEffect effect : gameMap.getEffects()) {
+            int row = effect.getRow();
+            int col = effect.getCol();
+
+            if (row >= 0 && row < GameMap.HEIGHT && col >= 0 && col < GameMap.WIDTH) {
+                buffer[row][col] = '!';
+                colorBuffer[row][col] = 33;
             }
         }
     }

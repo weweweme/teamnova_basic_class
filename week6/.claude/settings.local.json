@@ -4,7 +4,9 @@
       "Bash(javac:*)",
       "Bash(tput:*)",
       "Bash(git mv:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(gh issue create:*)",
+      "Bash(brew list:*)"
     ]
   }
 }

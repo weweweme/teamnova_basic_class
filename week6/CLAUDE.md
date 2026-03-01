@@ -256,6 +256,34 @@ java -cp out Main
   cell.removePiece();
   cell.removeItem();
   ```
+- **고정값은 부모 생성자 파라미터로 전달**: 서브클래스마다 같은 고정값을 상수로 두고 setter나 abstract 메서드로 부모에 전달하지 않는다. 부모 생성자 파라미터로 직접 넘기고, 진짜 다른 동작만 abstract로 남긴다
+  ```java
+  // 나쁜 예: 서브클래스가 상수를 들고 setter로 전달
+  public abstract class Structure {
+      protected Structure(int column) { this.column = column; }
+      protected void setMaxHp(int maxHp) { this.maxHp = maxHp; }
+  }
+  public class Spike extends Structure {
+      private static final int MAX_HP = 10;
+      public Spike(int column) {
+          super(column);
+          setMaxHp(MAX_HP);
+      }
+  }
+
+  // 좋은 예: 부모 생성자에서 한번에 설정
+  public abstract class Structure {
+      protected Structure(int column, int maxHp) {
+          this.column = column;
+          this.maxHp = maxHp;
+      }
+  }
+  public class Spike extends Structure {
+      public Spike(int column) {
+          super(column, 10);
+      }
+  }
+  ```
 - **반복 호출되는 메서드에서 컬렉션/배열 재생성 금지**: 매 프레임·매 틱 호출되는 메서드에서 `new ArrayList`, `new int[]` 등을 매번 생성하지 않는다. 클래스 필드로 선언하고 `clear()` / `Arrays.fill()`로 재사용
   ```java
   // 나쁜 예: 매 프레임마다 새 리스트 생성

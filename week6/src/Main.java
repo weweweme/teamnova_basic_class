@@ -257,6 +257,7 @@ public class Main {
             long now = System.currentTimeMillis();
             if (now - lastRenderTime >= RENDER_INTERVAL) {
                 gameMap.advanceBullets();
+                gameMap.checkLandmines();
                 renderer.render();
                 lastRenderTime = now;
             }

@@ -13,9 +13,9 @@ public abstract class Structure {
     private final int column;
 
     /// <summary>
-    /// 최대 내구도
+    /// 최대 내구도 (업그레이드로 변경 가능)
     /// </summary>
-    private final int maxHp;
+    private int maxHp;
 
     /// <summary>
     /// 현재 내구도
@@ -57,6 +57,20 @@ public abstract class Structure {
     /// </summary>
     public synchronized boolean isDestroyed() {
         return hp <= 0;
+    }
+
+    /// <summary>
+    /// 최대 내구도 변경 (업그레이드용)
+    /// </summary>
+    protected synchronized void setMaxHp(int maxHp) {
+        this.maxHp = maxHp;
+    }
+
+    /// <summary>
+    /// 현재 내구도를 직접 설정 (업그레이드 시 풀 회복용)
+    /// </summary>
+    protected synchronized void setHp(int hp) {
+        this.hp = hp;
     }
 
     /// <summary>

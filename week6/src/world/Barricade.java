@@ -17,6 +17,26 @@ public class Barricade extends Structure {
     private static final int MAX_HP = 100;
 
     /// <summary>
+    /// 최대 레벨
+    /// </summary>
+    private static final int MAX_LEVEL = 3;
+
+    /// <summary>
+    /// 레벨별 최대 내구도 (레벨 1=100, 2=150, 3=200)
+    /// </summary>
+    private static final int[] LEVEL_HP = {100, 150, 200};
+
+    /// <summary>
+    /// 레벨별 업그레이드 비용 (레벨 2=15, 3=25)
+    /// </summary>
+    private static final int[] UPGRADE_COST = {0, 15, 25};
+
+    /// <summary>
+    /// 현재 바리케이드 레벨 (1부터 시작)
+    /// </summary>
+    private int level;
+
+    /// <summary>
     /// 피격 깜빡임 지속 시간 (밀리초)
     /// </summary>
     private static final int FLASH_DURATION = 300;
@@ -36,6 +56,44 @@ public class Barricade extends Structure {
     /// </summary>
     public Barricade() {
         super(COLUMN, MAX_HP);
+        this.level = 1;
+    }
+
+    /// <summary>
+    /// 업그레이드 가능 여부 (최대 레벨 미만인지)
+    /// </summary>
+    public boolean canUpgrade() {
+        return level < MAX_LEVEL;
+    }
+
+    /// <summary>
+    /// 다음 레벨 업그레이드 비용 반환 (최대 레벨이면 0)
+    /// </summary>
+    public int getUpgradeCost() {
+        if (!canUpgrade()) {
+            return 0;
+        }
+        return UPGRADE_COST[level];
+    }
+
+    /// <summary>
+    /// 바리케이드 강화 (레벨 증가 + 최대 HP 증가 + 풀 회복)
+    /// </summary>
+    public synchronized void upgrade() {
+        if (!canUpgrade()) {
+            return;
+        }
+        level++;
+        int newMaxHp = LEVEL_HP[level - 1];
+        setMaxHp(newMaxHp);
+        setHp(newMaxHp);
+    }
+
+    /// <summary>
+    /// 현재 레벨 반환
+    /// </summary>
+    public int getLevel() {
+        return level;
     }
 
     /// <summary>

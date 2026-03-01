@@ -46,6 +46,11 @@ public class GameMap {
     private final ArrayList<Spike> spikes = new ArrayList<>();
 
     /// <summary>
+    /// 설치된 지뢰 목록
+    /// </summary>
+    private final ArrayList<Landmine> landmines = new ArrayList<>();
+
+    /// <summary>
     /// 현재 맵에 있는 적 목록
     /// </summary>
     private final ArrayList<Enemy> enemies = new ArrayList<>();
@@ -139,6 +144,58 @@ public class GameMap {
     /// </summary>
     public void removeDestroyedSpikes() {
         spikes.removeIf(Structure::isDestroyed);
+    }
+
+    /// <summary>
+    /// 지뢰 설치
+    /// </summary>
+    public void addLandmine(Landmine landmine) {
+        landmines.add(landmine);
+    }
+
+    /// <summary>
+    /// 설치된 지뢰 목록 반환
+    /// </summary>
+    public ArrayList<Landmine> getLandmines() {
+        return landmines;
+    }
+
+    /// <summary>
+    /// 폭발한 지뢰 제거
+    /// </summary>
+    public void removeExplodedLandmines() {
+        landmines.removeIf(Structure::isDestroyed);
+    }
+
+    /// <summary>
+    /// 적이 지뢰 위를 지나는지 확인하여 폭발 처리
+    /// 매 렌더 틱마다 호출
+    /// </summary>
+    public synchronized void checkLandmines() {
+        for (Landmine mine : landmines) {
+            if (mine.isDestroyed()) {
+                continue;
+            }
+
+            for (Enemy enemy : enemies) {
+                if (!enemy.isLiving()) {
+                    continue;
+                }
+
+                // 적의 블록 범위가 지뢰 열과 겹치는지 확인
+                int enemyCol = enemy.getPosition().getCol();
+                int blockWidth = enemy.getType().getBlock()[0].length();
+                boolean overlaps = enemyCol <= mine.getColumn() && enemyCol + blockWidth > mine.getColumn();
+
+                if (overlaps) {
+                    addLog("[폭발] 지뢰 기폭!");
+                    mine.explode(enemies, this);
+                    break;
+                }
+            }
+        }
+
+        removeExplodedLandmines();
     }
 
     /// <summary>

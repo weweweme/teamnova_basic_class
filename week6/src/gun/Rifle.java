@@ -2,9 +2,7 @@ package gun;
 
 import entity.colonist.Colonist;
 
-import gun.Bullet;
 import entity.enemy.Enemy;
-import structure.Barricade;
 import game.GameMap;
 
 /// <summary>

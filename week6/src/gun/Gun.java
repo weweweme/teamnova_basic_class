@@ -3,6 +3,7 @@ package gun;
 import entity.colonist.Colonist;
 
 import entity.enemy.Enemy;
+import structure.Barricade;
 import game.GameMap;
 
 /// <summary>
@@ -44,9 +45,32 @@ public abstract class Gun {
     public abstract int getBulletColor();
 
     /// <summary>
+    /// 공통 발사 로직: 적 중앙 조준 → 크리티컬 → 넉백 → 총알 생성
+    /// aimRowOffset으로 조준점을 상하로 이동 가능 (샷건 산탄용)
+    /// </summary>
+    protected void fireBullet(Colonist colonist, Enemy target, GameMap gameMap,
+                              int damage, int speed, boolean piercing, int aimRowOffset) {
+        int bulletRow = colonist.getPosition().getRow();
+        int bulletCol = Barricade.COLUMN + 2;
+
+        // 적 블록 중앙을 조준
+        String[] block = target.getSpec().getBlock();
+        int aimRow = target.getPosition().getRow() + block.length / 2 + aimRowOffset;
+        int aimCol = target.getPosition().getCol() + block[0].length() / 2;
+
+        int finalDamage = applyCrit(damage, colonist);
+        int kb = getKnockback(colonist);
+        Bullet bullet = new Bullet(
+            bulletRow, bulletCol, aimRow, aimCol, finalDamage,
+            colonist.getLabel(), speed, getBulletChar(), getBulletColor(), piercing, kb
+        );
+        gameMap.addBullet(bullet);
+    }
+
+    /// <summary>
     /// 정착민의 치명타 패시브 적용 (확률에 따라 데미지 2배)
     /// </summary>
-    protected int applyCrit(int baseDamage, Colonist colonist) {
+    private int applyCrit(int baseDamage, Colonist colonist) {
         double critChance = colonist.getSpec().getCritChance();
         boolean isCrit = critChance > 0 && Math.random() < critChance;
         if (isCrit) {
@@ -58,7 +82,7 @@ public abstract class Gun {
     /// <summary>
     /// 정착민의 넉백 패시브 값 반환
     /// </summary>
-    protected int getKnockback(Colonist colonist) {
+    private int getKnockback(Colonist colonist) {
         return colonist.getSpec().getKnockback();
     }
 }

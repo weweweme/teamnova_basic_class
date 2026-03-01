@@ -20,13 +20,37 @@ public class WanderingState extends ColonistState {
     /// </summary>
     private static final int MAX_COL = Barricade.COLUMN - 4;
 
+    /// <summary>
+    /// 자동 회복 간격 (틱 수, 6틱 = 3초마다 1 회복)
+    /// </summary>
+    private static final int HEAL_INTERVAL = 6;
+
+    /// <summary>
+    /// 자동 회복량
+    /// </summary>
+    private static final int HEAL_AMOUNT = 1;
+
+    /// <summary>
+    /// 회복 틱 카운터
+    /// </summary>
+    private int healTick;
+
     @Override
     public void enter(Colonist colonist) {
-        // 배회 상태 진입 시 별도 초기화 없음
+        healTick = 0;
     }
 
     @Override
     public void update(Colonist colonist) {
+        // 자동 회복 (체력이 최대가 아닐 때만)
+        healTick++;
+        if (healTick >= HEAL_INTERVAL) {
+            healTick = 0;
+            if (colonist.getHp() < colonist.getMaxHp()) {
+                colonist.heal(HEAL_AMOUNT);
+            }
+        }
+
         // 랜덤 방향 선택
         int randomIndex = Util.rand(DIRECTIONS.length);
         Direction direction = DIRECTIONS[randomIndex];

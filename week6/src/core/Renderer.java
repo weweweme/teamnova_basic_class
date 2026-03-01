@@ -150,7 +150,12 @@ public class Renderer {
         Barricade barricade = gameMap.getBarricade();
         boolean destroyed = barricade.isDestroyed();
         char wallChar = destroyed ? '.' : '#';
-        int color = destroyed ? 31 : 0;
+
+        // 파괴되었으면 빨간색, 최근 피격이면 빨간색, 평상시 기본색
+        int color = 0;
+        if (destroyed || barricade.isRecentlyHit()) {
+            color = 31;
+        }
 
         for (int row = 0; row < GameMap.HEIGHT; row++) {
             buffer[row][Barricade.COLUMN] = wallChar;

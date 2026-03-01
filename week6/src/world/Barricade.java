@@ -17,9 +17,35 @@ public class Barricade extends Structure {
     private static final int MAX_HP = 100;
 
     /// <summary>
+    /// 피격 깜빡임 지속 시간 (밀리초)
+    /// </summary>
+    private static final int FLASH_DURATION = 300;
+
+    /// <summary>
+    /// 마지막으로 피격당한 시각 (0이면 아직 안 맞음)
+    /// </summary>
+    private long lastHitTime;
+
+    /// <summary>
     /// 최대 내구도로 바리케이드 생성
     /// </summary>
     public Barricade() {
         super(COLUMN, MAX_HP);
+    }
+
+    /// <summary>
+    /// 피해를 받아 내구도 감소, 피격 시각 기록
+    /// </summary>
+    @Override
+    public synchronized void takeDamage(int damage) {
+        super.takeDamage(damage);
+        lastHitTime = System.currentTimeMillis();
+    }
+
+    /// <summary>
+    /// 최근에 피격당했는지 확인 (깜빡임 표시용)
+    /// </summary>
+    public synchronized boolean isRecentlyHit() {
+        return System.currentTimeMillis() - lastHitTime < FLASH_DURATION;
     }
 }

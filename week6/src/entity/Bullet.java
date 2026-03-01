@@ -40,6 +40,11 @@ public class Bullet {
     private final int damage;
 
     /// <summary>
+    /// 발사한 정착민의 라벨 (처치 로그용)
+    /// </summary>
+    private final char shooterLabel;
+
+    /// <summary>
     /// 총알의 현재 열
     /// </summary>
     private int col;
@@ -47,12 +52,13 @@ public class Bullet {
     /// <summary>
     /// 지정한 발사 위치에서 조준 위치를 향해 날아가는 총알 생성
     /// </summary>
-    public Bullet(int startRow, int startCol, int targetRow, int targetCol, int damage) {
+    public Bullet(int startRow, int startCol, int targetRow, int targetCol, int damage, char shooterLabel) {
         this.startRow = startRow;
         this.startCol = startCol;
         this.targetRow = targetRow;
         this.targetCol = targetCol;
         this.damage = damage;
+        this.shooterLabel = shooterLabel;
         this.col = startCol;
     }
 
@@ -91,6 +97,13 @@ public class Bullet {
     /// </summary>
     public int getDamage() {
         return damage;
+    }
+
+    /// <summary>
+    /// 발사한 정착민의 라벨 반환
+    /// </summary>
+    public char getShooterLabel() {
+        return shooterLabel;
     }
 
     /// <summary>

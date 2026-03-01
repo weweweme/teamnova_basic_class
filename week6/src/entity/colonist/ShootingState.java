@@ -102,7 +102,7 @@ public class ShootingState extends ColonistState {
         // 피해량은 정착민 유형의 기본 피해 × 무기 레벨
         int baseDamage = colonist.getType().getBaseDamage();
         int damage = colonist.getWeaponLevel() * baseDamage;
-        Bullet bullet = new Bullet(bulletRow, bulletCol, aimRow, aimCol, damage);
+        Bullet bullet = new Bullet(bulletRow, bulletCol, aimRow, aimCol, damage, colonist.getLabel());
         colonist.getGameMap().addBullet(bullet);
     }
 

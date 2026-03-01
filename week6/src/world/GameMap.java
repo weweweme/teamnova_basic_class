@@ -258,6 +258,13 @@ public class GameMap {
                 if (hitRow && hitCol) {
                     enemy.takeDamage(bullet.getDamage());
                     effects.add(new HitEffect(bullet.getRow(), bullet.getCol(), System.currentTimeMillis()));
+
+                    // 적 처치 시 로그
+                    if (!enemy.isLiving()) {
+                        String enemyName = enemy.getType().getDisplayName();
+                        addLog("[" + bullet.getShooterLabel() + "] " + enemyName + " 처치!");
+                    }
+
                     toRemove.add(bullet);
                     break;
                 }

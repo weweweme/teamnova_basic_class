@@ -7,6 +7,7 @@ import entity.Enemy;
 import world.Barricade;
 import world.DayNightCycle;
 import world.GameMap;
+import world.Spike;
 
 import java.util.ArrayList;
 
@@ -120,6 +121,7 @@ public class Renderer {
     public void render() {
         clearBuffer();
         drawBarricade();
+        drawSpikes();
         drawColonists();
         drawEnemies();
         drawBullets();
@@ -153,6 +155,26 @@ public class Renderer {
             buffer[row][Barricade.COLUMN + 1] = wallChar;
             colorBuffer[row][Barricade.COLUMN] = color;
             colorBuffer[row][Barricade.COLUMN + 1] = color;
+        }
+    }
+
+    /// <summary>
+    /// 설치된 가시덫을 세로로 그림 (^^ 문자, 맵 전체 높이)
+    /// 파괴된 가시덫은 표시하지 않음
+    /// </summary>
+    private void drawSpikes() {
+        for (Spike spike : gameMap.getSpikes()) {
+            if (spike.isDestroyed()) {
+                continue;
+            }
+            int col = spike.getColumn();
+
+            for (int row = 0; row < GameMap.HEIGHT; row++) {
+                if (col >= 0 && col < GameMap.WIDTH) {
+                    buffer[row][col] = '^';
+                    colorBuffer[row][col] = 33;
+                }
+            }
         }
     }
 

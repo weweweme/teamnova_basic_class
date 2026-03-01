@@ -48,6 +48,11 @@ public class Colonist extends GameEntity {
     private ColonistState currentState;
 
     /// <summary>
+    /// 사망 시각 (0이면 살아있음, 양수면 사망 시점의 밀리초)
+    /// </summary>
+    private long deathTime;
+
+    /// <summary>
     /// 지정한 유형, 이름, 위치, 맵으로 정착민 생성
     /// 체력은 유형의 최대 체력, 배회 상태로 시작
     /// </summary>
@@ -85,6 +90,25 @@ public class Colonist extends GameEntity {
     @Override
     public int getMaxHp() {
         return type.getMaxHp();
+    }
+
+    /// <summary>
+    /// 피해를 받아 체력 감소, 사망 시 시각 기록
+    /// </summary>
+    @Override
+    public void takeDamage(int damage) {
+        super.takeDamage(damage);
+
+        if (getHp() == 0 && deathTime == 0) {
+            deathTime = System.currentTimeMillis();
+        }
+    }
+
+    /// <summary>
+    /// 사망 시각 반환 (0이면 살아있음)
+    /// </summary>
+    public long getDeathTime() {
+        return deathTime;
     }
 
     /// <summary>

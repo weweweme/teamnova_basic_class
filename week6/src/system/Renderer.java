@@ -194,19 +194,45 @@ public class Renderer {
 
     /// <summary>
     /// 모든 정착민을 버퍼에 그림
-    /// 이니셜로 구분: (A) / " | "
+    /// 살아있으면 기본색, 죽었으면 회색 → 소멸 애니메이션
     /// </summary>
     private void drawColonists() {
+        long now = System.currentTimeMillis();
+
         for (Colonist colonist : gameMap.getColonists()) {
-            if (!colonist.isLiving()) {
-                continue;
-            }
             int row = colonist.getPosition().getRow();
             int col = colonist.getPosition().getCol();
             char label = colonist.getLabel();
-
             String[] block = {"(" + label + ")", " |  "};
-            drawBlock(row, col, block);
+
+            if (colonist.isLiving()) {
+                drawBlock(row, col, block);
+            } else {
+                // 사망 애니메이션
+                long elapsed = now - colonist.getDeathTime();
+
+                if (elapsed < 400) {
+                    // Phase 1: 전체 짙은 회색으로 정지
+                    int[] rowColors = {90, 90};
+                    drawColoredBlock(row, col, block, rowColors);
+                } else if (elapsed < 800) {
+                    // Phase 2: 아래부터 한 줄씩 소멸
+                    double progress = (double) (elapsed - 400) / 400;
+                    int removedRows = (int) Math.ceil(progress * block.length);
+                    int visibleRows = block.length - removedRows;
+
+                    if (visibleRows > 0) {
+                        String[] partialBlock = new String[visibleRows];
+                        int[] rowColors = new int[visibleRows];
+                        for (int i = 0; i < visibleRows; i++) {
+                            partialBlock[i] = block[i];
+                            rowColors[i] = 90;
+                        }
+                        drawColoredBlock(row, col, partialBlock, rowColors);
+                    }
+                }
+                // Phase 3 (800ms+): 아무것도 안 그림
+            }
         }
     }
 

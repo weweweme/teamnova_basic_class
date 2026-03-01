@@ -40,6 +40,11 @@ public class GameMap {
     private final Barricade barricade = new Barricade();
 
     /// <summary>
+    /// 설치된 가시덫 목록
+    /// </summary>
+    private final ArrayList<Spike> spikes = new ArrayList<>();
+
+    /// <summary>
     /// 현재 맵에 있는 적 목록
     /// </summary>
     private final ArrayList<Enemy> enemies = new ArrayList<>();
@@ -97,6 +102,27 @@ public class GameMap {
     /// </summary>
     public Barricade getBarricade() {
         return barricade;
+    }
+
+    /// <summary>
+    /// 가시덫 설치
+    /// </summary>
+    public void addSpike(Spike spike) {
+        spikes.add(spike);
+    }
+
+    /// <summary>
+    /// 설치된 가시덫 목록 반환
+    /// </summary>
+    public ArrayList<Spike> getSpikes() {
+        return spikes;
+    }
+
+    /// <summary>
+    /// 파괴된 가시덫 제거
+    /// </summary>
+    public void removeDestroyedSpikes() {
+        spikes.removeIf(Structure::isDestroyed);
     }
 
     /// <summary>

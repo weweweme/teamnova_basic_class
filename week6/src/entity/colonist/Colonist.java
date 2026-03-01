@@ -21,11 +21,6 @@ public class Colonist extends GameEntity {
     private static final int TICK_DELAY = 500;
 
     /// <summary>
-    /// 다음에 부여할 알파벳 (A부터 순서대로)
-    /// </summary>
-    private static char nextLabel = 'A';
-
-    /// <summary>
     /// 정착민 유형 (체력/발사간격/피해량 결정)
     /// </summary>
     private final ColonistType type;
@@ -59,12 +54,11 @@ public class Colonist extends GameEntity {
     /// 지정한 유형, 이름, 위치, 맵으로 정착민 생성
     /// 체력은 유형의 최대 체력, 배회 상태로 시작
     /// </summary>
-    public Colonist(ColonistType type, String name, Position position, GameMap gameMap) {
+    public Colonist(ColonistType type, String name, char label, Position position, GameMap gameMap) {
         super(position, gameMap, type.getMaxHp());
         this.type = type;
         this.name = name;
-        this.label = nextLabel;
-        nextLabel++;
+        this.label = label;
         this.gun = new Pistol();
         this.currentState = new WanderingState();
     }

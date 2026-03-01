@@ -95,9 +95,9 @@ public class Main {
 
         // 정착민 3명 배치 (안전지대 내, 각기 다른 유형)
         int centerRow = GameMap.HEIGHT / 2;
-        Colonist chulsoo = new Colonist(ColonistType.GUNNER, "김철수", new Position(centerRow, 3), gameMap);
-        Colonist younghee = new Colonist(ColonistType.SNIPER, "이영희", new Position(centerRow, 7), gameMap);
-        Colonist minsoo = new Colonist(ColonistType.ASSAULT, "박민수", new Position(centerRow, 11), gameMap);
+        Colonist chulsoo = new Colonist(ColonistType.GUNNER, "김철수", gameMap.issueNextLabel(), new Position(centerRow, 3), gameMap);
+        Colonist younghee = new Colonist(ColonistType.SNIPER, "이영희", gameMap.issueNextLabel(), new Position(centerRow, 7), gameMap);
+        Colonist minsoo = new Colonist(ColonistType.ASSAULT, "박민수", gameMap.issueNextLabel(), new Position(centerRow, 11), gameMap);
         // 유형별 기본 무기 배정
         chulsoo.setGun(new Pistol());
         younghee.setGun(new Rifle());
@@ -217,7 +217,7 @@ public class Main {
                         // 건설 모드: 구조물 설치 또는 취소
                         switch (key) {
                             case BUILD_SPIKE:
-                                if (gameMap.getSupply().spend(Spike.getCost())) {
+                                if (gameMap.getSupply().spend(Spike.COST)) {
                                     int totalStructures = gameMap.getSpikes().size() + gameMap.getLandmines().size();
                                     int spikeCol = Barricade.COLUMN + STRUCTURE_SPACING * (totalStructures + 1);
                                     gameMap.addSpike(new Spike(spikeCol));
@@ -227,7 +227,7 @@ public class Main {
                                 renderer.setBuildMode(false);
                                 break;
                             case BUILD_LANDMINE:
-                                if (gameMap.getSupply().spend(Landmine.getCost())) {
+                                if (gameMap.getSupply().spend(Landmine.COST)) {
                                     int totalStructures = gameMap.getSpikes().size() + gameMap.getLandmines().size();
                                     int mineCol = Barricade.COLUMN + STRUCTURE_SPACING * (totalStructures + 1);
                                     gameMap.addLandmine(new Landmine(mineCol));
@@ -237,7 +237,7 @@ public class Main {
                                 renderer.setBuildMode(false);
                                 break;
                             case BUILD_AMMOBOX:
-                                if (gameMap.getSupply().spend(AmmoBox.getCost())) {
+                                if (gameMap.getSupply().spend(AmmoBox.COST)) {
                                     int ammoCol = AMMOBOX_COL + gameMap.getAmmoBoxes().size() * 2;
                                     gameMap.addAmmoBox(new AmmoBox(ammoCol));
                                     gameMap.addLog(">> 탄약 상자 설치");
@@ -284,7 +284,7 @@ public class Main {
                                 String recruitName = "신병" + recruitCount;
                                 int row = GameMap.HEIGHT / 2;
                                 int col = 3 + gameMap.getColonists().size() * 4;
-                                Colonist recruit = new Colonist(recruitType, recruitName, new Position(row, col), gameMap);
+                                Colonist recruit = new Colonist(recruitType, recruitName, gameMap.issueNextLabel(), new Position(row, col), gameMap);
 
                                 // 유형별 기본 무기 배정
                                 switch (recruitType) {

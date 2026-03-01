@@ -20,7 +20,7 @@ public class Spike extends Structure {
     /// <summary>
     /// 설치 비용
     /// </summary>
-    private static final int COST = 20;
+    public static final int COST = 20;
 
     /// <summary>
     /// 지정한 열에 가시덫 설치
@@ -29,12 +29,6 @@ public class Spike extends Structure {
         super(column, MAX_HP);
     }
 
-    /// <summary>
-    /// 설치 비용 반환
-    /// </summary>
-    public static int getCost() {
-        return COST;
-    }
 
     /// <summary>
     /// 적이 밟을 때 주는 피해량 반환

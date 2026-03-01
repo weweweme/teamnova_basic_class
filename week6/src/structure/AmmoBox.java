@@ -19,7 +19,7 @@ public class AmmoBox extends Structure {
     /// <summary>
     /// 설치 비용
     /// </summary>
-    private static final int COST = 20;
+    public static final int COST = 20;
 
     /// <summary>
     /// 지정한 열에 탄약 상자 설치
@@ -29,16 +29,9 @@ public class AmmoBox extends Structure {
     }
 
     /// <summary>
-    /// 설치 비용 반환
-    /// </summary>
-    public static int getCost() {
-        return COST;
-    }
-
-    /// <summary>
     /// 발사 간격 배율 반환
     /// </summary>
-    public static double getFireRateMultiplier() {
+    public double getFireRateMultiplier() {
         return FIRE_RATE_MULTIPLIER;
     }
 }

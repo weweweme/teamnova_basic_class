@@ -30,7 +30,7 @@ public class Landmine extends Structure {
     /// <summary>
     /// 설치 비용
     /// </summary>
-    private static final int COST = 25;
+    public static final int COST = 25;
 
     /// <summary>
     /// 지정한 열에 지뢰 설치
@@ -39,12 +39,6 @@ public class Landmine extends Structure {
         super(column, MAX_HP);
     }
 
-    /// <summary>
-    /// 설치 비용 반환
-    /// </summary>
-    public static int getCost() {
-        return COST;
-    }
 
     /// <summary>
     /// 폭발 처리: 범위 내 모든 적에게 데미지

@@ -97,6 +97,11 @@ public class GameMap {
     private static final int DEATH_ANIM_DURATION = 800;
 
     /// <summary>
+    /// 다음 정착민에게 부여할 알파벳 라벨 (A부터 순서대로)
+    /// </summary>
+    private char nextLabel = 'A';
+
+    /// <summary>
     /// 처치한 적 수
     /// </summary>
     private int enemiesKilled;
@@ -236,10 +241,19 @@ public class GameMap {
     public double getFireRateMultiplier() {
         for (AmmoBox box : ammoBoxes) {
             if (!box.isDestroyed()) {
-                return AmmoBox.getFireRateMultiplier();
+                return box.getFireRateMultiplier();
             }
         }
         return 1.0;
+    }
+
+    /// <summary>
+    /// 다음 정착민 라벨을 발급하고 알파벳을 한 칸 전진
+    /// </summary>
+    public char issueNextLabel() {
+        char label = nextLabel;
+        nextLabel++;
+        return label;
     }
 
     /// <summary>

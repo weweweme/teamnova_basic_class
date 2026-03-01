@@ -54,9 +54,11 @@ public class Minigun extends Gun {
         int aimRow = target.getPosition().getRow() + block.length / 2;
         int aimCol = target.getPosition().getCol() + block[0].length() / 2;
 
+        int finalDamage = applyCrit(DAMAGE, colonist);
+        int kb = getKnockback(colonist);
         Bullet bullet = new Bullet(
-            bulletRow, bulletCol, aimRow, aimCol, DAMAGE,
-            colonist.getLabel(), BULLET_SPEED, getBulletChar(), getBulletColor(), false
+            bulletRow, bulletCol, aimRow, aimCol, finalDamage,
+            colonist.getLabel(), BULLET_SPEED, getBulletChar(), getBulletColor(), false, kb
         );
         gameMap.addBullet(bullet);
     }

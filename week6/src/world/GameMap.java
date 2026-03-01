@@ -367,6 +367,14 @@ public class GameMap {
                 if (hitRow && hitCol) {
                     enemy.takeDamage(bullet.getDamage());
 
+                    // 넉백 적용 (명중 시 적을 오른쪽으로 밀어냄)
+                    if (bullet.getKnockback() > 0 && enemy.isLiving()) {
+                        int newCol = enemy.getPosition().getCol() + bullet.getKnockback();
+                        if (newCol < WIDTH) {
+                            enemy.getPosition().setCol(newCol);
+                        }
+                    }
+
                     // 무기별 명중 이펙트 (총알의 문자/색상 사용)
                     char hitChar = bullet.getBulletChar() == '*' ? '!' : bullet.getBulletChar();
                     int hitColor = bullet.getBulletColor() != 0 ? bullet.getBulletColor() : 33;

@@ -61,11 +61,13 @@ public class Shotgun extends Gun {
 
         // 중앙 + 위 + 아래 총 3발
         int[] aimRows = {centerRow, centerRow - SPREAD, centerRow + SPREAD};
+        int finalDamage = applyCrit(DAMAGE, colonist);
+        int kb = getKnockback(colonist);
 
         for (int aimRow : aimRows) {
             Bullet bullet = new Bullet(
-                bulletRow, bulletCol, aimRow, centerCol, DAMAGE,
-                colonist.getLabel(), 3, getBulletChar(), BULLET_COLOR, false
+                bulletRow, bulletCol, aimRow, centerCol, finalDamage,
+                colonist.getLabel(), 3, getBulletChar(), BULLET_COLOR, false, kb
             );
             gameMap.addBullet(bullet);
         }

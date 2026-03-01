@@ -40,4 +40,23 @@ public abstract class Gun {
     /// 총알 ANSI 색상 코드 반환 (0이면 기본색)
     /// </summary>
     public abstract int getBulletColor();
+
+    /// <summary>
+    /// 정착민의 치명타 패시브 적용 (확률에 따라 데미지 2배)
+    /// </summary>
+    protected int applyCrit(int baseDamage, Colonist colonist) {
+        double critChance = colonist.getType().getCritChance();
+        boolean isCrit = critChance > 0 && Math.random() < critChance;
+        if (isCrit) {
+            return baseDamage * 2;
+        }
+        return baseDamage;
+    }
+
+    /// <summary>
+    /// 정착민의 넉백 패시브 값 반환
+    /// </summary>
+    protected int getKnockback(Colonist colonist) {
+        return colonist.getType().getKnockback();
+    }
 }

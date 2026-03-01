@@ -49,7 +49,10 @@ public class Pistol extends Gun {
         int aimRow = target.getPosition().getRow() + block.length / 2;
         int aimCol = target.getPosition().getCol() + block[0].length() / 2;
 
-        Bullet bullet = new Bullet(bulletRow, bulletCol, aimRow, aimCol, DAMAGE, colonist.getLabel());
+        int finalDamage = applyCrit(DAMAGE, colonist);
+        int kb = getKnockback(colonist);
+        Bullet bullet = new Bullet(bulletRow, bulletCol, aimRow, aimCol, finalDamage,
+                colonist.getLabel(), 3, '*', 0, false, kb);
         gameMap.addBullet(bullet);
     }
 

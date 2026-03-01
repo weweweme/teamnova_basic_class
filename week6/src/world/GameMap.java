@@ -51,6 +51,11 @@ public class GameMap {
     private final ArrayList<Landmine> landmines = new ArrayList<>();
 
     /// <summary>
+    /// 설치된 탄약 상자 목록
+    /// </summary>
+    private final ArrayList<AmmoBox> ammoBoxes = new ArrayList<>();
+
+    /// <summary>
     /// 현재 맵에 있는 적 목록
     /// </summary>
     private final ArrayList<Enemy> enemies = new ArrayList<>();
@@ -196,6 +201,39 @@ public class GameMap {
         }
 
         removeExplodedLandmines();
+    }
+
+    /// <summary>
+    /// 탄약 상자 설치
+    /// </summary>
+    public void addAmmoBox(AmmoBox ammoBox) {
+        ammoBoxes.add(ammoBox);
+    }
+
+    /// <summary>
+    /// 설치된 탄약 상자 목록 반환
+    /// </summary>
+    public ArrayList<AmmoBox> getAmmoBoxes() {
+        return ammoBoxes;
+    }
+
+    /// <summary>
+    /// 파괴된 탄약 상자 제거
+    /// </summary>
+    public void removeDestroyedAmmoBoxes() {
+        ammoBoxes.removeIf(Structure::isDestroyed);
+    }
+
+    /// <summary>
+    /// 탄약 상자가 살아있으면 발사 간격 배율 반환 (0.7 = 빨라짐, 1.0 = 보통)
+    /// </summary>
+    public double getFireRateMultiplier() {
+        for (AmmoBox box : ammoBoxes) {
+            if (!box.isDestroyed()) {
+                return AmmoBox.getFireRateMultiplier();
+            }
+        }
+        return 1.0;
     }
 
     /// <summary>

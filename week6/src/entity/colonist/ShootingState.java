@@ -74,8 +74,11 @@ public class ShootingState extends ColonistState {
         tickCount++;
 
         // 발사 간격은 장착한 무기에 따라 다름
+        // 탄약 상자가 있으면 발사 간격 감소 (빨라짐)
         Gun gun = colonist.getGun();
-        if (tickCount < gun.getFireInterval()) {
+        double ammoMultiplier = colonist.getGameMap().getFireRateMultiplier();
+        int interval = Math.max((int) (gun.getFireInterval() * ammoMultiplier), 1);
+        if (tickCount < interval) {
             return;
         }
 

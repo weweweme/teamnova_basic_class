@@ -2,8 +2,6 @@ import entity.colonist.Colonist;
 import entity.colonist.ColonistFactory;
 import entity.colonist.ColonistType;
 import gun.Pistol;
-import gun.Shotgun;
-import gun.Rifle;
 import entity.enemy.EnemyFactory;
 import entity.enemy.EnemyType;
 import game.DayNightCycle;
@@ -100,10 +98,10 @@ public class Main {
         Colonist chulsoo = new Colonist(ColonistType.GUNNER, colonistFactory.getSpec(ColonistType.GUNNER), "김철수", gameMap.issueNextLabel(), new Position(centerRow, 3), gameMap);
         Colonist younghee = new Colonist(ColonistType.SNIPER, colonistFactory.getSpec(ColonistType.SNIPER), "이영희", gameMap.issueNextLabel(), new Position(centerRow, 7), gameMap);
         Colonist minsoo = new Colonist(ColonistType.ASSAULT, colonistFactory.getSpec(ColonistType.ASSAULT), "박민수", gameMap.issueNextLabel(), new Position(centerRow, 11), gameMap);
-        // 유형별 기본 무기 배정
+        // 모든 정착민 피스톨로 시작
         chulsoo.setGun(new Pistol());
-        younghee.setGun(new Rifle());
-        minsoo.setGun(new Shotgun());
+        younghee.setGun(new Pistol());
+        minsoo.setGun(new Pistol());
 
         gameMap.addColonist(chulsoo);
         gameMap.addColonist(younghee);

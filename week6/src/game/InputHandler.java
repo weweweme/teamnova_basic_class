@@ -324,18 +324,8 @@ public class InputHandler {
                 int col = 0;
                 Colonist recruit = new Colonist(recruitType, colonistFactory.getSpec(recruitType), recruitName, gameMap.issueNextLabel(), new Position(row, col), gameMap);
 
-                // 유형별 기본 무기 배정
-                switch (recruitType) {
-                    case GUNNER:
-                        recruit.setGun(new Pistol());
-                        break;
-                    case SNIPER:
-                        recruit.setGun(new Rifle());
-                        break;
-                    case ASSAULT:
-                        recruit.setGun(new Shotgun());
-                        break;
-                }
+                // 모든 신병 피스톨로 시작
+                recruit.setGun(new Pistol());
 
                 gameMap.addColonist(recruit);
                 recruit.start();

@@ -2,9 +2,7 @@ package gun;
 
 import entity.colonist.Colonist;
 
-import gun.Bullet;
 import entity.enemy.Enemy;
-import structure.Barricade;
 import game.GameMap;
 
 /// <summary>
@@ -48,21 +46,7 @@ public class Minigun extends Gun {
     /// </summary>
     @Override
     public void fire(Colonist colonist, Enemy target, GameMap gameMap) {
-        int bulletRow = colonist.getPosition().getRow();
-        int bulletCol = Barricade.COLUMN + 2;
-
-        // 적 블록 중앙을 조준
-        String[] block = target.getSpec().getBlock();
-        int aimRow = target.getPosition().getRow() + block.length / 2;
-        int aimCol = target.getPosition().getCol() + block[0].length() / 2;
-
-        int finalDamage = applyCrit(DAMAGE, colonist);
-        int kb = getKnockback(colonist);
-        Bullet bullet = new Bullet(
-            bulletRow, bulletCol, aimRow, aimCol, finalDamage,
-            colonist.getLabel(), BULLET_SPEED, getBulletChar(), getBulletColor(), false, kb
-        );
-        gameMap.addBullet(bullet);
+        fireBullet(colonist, target, gameMap, DAMAGE, BULLET_SPEED, false, 0);
     }
 
     @Override

@@ -2,9 +2,7 @@ package gun;
 
 import entity.colonist.Colonist;
 
-import gun.Bullet;
 import entity.enemy.Enemy;
-import structure.Barricade;
 import game.GameMap;
 
 /// <summary>
@@ -53,25 +51,11 @@ public class Shotgun extends Gun {
     /// </summary>
     @Override
     public void fire(Colonist colonist, Enemy target, GameMap gameMap) {
-        int bulletRow = colonist.getPosition().getRow();
-        int bulletCol = Barricade.COLUMN + 2;
-
-        // 적 블록 중앙 계산
-        String[] block = target.getSpec().getBlock();
-        int centerRow = target.getPosition().getRow() + block.length / 2;
-        int centerCol = target.getPosition().getCol() + block[0].length() / 2;
-
+        final int BULLET_SPEED = 3;
         // 중앙 + 위 + 아래 총 3발
-        int[] aimRows = {centerRow, centerRow - SPREAD, centerRow + SPREAD};
-        int finalDamage = applyCrit(DAMAGE, colonist);
-        int kb = getKnockback(colonist);
-
-        for (int aimRow : aimRows) {
-            Bullet bullet = new Bullet(
-                bulletRow, bulletCol, aimRow, centerCol, finalDamage,
-                colonist.getLabel(), 3, getBulletChar(), BULLET_COLOR, false, kb
-            );
-            gameMap.addBullet(bullet);
+        int[] offsets = {0, -SPREAD, SPREAD};
+        for (int offset : offsets) {
+            fireBullet(colonist, target, gameMap, DAMAGE, BULLET_SPEED, false, offset);
         }
     }
 

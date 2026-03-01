@@ -8,13 +8,15 @@ import java.util.Random;
 /// </summary>
 public class Util {
 
+    /// <summary>
+    /// 인스턴스 생성 방지 (유틸리티 클래스)
+    /// </summary>
+    private Util() {}
+
     // ========== 상수 ==========
 
-    // 미설정을 나타내는 값 (커서 없음, 선택 없음, 위치 미지정 등)
-    public static final int NONE = -1;
-
     // 잘못된 입력을 나타내는 값
-    public static final int INVALID_INPUT = -1;
+    private static final int INVALID_INPUT = -1;
 
     // ========== 키 상수 ==========
 
@@ -25,13 +27,13 @@ public class Util {
     public static final int KEY_DOWN = 1001;
 
     // 화살표 왼쪽
-    public static final int KEY_LEFT = 1002;
+    private static final int KEY_LEFT = 1002;
 
     // 화살표 오른쪽
-    public static final int KEY_RIGHT = 1003;
+    private static final int KEY_RIGHT = 1003;
 
     // Enter 키
-    public static final int KEY_ENTER = 1004;
+    private static final int KEY_ENTER = 1004;
 
     // q 키 (종료/취소)
     public static final int KEY_QUIT = 1005;

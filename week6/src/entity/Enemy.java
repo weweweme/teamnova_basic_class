@@ -4,6 +4,7 @@ import core.Position;
 import core.Util;
 import world.Barricade;
 import world.GameMap;
+import world.Spike;
 
 /// <summary>
 /// 밤에 오른쪽에서 출현하여 좌측으로 이동하는 적
@@ -55,6 +56,7 @@ public class Enemy extends GameEntity {
                 // 바리케이드 건재: 바리케이드까지 이동 후 공격
                 if (currentCol > BARRICADE_STOP) {
                     getPosition().setCol(currentCol - 1);
+                    checkSpikes();
                 } else {
                     barricade.takeDamage(type.getDamage());
                 }
@@ -68,12 +70,14 @@ public class Enemy extends GameEntity {
 
                     if (currentCol > colonistStop) {
                         getPosition().setCol(currentCol - 1);
+                        checkSpikes();
                     } else {
                         target.takeDamage(type.getDamage());
                     }
                 } else if (currentCol > 0) {
                     // 살아있는 정착민 없음: 왼쪽으로 계속 이동
                     getPosition().setCol(currentCol - 1);
+                    checkSpikes();
                 }
             }
 
@@ -99,6 +103,24 @@ public class Enemy extends GameEntity {
             }
         }
         return nearest;
+    }
+
+    /// <summary>
+    /// 현재 위치에 가시덫이 있으면 피해를 받고, 가시덫 내구도 감소
+    /// </summary>
+    private void checkSpikes() {
+        int col = getPosition().getCol();
+
+        for (Spike spike : getGameMap().getSpikes()) {
+            if (spike.isDestroyed()) {
+                continue;
+            }
+            if (spike.getColumn() == col) {
+                takeDamage(spike.getSpikeDamage());
+                spike.takeDamage(1);
+                break;
+            }
+        }
     }
 
     /// <summary>

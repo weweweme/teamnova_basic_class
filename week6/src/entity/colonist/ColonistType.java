@@ -8,19 +8,19 @@ package entity.colonist;
 public enum ColonistType {
 
     /// <summary>
-    /// 사격수 — 균형형 (체력 100, 기본 무기: 피스톨)
+    /// 사격수 — 기본 무기: 피스톨
     /// </summary>
     GUNNER("사격수", 100),
 
     /// <summary>
-    /// 저격수 — 낮은 체력 (체력 80, 기본 무기: 라이플)
+    /// 저격수 — 기본 무기: 라이플
     /// </summary>
-    SNIPER("저격수", 80),
+    SNIPER("저격수", 100),
 
     /// <summary>
-    /// 돌격수 — 높은 체력 (체력 120, 기본 무기: 샷건)
+    /// 돌격수 — 기본 무기: 샷건
     /// </summary>
-    ASSAULT("돌격수", 120);
+    ASSAULT("돌격수", 100);
 
     /// <summary>
     /// 화면에 표시할 유형 이름

@@ -55,6 +55,16 @@ public class GameMap {
     private final ArrayList<Bullet> bullets = new ArrayList<>();
 
     /// <summary>
+    /// 명중 이펙트의 지속 시간 (밀리초)
+    /// </summary>
+    private static final int EFFECT_DURATION = 200;
+
+    /// <summary>
+    /// 화면에 표시 중인 이펙트 목록
+    /// </summary>
+    private final ArrayList<HitEffect> effects = new ArrayList<>();
+
+    /// <summary>
     /// 최대 로그 보관 수
     /// </summary>
     private static final int LOG_CAPACITY = 8;
@@ -247,6 +257,7 @@ public class GameMap {
 
                 if (hitRow && hitCol) {
                     enemy.takeDamage(bullet.getDamage());
+                    effects.add(new HitEffect(bullet.getRow(), bullet.getCol(), System.currentTimeMillis()));
                     toRemove.add(bullet);
                     break;
                 }
@@ -272,5 +283,62 @@ public class GameMap {
     /// </summary>
     public synchronized ArrayList<String> getRecentLogs() {
         return new ArrayList<>(logs);
+    }
+
+    /// <summary>
+    /// 만료된 이펙트를 제거하고 남은 이펙트 목록 복사본 반환
+    /// </summary>
+    public synchronized ArrayList<HitEffect> getEffects() {
+        long now = System.currentTimeMillis();
+        effects.removeIf(effect -> now - effect.getCreatedTime() > EFFECT_DURATION);
+        return new ArrayList<>(effects);
+    }
+
+    /// <summary>
+    /// 총알 명중 시 화면에 잠시 표시되는 이펙트
+    /// </summary>
+    public static class HitEffect {
+
+        /// <summary>
+        /// 이펙트 표시 행
+        /// </summary>
+        private final int row;
+
+        /// <summary>
+        /// 이펙트 표시 열
+        /// </summary>
+        private final int col;
+
+        /// <summary>
+        /// 이펙트 생성 시각 (밀리초)
+        /// </summary>
+        private final long createdTime;
+
+        public HitEffect(int row, int col, long createdTime) {
+            this.row = row;
+            this.col = col;
+            this.createdTime = createdTime;
+        }
+
+        /// <summary>
+        /// 이펙트 행 반환
+        /// </summary>
+        public int getRow() {
+            return row;
+        }
+
+        /// <summary>
+        /// 이펙트 열 반환
+        /// </summary>
+        public int getCol() {
+            return col;
+        }
+
+        /// <summary>
+        /// 이펙트 생성 시각 반환
+        /// </summary>
+        public long getCreatedTime() {
+            return createdTime;
+        }
     }
 }

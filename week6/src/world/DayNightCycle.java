@@ -1,5 +1,6 @@
 package world;
 
+import core.DifficultySettings;
 import core.Position;
 import core.Util;
 import entity.Colonist;
@@ -51,14 +52,14 @@ public class DayNightCycle extends Thread {
     private static final int DAILY_SUPPLY = 20;
 
     /// <summary>
-    /// 승리에 필요한 생존 일차
-    /// </summary>
-    private static final int WIN_DAY = 10;
-
-    /// <summary>
     /// 이 주기가 관리하는 맵 (적 스폰/제거용)
     /// </summary>
     private final GameMap gameMap;
+
+    /// <summary>
+    /// 난이도 설정 (적 수/보급/승리 일차 조절)
+    /// </summary>
+    private final DifficultySettings settings;
 
     /// <summary>
     /// 현재 일차 (1부터 시작)
@@ -111,10 +112,11 @@ public class DayNightCycle extends Thread {
     private long nextSpawnTime;
 
     /// <summary>
-    /// 지정한 맵으로 낮/밤 주기 생성, 1일차 낮부터 시작
+    /// 지정한 맵과 난이도로 낮/밤 주기 생성, 1일차 낮부터 시작
     /// </summary>
-    public DayNightCycle(GameMap gameMap) {
+    public DayNightCycle(GameMap gameMap, DifficultySettings settings) {
         this.gameMap = gameMap;
+        this.settings = settings;
         this.day = 1;
         this.night = false;
         this.elapsedInPhase = 0;
@@ -160,14 +162,15 @@ public class DayNightCycle extends Thread {
                     day++;
                     elapsedInPhase = 0;
                     barricadeBroken = false;
-                    gameMap.getSupply().add(DAILY_SUPPLY);
+                    int dailySupply = settings.applySupply(DAILY_SUPPLY);
+                    gameMap.getSupply().add(dailySupply);
                     gameMap.removeDestroyedSpikes();
                     switchToWandering();
-                    if (day > WIN_DAY) {
+                    if (day > settings.getWinDay()) {
                         victory = true;
-                        gameMap.addLog("══ 승리! " + WIN_DAY + "일을 버텨냈습니다! ══");
+                        gameMap.addLog("══ 승리! " + settings.getWinDay() + "일을 버텨냈습니다! ══");
                     } else {
-                        gameMap.addLog("── " + day + "일차 낮 시작 (보급 +" + DAILY_SUPPLY + ") ──");
+                        gameMap.addLog("── " + day + "일차 낮 시작 (보급 +" + dailySupply + ") ──");
                     }
                 }
             } else {
@@ -373,18 +376,18 @@ public class DayNightCycle extends Thread {
                 wave.add(bosses[index]);
             }
 
-            // 강한 몬스터 (일차 / 2 마리)
+            // 강한 몬스터 (일차 / 2 마리, 난이도 배율 적용)
             EnemyType[] strongs = {EnemyType.BEAR, EnemyType.BANDIT, EnemyType.SCORPION, EnemyType.ORC};
-            int strongCount = day / 2;
+            int strongCount = settings.applyEnemyCount(day / 2);
             for (int i = 0; i < strongCount; i++) {
                 int index = (int) (Math.random() * strongs.length);
                 wave.add(strongs[index]);
             }
 
-            // 일반 몬스터 (3 + 일차 마리)
+            // 일반 몬스터 (3 + 일차 마리, 난이도 배율 적용)
             EnemyType[] normals = {EnemyType.WOLF, EnemyType.SPIDER, EnemyType.SKELETON,
                                    EnemyType.ZOMBIE, EnemyType.RAT, EnemyType.SLIME};
-            int normalCount = 3 + day;
+            int normalCount = settings.applyEnemyCount(3 + day);
             for (int i = 0; i < normalCount; i++) {
                 int index = (int) (Math.random() * normals.length);
                 wave.add(normals[index]);

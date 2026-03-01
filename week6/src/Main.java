@@ -4,6 +4,8 @@ import world.Barricade;
 import world.DayNightCycle;
 import world.GameMap;
 import world.Spike;
+import core.Difficulty;
+import core.DifficultySettings;
 import core.Position;
 import core.Renderer;
 import core.Util;
@@ -61,8 +63,9 @@ public class Main {
         gameMap.addColonist(younghee);
         gameMap.addColonist(minsoo);
 
-        // 낮/밤 주기 생성 및 렌더러에 연결
-        DayNightCycle dayNightCycle = new DayNightCycle(gameMap);
+        // 낮/밤 주기 생성 및 렌더러에 연결 (임시 NORMAL)
+        DifficultySettings settings = new DifficultySettings(Difficulty.NORMAL);
+        DayNightCycle dayNightCycle = new DayNightCycle(gameMap, settings);
         renderer.setDayNightCycle(dayNightCycle);
 
         Util.clearScreen();

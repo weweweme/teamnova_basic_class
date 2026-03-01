@@ -9,6 +9,7 @@ import world.Barricade;
 import world.DayNightCycle;
 import world.GameMap;
 import world.Spike;
+import system.Cutscene;
 import system.Difficulty;
 import system.DifficultySettings;
 import system.Position;
@@ -78,6 +79,9 @@ public class Main {
                     break;
             }
         }
+
+        // ===== 인트로 컷씬 =====
+        Cutscene.intro().play();
 
         // ===== 게임 초기화 =====
         GameMap gameMap = new GameMap();
@@ -264,6 +268,13 @@ public class Main {
         gameMap.clearEnemies();
         for (Colonist colonist : gameMap.getColonists()) {
             colonist.stopRunning();
+        }
+
+        // 승리 또는 게임오버 컷씬 재생
+        if (renderer.isVictory()) {
+            Cutscene.victory().play();
+        } else if (renderer.isGameOver()) {
+            Cutscene.gameOver().play();
         }
 
         Util.disableRawMode();

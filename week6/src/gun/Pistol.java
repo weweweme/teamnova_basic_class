@@ -14,12 +14,12 @@ public class Pistol extends Gun {
     /// <summary>
     /// 발사 간격 (틱 수)
     /// </summary>
-    private final int FIRE_INTERVAL = 4;
+    private static final int FIRE_INTERVAL = 4;
 
     /// <summary>
     /// 기본 피해량
     /// </summary>
-    private final int DAMAGE = 5;
+    private static final int DAMAGE = 5;
 
     @Override
     public String getName() {

@@ -10,23 +10,22 @@ import java.util.ArrayList;
 /// 일회용 범위 폭발 구조물
 /// 적이 밟으면 주변 적에게 피해를 주고 파괴됨
 /// </summary>
-public class Landmine extends Structure {
+public class Landmine extends Trap {
 
     /// <summary>
     /// 내구도 (일회용이므로 1)
     /// </summary>
-    // super() 호출에 필요하여 static 유지
     private static final int MAX_HP = 1;
 
     /// <summary>
     /// 폭발 데미지
     /// </summary>
-    private final int BLAST_DAMAGE = 15;
+    private static final int DAMAGE = 15;
 
     /// <summary>
     /// 폭발 범위 (좌우 칸 수)
     /// </summary>
-    private final int BLAST_RANGE = 3;
+    private static final int BLAST_RANGE = 3;
 
     /// <summary>
     /// 설치 비용
@@ -37,7 +36,10 @@ public class Landmine extends Structure {
     /// 지정한 열에 지뢰 설치
     /// </summary>
     public Landmine(int column) {
-        super(column, MAX_HP);
+        super(column);
+        setMaxHp(MAX_HP);
+        setHp(MAX_HP);
+        setDamage(DAMAGE);
     }
 
     /// <summary>
@@ -57,7 +59,7 @@ public class Landmine extends Structure {
             boolean inRange = distance <= BLAST_RANGE;
 
             if (inRange) {
-                enemy.takeDamage(BLAST_DAMAGE);
+                enemy.takeDamage(getDamage());
 
                 if (!enemy.isLiving()) {
                     gameMap.addLog("[지뢰] " + enemy.getSpec().getDisplayName() + " 처치!");
@@ -77,13 +79,6 @@ public class Landmine extends Structure {
 
         // 지뢰 파괴
         takeDamage(MAX_HP);
-    }
-
-    /// <summary>
-    /// 폭발 데미지 반환
-    /// </summary>
-    public int getBlastDamage() {
-        return BLAST_DAMAGE;
     }
 
     /// <summary>

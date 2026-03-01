@@ -21,12 +21,12 @@ public class DayNightCycle extends Thread {
     /// <summary>
     /// 낮 지속 시간 (밀리초)
     /// </summary>
-    private final int DAY_DURATION = 30000;
+    private static final int DAY_DURATION = 30000;
 
     /// <summary>
     /// 적 시간차 스폰 최소 간격 (밀리초)
     /// </summary>
-    private final int MIN_SPAWN_DELAY = 300;
+    private static final int MIN_SPAWN_DELAY = 300;
 
     /// <summary>
     /// 이 주기가 관리하는 맵 (적 스폰/제거용)

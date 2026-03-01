@@ -14,7 +14,7 @@ public class Rifle extends Gun {
     /// <summary>
     /// 총알 ANSI 색상 (시안)
     /// </summary>
-    private final int BULLET_COLOR = 36;
+    private static final int BULLET_COLOR = 36;
 
     @Override
     public String getName() {

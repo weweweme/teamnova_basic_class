@@ -21,27 +21,27 @@ public class Renderer {
     /// <summary>
     /// 사망 애니메이션 1단계 시간 (짙은 회색 정지)
     /// </summary>
-    private final int DEATH_PHASE1_MS = 400;
+    private static final int DEATH_PHASE1_MS = 400;
 
     /// <summary>
     /// 사망 애니메이션 전체 시간 (1단계 정지 + 2단계 분해)
     /// </summary>
-    private final int DEATH_ANIM_MS = 800;
+    private static final int DEATH_ANIM_MS = 800;
 
     /// <summary>
     /// 빨간색 ANSI 색상 코드
     /// </summary>
-    private final int COLOR_RED = 31;
+    private static final int COLOR_RED = 31;
 
     /// <summary>
     /// 초록색 ANSI 색상 코드
     /// </summary>
-    private final int COLOR_GREEN = 32;
+    private static final int COLOR_GREEN = 32;
 
     /// <summary>
     /// 짙은 회색 ANSI 색상 코드
     /// </summary>
-    private final int COLOR_DARK_GRAY = 90;
+    private static final int COLOR_DARK_GRAY = 90;
 
     /// <summary>
     /// 행별 색상 재사용 버퍼 (매 프레임 배열 재생성 방지)

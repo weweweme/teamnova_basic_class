@@ -14,17 +14,17 @@ public class Minigun extends Gun {
     /// <summary>
     /// 발사 간격 (틱 수, 매 틱마다 발사)
     /// </summary>
-    private final int FIRE_INTERVAL = 1;
+    private static final int FIRE_INTERVAL = 1;
 
     /// <summary>
     /// 기본 피해량
     /// </summary>
-    private final int DAMAGE = 2;
+    private static final int DAMAGE = 2;
 
     /// <summary>
     /// 총알 이동 속도
     /// </summary>
-    private final int BULLET_SPEED = 4;
+    private static final int BULLET_SPEED = 4;
 
     @Override
     public String getName() {

@@ -75,7 +75,7 @@ public class GameMap {
     /// <summary>
     /// 명중 이펙트의 지속 시간 (밀리초)
     /// </summary>
-    private final int EFFECT_DURATION = 200;
+    private static final int EFFECT_DURATION = 200;
 
     /// <summary>
     /// 이펙트 복사본 재사용 버퍼 (렌더링용)

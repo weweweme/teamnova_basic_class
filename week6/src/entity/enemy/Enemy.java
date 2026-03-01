@@ -161,7 +161,7 @@ public class Enemy extends GameEntity {
                 continue;
             }
             if (spike.getColumn() == col) {
-                takeDamage(spike.getSpikeDamage());
+                takeDamage(spike.getDamage());
                 spike.takeDamage(1);
                 break;
             }

@@ -60,23 +60,29 @@ java -cp out Main
       public static final int WIDTH = 60;
   }
   public class Colonist {
-      private final int MAX_HP = 100;
+      private static final int MAX_HP = 100;
   }
   ```
-- **static은 최소한으로**: `static`은 반드시 필요한 경우에만 사용. 다음 기준을 따른다
-  - `public static final` 상수: **OK** — 외부에서 `ClassName.CONSTANT`로 접근하는 경우
-  - `private final` 상수: 인스턴스 메서드에서만 쓰이면 **`static` 불필요** — `private final`로 충분 (단, `super()` 호출에 전달하는 값은 Java 제약으로 `static` 필수)
+- **static 사용 기준**: 상수는 `static final`, 그 외에는 지양
+  - `static final` 상수: **OK** — 고정값은 인스턴스마다 중복 저장할 필요 없음 (public/private 모두)
+  - `final` 인스턴스 필드: 생성자에서 인스턴스마다 다른 값을 받는 경우에만 사용
   - 가변 `static` 필드: **금지** — 해당 데이터를 관리하는 객체의 인스턴스 필드로 이동
   - `static` 메서드: 유틸리티 헬퍼(Util)나 팩토리 메서드(Cutscene.intro())에만 사용. 그 외에는 인스턴스 메서드 사용
   ```java
-  // 나쁜 예: 외부에서 안 쓰는데 static 붙임
+  // 좋은 예: 외부에서 접근하는 고정값
+  public static final int WIDTH = 100;
+
+  // 좋은 예: 내부 고정값 (인스턴스마다 중복 저장 방지)
   private static final int SHOOT_COL = 12;
 
-  // 좋은 예: 인스턴스 상수로 충분
+  // 좋은 예: 인스턴스마다 다른 값 (생성자에서 받음)
+  private final String name;
+
+  // 나쁜 예: 고정값인데 인스턴스 필드 (메모리 낭비)
   private final int SHOOT_COL = 12;
 
-  // 좋은 예: 외부에서 접근하므로 static 필요
-  public static final int WIDTH = 100;
+  // 나쁜 예: 가변 static 필드
+  private static int count = 0;
   ```
 - **열거형은 순수 타입 식별자**: 열거형(enum)에 데이터와 메서드를 넣지 않는다. 데이터는 별도의 Spec 데이터 클래스에, 조회는 Factory 클래스에서 담당
   ```java

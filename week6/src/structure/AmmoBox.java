@@ -9,7 +9,6 @@ public class AmmoBox extends Structure {
     /// <summary>
     /// 최대 내구도 (안전지대에 있으므로 파괴되지 않지만 구조상 필요)
     /// </summary>
-    // super() 호출에 필요하여 static 유지
     private static final int MAX_HP = 1;
 
     /// <summary>
@@ -21,7 +20,9 @@ public class AmmoBox extends Structure {
     /// 지정한 열에 탄약 상자 설치
     /// </summary>
     public AmmoBox(int column) {
-        super(column, MAX_HP);
+        super(column);
+        setMaxHp(MAX_HP);
+        setHp(MAX_HP);
     }
 
     /// <summary>

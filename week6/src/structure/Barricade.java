@@ -14,7 +14,6 @@ public class Barricade extends Structure {
     /// <summary>
     /// 최대 내구도
     /// </summary>
-    // super() 호출에 필요하여 static 유지
     private static final int MAX_HP = 100;
 
     /// <summary>
@@ -35,7 +34,7 @@ public class Barricade extends Structure {
     /// <summary>
     /// 피격 깜빡임 지속 시간 (밀리초)
     /// </summary>
-    private final int FLASH_DURATION = 300;
+    private static final int FLASH_DURATION = 300;
 
     /// <summary>
     /// 마지막으로 피격당한 시각 (0이면 아직 안 맞음)
@@ -56,7 +55,9 @@ public class Barricade extends Structure {
     /// 최대 내구도로 바리케이드 생성
     /// </summary>
     public Barricade() {
-        super(COLUMN, MAX_HP);
+        super(COLUMN);
+        setMaxHp(MAX_HP);
+        setHp(MAX_HP);
         this.level = 1;
     }
 

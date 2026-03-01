@@ -11,6 +11,7 @@ import entity.colonist.Colonist;
 import entity.enemy.Enemy;
 import entity.enemy.EnemyType;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -82,14 +83,19 @@ public class GameMap {
     private final ArrayList<HitEffect> effects = new ArrayList<>();
 
     /// <summary>
-    /// 최대 로그 보관 수
+    /// 화면에 동시에 표시할 수 있는 최대 로그 수
     /// </summary>
     private final int LOG_CAPACITY = 8;
 
     /// <summary>
-    /// 게임 로그 메시지 목록 (오래된 순서)
+    /// 로그가 화면에 남아있는 시간 (밀리초)
     /// </summary>
-    private final ArrayList<String> logs = new ArrayList<>();
+    private final int LOG_EXPIRE_MS = 5000;
+
+    /// <summary>
+    /// 게임 로그 큐 (오래된 순서, 앞쪽이 가장 오래된 것)
+    /// </summary>
+    private final ArrayDeque<LogEntry> logs = new ArrayDeque<>();
 
     /// <summary>
     /// 사망 애니메이션 지속 시간 (밀리초)
@@ -419,21 +425,34 @@ public class GameMap {
     }
 
     /// <summary>
-    /// 로그 메시지 추가 (최대 보관 수 초과 시 오래된 것부터 삭제)
+    /// 로그 메시지 추가
+    /// 화면 용량을 넘으면 가장 오래된 것부터 제거
     /// 여러 스레드에서 동시에 호출될 수 있어 동기화 처리
     /// </summary>
     public synchronized void addLog(String message) {
-        logs.add(message);
+        logs.add(new LogEntry(message, System.currentTimeMillis()));
         if (logs.size() > LOG_CAPACITY) {
-            logs.remove(0);
+            logs.poll();
         }
     }
 
     /// <summary>
-    /// 현재 로그 목록 복사본 반환 (렌더링용)
+    /// 만료되지 않은 로그 메시지 목록 반환 (렌더링용)
+    /// 5초가 지난 로그는 자동으로 큐에서 제거
     /// </summary>
     public synchronized ArrayList<String> getRecentLogs() {
-        return new ArrayList<>(logs);
+        long now = System.currentTimeMillis();
+
+        // 큐 앞쪽부터 만료된 로그 제거
+        while (!logs.isEmpty() && now - logs.peek().getCreatedTime() > LOG_EXPIRE_MS) {
+            logs.poll();
+        }
+
+        ArrayList<String> result = new ArrayList<>();
+        for (LogEntry entry : logs) {
+            result.add(entry.getMessage());
+        }
+        return result;
     }
 
     /// <summary>
@@ -516,6 +535,42 @@ public class GameMap {
         /// </summary>
         public int getEffectColor() {
             return effectColor;
+        }
+    }
+
+    /// <summary>
+    /// 로그 한 줄의 메시지와 생성 시각을 담는 클래스
+    /// 생성 후 일정 시간이 지나면 큐에서 제거됨
+    /// </summary>
+    private class LogEntry {
+
+        /// <summary>
+        /// 로그 메시지 내용
+        /// </summary>
+        private final String message;
+
+        /// <summary>
+        /// 로그가 생성된 시각 (밀리초)
+        /// </summary>
+        private final long createdTime;
+
+        public LogEntry(String message, long createdTime) {
+            this.message = message;
+            this.createdTime = createdTime;
+        }
+
+        /// <summary>
+        /// 메시지 반환
+        /// </summary>
+        public String getMessage() {
+            return message;
+        }
+
+        /// <summary>
+        /// 생성 시각 반환
+        /// </summary>
+        public long getCreatedTime() {
+            return createdTime;
         }
     }
 }

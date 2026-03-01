@@ -2,17 +2,15 @@ package game;
 
 import gun.Bullet;
 import entity.colonist.Colonist;
-import entity.colonist.ColonistType;
 import entity.enemy.Enemy;
 import structure.AmmoBox;
 import structure.Barricade;
-import game.DayNightCycle;
-import game.GameMap;
 import game.GameMap.HitEffect;
 import structure.Landmine;
 import structure.Spike;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /// <summary>
 /// 게임 화면을 콘솔에 출력하는 클래스
@@ -21,19 +19,9 @@ import java.util.ArrayList;
 public class Renderer {
 
     /// <summary>
-    /// 우측 패널 구분선
-    /// </summary>
-    private final String PANEL_SEPARATOR = "|||";
-
-    /// <summary>
     /// 우측 패널 가로 크기 (구분선 제외)
     /// </summary>
     private final int PANEL_WIDTH = 22;
-
-    /// <summary>
-    /// 하단 로그 표시 줄 수
-    /// </summary>
-    private final int LOG_LINES = 8;
 
     /// <summary>
     /// 화면 버퍼 [행][열], 매 프레임마다 새로 채움
@@ -352,9 +340,7 @@ public class Renderer {
                 if (elapsed < 400) {
                     // Phase 1: 전체 짙은 회색으로 정지
                     int[] rowColors = new int[blockHeight];
-                    for (int i = 0; i < blockHeight; i++) {
-                        rowColors[i] = 90;
-                    }
+                    Arrays.fill(rowColors, 90);
                     drawColoredBlock(row, col, block, rowColors);
                 } else if (elapsed < 800) {
                     // Phase 2: 아래부터 한 줄씩 소멸
@@ -731,13 +717,9 @@ public class Renderer {
     /// <summary>
     /// 문자열을 지정한 표시 폭에 맞춰 공백으로 패딩
     /// </summary>
-    private String padToWidth(String text, int targetWidth) {
+    private String padToWidth(String text) {
         int currentWidth = displayWidth(text);
-        StringBuilder padded = new StringBuilder(text);
-        for (int i = currentWidth; i < targetWidth; i++) {
-            padded.append(' ');
-        }
-        return padded.toString();
+        return text + " ".repeat(Math.max(0, GameMap.WIDTH - currentWidth));
     }
 
     /// <summary>
@@ -749,7 +731,12 @@ public class Renderer {
         ArrayList<String> logs = gameMap.getRecentLogs();
 
         // 전체 높이: 맵(20) + 구분선(1) + 로그(8) = 29줄
+        // 하단 로그 표시 줄 수
+        int LOG_LINES = 8;
         int totalHeight = GameMap.HEIGHT + 1 + LOG_LINES;
+
+        // 우측 패널 구분선
+        String PANEL_SEPARATOR = "|||";
         int totalWidth = GameMap.WIDTH + PANEL_SEPARATOR.length() + PANEL_WIDTH;
         StringBuilder screen = new StringBuilder(totalWidth * totalHeight + totalHeight + 10);
 
@@ -774,17 +761,19 @@ public class Renderer {
                 }
             } else if (row == GameMap.HEIGHT) {
                 // 로그 구분선
-                for (int i = 0; i < GameMap.WIDTH; i++) {
-                    screen.append('-');
-                }
+                screen.append("-".repeat(GameMap.WIDTH));
             } else {
-                // 로그 줄
-                int logIndex = row - GameMap.HEIGHT - 1;
+                // 로그 줄 (하단 정렬: 새 로그가 아래, 기존 로그가 위로)
+                int logLine = row - GameMap.HEIGHT - 1;
+                int offset = LOG_LINES - logs.size();
+                int logIndex = logLine - offset;
+
                 String logContent = "";
-                if (logIndex < logs.size()) {
+                boolean hasLog = logIndex >= 0 && logIndex < logs.size();
+                if (hasLog) {
                     logContent = " " + logs.get(logIndex);
                 }
-                screen.append(padToWidth(logContent, GameMap.WIDTH));
+                screen.append(padToWidth(logContent));
             }
 
             // 우측 패널

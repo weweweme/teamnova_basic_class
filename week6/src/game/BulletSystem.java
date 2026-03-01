@@ -7,11 +7,12 @@ import game.GameMap.HitEffect;
 import java.util.ArrayList;
 
 /// <summary>
-/// 총알의 이동과 충돌 처리를 담당하는 클래스
-/// 총알 추가, 전진, 적 명중 검사, 이펙트 생성을 관리
+/// 총알의 이동과 충돌 처리를 담당하는 시스템
+/// 충돌은 총알과 적, 두 객체 사이의 판정이므로
+/// Bullet 내부가 아닌 이 시스템에서 처리
 /// 스레드 안전은 GameMap이 보장 (이 클래스의 메서드는 동기화하지 않음)
 /// </summary>
-public class BulletManager {
+public class BulletSystem {
 
     /// <summary>
     /// 날아가는 총알 목록

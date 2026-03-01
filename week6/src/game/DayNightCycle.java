@@ -27,32 +27,9 @@ public class DayNightCycle extends Thread {
     private final int DAY_DURATION = 30000;
 
     /// <summary>
-    /// 틱 간격 (밀리초)
-    /// </summary>
-    private final int TICK_DELAY = 500;
-
-    /// <summary>
-    /// 매일 자동 지급되는 보급품 양
-    /// </summary>
-    /// <summary>
-    /// 밤 전 사격 배치 시작 시점 (밀리초, 밤까지 남은 시간)
-    /// </summary>
-    private final int PREPARE_DURATION = 5000;
-
-    /// <summary>
     /// 적 시간차 스폰 최소 간격 (밀리초)
     /// </summary>
     private final int MIN_SPAWN_DELAY = 300;
-
-    /// <summary>
-    /// 적 시간차 스폰 최대 간격 (밀리초)
-    /// </summary>
-    private final int MAX_SPAWN_DELAY = 3000;
-
-    /// <summary>
-    /// 매일 자동 지급되는 보급품 양
-    /// </summary>
-    private final int DAILY_SUPPLY = 20;
 
     /// <summary>
     /// 이 주기가 관리하는 맵 (적 스폰/제거용)
@@ -108,11 +85,6 @@ public class DayNightCycle extends Thread {
     /// 밤 시작 시 바리케이드 체력 (무피해 보너스 판정용)
     /// </summary>
     private int barricadeHpAtNightStart;
-
-    /// <summary>
-    /// 무피해 생존 보너스 보급품
-    /// </summary>
-    private final int PERFECT_BONUS = 10;
 
     /// <summary>
     /// 승리 조건 달성 여부
@@ -199,6 +171,8 @@ public class DayNightCycle extends Thread {
                     enemy.start();
 
                     // 다음 스폰까지 랜덤 딜레이 (MIN ~ MAX 사이)
+                    // 적 시간차 스폰 최대 간격 (밀리초)
+                    final int MAX_SPAWN_DELAY = 3000;
                     int delay = MIN_SPAWN_DELAY + Util.rand(MAX_SPAWN_DELAY - MIN_SPAWN_DELAY);
                     nextSpawnTime = now + delay;
                 }
@@ -213,12 +187,18 @@ public class DayNightCycle extends Thread {
                     day++;
                     elapsedInPhase = 0;
                     barricadeBroken = false;
+
+                    // 매일 자동 지급되는 보급품 양
+                    final int DAILY_SUPPLY = 20;
                     int dailySupply = settings.applySupply(DAILY_SUPPLY);
                     gameMap.getSupply().add(dailySupply);
                     gameMap.removeDestroyedSpikes();
 
                     // 무피해 생존 보너스: 바리케이드가 피해를 받지 않았으면 추가 보급
                     boolean perfectNight = gameMap.getBarricade().getHp() >= barricadeHpAtNightStart;
+
+                    // 무피해 생존 보너스 보급품
+                    final int PERFECT_BONUS = 10;
                     if (perfectNight) {
                         gameMap.getSupply().add(PERFECT_BONUS);
                     }
@@ -236,6 +216,9 @@ public class DayNightCycle extends Thread {
                 }
             } else {
                 // 낮: 시간이 다 되면 밤으로 전환
+
+                // 밤 전 사격 배치 시작 시점 (밀리초, 밤까지 남은 시간)
+                final int PREPARE_DURATION = 5000;
                 if (elapsedInPhase >= DAY_DURATION) {
                     night = true;
                     elapsedInPhase = 0;
@@ -283,6 +266,8 @@ public class DayNightCycle extends Thread {
                 }
             }
 
+            // 틱 간격 (밀리초)
+            final int TICK_DELAY = 500;
             Util.delay(TICK_DELAY);
         }
     }

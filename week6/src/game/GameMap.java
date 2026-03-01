@@ -68,9 +68,9 @@ public class GameMap {
     private final ArrayList<Enemy> enemies = new ArrayList<>();
 
     /// <summary>
-    /// 총알 관리자 (총알 추가/전진/충돌 처리)
+    /// 총알 시스템 (이동/충돌 처리)
     /// </summary>
-    private final BulletManager bulletManager = new BulletManager();
+    private final BulletSystem bulletSystem = new BulletSystem();
 
     /// <summary>
     /// 명중 이펙트의 지속 시간 (밀리초)
@@ -380,14 +380,14 @@ public class GameMap {
     /// 총알 추가 (정착민 스레드에서 호출)
     /// </summary>
     public synchronized void addBullet(Bullet bullet) {
-        bulletManager.addBullet(bullet);
+        bulletSystem.addBullet(bullet);
     }
 
     /// <summary>
     /// 현재 총알 목록 복사본 반환 (렌더링용)
     /// </summary>
     public synchronized ArrayList<Bullet> getBullets() {
-        return bulletManager.getBullets();
+        return bulletSystem.getBullets();
     }
 
     /// <summary>
@@ -395,7 +395,7 @@ public class GameMap {
     /// Main 루프에서 매 렌더 틱마다 호출
     /// </summary>
     public synchronized void advanceBullets() {
-        bulletManager.advanceBullets(enemies, effects, this);
+        bulletSystem.advanceBullets(enemies, effects, this);
     }
 
     /// <summary>

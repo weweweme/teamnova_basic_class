@@ -68,19 +68,14 @@ public class GameMap {
     private final ArrayList<Enemy> enemies = new ArrayList<>();
 
     /// <summary>
-    /// 날아가는 총알 목록 (스레드가 아닌 데이터 객체)
+    /// 총알 관리자 (총알 추가/전진/충돌 처리)
     /// </summary>
-    private final ArrayList<Bullet> bullets = new ArrayList<>();
+    private final BulletManager bulletManager = new BulletManager();
 
     /// <summary>
     /// 명중 이펙트의 지속 시간 (밀리초)
     /// </summary>
     private final int EFFECT_DURATION = 200;
-
-    /// <summary>
-    /// 총알 복사본 재사용 버퍼 (렌더링용)
-    /// </summary>
-    private final ArrayList<Bullet> bulletsCopy = new ArrayList<>();
 
     /// <summary>
     /// 이펙트 복사본 재사용 버퍼 (렌더링용)
@@ -91,11 +86,6 @@ public class GameMap {
     /// 로그 문자열 재사용 버퍼 (렌더링용)
     /// </summary>
     private final ArrayList<String> logsCopy = new ArrayList<>();
-
-    /// <summary>
-    /// 제거 대상 총알 재사용 버퍼
-    /// </summary>
-    private final ArrayList<Bullet> bulletsToRemove = new ArrayList<>();
 
     /// <summary>
     /// 제거 대상 적 재사용 버퍼
@@ -371,84 +361,22 @@ public class GameMap {
     /// 총알 추가 (정착민 스레드에서 호출)
     /// </summary>
     public synchronized void addBullet(Bullet bullet) {
-        bullets.add(bullet);
+        bulletManager.addBullet(bullet);
     }
 
     /// <summary>
     /// 현재 총알 목록 복사본 반환 (렌더링용)
     /// </summary>
     public synchronized ArrayList<Bullet> getBullets() {
-        bulletsCopy.clear();
-        bulletsCopy.addAll(bullets);
-        return bulletsCopy;
+        return bulletManager.getBullets();
     }
 
     /// <summary>
     /// 모든 총알을 전진시키고, 적과 충돌 검사
-    /// 적에 명중하면 피해를 주고 총알 제거, 화면 밖이면 제거
     /// Main 루프에서 매 렌더 틱마다 호출
     /// </summary>
     public synchronized void advanceBullets() {
-        bulletsToRemove.clear();
-
-        for (Bullet bullet : bullets) {
-            bullet.advance();
-
-            // 화면 밖으로 나간 총알 제거
-            if (bullet.isOffScreen()) {
-                bulletsToRemove.add(bullet);
-                continue;
-            }
-
-            // 적과 충돌 검사
-            for (Enemy enemy : enemies) {
-                if (!enemy.isLiving()) {
-                    continue;
-                }
-
-                // 적 블록 범위 계산
-                String[] block = enemy.getSpec().getBlock();
-                int enemyRow = enemy.getPosition().getRow();
-                int enemyCol = enemy.getPosition().getCol();
-                int blockHeight = block.length;
-                int blockWidth = block[0].length();
-
-                // 총알이 적 블록 범위 안에 있으면 명중
-                boolean hitRow = bullet.getRow() >= enemyRow && bullet.getRow() < enemyRow + blockHeight;
-                boolean hitCol = bullet.getCol() >= enemyCol && bullet.getCol() < enemyCol + blockWidth;
-
-                if (hitRow && hitCol) {
-                    enemy.takeDamage(bullet.getDamage());
-
-                    // 넉백 적용 (명중 시 적을 오른쪽으로 밀어냄)
-                    if (bullet.getKnockback() > 0 && enemy.isLiving()) {
-                        int newCol = enemy.getPosition().getCol() + bullet.getKnockback();
-                        if (newCol < WIDTH) {
-                            enemy.getPosition().setCol(newCol);
-                        }
-                    }
-
-                    // 무기별 명중 이펙트 (총알의 문자/색상 사용)
-                    char hitChar = bullet.getBulletChar() == '*' ? '!' : bullet.getBulletChar();
-                    int hitColor = bullet.getBulletColor() != 0 ? bullet.getBulletColor() : 33;
-                    effects.add(new HitEffect(bullet.getRow(), bullet.getCol(), System.currentTimeMillis(), hitChar, hitColor));
-
-                    // 적 처치 시 로그
-                    if (!enemy.isLiving()) {
-                        String enemyName = enemy.getSpec().getDisplayName();
-                        addLog("[" + bullet.getShooterLabel() + "] " + enemyName + " 처치!");
-                    }
-
-                    // 관통 총알은 제거하지 않고 계속 전진
-                    if (!bullet.isPiercing()) {
-                        bulletsToRemove.add(bullet);
-                    }
-                    break;
-                }
-            }
-        }
-
-        bullets.removeAll(bulletsToRemove);
+        bulletManager.advanceBullets(enemies, effects, this);
     }
 
     /// <summary>

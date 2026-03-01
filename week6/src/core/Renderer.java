@@ -393,6 +393,7 @@ public class Renderer {
                 lines.add(" 1: 수리 (보급10)");
                 lines.add(" 2: 강화 (보급15)");
                 lines.add(" 3: 치료 (보급10)");
+                lines.add(" 4: 가시덫 (보급20)");
                 lines.add(" n: 밤 건너뛰기");
                 lines.add(" q: 종료");
             }

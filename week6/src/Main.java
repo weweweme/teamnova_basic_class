@@ -1,7 +1,9 @@
 import entity.Colonist;
 import entity.ColonistType;
+import world.Barricade;
 import world.DayNightCycle;
 import world.GameMap;
+import world.Spike;
 import core.Position;
 import core.Renderer;
 import core.Util;
@@ -97,6 +99,7 @@ public class Main {
                         final int KEY_REPAIR = '1';
                         final int KEY_UPGRADE = '2';
                         final int KEY_HEAL = '3';
+                        final int KEY_SPIKE = '4';
                         final int KEY_SKIP_NIGHT = 'n';
 
                         // 명령 비용
@@ -105,6 +108,8 @@ public class Main {
                         final int UPGRADE_COST = 15;
                         final int HEAL_COST = 10;
                         final int HEAL_AMOUNT = 30;
+                        final int SPIKE_COST = 20;
+                        final int SPIKE_SPACING = 5;
 
                         switch (key) {
                             case Util.KEY_QUIT:
@@ -142,6 +147,13 @@ public class Main {
                                         selected.heal(HEAL_AMOUNT);
                                         gameMap.addLog(">> " + selected.getColonistName() + " 치료 (+" + HEAL_AMOUNT + ")");
                                     }
+                                }
+                                break;
+                            case KEY_SPIKE:
+                                if (!dayNightCycle.isNight() && gameMap.getSupply().spend(SPIKE_COST)) {
+                                    int spikeCol = Barricade.COLUMN + SPIKE_SPACING * (gameMap.getSpikes().size() + 1);
+                                    gameMap.addSpike(new Spike(spikeCol));
+                                    gameMap.addLog(">> 가시덫 설치 (열 " + spikeCol + ")");
                                 }
                                 break;
                         }

@@ -9,6 +9,7 @@ import entity.ShootingState;
 import entity.WanderingState;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /// <summary>
 /// 낮/밤 주기를 관리하는 스레드
@@ -33,6 +34,16 @@ public class DayNightCycle extends Thread {
     /// 밤 전 사격 배치 시작 시점 (밀리초, 밤까지 남은 시간)
     /// </summary>
     private static final int PREPARE_DURATION = 5000;
+
+    /// <summary>
+    /// 적 시간차 스폰 최소 간격 (밀리초)
+    /// </summary>
+    private static final int MIN_SPAWN_DELAY = 300;
+
+    /// <summary>
+    /// 적 시간차 스폰 최대 간격 (밀리초)
+    /// </summary>
+    private static final int MAX_SPAWN_DELAY = 3000;
 
     /// <summary>
     /// 매일 자동 지급되는 보급품 양
@@ -75,6 +86,16 @@ public class DayNightCycle extends Thread {
     private boolean preparing;
 
     /// <summary>
+    /// 아직 출현하지 않은 대기 중인 적 목록
+    /// </summary>
+    private final ArrayList<Enemy> pendingSpawns = new ArrayList<>();
+
+    /// <summary>
+    /// 다음 적이 출현할 시각 (밀리초)
+    /// </summary>
+    private long nextSpawnTime;
+
+    /// <summary>
     /// 지정한 맵으로 낮/밤 주기 생성, 1일차 낮부터 시작
     /// </summary>
     public DayNightCycle(GameMap gameMap) {
@@ -97,11 +118,23 @@ public class DayNightCycle extends Thread {
             elapsedInPhase += delta;
 
             if (night) {
-                // 밤: 죽은 적 제거, 적이 전멸하면 낮으로 전환
+                // 밤: 대기 중인 적 시간차 출현
+                if (!pendingSpawns.isEmpty() && now >= nextSpawnTime) {
+                    Enemy enemy = pendingSpawns.remove(0);
+                    gameMap.addEnemy(enemy);
+                    enemy.start();
+
+                    // 다음 스폰까지 랜덤 딜레이 (MIN ~ MAX 사이)
+                    int delay = MIN_SPAWN_DELAY + Util.rand(MAX_SPAWN_DELAY - MIN_SPAWN_DELAY);
+                    nextSpawnTime = now + delay;
+                }
+
+                // 죽은 적 제거, 모두 출현하고 전멸하면 낮으로 전환
                 gameMap.removeDeadEnemies();
 
+                boolean allSpawned = pendingSpawns.isEmpty();
                 boolean allEnemiesDead = gameMap.getEnemies().isEmpty();
-                if (allEnemiesDead) {
+                if (allSpawned && allEnemiesDead) {
                     night = false;
                     day++;
                     elapsedInPhase = 0;
@@ -243,12 +276,17 @@ public class DayNightCycle extends Thread {
 
             int col = GameMap.WIDTH - 1;
             Enemy enemy = new Enemy(type, new Position(currentRow, col), gameMap);
-            gameMap.addEnemy(enemy);
-            enemy.start();
+            pendingSpawns.add(enemy);
 
             // 블록 높이 + 간격 1칸
             currentRow += blockHeight + 1;
         }
+
+        // 출현 순서 섞기 (위치는 고정, 등장 순서만 랜덤)
+        Collections.shuffle(pendingSpawns);
+
+        // 첫 적 출현 시간 설정
+        nextSpawnTime = System.currentTimeMillis() + MIN_SPAWN_DELAY;
     }
 
     /// <summary>

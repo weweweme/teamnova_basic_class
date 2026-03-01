@@ -18,7 +18,7 @@ public class GameMap {
     /// <summary>
     /// 맵 가로 크기 (문자 단위)
     /// </summary>
-    public static final int WIDTH = 80;
+    public static final int WIDTH = 100;
 
     /// <summary>
     /// 맵 세로 크기 (문자 단위)

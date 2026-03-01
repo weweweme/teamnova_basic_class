@@ -8,14 +8,9 @@ package structure;
 public class Spike extends Trap {
 
     /// <summary>
-    /// 설치 비용
-    /// </summary>
-    public static final int COST = 20;
-
-    /// <summary>
-    /// 지정한 열에 가시덫 설치 (내구도 10, 피해량 3)
+    /// 지정한 열에 가시덫 설치 (내구도 10, 비용 20, 피해량 3)
     /// </summary>
     public Spike(int column) {
-        super(column, 10, 3);
+        super(column, 10, 20, 3);
     }
 }

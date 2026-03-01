@@ -199,35 +199,40 @@ public class InputHandler {
         // 구조물 간격 (바리케이드 기준 오른쪽으로)
         final int STRUCTURE_SPACING = 5;
         switch (key) {
-            case KEY_SPIKE:
-                if (gameMap.getSupply().spend(Spike.COST)) {
-                    int totalStructures = gameMap.getSpikes().size() + gameMap.getLandmines().size();
-                    int spikeCol = Barricade.COLUMN + STRUCTURE_SPACING * (totalStructures + 1);
-                    gameMap.addSpike(new Spike(spikeCol));
+            case KEY_SPIKE: {
+                int totalStructures = gameMap.getSpikes().size() + gameMap.getLandmines().size();
+                int spikeCol = Barricade.COLUMN + STRUCTURE_SPACING * (totalStructures + 1);
+                Spike spike = new Spike(spikeCol);
+                if (gameMap.getSupply().spend(spike.getCost())) {
+                    gameMap.addSpike(spike);
                     gameMap.addLog(">> 가시덫 설치 (열 " + spikeCol + ")");
                 }
                 buildMode = false;
                 break;
-            case KEY_LANDMINE:
-                if (gameMap.getSupply().spend(Landmine.COST)) {
-                    int totalStructures = gameMap.getSpikes().size() + gameMap.getLandmines().size();
-                    int mineCol = Barricade.COLUMN + STRUCTURE_SPACING * (totalStructures + 1);
-                    gameMap.addLandmine(new Landmine(mineCol));
+            }
+            case KEY_LANDMINE: {
+                int totalStructures = gameMap.getSpikes().size() + gameMap.getLandmines().size();
+                int mineCol = Barricade.COLUMN + STRUCTURE_SPACING * (totalStructures + 1);
+                Landmine landmine = new Landmine(mineCol);
+                if (gameMap.getSupply().spend(landmine.getCost())) {
+                    gameMap.addLandmine(landmine);
                     gameMap.addLog(">> 지뢰 설치 (열 " + mineCol + ")");
                 }
                 buildMode = false;
                 break;
-            case KEY_AMMOBOX:
-                if (gameMap.getSupply().spend(AmmoBox.COST)) {
-
-                    // 탄약 상자 설치 열 (바리케이드 왼쪽 안전지대)
-                    final int AMMOBOX_COL = 1;
-                    int ammoCol = AMMOBOX_COL + gameMap.getAmmoBoxes().size() * 2;
-                    gameMap.addAmmoBox(new AmmoBox(ammoCol));
+            }
+            case KEY_AMMOBOX: {
+                // 탄약 상자 설치 열 (바리케이드 왼쪽 안전지대)
+                final int AMMOBOX_COL = 1;
+                int ammoCol = AMMOBOX_COL + gameMap.getAmmoBoxes().size() * 2;
+                AmmoBox ammoBox = new AmmoBox(ammoCol);
+                if (gameMap.getSupply().spend(ammoBox.getCost())) {
+                    gameMap.addAmmoBox(ammoBox);
                     gameMap.addLog(">> 탄약 상자 설치");
                 }
                 buildMode = false;
                 break;
+            }
             case KEY_UPGRADE:
                 Barricade barricade = gameMap.getBarricade();
                 if (barricade.canUpgrade() && gameMap.getSupply().spend(barricade.getUpgradeCost())) {

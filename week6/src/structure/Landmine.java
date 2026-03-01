@@ -18,15 +18,10 @@ public class Landmine extends Trap {
     private static final int BLAST_RANGE = 3;
 
     /// <summary>
-    /// 설치 비용
-    /// </summary>
-    public static final int COST = 25;
-
-    /// <summary>
-    /// 지정한 열에 지뢰 설치 (일회용, 폭발 데미지 15)
+    /// 지정한 열에 지뢰 설치 (일회용, 비용 25, 폭발 데미지 15)
     /// </summary>
     public Landmine(int column) {
-        super(column, 1, 15);
+        super(column, 1, 25, 15);
     }
 
     /// <summary>

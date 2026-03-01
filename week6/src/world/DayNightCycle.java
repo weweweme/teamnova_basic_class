@@ -194,6 +194,24 @@ public class DayNightCycle extends Thread {
                     skipRequested = false;
                     preparing = false;
                     spawnEnemies();
+
+                    // 보스 웨이브 경고 (대기 목록에 보스가 있으면)
+                    boolean hasBoss = false;
+                    for (Enemy enemy : pendingSpawns) {
+                        EnemyType enemyType = enemy.getType();
+                        boolean isBoss = enemyType == EnemyType.DRAGON || enemyType == EnemyType.GOLEM;
+                        if (isBoss) {
+                            hasBoss = true;
+                            break;
+                        }
+                    }
+
+                    if (hasBoss) {
+                        Util.beep();
+                        Util.beep();
+                        gameMap.addLog("!! ★ 보스가 출현합니다 ★ !!");
+                    }
+
                     Util.beep();
                     gameMap.addLog("── 밤이 찾아왔습니다 ──");
                 } else if (!preparing && DAY_DURATION - elapsedInPhase <= PREPARE_DURATION) {

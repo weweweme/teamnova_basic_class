@@ -31,30 +31,74 @@ public class Enemy extends GameEntity {
     }
 
     /// <summary>
+    /// 바리케이드 바로 오른쪽에서 멈추는 열
+    /// </summary>
+    private static final int BARRICADE_STOP = Barricade.COLUMN + 2;
+
+    /// <summary>
+    /// 정착민 블록 가로 크기 (공격 멈춤 거리 계산용)
+    /// </summary>
+    private static final int COLONIST_BLOCK_WIDTH = 3;
+
+    /// <summary>
     /// 스레드 실행 루프
     /// 매 틱마다 왼쪽으로 이동, 바리케이드 도달 시 공격
+    /// 바리케이드 파괴 시 정착민에게 돌진
     /// </summary>
     @Override
     public void run() {
-        // 바리케이드 바로 오른쪽에서 멈춤
-        int stopCol = Barricade.COLUMN + 2;
-
         while (isRunning() && isLiving()) {
             int currentCol = getPosition().getCol();
+            Barricade barricade = getGameMap().getBarricade();
 
-            if (currentCol > stopCol) {
-                // 아직 바리케이드에 도달하지 않음 — 왼쪽으로 이동
-                getPosition().setCol(currentCol - 1);
-            } else {
-                // 바리케이드에 도달 — 공격
-                Barricade barricade = getGameMap().getBarricade();
-                if (!barricade.isDestroyed()) {
+            if (!barricade.isDestroyed()) {
+                // 바리케이드 건재: 바리케이드까지 이동 후 공격
+                if (currentCol > BARRICADE_STOP) {
+                    getPosition().setCol(currentCol - 1);
+                } else {
                     barricade.takeDamage(type.getDamage());
+                }
+            } else {
+                // 바리케이드 파괴: 정착민에게 돌진
+                Colonist target = findNearestColonist();
+
+                if (target != null) {
+                    // 정착민 블록 오른쪽 바로 옆에서 멈춤
+                    int colonistStop = target.getPosition().getCol() + COLONIST_BLOCK_WIDTH;
+
+                    if (currentCol > colonistStop) {
+                        getPosition().setCol(currentCol - 1);
+                    } else {
+                        target.takeDamage(type.getDamage());
+                    }
+                } else if (currentCol > 0) {
+                    // 살아있는 정착민 없음: 왼쪽으로 계속 이동
+                    getPosition().setCol(currentCol - 1);
                 }
             }
 
             Util.delay(type.getTickDelay());
         }
+    }
+
+    /// <summary>
+    /// 가장 가까운 살아있는 정착민 찾기 (열 기준)
+    /// </summary>
+    private Colonist findNearestColonist() {
+        Colonist nearest = null;
+        int minDist = Integer.MAX_VALUE;
+
+        for (Colonist colonist : getGameMap().getColonists()) {
+            if (!colonist.isLiving()) {
+                continue;
+            }
+            int dist = Math.abs(colonist.getPosition().getCol() - getPosition().getCol());
+            if (dist < minDist) {
+                minDist = dist;
+                nearest = colonist;
+            }
+        }
+        return nearest;
     }
 
     /// <summary>

@@ -12,11 +12,6 @@ import world.GameMap;
 public class Colonist extends GameEntity {
 
     /// <summary>
-    /// 최대 체력
-    /// </summary>
-    private static final int MAX_HP = 100;
-
-    /// <summary>
     /// 행동 틱 간격 (밀리초)
     /// </summary>
     private static final int TICK_DELAY = 500;
@@ -25,6 +20,11 @@ public class Colonist extends GameEntity {
     /// 다음에 부여할 알파벳 (A부터 순서대로)
     /// </summary>
     private static char nextLabel = 'A';
+
+    /// <summary>
+    /// 정착민 유형 (체력/발사간격/피해량 결정)
+    /// </summary>
+    private final ColonistType type;
 
     /// <summary>
     /// 정착민 이름 (한글, 패널에서만 표시)
@@ -47,11 +47,12 @@ public class Colonist extends GameEntity {
     private ColonistState currentState;
 
     /// <summary>
-    /// 지정한 이름, 위치, 맵으로 정착민 생성
-    /// 체력은 최대, 배회 상태로 시작
+    /// 지정한 유형, 이름, 위치, 맵으로 정착민 생성
+    /// 체력은 유형의 최대 체력, 배회 상태로 시작
     /// </summary>
-    public Colonist(String name, Position position, GameMap gameMap) {
-        super(position, gameMap, MAX_HP);
+    public Colonist(ColonistType type, String name, Position position, GameMap gameMap) {
+        super(position, gameMap, type.getMaxHp());
+        this.type = type;
         this.name = name;
         this.label = nextLabel;
         nextLabel++;
@@ -82,7 +83,14 @@ public class Colonist extends GameEntity {
     /// </summary>
     @Override
     public int getMaxHp() {
-        return MAX_HP;
+        return type.getMaxHp();
+    }
+
+    /// <summary>
+    /// 정착민 유형 반환
+    /// </summary>
+    public ColonistType getType() {
+        return type;
     }
 
     /// <summary>

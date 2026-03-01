@@ -2,6 +2,7 @@ package core;
 
 import entity.Bullet;
 import entity.Colonist;
+import entity.ColonistType;
 import entity.Enemy;
 import world.Barricade;
 import world.DayNightCycle;
@@ -139,15 +140,19 @@ public class Renderer {
 
     /// <summary>
     /// 바리케이드를 세로로 그림 (## 문자, 맵 전체 높이)
-    /// 파괴되었으면 .. 으로 표시
+    /// 파괴되었으면 빨간색 .. 으로 표시
     /// </summary>
     private void drawBarricade() {
         Barricade barricade = gameMap.getBarricade();
-        char wallChar = barricade.isDestroyed() ? '.' : '#';
+        boolean destroyed = barricade.isDestroyed();
+        char wallChar = destroyed ? '.' : '#';
+        int color = destroyed ? 31 : 0;
 
         for (int row = 0; row < GameMap.HEIGHT; row++) {
             buffer[row][Barricade.COLUMN] = wallChar;
             buffer[row][Barricade.COLUMN + 1] = wallChar;
+            colorBuffer[row][Barricade.COLUMN] = color;
+            colorBuffer[row][Barricade.COLUMN + 1] = color;
         }
     }
 
@@ -331,8 +336,9 @@ public class Renderer {
             String marker = (i == selectedIndex) ? " > " : "   ";
 
             if (colonist.isLiving()) {
+                String typeName = colonist.getType().getDisplayName();
                 String stateName = colonist.getCurrentState().getDisplayName();
-                lines.add(marker + "[" + colonist.getLabel() + "] " + stateName);
+                lines.add(marker + "[" + colonist.getLabel() + "] " + typeName + " " + stateName);
             } else {
                 lines.add(marker + "[" + colonist.getLabel() + "] 사망");
             }
@@ -345,6 +351,7 @@ public class Renderer {
             Colonist selected = colonists.get(selectedIndex);
             lines.add(" ──────────────");
             lines.add(" " + selected.getColonistName());
+            lines.add(" 유형: " + selected.getType().getDisplayName());
 
             if (selected.isLiving()) {
                 lines.add(" 상태: " + selected.getCurrentState().getDisplayName());

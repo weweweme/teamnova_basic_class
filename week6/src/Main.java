@@ -1,4 +1,5 @@
 import entity.Colonist;
+import entity.ColonistType;
 import world.DayNightCycle;
 import world.GameMap;
 import core.Position;
@@ -49,11 +50,11 @@ public class Main {
         // 초기 보급품
         gameMap.getSupply().add(30);
 
-        // 정착민 3명 배치 (안전지대 내)
+        // 정착민 3명 배치 (안전지대 내, 각기 다른 유형)
         int centerRow = GameMap.HEIGHT / 2;
-        Colonist chulsoo = new Colonist("김철수", new Position(centerRow, 3), gameMap);
-        Colonist younghee = new Colonist("이영희", new Position(centerRow, 7), gameMap);
-        Colonist minsoo = new Colonist("박민수", new Position(centerRow, 11), gameMap);
+        Colonist chulsoo = new Colonist(ColonistType.GUNNER, "김철수", new Position(centerRow, 3), gameMap);
+        Colonist younghee = new Colonist(ColonistType.SNIPER, "이영희", new Position(centerRow, 7), gameMap);
+        Colonist minsoo = new Colonist(ColonistType.ASSAULT, "박민수", new Position(centerRow, 11), gameMap);
         gameMap.addColonist(chulsoo);
         gameMap.addColonist(younghee);
         gameMap.addColonist(minsoo);

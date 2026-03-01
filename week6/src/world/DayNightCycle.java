@@ -86,6 +86,11 @@ public class DayNightCycle extends Thread {
     private boolean preparing;
 
     /// <summary>
+    /// 이번 밤에 바리케이드가 파괴되었는지 여부 (중복 로그 방지)
+    /// </summary>
+    private boolean barricadeBroken;
+
+    /// <summary>
     /// 아직 출현하지 않은 대기 중인 적 목록
     /// </summary>
     private final ArrayList<Enemy> pendingSpawns = new ArrayList<>();
@@ -118,6 +123,12 @@ public class DayNightCycle extends Thread {
             elapsedInPhase += delta;
 
             if (night) {
+                // 바리케이드 파괴 감지
+                if (!barricadeBroken && gameMap.getBarricade().isDestroyed()) {
+                    barricadeBroken = true;
+                    gameMap.addLog("!! 바리케이드가 무너졌습니다 !!");
+                }
+
                 // 밤: 대기 중인 적 시간차 출현
                 if (!pendingSpawns.isEmpty() && now >= nextSpawnTime) {
                     Enemy enemy = pendingSpawns.remove(0);
@@ -138,6 +149,7 @@ public class DayNightCycle extends Thread {
                     night = false;
                     day++;
                     elapsedInPhase = 0;
+                    barricadeBroken = false;
                     gameMap.getSupply().add(DAILY_SUPPLY);
                     switchToWandering();
                     gameMap.addLog("── " + day + "일차 낮 시작 (보급 +" + DAILY_SUPPLY + ") ──");

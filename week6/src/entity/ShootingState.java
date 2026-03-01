@@ -11,16 +11,6 @@ import world.GameMap;
 public class ShootingState extends ColonistState {
 
     /// <summary>
-    /// 발사 간격 (틱 수, 4틱 = 2초)
-    /// </summary>
-    private static final int SHOOT_INTERVAL = 4;
-
-    /// <summary>
-    /// 무기 레벨 1당 기본 피해량
-    /// </summary>
-    private static final int BASE_DAMAGE = 5;
-
-    /// <summary>
     /// 사격 위치 (바리케이드 바로 왼쪽, 블록이 겹치지 않는 열)
     /// </summary>
     private static final int SHOOT_COL = Barricade.COLUMN - 3;
@@ -83,7 +73,9 @@ public class ShootingState extends ColonistState {
         // 사격 로직
         tickCount++;
 
-        if (tickCount < SHOOT_INTERVAL) {
+        // 발사 간격은 정착민 유형에 따라 다름
+        int shootInterval = colonist.getType().getShootInterval();
+        if (tickCount < shootInterval) {
             return;
         }
 
@@ -104,7 +96,9 @@ public class ShootingState extends ColonistState {
         int aimRow = target.getPosition().getRow() + block.length / 2;
         int aimCol = target.getPosition().getCol() + block[0].length() / 2;
 
-        int damage = colonist.getWeaponLevel() * BASE_DAMAGE;
+        // 피해량은 정착민 유형의 기본 피해 × 무기 레벨
+        int baseDamage = colonist.getType().getBaseDamage();
+        int damage = colonist.getWeaponLevel() * baseDamage;
         Bullet bullet = new Bullet(bulletRow, bulletCol, aimRow, aimCol, damage);
         colonist.getGameMap().addBullet(bullet);
     }

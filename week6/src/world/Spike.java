@@ -18,10 +18,22 @@ public class Spike extends Structure {
     private static final int SPIKE_DAMAGE = 3;
 
     /// <summary>
+    /// 설치 비용
+    /// </summary>
+    private static final int COST = 20;
+
+    /// <summary>
     /// 지정한 열에 가시덫 설치
     /// </summary>
     public Spike(int column) {
         super(column, MAX_HP);
+    }
+
+    /// <summary>
+    /// 설치 비용 반환
+    /// </summary>
+    public static int getCost() {
+        return COST;
     }
 
     /// <summary>

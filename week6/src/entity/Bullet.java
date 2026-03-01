@@ -61,6 +61,11 @@ public class Bullet {
     private final boolean piercing;
 
     /// <summary>
+    /// 넉백 거리 (명중 시 적을 밀어내는 칸 수, 0이면 없음)
+    /// </summary>
+    private final int knockback;
+
+    /// <summary>
     /// 총알의 현재 열
     /// </summary>
     private int col;

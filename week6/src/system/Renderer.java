@@ -65,6 +65,10 @@ public class Renderer {
     /// </summary>
     private boolean shopMode;
 
+    /// <summary>
+    /// 건설 모드 여부
+    /// </summary>
+    private boolean buildMode;
 
     /// <summary>
     /// 지정한 맵으로 렌더러 생성
@@ -95,6 +99,13 @@ public class Renderer {
     /// </summary>
     public void setShopMode(boolean shopMode) {
         this.shopMode = shopMode;
+    }
+
+    /// <summary>
+    /// 건설 모드 설정
+    /// </summary>
+    public void setBuildMode(boolean buildMode) {
+        this.buildMode = buildMode;
     }
 
     /// <summary>
@@ -148,6 +159,8 @@ public class Renderer {
         } else {
             drawBarricade();
             drawSpikes();
+            drawLandmines();
+            drawAmmoBoxes();
             drawColonists();
             drawEnemies();
             drawBullets();
@@ -209,6 +222,44 @@ public class Renderer {
                 if (col >= 0 && col < GameMap.WIDTH) {
                     buffer[row][col] = '^';
                     colorBuffer[row][col] = 33;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 설치된 지뢰를 세로로 그림 (@ 문자, 빨간색)
+    /// </summary>
+    private void drawLandmines() {
+        for (Landmine mine : gameMap.getLandmines()) {
+            if (mine.isDestroyed()) {
+                continue;
+            }
+            int col = mine.getColumn();
+
+            for (int row = 0; row < GameMap.HEIGHT; row++) {
+                if (col >= 0 && col < GameMap.WIDTH) {
+                    buffer[row][col] = '@';
+                    colorBuffer[row][col] = 31;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 안전지대에 설치된 탄약 상자를 그림 (= 문자, 초록색)
+    /// </summary>
+    private void drawAmmoBoxes() {
+        for (AmmoBox box : gameMap.getAmmoBoxes()) {
+            if (box.isDestroyed()) {
+                continue;
+            }
+            int col = box.getColumn();
+
+            for (int row = 0; row < GameMap.HEIGHT; row++) {
+                if (col >= 0 && col < GameMap.WIDTH) {
+                    buffer[row][col] = '=';
+                    colorBuffer[row][col] = 32;
                 }
             }
         }
@@ -478,7 +529,7 @@ public class Renderer {
         // 보급품 + 바리케이드
         Barricade barricade = gameMap.getBarricade();
         lines.add(" [보급] " + gameMap.getSupply().getAmount());
-        lines.add(" [바리] " + buildBar(barricade.getHp(), barricade.getMaxHp()));
+        lines.add(" [바리] Lv" + barricade.getLevel() + " " + buildBar(barricade.getHp(), barricade.getMaxHp()));
         lines.add(" [처치] " + gameMap.getEnemiesKilled() + "마리");
         lines.add("");
 
@@ -563,13 +614,26 @@ public class Renderer {
                 lines.add(" 3: 라이플 (보급20)");
                 lines.add(" 4: 미니건 (보급30)");
                 lines.add(" q: 취소");
+            } else if (buildMode) {
+                // 건설 모드
+                lines.add(" [건설]");
+                lines.add(" 1: 가시덫 (보급20)");
+                lines.add(" 2: 지뢰  (보급25)");
+                lines.add(" 3: 탄약상자 (보급20)");
+                if (barricade.canUpgrade()) {
+                    lines.add(" 4: 바리강화 (보급" + barricade.getUpgradeCost() + ")");
+                } else {
+                    lines.add(" 4: 바리강화 (MAX)");
+                }
+                lines.add(" q: 취소");
             } else {
                 // 낮: 관리 명령
                 lines.add(" [명령] (낮)");
                 lines.add(" 1: 수리 (보급10)");
                 lines.add(" 2: 무기 구매");
                 lines.add(" 3: 치료 (보급10)");
-                lines.add(" 4: 가시덫 (보급20)");
+                lines.add(" 4: 건설");
+                lines.add(" 5: 모집 (보급40)");
                 lines.add(" n: 밤 건너뛰기");
                 lines.add(" q: 종료");
             }

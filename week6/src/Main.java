@@ -6,9 +6,11 @@ import entity.colonist.Shotgun;
 import entity.colonist.Rifle;
 import entity.colonist.Minigun;
 import entity.enemy.EnemyType;
+import world.AmmoBox;
 import world.Barricade;
 import world.DayNightCycle;
 import world.GameMap;
+import world.Landmine;
 import world.Spike;
 import system.Cutscene;
 import system.Difficulty;
@@ -125,14 +127,27 @@ public class Main {
 
         long lastRenderTime = 0;
 
-        // 무기 상점 모드 여부
+        // 서브 메뉴 모드 여부
         boolean shopMode = false;
+        boolean buildMode = false;
 
-        // 무기 목록 (상점 메뉴 번호와 대응)
+        // 무기 상점 메뉴 키
         final int SHOP_PISTOL = '1';
         final int SHOP_SHOTGUN = '2';
         final int SHOP_RIFLE = '3';
         final int SHOP_MINIGUN = '4';
+
+        // 건설 메뉴 키
+        final int BUILD_SPIKE = '1';
+        final int BUILD_LANDMINE = '2';
+        final int BUILD_AMMOBOX = '3';
+        final int BUILD_UPGRADE = '4';
+
+        // 구조물 간격 (바리케이드 기준 오른쪽으로)
+        final int STRUCTURE_SPACING = 5;
+
+        // 탄약 상자 설치 열 (바리케이드 왼쪽 안전지대)
+        final int AMMOBOX_COL = 1;
 
         // ===== 메인 루프 =====
         boolean running = true;
@@ -183,12 +198,58 @@ public class Main {
                             shopMode = false;
                             renderer.setShopMode(false);
                         }
+                    } else if (buildMode) {
+                        // 건설 모드: 구조물 설치 또는 취소
+                        switch (key) {
+                            case BUILD_SPIKE:
+                                if (gameMap.getSupply().spend(Spike.getCost())) {
+                                    int totalStructures = gameMap.getSpikes().size() + gameMap.getLandmines().size();
+                                    int spikeCol = Barricade.COLUMN + STRUCTURE_SPACING * (totalStructures + 1);
+                                    gameMap.addSpike(new Spike(spikeCol));
+                                    gameMap.addLog(">> 가시덫 설치 (열 " + spikeCol + ")");
+                                }
+                                buildMode = false;
+                                renderer.setBuildMode(false);
+                                break;
+                            case BUILD_LANDMINE:
+                                if (gameMap.getSupply().spend(Landmine.getCost())) {
+                                    int totalStructures = gameMap.getSpikes().size() + gameMap.getLandmines().size();
+                                    int mineCol = Barricade.COLUMN + STRUCTURE_SPACING * (totalStructures + 1);
+                                    gameMap.addLandmine(new Landmine(mineCol));
+                                    gameMap.addLog(">> 지뢰 설치 (열 " + mineCol + ")");
+                                }
+                                buildMode = false;
+                                renderer.setBuildMode(false);
+                                break;
+                            case BUILD_AMMOBOX:
+                                if (gameMap.getSupply().spend(AmmoBox.getCost())) {
+                                    int ammoCol = AMMOBOX_COL + gameMap.getAmmoBoxes().size() * 2;
+                                    gameMap.addAmmoBox(new AmmoBox(ammoCol));
+                                    gameMap.addLog(">> 탄약 상자 설치");
+                                }
+                                buildMode = false;
+                                renderer.setBuildMode(false);
+                                break;
+                            case BUILD_UPGRADE:
+                                Barricade barricade = gameMap.getBarricade();
+                                if (barricade.canUpgrade() && gameMap.getSupply().spend(barricade.getUpgradeCost())) {
+                                    barricade.upgrade();
+                                    gameMap.addLog(">> 바리케이드 강화 Lv" + barricade.getLevel() + " (최대HP " + barricade.getMaxHp() + ")");
+                                }
+                                buildMode = false;
+                                renderer.setBuildMode(false);
+                                break;
+                            case Util.KEY_QUIT:
+                                buildMode = false;
+                                renderer.setBuildMode(false);
+                                break;
+                        }
                     } else {
                         // 일반 명령 키
                         final int KEY_REPAIR = '1';
                         final int KEY_WEAPON = '2';
                         final int KEY_HEAL = '3';
-                        final int KEY_SPIKE = '4';
+                        final int KEY_BUILD = '4';
                         final int KEY_SKIP_NIGHT = 'n';
 
                         // 명령 비용
@@ -196,8 +257,6 @@ public class Main {
                         final int REPAIR_AMOUNT = 30;
                         final int HEAL_COST = 10;
                         final int HEAL_AMOUNT = 30;
-                        final int SPIKE_COST = 20;
-                        final int SPIKE_SPACING = 5;
 
                         switch (key) {
                             case Util.KEY_QUIT:
@@ -235,11 +294,11 @@ public class Main {
                                     }
                                 }
                                 break;
-                            case KEY_SPIKE:
-                                if (!dayNightCycle.isNight() && gameMap.getSupply().spend(SPIKE_COST)) {
-                                    int spikeCol = Barricade.COLUMN + SPIKE_SPACING * (gameMap.getSpikes().size() + 1);
-                                    gameMap.addSpike(new Spike(spikeCol));
-                                    gameMap.addLog(">> 가시덫 설치 (열 " + spikeCol + ")");
+                            case KEY_BUILD:
+                                // 낮에만 건설 모드 진입
+                                if (!dayNightCycle.isNight()) {
+                                    buildMode = true;
+                                    renderer.setBuildMode(true);
                                 }
                                 break;
                         }

@@ -4,7 +4,6 @@ import entity.GameEntity;
 import entity.colonist.Colonist;
 import system.Position;
 import system.Util;
-import world.AmmoBox;
 import world.Barricade;
 import world.GameMap;
 import world.Spike;
@@ -172,19 +171,6 @@ public class Enemy extends GameEntity {
             }
         }
 
-        // 탄약 상자를 밟으면 탄약 상자에 피해
-        for (AmmoBox box : getGameMap().getAmmoBoxes()) {
-            if (box.isDestroyed()) {
-                continue;
-            }
-            if (box.getColumn() == col) {
-                box.takeDamage(box.getTrampleDamage());
-                if (box.isDestroyed()) {
-                    getGameMap().addLog("[파괴] 탄약 상자 파괴됨!");
-                }
-                break;
-            }
-        }
     }
 
     /// <summary>

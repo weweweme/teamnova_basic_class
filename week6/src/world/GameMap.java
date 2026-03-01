@@ -179,14 +179,12 @@ public class GameMap {
                 }
             }
         }
-        // 처치 보상: 적 1마리당 보급품 3
-        int killReward = 3;
-
         for (Enemy enemy : dead) {
             enemy.stopRunning();
             enemies.remove(enemy);
             enemiesKilled++;
-            supply.add(killReward);
+            // 처치 보상: 적 종류마다 다름 (일반 1~3, 강한 4~6, 보스 10~15)
+            supply.add(enemy.getType().getReward());
         }
     }
 
@@ -257,7 +255,11 @@ public class GameMap {
 
                 if (hitRow && hitCol) {
                     enemy.takeDamage(bullet.getDamage());
-                    effects.add(new HitEffect(bullet.getRow(), bullet.getCol(), System.currentTimeMillis()));
+
+                    // 무기별 명중 이펙트 (총알의 문자/색상 사용)
+                    char hitChar = bullet.getBulletChar() == '*' ? '!' : bullet.getBulletChar();
+                    int hitColor = bullet.getBulletColor() != 0 ? bullet.getBulletColor() : 33;
+                    effects.add(new HitEffect(bullet.getRow(), bullet.getCol(), System.currentTimeMillis(), hitChar, hitColor));
 
                     // 적 처치 시 로그
                     if (!enemy.isLiving()) {
@@ -324,10 +326,22 @@ public class GameMap {
         /// </summary>
         private final long createdTime;
 
-        public HitEffect(int row, int col, long createdTime) {
+        /// <summary>
+        /// 이펙트 표시 문자 (무기마다 다름)
+        /// </summary>
+        private final char effectChar;
+
+        /// <summary>
+        /// 이펙트 ANSI 색상 코드 (무기마다 다름)
+        /// </summary>
+        private final int effectColor;
+
+        public HitEffect(int row, int col, long createdTime, char effectChar, int effectColor) {
             this.row = row;
             this.col = col;
             this.createdTime = createdTime;
+            this.effectChar = effectChar;
+            this.effectColor = effectColor;
         }
 
         /// <summary>
@@ -349,6 +363,20 @@ public class GameMap {
         /// </summary>
         public long getCreatedTime() {
             return createdTime;
+        }
+
+        /// <summary>
+        /// 이펙트 표시 문자 반환
+        /// </summary>
+        public char getEffectChar() {
+            return effectChar;
+        }
+
+        /// <summary>
+        /// 이펙트 색상 코드 반환
+        /// </summary>
+        public int getEffectColor() {
+            return effectColor;
         }
     }
 }

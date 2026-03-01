@@ -338,8 +338,8 @@ public class Renderer {
             int col = effect.getCol();
 
             if (row >= 0 && row < GameMap.HEIGHT && col >= 0 && col < GameMap.WIDTH) {
-                buffer[row][col] = '!';
-                colorBuffer[row][col] = 33;
+                buffer[row][col] = effect.getEffectChar();
+                colorBuffer[row][col] = effect.getEffectColor();
             }
         }
     }

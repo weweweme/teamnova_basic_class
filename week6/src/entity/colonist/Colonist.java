@@ -1,7 +1,8 @@
-package entity;
+package entity.colonist;
 
-import core.Position;
-import core.Util;
+import entity.GameEntity;
+import system.Position;
+import system.Util;
 import world.GameMap;
 
 /// <summary>

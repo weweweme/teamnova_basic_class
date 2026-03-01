@@ -1,4 +1,4 @@
-package entity;
+package entity.colonist;
 
 /// <summary>
 /// 정착민의 행동 상태를 나타내는 추상 클래스

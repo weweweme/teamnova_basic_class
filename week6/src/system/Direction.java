@@ -1,4 +1,4 @@
-package core;
+package system;
 
 /// <summary>
 /// 8방향 이동을 나타내는 열거형

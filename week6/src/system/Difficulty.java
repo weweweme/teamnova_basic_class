@@ -1,4 +1,4 @@
-package core;
+package system;
 
 /// <summary>
 /// 게임 난이도 종류

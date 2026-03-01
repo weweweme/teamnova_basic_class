@@ -1,7 +1,7 @@
-package entity;
+package entity.colonist;
 
-import core.Direction;
-import core.Util;
+import system.Direction;
+import system.Util;
 import world.Barricade;
 import world.GameMap;
 

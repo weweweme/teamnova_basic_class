@@ -1,6 +1,9 @@
-package entity;
+package entity.colonist;
 
-import core.Position;
+import entity.Bullet;
+import entity.enemy.Enemy;
+import entity.enemy.EnemyType;
+import system.Position;
 import world.Barricade;
 import world.GameMap;
 

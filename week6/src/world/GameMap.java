@@ -1,9 +1,9 @@
 package world;
 
 import entity.Bullet;
-import entity.Colonist;
-import entity.Enemy;
-import entity.EnemyType;
+import entity.colonist.Colonist;
+import entity.enemy.Enemy;
+import entity.enemy.EnemyType;
 
 import java.util.ArrayList;
 

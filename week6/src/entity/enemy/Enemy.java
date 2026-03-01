@@ -1,7 +1,9 @@
-package entity;
+package entity.enemy;
 
-import core.Position;
-import core.Util;
+import entity.GameEntity;
+import entity.colonist.Colonist;
+import system.Position;
+import system.Util;
 import world.Barricade;
 import world.GameMap;
 import world.Spike;

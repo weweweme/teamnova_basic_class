@@ -1,4 +1,4 @@
-package core;
+package system;
 
 /// <summary>
 /// 맵 위의 행/열 좌표를 담는 객체

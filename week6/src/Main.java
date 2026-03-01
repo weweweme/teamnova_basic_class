@@ -1,14 +1,14 @@
-import entity.Colonist;
-import entity.ColonistType;
+import entity.colonist.Colonist;
+import entity.colonist.ColonistType;
 import world.Barricade;
 import world.DayNightCycle;
 import world.GameMap;
 import world.Spike;
-import core.Difficulty;
-import core.DifficultySettings;
-import core.Position;
-import core.Renderer;
-import core.Util;
+import system.Difficulty;
+import system.DifficultySettings;
+import system.Position;
+import system.Renderer;
+import system.Util;
 
 /// <summary>
 /// 게임 진입점

@@ -1,9 +1,9 @@
-package core;
+package system;
 
 import entity.Bullet;
-import entity.Colonist;
-import entity.ColonistType;
-import entity.Enemy;
+import entity.colonist.Colonist;
+import entity.colonist.ColonistType;
+import entity.enemy.Enemy;
 import world.Barricade;
 import world.DayNightCycle;
 import world.GameMap;

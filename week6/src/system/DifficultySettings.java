@@ -1,4 +1,4 @@
-package core;
+package system;
 
 /// <summary>
 /// 난이도에 따른 게임 밸런스 수치를 관리하는 클래스

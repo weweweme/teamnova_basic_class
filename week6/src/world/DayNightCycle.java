@@ -1,13 +1,13 @@
 package world;
 
-import core.DifficultySettings;
-import core.Position;
-import core.Util;
-import entity.Colonist;
-import entity.Enemy;
-import entity.EnemyType;
-import entity.ShootingState;
-import entity.WanderingState;
+import system.DifficultySettings;
+import system.Position;
+import system.Util;
+import entity.colonist.Colonist;
+import entity.enemy.Enemy;
+import entity.enemy.EnemyType;
+import entity.colonist.ShootingState;
+import entity.colonist.WanderingState;
 
 import java.util.ArrayList;
 import java.util.Collections;

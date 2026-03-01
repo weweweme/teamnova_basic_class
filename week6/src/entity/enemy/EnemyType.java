@@ -1,4 +1,4 @@
-package entity;
+package entity.enemy;
 
 /// <summary>
 /// 적의 종류를 정의하는 열거형

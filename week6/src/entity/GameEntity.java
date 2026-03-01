@@ -1,6 +1,6 @@
 package entity;
 
-import core.Position;
+import system.Position;
 import world.GameMap;
 
 /// <summary>

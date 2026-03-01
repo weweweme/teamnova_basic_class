@@ -8,25 +8,80 @@ import game.GameMap;
 
 /// <summary>
 /// 무기 추상 클래스
-/// 모든 무기의 공통 인터페이스를 정의
-/// 서브클래스가 발사 패턴, 데미지, 총알 외형을 결정
+/// 공통 속성(이름, 비용, 발사 간격, 총알 외형)은 생성자로 받고
+/// 발사 패턴(fire)만 서브클래스에서 구현
 /// </summary>
 public abstract class Gun {
 
     /// <summary>
-    /// 무기 이름 반환 (패널 표시용)
+    /// 무기 이름 (패널 표시용)
     /// </summary>
-    public abstract String getName();
+    private final String name;
 
     /// <summary>
-    /// 구매 비용 반환 (0이면 기본 무기)
+    /// 구매 비용 (0이면 기본 무기)
     /// </summary>
-    public abstract int getCost();
+    private final int cost;
 
     /// <summary>
-    /// 발사 간격 반환 (틱 수, 1틱 = 500ms)
+    /// 발사 간격 (틱 수, 1틱 = 500ms)
     /// </summary>
-    public abstract int getFireInterval();
+    private final int fireInterval;
+
+    /// <summary>
+    /// 총알 표시 문자 (렌더링용)
+    /// </summary>
+    private final char bulletChar;
+
+    /// <summary>
+    /// 총알 ANSI 색상 코드 (0이면 기본색)
+    /// </summary>
+    private final int bulletColor;
+
+    /// <summary>
+    /// 총알 1발당 피해량
+    /// </summary>
+    private final int damage;
+
+    /// <summary>
+    /// 총알 이동 속도
+    /// </summary>
+    private final int bulletSpeed;
+
+    /// <summary>
+    /// 공통 속성을 지정하여 무기 생성
+    /// </summary>
+    protected Gun(String name, int cost, int fireInterval, char bulletChar, int bulletColor,
+                  int damage, int bulletSpeed) {
+        this.name = name;
+        this.cost = cost;
+        this.fireInterval = fireInterval;
+        this.bulletChar = bulletChar;
+        this.bulletColor = bulletColor;
+        this.damage = damage;
+        this.bulletSpeed = bulletSpeed;
+    }
+
+    /// <summary>
+    /// 무기 이름 반환
+    /// </summary>
+    public String getName() {
+        return name;
+    }
+
+    /// <summary>
+    /// 구매 비용 반환
+    /// </summary>
+    public int getCost() {
+        return cost;
+    }
+
+    /// <summary>
+    /// 발사 간격 반환
+    /// </summary>
+    public int getFireInterval() {
+        return fireInterval;
+    }
 
     /// <summary>
     /// 총알을 생성하여 맵에 추가
@@ -35,21 +90,39 @@ public abstract class Gun {
     public abstract void fire(Colonist colonist, Enemy target, GameMap gameMap);
 
     /// <summary>
-    /// 총알 표시 문자 반환 (렌더링용)
+    /// 총알 표시 문자 반환
     /// </summary>
-    public abstract char getBulletChar();
+    public char getBulletChar() {
+        return bulletChar;
+    }
 
     /// <summary>
-    /// 총알 ANSI 색상 코드 반환 (0이면 기본색)
+    /// 총알 ANSI 색상 코드 반환
     /// </summary>
-    public abstract int getBulletColor();
+    public int getBulletColor() {
+        return bulletColor;
+    }
+
+    /// <summary>
+    /// 피해량 반환
+    /// </summary>
+    public int getDamage() {
+        return damage;
+    }
+
+    /// <summary>
+    /// 총알 이동 속도 반환
+    /// </summary>
+    public int getBulletSpeed() {
+        return bulletSpeed;
+    }
 
     /// <summary>
     /// 공통 발사 로직: 적 중앙 조준 → 크리티컬 → 넉백 → 총알 생성
     /// aimRowOffset으로 조준점을 상하로 이동 가능 (샷건 산탄용)
     /// </summary>
     protected void fireBullet(Colonist colonist, Enemy target, GameMap gameMap,
-                              int damage, int speed, boolean piercing, int aimRowOffset) {
+                              boolean piercing, int aimRowOffset) {
         int bulletRow = colonist.getPosition().getRow();
         int bulletCol = Barricade.COLUMN + 2;
 
@@ -62,7 +135,7 @@ public abstract class Gun {
         int kb = getKnockback(colonist);
         Bullet bullet = new Bullet(
             bulletRow, bulletCol, aimRow, aimCol, finalDamage,
-            colonist.getLabel(), speed, getBulletChar(), getBulletColor(), piercing, kb
+            colonist.getLabel(), bulletSpeed, getBulletChar(), getBulletColor(), piercing, kb
         );
         gameMap.addBullet(bullet);
     }

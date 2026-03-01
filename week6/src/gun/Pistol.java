@@ -11,29 +11,8 @@ import game.GameMap;
 /// </summary>
 public class Pistol extends Gun {
 
-    /// <summary>
-    /// 발사 간격 (틱 수)
-    /// </summary>
-    private static final int FIRE_INTERVAL = 4;
-
-    /// <summary>
-    /// 기본 피해량
-    /// </summary>
-    private static final int DAMAGE = 5;
-
-    @Override
-    public String getName() {
-        return "피스톨";
-    }
-
-    @Override
-    public int getCost() {
-        return 0;
-    }
-
-    @Override
-    public int getFireInterval() {
-        return FIRE_INTERVAL;
+    public Pistol() {
+        super("피스톨", 0, 4, '*', 0, 5, 3);
     }
 
     /// <summary>
@@ -41,17 +20,6 @@ public class Pistol extends Gun {
     /// </summary>
     @Override
     public void fire(Colonist colonist, Enemy target, GameMap gameMap) {
-        final int BULLET_SPEED = 3;
-        fireBullet(colonist, target, gameMap, DAMAGE, BULLET_SPEED, false, 0);
-    }
-
-    @Override
-    public char getBulletChar() {
-        return '*';
-    }
-
-    @Override
-    public int getBulletColor() {
-        return 0;
+        fireBullet(colonist, target, gameMap, false, 0);
     }
 }

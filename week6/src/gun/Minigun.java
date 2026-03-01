@@ -11,34 +11,8 @@ import game.GameMap;
 /// </summary>
 public class Minigun extends Gun {
 
-    /// <summary>
-    /// 발사 간격 (틱 수, 매 틱마다 발사)
-    /// </summary>
-    private static final int FIRE_INTERVAL = 1;
-
-    /// <summary>
-    /// 기본 피해량
-    /// </summary>
-    private static final int DAMAGE = 2;
-
-    /// <summary>
-    /// 총알 이동 속도
-    /// </summary>
-    private static final int BULLET_SPEED = 4;
-
-    @Override
-    public String getName() {
-        return "미니건";
-    }
-
-    @Override
-    public int getCost() {
-        return 30;
-    }
-
-    @Override
-    public int getFireInterval() {
-        return FIRE_INTERVAL;
+    public Minigun() {
+        super("미니건", 30, 1, '.', 0, 2, 4);
     }
 
     /// <summary>
@@ -46,16 +20,6 @@ public class Minigun extends Gun {
     /// </summary>
     @Override
     public void fire(Colonist colonist, Enemy target, GameMap gameMap) {
-        fireBullet(colonist, target, gameMap, DAMAGE, BULLET_SPEED, false, 0);
-    }
-
-    @Override
-    public char getBulletChar() {
-        return '.';
-    }
-
-    @Override
-    public int getBulletColor() {
-        return 0;
+        fireBullet(colonist, target, gameMap, false, 0);
     }
 }

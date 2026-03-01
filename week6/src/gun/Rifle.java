@@ -11,27 +11,8 @@ import game.GameMap;
 /// </summary>
 public class Rifle extends Gun {
 
-    /// <summary>
-    /// 총알 ANSI 색상 (시안)
-    /// </summary>
-    private static final int BULLET_COLOR = 36;
-
-    @Override
-    public String getName() {
-        return "라이플";
-    }
-
-    @Override
-    public int getCost() {
-        return 20;
-    }
-
-    @Override
-    public int getFireInterval() {
-        /// <summary>
-        /// 발사 간격 (틱 수)
-        /// </summary>
-        return 5;
+    public Rifle() {
+        super("라이플", 20, 5, '-', 36, 8, 6);
     }
 
     /// <summary>
@@ -40,18 +21,6 @@ public class Rifle extends Gun {
     /// </summary>
     @Override
     public void fire(Colonist colonist, Enemy target, GameMap gameMap) {
-        final int DAMAGE = 8;
-        final int BULLET_SPEED = 6;
-        fireBullet(colonist, target, gameMap, DAMAGE, BULLET_SPEED, true, 0);
-    }
-
-    @Override
-    public char getBulletChar() {
-        return '-';
-    }
-
-    @Override
-    public int getBulletColor() {
-        return BULLET_COLOR;
+        fireBullet(colonist, target, gameMap, true, 0);
     }
 }

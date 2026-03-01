@@ -133,10 +133,29 @@ public class GameMap {
     private final HashMap<EnemyType, Integer> killsByType = new HashMap<>();
 
     /// <summary>
+    /// 무적 모드 여부 (치트, 정착민 피해 무효화)
+    /// </summary>
+    private boolean invincible;
+
+    /// <summary>
     /// 맵 생성
     /// </summary>
     public GameMap() {
         this.enemiesKilled = 0;
+    }
+
+    /// <summary>
+    /// 무적 모드 여부 반환
+    /// </summary>
+    public boolean isInvincible() {
+        return invincible;
+    }
+
+    /// <summary>
+    /// 무적 모드 설정
+    /// </summary>
+    public void setInvincible(boolean invincible) {
+        this.invincible = invincible;
     }
 
     /// <summary>

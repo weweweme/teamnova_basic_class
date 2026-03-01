@@ -98,9 +98,13 @@ public class Colonist extends GameEntity {
 
     /// <summary>
     /// 피해를 받아 체력 감소, 사망 시 시각 기록
+    /// 무적 모드일 때는 피해 무효
     /// </summary>
     @Override
     public void takeDamage(int damage) {
+        if (getGameMap().isInvincible()) {
+            return;
+        }
         super.takeDamage(damage);
 
         if (getHp() == 0 && deathTime == 0) {

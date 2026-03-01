@@ -8,6 +8,7 @@ import gun.Pistol;
 import gun.Shotgun;
 import gun.Rifle;
 import gun.Minigun;
+import entity.enemy.Enemy;
 import structure.AmmoBox;
 import structure.Barricade;
 import structure.Landmine;
@@ -100,6 +101,11 @@ public class InputHandler {
     private boolean recruitMode;
 
     /// <summary>
+    /// 치트 모드 여부
+    /// </summary>
+    private boolean cheatMode;
+
+    /// <summary>
     /// 모집 이름 카운터
     /// </summary>
     private int recruitCount;
@@ -145,11 +151,20 @@ public class InputHandler {
     }
 
     /// <summary>
+    /// 치트 모드 여부 반환
+    /// </summary>
+    public boolean isCheatMode() {
+        return cheatMode;
+    }
+
+    /// <summary>
     /// 키 입력에 따라 게임 명령 실행
     /// </summary>
     public void handleInput(int key) {
         if (renderer.isVictory() || renderer.isGameOver()) {
             handleEndScreen(key);
+        } else if (cheatMode) {
+            handleCheatMode(key);
         } else if (shopMode) {
             handleShopMode(key);
         } else if (buildMode) {
@@ -326,6 +341,7 @@ public class InputHandler {
         final int KEY_BUILD = '4';
         final int KEY_RECRUIT = '5';
         final int KEY_SKIP_NIGHT = 'n';
+        final int KEY_CHEAT = '0';
 
         switch (key) {
             case Util.KEY_QUIT:
@@ -374,6 +390,78 @@ public class InputHandler {
                 if (canRecruit) {
                     recruitMode = true;
                 }
+                break;
+            case KEY_CHEAT:
+                cheatMode = true;
+                break;
+        }
+    }
+
+    /// <summary>
+    /// 치트 모드: 치트 선택 또는 취소
+    /// </summary>
+    private void handleCheatMode(int key) {
+        final int KEY_SUPPLY = '1';
+        final int KEY_HEAL_ALL = '2';
+        final int KEY_KILL_ALL = '3';
+        final int KEY_INVINCIBLE = '4';
+        final int KEY_MAX_BARRICADE = '5';
+        final int KEY_ALL_MINIGUN = '6';
+
+        switch (key) {
+            case KEY_SUPPLY:
+                gameMap.getSupply().add(999);
+                gameMap.addLog(">> [치트] 보급품 +999");
+                cheatMode = false;
+                break;
+            case KEY_HEAL_ALL:
+                for (Colonist colonist : gameMap.getColonists()) {
+                    if (colonist.isLiving()) {
+                        colonist.heal(9999);
+                    }
+                }
+                gameMap.getBarricade().repair(9999);
+                gameMap.addLog(">> [치트] 전원 회복 완료");
+                cheatMode = false;
+                break;
+            case KEY_KILL_ALL:
+                for (Enemy enemy : gameMap.getEnemies()) {
+                    if (enemy.isLiving()) {
+                        enemy.takeDamage(99999);
+                    }
+                }
+                dayNightCycle.clearPendingSpawns();
+                gameMap.addLog(">> [치트] 적 전멸");
+                cheatMode = false;
+                break;
+            case KEY_INVINCIBLE:
+                boolean nowInvincible = !gameMap.isInvincible();
+                gameMap.setInvincible(nowInvincible);
+                gameMap.getBarricade().setInvincible(nowInvincible);
+                String status = nowInvincible ? "ON" : "OFF";
+                gameMap.addLog(">> [치트] 무적 모드 " + status);
+                cheatMode = false;
+                break;
+            case KEY_MAX_BARRICADE:
+                Barricade barricade = gameMap.getBarricade();
+                while (barricade.canUpgrade()) {
+                    barricade.upgrade();
+                }
+                barricade.repair(9999);
+                gameMap.addLog(">> [치트] 바리케이드 MAX (Lv" + barricade.getLevel() + ")");
+                cheatMode = false;
+                break;
+            case KEY_ALL_MINIGUN:
+                for (Colonist colonist : gameMap.getColonists()) {
+                    if (colonist.isLiving()) {
+                        colonist.setGun(new Minigun());
+                    }
+                }
+                gameMap.addLog(">> [치트] 전원 미니건 장착");
+                cheatMode = false;
+                break;
+            case Util.KEY_QUIT:
+                cheatMode = false;
                 break;
         }
     }

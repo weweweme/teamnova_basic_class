@@ -53,6 +53,11 @@ public class Barricade extends Structure {
     private long lastRepairTime;
 
     /// <summary>
+    /// 무적 모드 여부 (치트, 피해 무효화)
+    /// </summary>
+    private boolean invincible;
+
+    /// <summary>
     /// 최대 내구도로 바리케이드 생성
     /// </summary>
     public Barricade() {
@@ -98,10 +103,21 @@ public class Barricade extends Structure {
     }
 
     /// <summary>
+    /// 무적 모드 설정 (치트용)
+    /// </summary>
+    public void setInvincible(boolean invincible) {
+        this.invincible = invincible;
+    }
+
+    /// <summary>
     /// 피해를 받아 내구도 감소, 피격 시각 기록
+    /// 무적 모드일 때는 피해 무효
     /// </summary>
     @Override
     public synchronized void takeDamage(int damage) {
+        if (invincible) {
+            return;
+        }
         super.takeDamage(damage);
         lastHitTime = System.currentTimeMillis();
     }

@@ -383,6 +383,13 @@ public class DayNightCycle extends Thread {
     }
 
     /// <summary>
+    /// 대기 중인 적 목록 전부 제거 (치트용)
+    /// </summary>
+    public void clearPendingSpawns() {
+        pendingSpawns.clear();
+    }
+
+    /// <summary>
     /// 선택된 난이도 이름 반환 (패널 표시용)
     /// </summary>
     public String getDifficultyName() {

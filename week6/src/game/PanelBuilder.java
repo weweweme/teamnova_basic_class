@@ -178,6 +178,17 @@ public class PanelBuilder {
                 }
 
                 panelLines.add(" q: 종료");
+            } else if (inputHandler.isCheatMode()) {
+                // 치트 모드
+                panelLines.add(" [치트]");
+                panelLines.add(" 1: 보급품 +999");
+                panelLines.add(" 2: 전원 회복");
+                panelLines.add(" 3: 적 전멸");
+                String invStatus = gameMap.isInvincible() ? "ON" : "OFF";
+                panelLines.add(" 4: 무적 (" + invStatus + ")");
+                panelLines.add(" 5: 바리케이드 MAX");
+                panelLines.add(" 6: 전원 미니건");
+                panelLines.add(" q: 닫기");
             } else if (inputHandler.isShopMode()) {
                 // 무기 상점 모드
                 panelLines.add(" [무기 상점]");

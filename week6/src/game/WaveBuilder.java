@@ -11,9 +11,30 @@ import java.util.ArrayList;
 public class WaveBuilder {
 
     /// <summary>
+    /// 보스급 적 후보 목록
+    /// </summary>
+    private static final EnemyType[] BOSSES = {EnemyType.DRAGON, EnemyType.GOLEM};
+
+    /// <summary>
+    /// 강한 적 후보 목록
+    /// </summary>
+    private static final EnemyType[] STRONGS = {EnemyType.BEAR, EnemyType.BANDIT, EnemyType.SCORPION, EnemyType.ORC};
+
+    /// <summary>
+    /// 일반 적 후보 목록
+    /// </summary>
+    private static final EnemyType[] NORMALS = {EnemyType.WOLF, EnemyType.SPIDER, EnemyType.SKELETON,
+                                                EnemyType.ZOMBIE, EnemyType.RAT, EnemyType.SLIME};
+
+    /// <summary>
     /// 난이도 설정 (적 수 배율 적용용)
     /// </summary>
     private final DifficultySettings settings;
+
+    /// <summary>
+    /// 웨이브 적 목록 (매 웨이브마다 clear 후 재사용)
+    /// </summary>
+    private final ArrayList<EnemyType> wave = new ArrayList<>();
 
     /// <summary>
     /// 지정한 난이도로 웨이브 빌더 생성
@@ -28,47 +49,48 @@ public class WaveBuilder {
     /// 1~5일차는 고정 웨이브, 6일차부터 무작위 구성, 5일마다 보스
     /// </summary>
     public ArrayList<EnemyType> buildWave(int day, boolean stormActive) {
+        wave.clear();
+
         if (day <= 5) {
-            return buildFixedWave(day);
+            buildFixedWave(day);
+        } else {
+            buildRandomWave(day, stormActive);
         }
-        return buildRandomWave(day, stormActive);
+
+        return wave;
     }
 
     /// <summary>
     /// 1~5일차 고정 웨이브 구성
     /// </summary>
-    private ArrayList<EnemyType> buildFixedWave(int day) {
-        ArrayList<EnemyType> wave = new ArrayList<>();
-
+    private void buildFixedWave(int day) {
         switch (day) {
             case 1:
-                addToWave(wave, EnemyType.WOLF, 3);
+                addToWave(EnemyType.WOLF, 3);
                 break;
             case 2:
-                addToWave(wave, EnemyType.WOLF, 4);
-                addToWave(wave, EnemyType.SPIDER, 2);
+                addToWave(EnemyType.WOLF, 4);
+                addToWave(EnemyType.SPIDER, 2);
                 break;
             case 3:
-                addToWave(wave, EnemyType.BEAR, 1);
-                addToWave(wave, EnemyType.WOLF, 3);
-                addToWave(wave, EnemyType.SKELETON, 3);
+                addToWave(EnemyType.BEAR, 1);
+                addToWave(EnemyType.WOLF, 3);
+                addToWave(EnemyType.SKELETON, 3);
                 break;
             case 4:
-                addToWave(wave, EnemyType.BEAR, 1);
-                addToWave(wave, EnemyType.SCORPION, 2);
-                addToWave(wave, EnemyType.ZOMBIE, 2);
-                addToWave(wave, EnemyType.WOLF, 2);
+                addToWave(EnemyType.BEAR, 1);
+                addToWave(EnemyType.SCORPION, 2);
+                addToWave(EnemyType.ZOMBIE, 2);
+                addToWave(EnemyType.WOLF, 2);
                 break;
             case 5:
-                addToWave(wave, EnemyType.DRAGON, 1);
-                addToWave(wave, EnemyType.ORC, 1);
-                addToWave(wave, EnemyType.BANDIT, 2);
-                addToWave(wave, EnemyType.SPIDER, 2);
-                addToWave(wave, EnemyType.RAT, 2);
+                addToWave(EnemyType.DRAGON, 1);
+                addToWave(EnemyType.ORC, 1);
+                addToWave(EnemyType.BANDIT, 2);
+                addToWave(EnemyType.SPIDER, 2);
+                addToWave(EnemyType.RAT, 2);
                 break;
         }
-
-        return wave;
     }
 
     /// <summary>
@@ -76,46 +98,38 @@ public class WaveBuilder {
     /// 보스 → 강한 → 일반 순서로 추가 (큰 것부터)
     /// 폭풍 경고 시 일반 몬스터 50% 추가
     /// </summary>
-    private ArrayList<EnemyType> buildRandomWave(int day, boolean stormActive) {
-        ArrayList<EnemyType> wave = new ArrayList<>();
-
+    private void buildRandomWave(int day, boolean stormActive) {
         // 5일마다 보스 등장
         boolean isBossDay = day % 5 == 0;
         if (isBossDay) {
-            EnemyType[] bosses = {EnemyType.DRAGON, EnemyType.GOLEM};
-            int index = (int) (Math.random() * bosses.length);
-            wave.add(bosses[index]);
+            int index = (int) (Math.random() * BOSSES.length);
+            wave.add(BOSSES[index]);
         }
 
         // 강한 몬스터 (일차 / 2 마리, 난이도 배율 적용)
-        EnemyType[] strongs = {EnemyType.BEAR, EnemyType.BANDIT, EnemyType.SCORPION, EnemyType.ORC};
         int strongCount = settings.applyEnemyCount(day / 2);
         for (int i = 0; i < strongCount; i++) {
-            int index = (int) (Math.random() * strongs.length);
-            wave.add(strongs[index]);
+            int index = (int) (Math.random() * STRONGS.length);
+            wave.add(STRONGS[index]);
         }
 
         // 일반 몬스터 (3 + 일차 마리, 난이도 배율 적용)
         // 폭풍 경고 시 일반 몬스터 50% 추가
-        EnemyType[] normals = {EnemyType.WOLF, EnemyType.SPIDER, EnemyType.SKELETON,
-                               EnemyType.ZOMBIE, EnemyType.RAT, EnemyType.SLIME};
         int baseNormalCount = 3 + day;
         if (stormActive) {
             baseNormalCount = baseNormalCount * 3 / 2;
         }
         int normalCount = settings.applyEnemyCount(baseNormalCount);
         for (int i = 0; i < normalCount; i++) {
-            int index = (int) (Math.random() * normals.length);
-            wave.add(normals[index]);
+            int index = (int) (Math.random() * NORMALS.length);
+            wave.add(NORMALS[index]);
         }
-
-        return wave;
     }
 
     /// <summary>
     /// 웨이브 목록에 지정한 적을 여러 마리 추가
     /// </summary>
-    private void addToWave(ArrayList<EnemyType> wave, EnemyType type, int count) {
+    private void addToWave(EnemyType type, int count) {
         for (int i = 0; i < count; i++) {
             wave.add(type);
         }

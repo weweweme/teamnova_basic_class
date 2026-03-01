@@ -10,12 +10,13 @@ public class Spike extends Structure {
     /// <summary>
     /// 최대 내구도 (적이 밟을 때마다 1씩 감소)
     /// </summary>
+    // super() 호출에 필요하여 static 유지
     private static final int MAX_HP = 10;
 
     /// <summary>
     /// 적이 밟을 때 주는 피해량
     /// </summary>
-    private static final int SPIKE_DAMAGE = 3;
+    private final int SPIKE_DAMAGE = 3;
 
     /// <summary>
     /// 설치 비용

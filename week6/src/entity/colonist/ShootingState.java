@@ -15,7 +15,7 @@ public class ShootingState extends ColonistState {
     /// <summary>
     /// 사격 위치 (바리케이드 바로 왼쪽, 블록이 겹치지 않는 열)
     /// </summary>
-    private static final int SHOOT_COL = Barricade.COLUMN - 3;
+    private final int SHOOT_COL = Barricade.COLUMN - 3;
 
     /// <summary>
     /// 즉시 배치 여부 (밤 건너뛰기 시 true)

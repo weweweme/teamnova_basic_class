@@ -23,17 +23,17 @@ public class Renderer {
     /// <summary>
     /// 우측 패널 구분선
     /// </summary>
-    private static final String PANEL_SEPARATOR = "|||";
+    private final String PANEL_SEPARATOR = "|||";
 
     /// <summary>
     /// 우측 패널 가로 크기 (구분선 제외)
     /// </summary>
-    private static final int PANEL_WIDTH = 22;
+    private final int PANEL_WIDTH = 22;
 
     /// <summary>
     /// 하단 로그 표시 줄 수
     /// </summary>
-    private static final int LOG_LINES = 8;
+    private final int LOG_LINES = 8;
 
     /// <summary>
     /// 화면 버퍼 [행][열], 매 프레임마다 새로 채움

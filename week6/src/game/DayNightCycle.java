@@ -24,12 +24,12 @@ public class DayNightCycle extends Thread {
     /// <summary>
     /// 낮 지속 시간 (밀리초)
     /// </summary>
-    private static final int DAY_DURATION = 30000;
+    private final int DAY_DURATION = 30000;
 
     /// <summary>
     /// 틱 간격 (밀리초)
     /// </summary>
-    private static final int TICK_DELAY = 500;
+    private final int TICK_DELAY = 500;
 
     /// <summary>
     /// 매일 자동 지급되는 보급품 양
@@ -37,22 +37,22 @@ public class DayNightCycle extends Thread {
     /// <summary>
     /// 밤 전 사격 배치 시작 시점 (밀리초, 밤까지 남은 시간)
     /// </summary>
-    private static final int PREPARE_DURATION = 5000;
+    private final int PREPARE_DURATION = 5000;
 
     /// <summary>
     /// 적 시간차 스폰 최소 간격 (밀리초)
     /// </summary>
-    private static final int MIN_SPAWN_DELAY = 300;
+    private final int MIN_SPAWN_DELAY = 300;
 
     /// <summary>
     /// 적 시간차 스폰 최대 간격 (밀리초)
     /// </summary>
-    private static final int MAX_SPAWN_DELAY = 3000;
+    private final int MAX_SPAWN_DELAY = 3000;
 
     /// <summary>
     /// 매일 자동 지급되는 보급품 양
     /// </summary>
-    private static final int DAILY_SUPPLY = 20;
+    private final int DAILY_SUPPLY = 20;
 
     /// <summary>
     /// 이 주기가 관리하는 맵 (적 스폰/제거용)
@@ -112,7 +112,7 @@ public class DayNightCycle extends Thread {
     /// <summary>
     /// 무피해 생존 보너스 보급품
     /// </summary>
-    private static final int PERFECT_BONUS = 10;
+    private final int PERFECT_BONUS = 10;
 
     /// <summary>
     /// 승리 조건 달성 여부

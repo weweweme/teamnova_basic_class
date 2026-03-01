@@ -14,22 +14,23 @@ public class Barricade extends Structure {
     /// <summary>
     /// 최대 내구도
     /// </summary>
+    // super() 호출에 필요하여 static 유지
     private static final int MAX_HP = 100;
 
     /// <summary>
     /// 최대 레벨
     /// </summary>
-    private static final int MAX_LEVEL = 3;
+    private final int MAX_LEVEL = 3;
 
     /// <summary>
     /// 레벨별 최대 내구도 (레벨 1=100, 2=150, 3=200)
     /// </summary>
-    private static final int[] LEVEL_HP = {100, 150, 200};
+    private final int[] LEVEL_HP = {100, 150, 200};
 
     /// <summary>
     /// 레벨별 업그레이드 비용 (레벨 2=15, 3=25)
     /// </summary>
-    private static final int[] UPGRADE_COST = {0, 15, 25};
+    private final int[] UPGRADE_COST = {0, 15, 25};
 
     /// <summary>
     /// 현재 바리케이드 레벨 (1부터 시작)
@@ -39,7 +40,7 @@ public class Barricade extends Structure {
     /// <summary>
     /// 피격 깜빡임 지속 시간 (밀리초)
     /// </summary>
-    private static final int FLASH_DURATION = 300;
+    private final int FLASH_DURATION = 300;
 
     /// <summary>
     /// 마지막으로 피격당한 시각 (0이면 아직 안 맞음)

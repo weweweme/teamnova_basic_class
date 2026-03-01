@@ -74,7 +74,7 @@ public class GameMap {
     /// <summary>
     /// 명중 이펙트의 지속 시간 (밀리초)
     /// </summary>
-    private static final int EFFECT_DURATION = 200;
+    private final int EFFECT_DURATION = 200;
 
     /// <summary>
     /// 화면에 표시 중인 이펙트 목록
@@ -84,7 +84,7 @@ public class GameMap {
     /// <summary>
     /// 최대 로그 보관 수
     /// </summary>
-    private static final int LOG_CAPACITY = 8;
+    private final int LOG_CAPACITY = 8;
 
     /// <summary>
     /// 게임 로그 메시지 목록 (오래된 순서)
@@ -94,7 +94,7 @@ public class GameMap {
     /// <summary>
     /// 사망 애니메이션 지속 시간 (밀리초)
     /// </summary>
-    private static final int DEATH_ANIM_DURATION = 800;
+    private final int DEATH_ANIM_DURATION = 800;
 
     /// <summary>
     /// 다음 정착민에게 부여할 알파벳 라벨 (A부터 순서대로)

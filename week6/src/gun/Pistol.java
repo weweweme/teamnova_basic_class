@@ -16,12 +16,12 @@ public class Pistol extends Gun {
     /// <summary>
     /// 발사 간격 (틱 수)
     /// </summary>
-    private static final int FIRE_INTERVAL = 4;
+    private final int FIRE_INTERVAL = 4;
 
     /// <summary>
     /// 기본 피해량
     /// </summary>
-    private static final int DAMAGE = 5;
+    private final int DAMAGE = 5;
 
     @Override
     public String getName() {
@@ -53,8 +53,10 @@ public class Pistol extends Gun {
 
         int finalDamage = applyCrit(DAMAGE, colonist);
         int kb = getKnockback(colonist);
-        Bullet bullet = new Bullet(bulletRow, bulletCol, aimRow, aimCol, finalDamage,
-                colonist.getLabel(), 3, '*', 0, false, kb);
+        Bullet bullet = new Bullet(
+            bulletRow, bulletCol, aimRow, aimCol, finalDamage,
+            colonist.getLabel(), 3, '*', 0, false, kb
+        );
         gameMap.addBullet(bullet);
     }
 

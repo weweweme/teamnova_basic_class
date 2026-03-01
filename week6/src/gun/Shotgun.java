@@ -16,22 +16,22 @@ public class Shotgun extends Gun {
     /// <summary>
     /// 발사 간격 (틱 수)
     /// </summary>
-    private static final int FIRE_INTERVAL = 6;
+    private final int FIRE_INTERVAL = 6;
 
     /// <summary>
     /// 총알 1발당 피해량
     /// </summary>
-    private static final int DAMAGE = 3;
+    private final int DAMAGE = 3;
 
     /// <summary>
     /// 부채꼴 조준 상하 오프셋 (적 중앙 기준 ± 행)
     /// </summary>
-    private static final int SPREAD = 2;
+    private final int SPREAD = 2;
 
     /// <summary>
     /// 총알 ANSI 색상 (노랑)
     /// </summary>
-    private static final int BULLET_COLOR = 33;
+    private final int BULLET_COLOR = 33;
 
     @Override
     public String getName() {

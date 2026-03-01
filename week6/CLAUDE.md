@@ -47,7 +47,7 @@ java -cp out Main
 ## 개발 규칙
 
 - **점진적 커밋**: 모든 커밋은 사용자 컨펌 후 진행 (커밋은 사용자가 직접, 메시지만 제공)
-- **상수는 해당 클래스에**: 상수 전용 클래스(Config 등)를 만들지 않고, 각 상수를 해당 개념을 소유하는 클래스에 둔다. static은 최대한 사용하지 않는다
+- **상수는 해당 클래스에**: 상수 전용 클래스(Config 등)를 만들지 않고, 각 상수를 해당 개념을 소유하는 클래스에 둔다
   ```java
   // 나쁜 예: 중앙 집중 상수 클래스
   public class Config {
@@ -60,8 +60,37 @@ java -cp out Main
       public static final int WIDTH = 60;
   }
   public class Colonist {
-      private static final int MAX_HP = 100;
+      private final int MAX_HP = 100;
   }
+  ```
+- **static은 최소한으로**: `static`은 반드시 필요한 경우에만 사용. 다음 기준을 따른다
+  - `public static final` 상수: **OK** — 외부에서 `ClassName.CONSTANT`로 접근하는 경우
+  - `private final` 상수: 인스턴스 메서드에서만 쓰이면 **`static` 불필요** — `private final`로 충분 (단, `super()` 호출에 전달하는 값은 Java 제약으로 `static` 필수)
+  - 가변 `static` 필드: **금지** — 해당 데이터를 관리하는 객체의 인스턴스 필드로 이동
+  - `static` 메서드: 유틸리티 헬퍼(Util)나 팩토리 메서드(Cutscene.intro())에만 사용. 그 외에는 인스턴스 메서드 사용
+  ```java
+  // 나쁜 예: 외부에서 안 쓰는데 static 붙임
+  private static final int SHOOT_COL = 12;
+
+  // 좋은 예: 인스턴스 상수로 충분
+  private final int SHOOT_COL = 12;
+
+  // 좋은 예: 외부에서 접근하므로 static 필요
+  public static final int WIDTH = 100;
+  ```
+- **열거형은 순수 타입 식별자**: 열거형(enum)에 데이터와 메서드를 넣지 않는다. 데이터는 별도의 Spec 데이터 클래스에, 조회는 Factory 클래스에서 담당
+  ```java
+  // 나쁜 예: 열거형이 데이터까지 보유
+  public enum EnemyType {
+      WOLF("늑대", 30, 3, 400, ...);
+      private final String name;
+      public String getName() { return name; }
+  }
+
+  // 좋은 예: 열거형은 타입만, 데이터는 분리
+  public enum EnemyType { WOLF, SPIDER, ... }
+  public class EnemySpec { /* 데이터 필드 */ }
+  public class EnemyFactory { /* Type → Spec 매핑 */ }
   ```
 - **주석은 현재 모듈만 설명**: 주석은 "이 코드가 무엇을 하는지"만 담백하게 기술. 설계 경위(왜 이렇게 바꿨는지), 패턴 이름(조합 패턴, 팩토리 패턴 등), 리팩토링 히스토리는 주석에 남기지 않는다
 - **주석 필수**: 변수명, 로직 전개, 타입 선택에 대한 근거를 주석으로 작성

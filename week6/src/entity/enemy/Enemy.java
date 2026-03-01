@@ -38,12 +38,12 @@ public class Enemy extends GameEntity {
     /// <summary>
     /// 재생 간격 (틱 수)
     /// </summary>
-    private static final int REGEN_INTERVAL = 3;
+    private final int REGEN_INTERVAL = 3;
 
     /// <summary>
     /// 돌진 특성이 발동하는 바리케이드까지의 거리 (열 수)
     /// </summary>
-    private static final int CHARGE_RANGE = 8;
+    private final int CHARGE_RANGE = 8;
 
     /// <summary>
     /// 지정한 종류, 속성, 위치, 맵으로 적 생성
@@ -57,12 +57,12 @@ public class Enemy extends GameEntity {
     /// <summary>
     /// 바리케이드 바로 오른쪽에서 멈추는 열
     /// </summary>
-    private static final int BARRICADE_STOP = Barricade.COLUMN + 2;
+    private final int BARRICADE_STOP = Barricade.COLUMN + 2;
 
     /// <summary>
     /// 정착민 블록 가로 크기 (공격 멈춤 거리 계산용)
     /// </summary>
-    private static final int COLONIST_BLOCK_WIDTH = 3;
+    private final int COLONIST_BLOCK_WIDTH = 3;
 
     /// <summary>
     /// 스레드 실행 루프

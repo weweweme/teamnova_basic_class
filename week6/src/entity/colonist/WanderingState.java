@@ -13,22 +13,22 @@ public class WanderingState extends ColonistState {
     /// <summary>
     /// 8방향 이동 방향 목록
     /// </summary>
-    private static final Direction[] DIRECTIONS = Direction.values();
+    private final Direction[] DIRECTIONS = Direction.values();
 
     /// <summary>
     /// 안전지대 오른쪽 끝 (정착민 블록이 바리케이드와 겹치지 않도록 여유 확보)
     /// </summary>
-    private static final int MAX_COL = Barricade.COLUMN - 4;
+    private final int MAX_COL = Barricade.COLUMN - 4;
 
     /// <summary>
     /// 자동 회복 간격 (틱 수, 6틱 = 3초마다 1 회복)
     /// </summary>
-    private static final int HEAL_INTERVAL = 6;
+    private final int HEAL_INTERVAL = 6;
 
     /// <summary>
     /// 자동 회복량
     /// </summary>
-    private static final int HEAL_AMOUNT = 1;
+    private final int HEAL_AMOUNT = 1;
 
     /// <summary>
     /// 회복 틱 카운터

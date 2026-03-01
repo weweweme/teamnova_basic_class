@@ -18,7 +18,7 @@ public class Colonist extends GameEntity {
     /// <summary>
     /// 행동 틱 간격 (밀리초)
     /// </summary>
-    private static final int TICK_DELAY = 500;
+    private final int TICK_DELAY = 500;
 
     /// <summary>
     /// 정착민 유형 (타입 식별용)

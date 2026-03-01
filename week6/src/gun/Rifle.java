@@ -14,24 +14,9 @@ import game.GameMap;
 public class Rifle extends Gun {
 
     /// <summary>
-    /// 발사 간격 (틱 수)
-    /// </summary>
-    private static final int FIRE_INTERVAL = 5;
-
-    /// <summary>
-    /// 기본 피해량
-    /// </summary>
-    private static final int DAMAGE = 8;
-
-    /// <summary>
-    /// 총알 이동 속도 (관통이라 빠르게 설정)
-    /// </summary>
-    private static final int BULLET_SPEED = 6;
-
-    /// <summary>
     /// 총알 ANSI 색상 (시안)
     /// </summary>
-    private static final int BULLET_COLOR = 36;
+    private final int BULLET_COLOR = 36;
 
     @Override
     public String getName() {
@@ -45,7 +30,10 @@ public class Rifle extends Gun {
 
     @Override
     public int getFireInterval() {
-        return FIRE_INTERVAL;
+        /// <summary>
+        /// 발사 간격 (틱 수)
+        /// </summary>
+        return 5;
     }
 
     /// <summary>
@@ -62,8 +50,11 @@ public class Rifle extends Gun {
         int aimRow = target.getPosition().getRow() + block.length / 2;
         int aimCol = target.getPosition().getCol() + block[0].length() / 2;
 
+        final int DAMAGE = 8;
         int finalDamage = applyCrit(DAMAGE, colonist);
         int kb = getKnockback(colonist);
+
+        final int BULLET_SPEED = 6;
         Bullet bullet = new Bullet(
             bulletRow, bulletCol, aimRow, aimCol, finalDamage,
             colonist.getLabel(), BULLET_SPEED, getBulletChar(), BULLET_COLOR, true, kb

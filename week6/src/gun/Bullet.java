@@ -71,21 +71,6 @@ public class Bullet {
     private int col;
 
     /// <summary>
-    /// 기본 총알 생성 (피스톨용: 속도 3, 문자 *, 기본색, 비관통, 넉백 없음)
-    /// </summary>
-    public Bullet(int startRow, int startCol, int targetRow, int targetCol, int damage, char shooterLabel) {
-        this(startRow, startCol, targetRow, targetCol, damage, shooterLabel, 3, '*', 0, false, 0);
-    }
-
-    /// <summary>
-    /// 무기별 속성을 지정하여 총알 생성
-    /// </summary>
-    public Bullet(int startRow, int startCol, int targetRow, int targetCol, int damage,
-                  char shooterLabel, int speed, char bulletChar, int bulletColor, boolean piercing) {
-        this(startRow, startCol, targetRow, targetCol, damage, shooterLabel, speed, bulletChar, bulletColor, piercing, 0);
-    }
-
-    /// <summary>
     /// 모든 속성을 지정하여 총알 생성 (넉백 포함)
     /// </summary>
     public Bullet(int startRow, int startCol, int targetRow, int targetCol, int damage,

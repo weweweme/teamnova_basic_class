@@ -15,17 +15,18 @@ public class Landmine extends Structure {
     /// <summary>
     /// 내구도 (일회용이므로 1)
     /// </summary>
+    // super() 호출에 필요하여 static 유지
     private static final int MAX_HP = 1;
 
     /// <summary>
     /// 폭발 데미지
     /// </summary>
-    private static final int BLAST_DAMAGE = 15;
+    private final int BLAST_DAMAGE = 15;
 
     /// <summary>
     /// 폭발 범위 (좌우 칸 수)
     /// </summary>
-    private static final int BLAST_RANGE = 3;
+    private final int BLAST_RANGE = 3;
 
     /// <summary>
     /// 설치 비용

@@ -9,12 +9,13 @@ public class AmmoBox extends Structure {
     /// <summary>
     /// 최대 내구도 (안전지대에 있으므로 파괴되지 않지만 구조상 필요)
     /// </summary>
+    // super() 호출에 필요하여 static 유지
     private static final int MAX_HP = 1;
 
     /// <summary>
     /// 발사 간격 배율 (0.7 = 30% 빨라짐)
     /// </summary>
-    private static final double FIRE_RATE_MULTIPLIER = 0.7;
+    private final double FIRE_RATE_MULTIPLIER = 0.7;
 
     /// <summary>
     /// 설치 비용

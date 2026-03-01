@@ -158,10 +158,12 @@ public class Renderer {
         boolean destroyed = barricade.isDestroyed();
         char wallChar = destroyed ? '.' : '#';
 
-        // 파괴되었으면 빨간색, 최근 피격이면 빨간색, 평상시 기본색
+        // 파괴: 빨간색, 피격: 빨간색, 수리: 초록색, 평상시: 기본색
         int color = 0;
         if (destroyed || barricade.isRecentlyHit()) {
             color = 31;
+        } else if (barricade.isRecentlyRepaired()) {
+            color = 32;
         }
 
         for (int row = 0; row < GameMap.HEIGHT; row++) {

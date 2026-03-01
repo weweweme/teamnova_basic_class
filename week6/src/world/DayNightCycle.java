@@ -11,6 +11,7 @@ import entity.colonist.WanderingState;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
 
 /// <summary>
 /// 낮/밤 주기를 관리하는 스레드
@@ -112,6 +113,16 @@ public class DayNightCycle extends Thread {
     private volatile boolean victory;
 
     /// <summary>
+    /// 현재 낮에 발생한 이벤트 (null이면 아직 없음)
+    /// </summary>
+    private DayEvent currentEvent;
+
+    /// <summary>
+    /// 폭풍 경고로 인한 다음 밤 적 수 증가 여부
+    /// </summary>
+    private boolean stormActive;
+
+    /// <summary>
     /// 아직 출현하지 않은 대기 중인 적 목록
     /// </summary>
     private final ArrayList<Enemy> pendingSpawns = new ArrayList<>();
@@ -196,6 +207,7 @@ public class DayNightCycle extends Thread {
                     } else {
                         String bonusText = perfectNight ? " +보너스" + PERFECT_BONUS : "";
                         gameMap.addLog("── " + day + "일차 낮 시작 (보급 +" + dailySupply + bonusText + ") ──");
+                        triggerDayEvent();
                     }
                 }
             } else {
@@ -212,6 +224,10 @@ public class DayNightCycle extends Thread {
                     skipRequested = false;
                     preparing = false;
                     spawnEnemies();
+
+                    // 폭풍 효과 해제 (적용은 buildWave에서 처리)
+                    stormActive = false;
+                    currentEvent = null;
 
                     // 보스 웨이브 경고 (대기 목록에 보스가 있으면)
                     boolean hasBoss = false;
@@ -255,6 +271,56 @@ public class DayNightCycle extends Thread {
             skipRequested = true;
             elapsedInPhase = DAY_DURATION;
         }
+    }
+
+    /// <summary>
+    /// 랜덤 낮 이벤트 발생
+    /// 2일차부터 발동 (1일차는 안정기)
+    /// </summary>
+    private void triggerDayEvent() {
+        if (day <= 1) {
+            currentEvent = null;
+            return;
+        }
+
+        DayEvent[] events = DayEvent.values();
+        Random random = new Random();
+        currentEvent = events[random.nextInt(events.length)];
+
+        gameMap.addLog(">> [이벤트] " + currentEvent.getMessage());
+
+        switch (currentEvent) {
+            case SUPPLY_DROP:
+                gameMap.getSupply().add(currentEvent.getValue());
+                break;
+            case WANDERER:
+                // 랜덤 살아있는 정착민 HP 회복
+                ArrayList<Colonist> alive = new ArrayList<>();
+                for (Colonist colonist : gameMap.getColonists()) {
+                    if (colonist.isLiving()) {
+                        alive.add(colonist);
+                    }
+                }
+                if (!alive.isEmpty()) {
+                    Colonist target = alive.get(random.nextInt(alive.size()));
+                    target.heal(currentEvent.getValue());
+                    gameMap.addLog(">> " + target.getColonistName() + " HP +" + currentEvent.getValue());
+                }
+                break;
+            case STORM_WARNING:
+                stormActive = true;
+                break;
+            case CALM_DAY:
+                // 효과 없음
+                break;
+        }
+    }
+
+    /// <summary>
+    /// 현재 낮 이벤트 반환 (null이면 없음)
+    /// </summary>
+    public DayEvent getCurrentEvent() {
+        return currentEvent;
     }
 
     /// <summary>
@@ -304,6 +370,35 @@ public class DayNightCycle extends Thread {
     /// </summary>
     public boolean isNight() {
         return night;
+    }
+
+    /// <summary>
+    /// 이번 웨이브 구성을 문자열 목록으로 반환 (패널 표시용)
+    /// 종류별 마릿수를 "늑대×3" 형태로 반환
+    /// </summary>
+    public ArrayList<String> getWavePreview() {
+        ArrayList<String> preview = new ArrayList<>();
+        if (pendingSpawns.isEmpty() && gameMap.getEnemies().isEmpty()) {
+            return preview;
+        }
+
+        // 대기 + 출현 중인 적 합쳐서 종류별 카운트
+        java.util.HashMap<EnemyType, Integer> counts = new java.util.HashMap<>();
+        for (Enemy enemy : pendingSpawns) {
+            counts.put(enemy.getType(), counts.getOrDefault(enemy.getType(), 0) + 1);
+        }
+        for (Enemy enemy : gameMap.getEnemies()) {
+            counts.put(enemy.getType(), counts.getOrDefault(enemy.getType(), 0) + 1);
+        }
+
+        for (EnemyType type : EnemyType.values()) {
+            int count = counts.getOrDefault(type, 0);
+            if (count > 0) {
+                preview.add(type.getDisplayName() + "x" + count);
+            }
+        }
+
+        return preview;
     }
 
     /// <summary>
@@ -456,9 +551,14 @@ public class DayNightCycle extends Thread {
             }
 
             // 일반 몬스터 (3 + 일차 마리, 난이도 배율 적용)
+            // 폭풍 경고 시 일반 몬스터 50% 추가
             EnemyType[] normals = {EnemyType.WOLF, EnemyType.SPIDER, EnemyType.SKELETON,
                                    EnemyType.ZOMBIE, EnemyType.RAT, EnemyType.SLIME};
-            int normalCount = settings.applyEnemyCount(3 + day);
+            int baseNormalCount = 3 + day;
+            if (stormActive) {
+                baseNormalCount = baseNormalCount * 3 / 2;
+            }
+            int normalCount = settings.applyEnemyCount(baseNormalCount);
             for (int i = 0; i < normalCount; i++) {
                 int index = (int) (Math.random() * normals.length);
                 wave.add(normals[index]);

@@ -130,6 +130,7 @@ public class Main {
         // 서브 메뉴 모드 여부
         boolean shopMode = false;
         boolean buildMode = false;
+        boolean recruitMode = false;
 
         // 무기 상점 메뉴 키
         final int SHOP_PISTOL = '1';
@@ -142,6 +143,20 @@ public class Main {
         final int BUILD_LANDMINE = '2';
         final int BUILD_AMMOBOX = '3';
         final int BUILD_UPGRADE = '4';
+
+        // 모집 메뉴 키
+        final int RECRUIT_GUNNER = '1';
+        final int RECRUIT_SNIPER = '2';
+        final int RECRUIT_ASSAULT = '3';
+
+        // 모집 비용
+        final int RECRUIT_COST = 40;
+
+        // 최대 정착민 수
+        final int MAX_COLONISTS = 5;
+
+        // 모집 이름 카운터
+        int recruitCount = 0;
 
         // 구조물 간격 (바리케이드 기준 오른쪽으로)
         final int STRUCTURE_SPACING = 5;
@@ -244,12 +259,61 @@ public class Main {
                                 renderer.setBuildMode(false);
                                 break;
                         }
+                    } else if (recruitMode) {
+                        // 모집 모드: 유형 선택 또는 취소
+                        ColonistType recruitType = null;
+                        switch (key) {
+                            case RECRUIT_GUNNER:
+                                recruitType = ColonistType.GUNNER;
+                                break;
+                            case RECRUIT_SNIPER:
+                                recruitType = ColonistType.SNIPER;
+                                break;
+                            case RECRUIT_ASSAULT:
+                                recruitType = ColonistType.ASSAULT;
+                                break;
+                            case Util.KEY_QUIT:
+                                recruitMode = false;
+                                renderer.setRecruitMode(false);
+                                break;
+                        }
+
+                        if (recruitType != null) {
+                            if (gameMap.getSupply().spend(RECRUIT_COST)) {
+                                recruitCount++;
+                                String recruitName = "신병" + recruitCount;
+                                int row = GameMap.HEIGHT / 2;
+                                int col = 3 + gameMap.getColonists().size() * 4;
+                                Colonist recruit = new Colonist(recruitType, recruitName, new Position(row, col), gameMap);
+
+                                // 유형별 기본 무기 배정
+                                switch (recruitType) {
+                                    case GUNNER:
+                                        recruit.setGun(new Pistol());
+                                        break;
+                                    case SNIPER:
+                                        recruit.setGun(new Rifle());
+                                        break;
+                                    case ASSAULT:
+                                        recruit.setGun(new Shotgun());
+                                        break;
+                                }
+
+                                gameMap.addColonist(recruit);
+                                recruit.start();
+                                gameMap.addLog(">> " + recruitName + " (" + recruitType.getDisplayName() + ") 합류!");
+                            }
+
+                            recruitMode = false;
+                            renderer.setRecruitMode(false);
+                        }
                     } else {
                         // 일반 명령 키
                         final int KEY_REPAIR = '1';
                         final int KEY_WEAPON = '2';
                         final int KEY_HEAL = '3';
                         final int KEY_BUILD = '4';
+                        final int KEY_RECRUIT = '5';
                         final int KEY_SKIP_NIGHT = 'n';
 
                         // 명령 비용
@@ -299,6 +363,14 @@ public class Main {
                                 if (!dayNightCycle.isNight()) {
                                     buildMode = true;
                                     renderer.setBuildMode(true);
+                                }
+                                break;
+                            case KEY_RECRUIT:
+                                // 낮에만 모집 모드 진입 (최대 인원 미만일 때만)
+                                boolean canRecruit = !dayNightCycle.isNight() && gameMap.getColonists().size() < MAX_COLONISTS;
+                                if (canRecruit) {
+                                    recruitMode = true;
+                                    renderer.setRecruitMode(true);
                                 }
                                 break;
                         }

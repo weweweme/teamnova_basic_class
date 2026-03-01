@@ -71,6 +71,11 @@ public class Renderer {
     private boolean buildMode;
 
     /// <summary>
+    /// 모집 모드 여부
+    /// </summary>
+    private boolean recruitMode;
+
+    /// <summary>
     /// 지정한 맵으로 렌더러 생성
     /// </summary>
     public Renderer(GameMap gameMap) {
@@ -106,6 +111,13 @@ public class Renderer {
     /// </summary>
     public void setBuildMode(boolean buildMode) {
         this.buildMode = buildMode;
+    }
+
+    /// <summary>
+    /// 모집 모드 설정
+    /// </summary>
+    public void setRecruitMode(boolean recruitMode) {
+        this.recruitMode = recruitMode;
     }
 
     /// <summary>
@@ -605,6 +617,17 @@ public class Renderer {
                 lines.add(" [전투 중]");
                 lines.add(" 진행: " + defeated + "/" + total);
                 lines.add(" 남은 적: " + (alive + pending));
+
+                // 웨이브 구성 미리보기
+                ArrayList<String> preview = dayNightCycle.getWavePreview();
+                if (!preview.isEmpty()) {
+                    lines.add("");
+                    lines.add(" [웨이브]");
+                    for (String entry : preview) {
+                        lines.add("  " + entry);
+                    }
+                }
+
                 lines.add(" q: 종료");
             } else if (shopMode) {
                 // 무기 상점 모드
@@ -613,6 +636,13 @@ public class Renderer {
                 lines.add(" 2: 샷건  (보급25)");
                 lines.add(" 3: 라이플 (보급20)");
                 lines.add(" 4: 미니건 (보급30)");
+                lines.add(" q: 취소");
+            } else if (recruitMode) {
+                // 모집 모드
+                lines.add(" [모집] (보급40)");
+                lines.add(" 1: 사격수 (속사)");
+                lines.add(" 2: 저격수 (치명타)");
+                lines.add(" 3: 돌격수 (넉백)");
                 lines.add(" q: 취소");
             } else if (buildMode) {
                 // 건설 모드

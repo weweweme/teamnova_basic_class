@@ -131,13 +131,6 @@ public class Colonist extends GameEntity {
     }
 
     /// <summary>
-    /// 정착민 유형 반환
-    /// </summary>
-    public ColonistType getType() {
-        return type;
-    }
-
-    /// <summary>
     /// 정착민 속성 데이터 반환
     /// </summary>
     public ColonistSpec getSpec() {

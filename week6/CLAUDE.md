@@ -6,6 +6,288 @@
 
 팀노바 기초반 6주차 Java 학습 프로젝트입니다. IntelliJ IDEA를 사용합니다.
 
+**게임**: "표류자들 - The Castaways" (타워 디펜스 서바이벌)
+- 3명의 정착민이 바리케이드를 사이에 두고 적 웨이브를 방어
+- 낮: 자원 관리 (수리, 치료, 무기 구매, 건설, 모집)
+- 밤: 적 웨이브 전투 (자동 사격)
+- 승리 조건: 난이도별 목표 일수 생존 (쉬움 7일 / 보통 10일 / 어려움 15일)
+
+**맵 구조**: 100×20 문자
+- 왼쪽 (0~14열): 안전지대 (정착민 배회, 탄약 상자)
+- 바리케이드 (15~16열): 방벽
+- 오른쪽 (17~99열): 전장 (적, 가시덫, 지뢰)
+
+### 상속 구조
+
+**entity 패키지 (생명체)**
+
+GameEntity가 Thread를 상속하여 각 정착민/적이 독립 스레드로 동작.
+ColonistState는 상태 패턴으로 낮(배회) ↔ 밤(사격) 행동 전환.
+
+```
+GameEntity (abstract, extends Thread — HP, 위치, 스레드 관리)
+├── Colonist (무기, 상태 패턴, 사망 애니메이션)
+└── Enemy (특성 적용, 바리케이드/정착민 공격, 스파이크 충돌)
+```
+
+```
+ColonistState (abstract — enter/update/exit)
+├── WanderingState (낮: 자동회복, 안전지대 랜덤 이동)
+└── ShootingState (밤: 바리케이드 이동 후 사격)
+```
+
+**데이터 계층 (Type → Spec → Factory)**
+
+열거형은 순수 타입 식별자, 데이터는 Spec, 생성은 Factory가 담당.
+
+```
+ColonistType (GUNNER, SNIPER, ASSAULT)
+ColonistSpec (이름, 체력, 발사배율, 치명타, 넉백, 블록 템플릿)
+ColonistFactory (Type → Spec 매핑)
+
+EnemyType (WOLF, SPIDER, SKELETON, ZOMBIE, RAT, SLIME, BEAR, BANDIT, SCORPION, ORC, DRAGON, GOLEM)
+EnemySpec (이름, 체력, 데미지, 이동속도, 보상, 특성, 블록)
+EnemyFactory (Type → Spec 매핑)
+
+EnemyTrait (STANDARD, CHARGER, ARMORED, REGENERATING)
+```
+
+**gun 패키지 (무기)**
+
+Gun이 공통 속성을 생성자로 받고, fire()만 서브클래스에서 구현.
+fireBullet()이 공통 발사 로직 (조준, 크리티컬, 넉백, 총알 생성).
+
+```
+Gun (abstract — name, cost, fireInterval, damage, bulletSpeed, bulletChar, bulletColor)
+├── Pistol   (단발, 비용 0, 기본 무기)
+├── Shotgun  (부채꼴 3발 ±2행, 비용 25)
+├── Rifle    (관통 단발, 비용 20)
+└── Minigun  (매 틱 단발, 비용 30)
+
+Bullet (데이터 클래스 — 시작/목표 좌표, 데미지, 관통, 넉백)
+```
+
+**structure 패키지 (구조물)**
+
+Structure가 위치/내구도, Buildable이 비용, Trap이 피해량 계층.
+
+```
+Structure (column, maxHp — 내구도 관리)
+├── Barricade (레벨업, 무적 모드, 피격/수리 깜빡임)
+└── Buildable (cost — 건설 가능 구조물)
+    ├── AmmoBox (발사속도 30% 증가)
+    └── Trap (damage — 피해를 주는 구조물)
+        ├── Spike (내구도 10, 적이 지나가면 3 데미지)
+        └── Landmine (일회용, 반경 3칸 15 데미지 폭발)
+```
+
+**game 패키지 (게임 시스템)**
+
+```
+Main (진입점 — 난이도 선택, 초기화, 메인 루프)
+DayNightCycle (Thread — 낮/밤 전환, 적 스폰, 이벤트)
+WaveBuilder (일차별 적 웨이브 구성)
+GameMap (게임 상태 컨테이너 — 모든 엔티티/구조물 관리)
+BulletSystem (총알 이동 + 충돌 처리)
+Renderer (화면 렌더링 — 버퍼 기반)
+PanelBuilder (오른쪽 정보 패널 생성)
+InputHandler (키 입력 읽기 + 명령 디스패치)
+Supply (보급품 자원 관리)
+Cutscene (스토리 애니메이션)
+HitEffect (명중 이펙트 데이터)
+LogEntry (로그 메시지 데이터)
+Util (터미널 모드, 화면 클리어, 딜레이, 랜덤)
+DifficultySettings (난이도별 배율)
+Difficulty (EASY, NORMAL, HARD)
+DayEvent (SUPPLY_DROP, WANDERER, STORM_WARNING, CALM_DAY)
+Direction (8방향 이동 벡터)
+Position (행/열 좌표)
+```
+
+### 상속 구조 차트
+
+```mermaid
+graph TD
+    subgraph "entity"
+        T[Thread] --> GE[GameEntity]
+        GE --> CO[Colonist]
+        GE --> EN[Enemy]
+        CS[ColonistState] --> WS[WanderingState]
+        CS --> SS[ShootingState]
+    end
+    subgraph "gun"
+        GU[Gun] --> PI[Pistol]
+        GU --> SG[Shotgun]
+        GU --> RI[Rifle]
+        GU --> MG[Minigun]
+    end
+    subgraph "structure"
+        ST[Structure] --> BA[Barricade]
+        ST --> BU[Buildable]
+        BU --> AB[AmmoBox]
+        BU --> TR[Trap]
+        TR --> SP[Spike]
+        TR --> LM[Landmine]
+    end
+    subgraph "data (Type → Spec → Factory)"
+        CT[ColonistType] -.-|조회| CF[ColonistFactory]
+        CF -.-|생성| CSP[ColonistSpec]
+        ET[EnemyType] -.-|조회| EF[EnemyFactory]
+        EF -.-|생성| ESP[EnemySpec]
+    end
+```
+
+### 스레드 모델
+
+| 스레드 | 클래스 | 틱 간격 | 역할 |
+|--------|--------|---------|------|
+| Main | Main | 16ms (입력) / 100ms (물리) | 입력 폴링, 총알 이동, 지뢰 체크, 렌더링 |
+| DayNightCycle | DayNightCycle | 500ms | 낮↔밤 전환, 적 스폰, 이벤트 발생 |
+| Colonist ×N | Colonist | 500ms | 배회/자동회복 (낮), 이동/사격 (밤) |
+| Enemy ×N | Enemy | 200~700ms (종류별) | 이동, 공격, 특성 적용 |
+
+### 게임 루프 흐름
+
+```mermaid
+graph TD
+    START[Main] --> TITLE[타이틀 화면]
+    TITLE --> DIFF[난이도 선택]
+    DIFF --> INTRO[인트로 컷씬]
+    INTRO --> INIT[초기화: GameMap + 정착민 3명 + 스레드 시작]
+    INIT --> LOOP[메인 루프]
+
+    LOOP --> INPUT{키 입력?}
+    INPUT -->|있음| HANDLE[InputHandler.handleInput]
+    INPUT -->|없음| PHYSICS
+    HANDLE --> PHYSICS[100ms마다: 총알 이동 + 지뢰 체크]
+    PHYSICS --> RENDER[Renderer.render]
+    RENDER -->|게임 중| LOOP
+    RENDER -->|승리/패배| ENDSCENE[엔딩 컷씬 + 통계]
+```
+
+```mermaid
+graph TD
+    subgraph "DayNightCycle 스레드 (500ms 틱)"
+        DAY[낮 페이즈 30초] -->|25초| PREPARE[정착민 바리케이드로 이동]
+        PREPARE -->|30초| NIGHT[밤 페이즈]
+        NIGHT --> SPAWN[적 시차 스폰]
+        SPAWN --> BATTLE[전투: 적 이동 + 정착민 사격]
+        BATTLE -->|전멸| REWARD[보급품 지급 + 이벤트]
+        REWARD --> CHECK{목표 일수 도달?}
+        CHECK -->|아니오| DAY
+        CHECK -->|예| VICTORY[승리]
+    end
+```
+
+### 패키지 간 의존관계
+
+```mermaid
+graph TB
+    Main["<b>Main</b><br/>진입점"]
+    game["<b>game</b><br/>DayNightCycle, GameMap<br/>BulletSystem, Renderer<br/>PanelBuilder, InputHandler<br/>WaveBuilder, Supply, Cutscene"]
+    colonist["<b>entity/colonist</b><br/>Colonist, ColonistState<br/>WanderingState, ShootingState<br/>ColonistSpec, ColonistFactory"]
+    enemy["<b>entity/enemy</b><br/>Enemy, EnemySpec<br/>EnemyFactory, EnemyTrait"]
+    gun["<b>gun</b><br/>Gun, Bullet<br/>Pistol, Shotgun<br/>Rifle, Minigun"]
+    structure["<b>structure</b><br/>Structure, Buildable<br/>Barricade, Trap<br/>Spike, Landmine, AmmoBox"]
+    entity["<b>entity</b><br/>GameEntity, Position<br/>Direction"]
+
+    Main --> game
+    Main --> colonist
+    Main --> gun
+
+    game --> colonist
+    game --> enemy
+    game --> gun
+    game --> structure
+
+    colonist --> entity
+    colonist --> gun
+    colonist --> structure
+    colonist --> game
+
+    enemy --> entity
+    enemy --> structure
+    enemy --> game
+
+    gun --> colonist
+    gun --> enemy
+    gun --> game
+
+    structure --> game
+    structure --> enemy
+```
+
+### 게임 메카닉
+
+**정착민 패시브**
+
+| 유형 | 패시브 | 효과 |
+|------|--------|------|
+| 사격수 (GUNNER) | 속사 | 발사 간격 20% 감소 |
+| 저격수 (SNIPER) | 치명타 | 30% 확률로 데미지 2배 |
+| 돌격수 (ASSAULT) | 넉백 | 명중 시 적 1칸 밀어냄 |
+
+**무기**
+
+| 무기 | 비용 | 간격 | 데미지 | 속도 | 패턴 |
+|------|------|------|--------|------|------|
+| 피스톨 | 0 | 4틱 | 5 | 3 | 단발 |
+| 샷건 | 25 | 6틱 | 3 | 3 | 부채꼴 3발 (±2행) |
+| 라이플 | 20 | 5틱 | 8 | 6 | 관통 단발 |
+| 미니건 | 30 | 1틱 | 2 | 4 | 매 틱 단발 |
+
+**적 특성**
+
+| 특성 | 효과 |
+|------|------|
+| STANDARD | 기본 이동 |
+| CHARGER | 바리케이드 8칸 이내에서 2칸 이동 |
+| ARMORED | 받는 데미지 ÷2 |
+| REGENERATING | 3틱마다 +1 HP |
+
+**구조물**
+
+| 구조물 | 비용 | 효과 |
+|--------|------|------|
+| 가시덫 | 20 | 내구도 10, 적 통과 시 3 데미지 |
+| 지뢰 | 25 | 일회용, 반경 3칸 15 데미지 |
+| 탄약 상자 | 20 | 전체 발사속도 30% 증가 |
+| 바리케이드 강화 | 15/25 | Lv1→2→3, HP 100→150→200 |
+
+**난이도**
+
+| 난이도 | 적 수 | 보급량 | 승리 일수 |
+|--------|-------|--------|-----------|
+| 쉬움 | 0.7배 | 1.5배 | 7일 |
+| 보통 | 1.0배 | 1.0배 | 10일 |
+| 어려움 | 1.3배 | 0.7배 | 15일 |
+
+**낮 이벤트** (2일차부터 랜덤 발생)
+
+| 이벤트 | 효과 |
+|--------|------|
+| 보급품 발견 | +15 보급품 |
+| 떠돌이 합류 | 랜덤 정착민 +30 HP |
+| 폭풍 경고 | 다음 밤 일반 몬스터 50% 증가 |
+| 평온한 하루 | 효과 없음 |
+
+### UI
+
+**화면 구성**: 왼쪽 100칸 게임 맵 + 오른쪽 정보 패널
+
+**조작**: 터미널 raw 모드 (화살표 키 즉시 입력)
+- ↑↓: 정착민 선택
+- 1~5: 수리/무기/치료/건설/모집
+- n: 밤으로 건너뛰기
+- 0: 치트 모드
+- q: 종료/취소
+
+**색상**: ANSI 이스케이프 코드
+- 바리케이드: 피격 시 빨강, 수리 시 초록
+- 적: HP 비율에 따라 위에서부터 빨간색 채움
+- 정착민: 사망 시 회색 → 페이드 아웃 (800ms)
+- 총알/이펙트: 무기별 색상
+
 ## 협업 방식
 
 - **대화 기반 점진적 개발**: 한번에 전체 코드를 작성하지 않음

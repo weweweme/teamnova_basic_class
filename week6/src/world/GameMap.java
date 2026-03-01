@@ -6,6 +6,7 @@ import entity.enemy.Enemy;
 import entity.enemy.EnemyType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /// <summary>
 /// 게임 맵 전체를 관리하는 클래스
@@ -83,6 +84,11 @@ public class GameMap {
     /// 처치한 적 수
     /// </summary>
     private int enemiesKilled;
+
+    /// <summary>
+    /// 종류별 처치 수 (통계 출력용)
+    /// </summary>
+    private final HashMap<EnemyType, Integer> killsByType = new HashMap<>();
 
     /// <summary>
     /// 맵 생성
@@ -183,8 +189,11 @@ public class GameMap {
             enemy.stopRunning();
             enemies.remove(enemy);
             enemiesKilled++;
+            // 종류별 처치 수 기록
+            EnemyType type = enemy.getType();
+            killsByType.put(type, killsByType.getOrDefault(type, 0) + 1);
             // 처치 보상: 적 종류마다 다름 (일반 1~3, 강한 4~6, 보스 10~15)
-            supply.add(enemy.getType().getReward());
+            supply.add(type.getReward());
         }
     }
 
@@ -203,6 +212,13 @@ public class GameMap {
     /// </summary>
     public int getEnemiesKilled() {
         return enemiesKilled;
+    }
+
+    /// <summary>
+    /// 종류별 처치 수 반환 (통계 출력용)
+    /// </summary>
+    public HashMap<EnemyType, Integer> getKillsByType() {
+        return killsByType;
     }
 
     /// <summary>

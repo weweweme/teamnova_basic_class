@@ -5,6 +5,7 @@ import entity.colonist.Pistol;
 import entity.colonist.Shotgun;
 import entity.colonist.Rifle;
 import entity.colonist.Minigun;
+import entity.enemy.EnemyType;
 import world.Barricade;
 import world.DayNightCycle;
 import world.GameMap;
@@ -292,5 +293,18 @@ public class Main {
         System.out.println("생존 일수: " + dayNightCycle.getDay() + "일");
         System.out.println("생존자: " + survivors + "/" + gameMap.getColonists().size() + "명");
         System.out.println("처치한 적: " + gameMap.getEnemiesKilled() + "마리");
+
+        // 종류별 처치 수 출력
+        java.util.HashMap<EnemyType, Integer> killsByType = gameMap.getKillsByType();
+        if (!killsByType.isEmpty()) {
+            System.out.println();
+            System.out.println("── 종류별 처치 ──");
+            for (EnemyType type : EnemyType.values()) {
+                int count = killsByType.getOrDefault(type, 0);
+                if (count > 0) {
+                    System.out.println("  " + type.getDisplayName() + ": " + count + "마리");
+                }
+            }
+        }
     }
 }

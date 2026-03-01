@@ -97,6 +97,16 @@ public class DayNightCycle extends Thread {
     private boolean barricadeBroken;
 
     /// <summary>
+    /// 밤 시작 시 바리케이드 체력 (무피해 보너스 판정용)
+    /// </summary>
+    private int barricadeHpAtNightStart;
+
+    /// <summary>
+    /// 무피해 생존 보너스 보급품
+    /// </summary>
+    private static final int PERFECT_BONUS = 10;
+
+    /// <summary>
     /// 승리 조건 달성 여부
     /// </summary>
     private volatile boolean victory;
@@ -171,13 +181,21 @@ public class DayNightCycle extends Thread {
                     int dailySupply = settings.applySupply(DAILY_SUPPLY);
                     gameMap.getSupply().add(dailySupply);
                     gameMap.removeDestroyedSpikes();
+
+                    // 무피해 생존 보너스: 바리케이드가 피해를 받지 않았으면 추가 보급
+                    boolean perfectNight = gameMap.getBarricade().getHp() >= barricadeHpAtNightStart;
+                    if (perfectNight) {
+                        gameMap.getSupply().add(PERFECT_BONUS);
+                    }
+
                     switchToWandering();
                     if (day > settings.getWinDay()) {
                         victory = true;
                         Util.beep();
                         gameMap.addLog("══ 승리! " + settings.getWinDay() + "일을 버텨냈습니다! ══");
                     } else {
-                        gameMap.addLog("── " + day + "일차 낮 시작 (보급 +" + dailySupply + ") ──");
+                        String bonusText = perfectNight ? " +보너스" + PERFECT_BONUS : "";
+                        gameMap.addLog("── " + day + "일차 낮 시작 (보급 +" + dailySupply + bonusText + ") ──");
                     }
                 }
             } else {
@@ -211,6 +229,9 @@ public class DayNightCycle extends Thread {
                         Util.beep();
                         gameMap.addLog("!! ★ 보스가 출현합니다 ★ !!");
                     }
+
+                    // 밤 시작 시 바리케이드 체력 기록 (무피해 보너스 판정용)
+                    barricadeHpAtNightStart = gameMap.getBarricade().getHp();
 
                     Util.beep();
                     gameMap.addLog("── 밤이 찾아왔습니다 ──");

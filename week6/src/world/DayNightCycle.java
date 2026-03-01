@@ -232,6 +232,13 @@ public class DayNightCycle extends Thread {
     }
 
     /// <summary>
+    /// 선택된 난이도 이름 반환 (패널 표시용)
+    /// </summary>
+    public String getDifficultyName() {
+        return settings.getDifficulty().getDisplayName();
+    }
+
+    /// <summary>
     /// 현재 밤인지 확인
     /// </summary>
     public boolean isNight() {

@@ -360,7 +360,8 @@ public class Renderer {
         // 시간 표시
         if (dayNightCycle != null) {
             String phase = dayNightCycle.isNight() ? "밤" : "낮";
-            lines.add(" [시간] " + dayNightCycle.getDay() + "일차 " + phase);
+            String diffName = dayNightCycle.getDifficultyName();
+            lines.add(" [" + diffName + "] " + dayNightCycle.getDay() + "일차 " + phase);
 
             if (!dayNightCycle.isNight()) {
                 lines.add("  전환까지 " + dayNightCycle.getRemainingSeconds() + "초");

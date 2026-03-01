@@ -35,17 +35,34 @@ public class Main {
         title.append("              [조작법]\n");
         title.append("               ↑↓ : 정착민 선택\n");
         title.append("               q  : 종료\n");
-        title.append("\n\n");
-        title.append("              1번을 눌러 시작하세요...\n");
+        title.append("\n");
+        title.append("              [난이도 선택]\n");
+        title.append("               1 : 쉬움   (7일 생존)\n");
+        title.append("               2 : 보통  (10일 생존)\n");
+        title.append("               3 : 어려움 (15일 생존)\n");
         System.out.print(title);
         System.out.flush();
 
-        // 1번 키 입력 대기
-        final int KEY_START = '1';
-        int startKey;
-        do {
-            startKey = Util.readKey();
-        } while (startKey != KEY_START);
+        // 난이도 선택 입력 대기
+        final int KEY_EASY = '1';
+        final int KEY_NORMAL = '2';
+        final int KEY_HARD = '3';
+
+        Difficulty selectedDifficulty = null;
+        while (selectedDifficulty == null) {
+            int key = Util.readKey();
+            switch (key) {
+                case KEY_EASY:
+                    selectedDifficulty = Difficulty.EASY;
+                    break;
+                case KEY_NORMAL:
+                    selectedDifficulty = Difficulty.NORMAL;
+                    break;
+                case KEY_HARD:
+                    selectedDifficulty = Difficulty.HARD;
+                    break;
+            }
+        }
 
         // ===== 게임 초기화 =====
         GameMap gameMap = new GameMap();
@@ -63,8 +80,8 @@ public class Main {
         gameMap.addColonist(younghee);
         gameMap.addColonist(minsoo);
 
-        // 낮/밤 주기 생성 및 렌더러에 연결 (임시 NORMAL)
-        DifficultySettings settings = new DifficultySettings(Difficulty.NORMAL);
+        // 낮/밤 주기 생성 및 렌더러에 연결
+        DifficultySettings settings = new DifficultySettings(selectedDifficulty);
         DayNightCycle dayNightCycle = new DayNightCycle(gameMap, settings);
         renderer.setDayNightCycle(dayNightCycle);
 

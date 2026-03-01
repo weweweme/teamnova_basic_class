@@ -55,6 +55,11 @@ public class Renderer {
     private final int[] reusableColors = new int[GameMap.HEIGHT];
 
     /// <summary>
+    /// 우측 패널 줄 재사용 버퍼
+    /// </summary>
+    private final ArrayList<String> panelLines = new ArrayList<>();
+
+    /// <summary>
     /// 화면 버퍼 [행][열], 매 프레임마다 새로 채움
     /// </summary>
     private final char[][] buffer;
@@ -529,18 +534,18 @@ public class Renderer {
     /// 우측 패널 내용을 줄 단위로 생성
     /// 시간, 보급품, 정착민 목록, 선택 정착민 상세 정보 표시
     /// </summary>
-    private ArrayList<String> buildPanel() {
-        ArrayList<String> lines = new ArrayList<>();
+    private void buildPanel() {
+        panelLines.clear();
         ArrayList<Colonist> colonists = gameMap.getColonists();
 
         // 시간 표시
         if (dayNightCycle != null) {
             String phase = dayNightCycle.isNight() ? "밤" : "낮";
             String diffName = dayNightCycle.getDifficultyName();
-            lines.add(" [" + diffName + "] " + dayNightCycle.getDay() + "일차 " + phase);
+            panelLines.add(" [" + diffName + "] " + dayNightCycle.getDay() + "일차 " + phase);
 
             if (!dayNightCycle.isNight()) {
-                lines.add("  전환까지 " + dayNightCycle.getRemainingSeconds() + "초");
+                panelLines.add("  전환까지 " + dayNightCycle.getRemainingSeconds() + "초");
             }
 
             if (dayNightCycle.isNight()) {
@@ -548,21 +553,21 @@ public class Renderer {
                 int pending = dayNightCycle.getPendingCount();
                 int total = dayNightCycle.getTotalWaveSize();
                 int defeated = total - alive - pending;
-                lines.add("  처치 " + defeated + "/" + total);
+                panelLines.add("  처치 " + defeated + "/" + total);
             }
 
-            lines.add("");
+            panelLines.add("");
         }
 
         // 보급품 + 바리케이드
         Barricade barricade = gameMap.getBarricade();
-        lines.add(" [보급] " + gameMap.getSupply().getAmount());
-        lines.add(" [바리] Lv" + barricade.getLevel() + " " + buildBar(barricade.getHp(), barricade.getMaxHp()));
-        lines.add(" [처치] " + gameMap.getEnemiesKilled() + "마리");
-        lines.add("");
+        panelLines.add(" [보급] " + gameMap.getSupply().getAmount());
+        panelLines.add(" [바리] Lv" + barricade.getLevel() + " " + buildBar(barricade.getHp(), barricade.getMaxHp()));
+        panelLines.add(" [처치] " + gameMap.getEnemiesKilled() + "마리");
+        panelLines.add("");
 
         // 정착민 목록
-        lines.add(" [정착민]");
+        panelLines.add(" [정착민]");
         for (int i = 0; i < colonists.size(); i++) {
             Colonist colonist = colonists.get(i);
             String marker = (i == selectedIndex) ? " > " : "   ";
@@ -570,58 +575,58 @@ public class Renderer {
             if (colonist.isLiving()) {
                 String typeName = colonist.getSpec().getDisplayName();
                 String stateName = colonist.getCurrentState().getDisplayName();
-                lines.add(marker + "[" + colonist.getLabel() + "] " + typeName + " " + stateName);
+                panelLines.add(marker + "[" + colonist.getLabel() + "] " + typeName + " " + stateName);
             } else {
-                lines.add(marker + "[" + colonist.getLabel() + "] 사망");
+                panelLines.add(marker + "[" + colonist.getLabel() + "] 사망");
             }
         }
 
-        lines.add("");
+        panelLines.add("");
 
         // 선택된 정착민 상세 정보
         if (!colonists.isEmpty()) {
             Colonist selected = colonists.get(selectedIndex);
-            lines.add(" ──────────────");
-            lines.add(" " + selected.getColonistName());
-            lines.add(" 유형: " + selected.getSpec().getDisplayName());
+            panelLines.add(" ──────────────");
+            panelLines.add(" " + selected.getColonistName());
+            panelLines.add(" 유형: " + selected.getSpec().getDisplayName());
 
             if (selected.isLiving()) {
-                lines.add(" 상태: " + selected.getCurrentState().getDisplayName());
-                lines.add(" 체력: " + buildBar(selected.getHp(), selected.getMaxHp()));
-                lines.add(" 무기: " + selected.getGun().getName());
+                panelLines.add(" 상태: " + selected.getCurrentState().getDisplayName());
+                panelLines.add(" 체력: " + buildBar(selected.getHp(), selected.getMaxHp()));
+                panelLines.add(" 무기: " + selected.getGun().getName());
             } else {
-                lines.add(" 상태: 사망");
+                panelLines.add(" 상태: 사망");
             }
         }
 
-        lines.add("");
+        panelLines.add("");
 
         // 승리 / 게임오버 / 명령 안내
         if (isVictory()) {
-            lines.add(" ──────────────");
-            lines.add(" [승리!]");
-            lines.add(" " + dayNightCycle.getDay() + "일을");
-            lines.add(" 버텨냈습니다!");
-            lines.add("");
-            lines.add(" [통계]");
-            lines.add(" 처치: " + gameMap.getEnemiesKilled() + "마리");
-            lines.add("");
-            lines.add(" q: 종료");
+            panelLines.add(" ──────────────");
+            panelLines.add(" [승리!]");
+            panelLines.add(" " + dayNightCycle.getDay() + "일을");
+            panelLines.add(" 버텨냈습니다!");
+            panelLines.add("");
+            panelLines.add(" [통계]");
+            panelLines.add(" 처치: " + gameMap.getEnemiesKilled() + "마리");
+            panelLines.add("");
+            panelLines.add(" q: 종료");
         } else if (isGameOver()) {
-            lines.add(" ──────────────");
-            lines.add(" [게임 오버]");
-            lines.add(" 모든 정착민이");
-            lines.add(" 사망했습니다.");
-            lines.add("");
-            lines.add(" [통계]");
+            panelLines.add(" ──────────────");
+            panelLines.add(" [게임 오버]");
+            panelLines.add(" 모든 정착민이");
+            panelLines.add(" 사망했습니다.");
+            panelLines.add("");
+            panelLines.add(" [통계]");
             if (dayNightCycle != null) {
-                lines.add(" 생존: " + dayNightCycle.getDay() + "일");
+                panelLines.add(" 생존: " + dayNightCycle.getDay() + "일");
             }
-            lines.add(" 처치: " + gameMap.getEnemiesKilled() + "마리");
-            lines.add("");
-            lines.add(" q: 종료");
+            panelLines.add(" 처치: " + gameMap.getEnemiesKilled() + "마리");
+            panelLines.add("");
+            panelLines.add(" q: 종료");
         } else {
-            lines.add(" ──────────────");
+            panelLines.add(" ──────────────");
 
             boolean isNight = dayNightCycle != null && dayNightCycle.isNight();
             if (isNight) {
@@ -630,62 +635,61 @@ public class Renderer {
                 int pending = dayNightCycle.getPendingCount();
                 int total = dayNightCycle.getTotalWaveSize();
                 int defeated = total - alive - pending;
-                lines.add(" [전투 중]");
-                lines.add(" 진행: " + defeated + "/" + total);
-                lines.add(" 남은 적: " + (alive + pending));
+                panelLines.add(" [전투 중]");
+                panelLines.add(" 진행: " + defeated + "/" + total);
+                panelLines.add(" 남은 적: " + (alive + pending));
 
                 // 웨이브 구성 미리보기
                 ArrayList<String> preview = dayNightCycle.getWavePreview();
                 if (!preview.isEmpty()) {
-                    lines.add("");
-                    lines.add(" [웨이브]");
+                    panelLines.add("");
+                    panelLines.add(" [웨이브]");
                     for (String entry : preview) {
-                        lines.add("  " + entry);
+                        panelLines.add("  " + entry);
                     }
                 }
 
-                lines.add(" q: 종료");
+                panelLines.add(" q: 종료");
             } else if (shopMode) {
                 // 무기 상점 모드
-                lines.add(" [무기 상점]");
-                lines.add(" 1: 피스톨 (무료)");
-                lines.add(" 2: 샷건  (보급25)");
-                lines.add(" 3: 라이플 (보급20)");
-                lines.add(" 4: 미니건 (보급30)");
-                lines.add(" q: 취소");
+                panelLines.add(" [무기 상점]");
+                panelLines.add(" 1: 피스톨 (무료)");
+                panelLines.add(" 2: 샷건  (보급25)");
+                panelLines.add(" 3: 라이플 (보급20)");
+                panelLines.add(" 4: 미니건 (보급30)");
+                panelLines.add(" q: 취소");
             } else if (recruitMode) {
                 // 모집 모드
-                lines.add(" [모집] (보급40)");
-                lines.add(" 1: 사격수 (속사)");
-                lines.add(" 2: 저격수 (치명타)");
-                lines.add(" 3: 돌격수 (넉백)");
-                lines.add(" q: 취소");
+                panelLines.add(" [모집] (보급40)");
+                panelLines.add(" 1: 사격수 (속사)");
+                panelLines.add(" 2: 저격수 (치명타)");
+                panelLines.add(" 3: 돌격수 (넉백)");
+                panelLines.add(" q: 취소");
             } else if (buildMode) {
                 // 건설 모드
-                lines.add(" [건설]");
-                lines.add(" 1: 가시덫 (보급20)");
-                lines.add(" 2: 지뢰  (보급25)");
-                lines.add(" 3: 탄약상자 (보급20)");
+                panelLines.add(" [건설]");
+                panelLines.add(" 1: 가시덫 (보급20)");
+                panelLines.add(" 2: 지뢰  (보급25)");
+                panelLines.add(" 3: 탄약상자 (보급20)");
                 if (barricade.canUpgrade()) {
-                    lines.add(" 4: 바리강화 (보급" + barricade.getUpgradeCost() + ")");
+                    panelLines.add(" 4: 바리강화 (보급" + barricade.getUpgradeCost() + ")");
                 } else {
-                    lines.add(" 4: 바리강화 (MAX)");
+                    panelLines.add(" 4: 바리강화 (MAX)");
                 }
-                lines.add(" q: 취소");
+                panelLines.add(" q: 취소");
             } else {
                 // 낮: 관리 명령
-                lines.add(" [명령] (낮)");
-                lines.add(" 1: 수리 (보급10)");
-                lines.add(" 2: 무기 구매");
-                lines.add(" 3: 치료 (보급10)");
-                lines.add(" 4: 건설");
-                lines.add(" 5: 모집 (보급40)");
-                lines.add(" n: 밤 건너뛰기");
-                lines.add(" q: 종료");
+                panelLines.add(" [명령] (낮)");
+                panelLines.add(" 1: 수리 (보급10)");
+                panelLines.add(" 2: 무기 구매");
+                panelLines.add(" 3: 치료 (보급10)");
+                panelLines.add(" 4: 건설");
+                panelLines.add(" 5: 모집 (보급40)");
+                panelLines.add(" n: 밤 건너뛰기");
+                panelLines.add(" q: 종료");
             }
         }
 
-        return lines;
     }
 
     /// <summary>
@@ -762,7 +766,7 @@ public class Renderer {
     /// 맵 영역 + 구분선 + 로그 영역 모두 우측 패널과 나란히 표시
     /// </summary>
     private void flush() {
-        ArrayList<String> panelLines = buildPanel();
+        buildPanel();
         ArrayList<String> logs = gameMap.getRecentLogs();
 
         // 전체 높이: 맵(20) + 구분선(1) + 로그(8) = 29줄

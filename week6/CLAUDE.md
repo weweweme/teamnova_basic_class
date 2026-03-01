@@ -250,3 +250,19 @@ java -cp out Main
   cell.removePiece();
   cell.removeItem();
   ```
+- **반복 호출되는 메서드에서 컬렉션/배열 재생성 금지**: 매 프레임·매 틱 호출되는 메서드에서 `new ArrayList`, `new int[]` 등을 매번 생성하지 않는다. 클래스 필드로 선언하고 `clear()` / `Arrays.fill()`로 재사용
+  ```java
+  // 나쁜 예: 매 프레임마다 새 리스트 생성
+  private ArrayList<String> buildPanel() {
+      ArrayList<String> lines = new ArrayList<>();
+      lines.add("...");
+      return lines;
+  }
+
+  // 좋은 예: 필드로 재사용
+  private final ArrayList<String> panelLines = new ArrayList<>();
+  private void buildPanel() {
+      panelLines.clear();
+      panelLines.add("...");
+  }
+  ```

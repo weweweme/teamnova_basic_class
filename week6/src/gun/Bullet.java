@@ -1,6 +1,6 @@
-package entity;
+package gun;
 
-import world.GameMap;
+import game.GameMap;
 
 /// <summary>
 /// 정착민이 발사한 총알

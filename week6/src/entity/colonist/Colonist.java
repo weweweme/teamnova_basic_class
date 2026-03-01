@@ -1,9 +1,12 @@
 package entity.colonist;
 
+import gun.Gun;
+import gun.Pistol;
+
 import entity.GameEntity;
-import system.Position;
-import system.Util;
-import world.GameMap;
+import game.Position;
+import game.Util;
+import game.GameMap;
 
 /// <summary>
 /// 정착민 한 명을 나타내는 클래스

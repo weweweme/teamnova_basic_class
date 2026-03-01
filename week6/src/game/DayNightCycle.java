@@ -1,8 +1,8 @@
-package world;
+package game;
 
-import system.DifficultySettings;
-import system.Position;
-import system.Util;
+import game.DifficultySettings;
+import game.Position;
+import game.Util;
 import entity.colonist.Colonist;
 import entity.enemy.Enemy;
 import entity.enemy.EnemyType;

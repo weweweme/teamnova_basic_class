@@ -1,6 +1,12 @@
-package world;
+package game;
 
-import entity.Bullet;
+import structure.Structure;
+import structure.Barricade;
+import structure.Spike;
+import structure.Landmine;
+import structure.AmmoBox;
+
+import gun.Bullet;
 import entity.colonist.Colonist;
 import entity.enemy.Enemy;
 import entity.enemy.EnemyType;

@@ -1,4 +1,4 @@
-package world;
+package structure;
 
 /// <summary>
 /// 맵 위에 설치되는 건물의 공통 상위 클래스

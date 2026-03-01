@@ -1,9 +1,9 @@
 package entity.colonist;
 
-import system.Direction;
-import system.Util;
-import world.Barricade;
-import world.GameMap;
+import game.Direction;
+import game.Util;
+import structure.Barricade;
+import game.GameMap;
 
 /// <summary>
 /// 배회 상태 — 안전지대(바리케이드 왼쪽)에서 랜덤으로 돌아다님

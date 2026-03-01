@@ -2,11 +2,11 @@ package entity.enemy;
 
 import entity.GameEntity;
 import entity.colonist.Colonist;
-import system.Position;
-import system.Util;
-import world.Barricade;
-import world.GameMap;
-import world.Spike;
+import game.Position;
+import game.Util;
+import structure.Barricade;
+import game.GameMap;
+import structure.Spike;
 
 /// <summary>
 /// 밤에 오른쪽에서 출현하여 좌측으로 이동하는 적

@@ -1,4 +1,4 @@
-package world;
+package structure;
 
 /// <summary>
 /// 바리케이드 앞에 설치하는 가시덫

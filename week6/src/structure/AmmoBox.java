@@ -1,4 +1,4 @@
-package world;
+package structure;
 
 /// <summary>
 /// 안전지대에 설치하는 탄약 보급 구조물

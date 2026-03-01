@@ -1,34 +1,41 @@
-package entity.colonist;
+package gun;
 
-import entity.Bullet;
+import entity.colonist.Colonist;
+
+import gun.Bullet;
 import entity.enemy.Enemy;
-import world.Barricade;
-import world.GameMap;
+import structure.Barricade;
+import game.GameMap;
 
 /// <summary>
-/// 피스톨 — 기본 무기
-/// 단발 사격, 균형 잡힌 데미지와 발사 간격
+/// 미니건 — 초고속 연사 무기
+/// 매 틱마다 발사, 데미지는 낮지만 물량으로 제압
 /// </summary>
-public class Pistol extends Gun {
+public class Minigun extends Gun {
 
     /// <summary>
-    /// 발사 간격 (틱 수)
+    /// 발사 간격 (틱 수, 매 틱마다 발사)
     /// </summary>
-    private static final int FIRE_INTERVAL = 4;
+    private static final int FIRE_INTERVAL = 1;
 
     /// <summary>
     /// 기본 피해량
     /// </summary>
-    private static final int DAMAGE = 5;
+    private static final int DAMAGE = 2;
+
+    /// <summary>
+    /// 총알 이동 속도
+    /// </summary>
+    private static final int BULLET_SPEED = 4;
 
     @Override
     public String getName() {
-        return "피스톨";
+        return "미니건";
     }
 
     @Override
     public int getCost() {
-        return 0;
+        return 30;
     }
 
     @Override
@@ -37,7 +44,7 @@ public class Pistol extends Gun {
     }
 
     /// <summary>
-    /// 단발 총알 1개를 적 중앙을 향해 발사
+    /// 단발 총알 1개를 적 중앙을 향해 발사 (매 틱마다 반복)
     /// </summary>
     @Override
     public void fire(Colonist colonist, Enemy target, GameMap gameMap) {
@@ -51,14 +58,16 @@ public class Pistol extends Gun {
 
         int finalDamage = applyCrit(DAMAGE, colonist);
         int kb = getKnockback(colonist);
-        Bullet bullet = new Bullet(bulletRow, bulletCol, aimRow, aimCol, finalDamage,
-                colonist.getLabel(), 3, '*', 0, false, kb);
+        Bullet bullet = new Bullet(
+            bulletRow, bulletCol, aimRow, aimCol, finalDamage,
+            colonist.getLabel(), BULLET_SPEED, getBulletChar(), getBulletColor(), false, kb
+        );
         gameMap.addBullet(bullet);
     }
 
     @Override
     public char getBulletChar() {
-        return '*';
+        return '.';
     }
 
     @Override

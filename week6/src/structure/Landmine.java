@@ -1,4 +1,6 @@
-package world;
+package structure;
+
+import game.GameMap;
 
 import entity.enemy.Enemy;
 

@@ -1,7 +1,7 @@
 package entity;
 
-import system.Position;
-import world.GameMap;
+import game.Position;
+import game.GameMap;
 
 /// <summary>
 /// 정착민과 적의 공통 상위 클래스

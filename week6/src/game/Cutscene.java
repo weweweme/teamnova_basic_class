@@ -1,4 +1,4 @@
-package system;
+package game;
 
 /// <summary>
 /// ASCII 아트 컷씬을 재생하는 클래스

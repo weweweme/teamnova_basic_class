@@ -1,7 +1,9 @@
-package entity.colonist;
+package gun;
+
+import entity.colonist.Colonist;
 
 import entity.enemy.Enemy;
-import world.GameMap;
+import game.GameMap;
 
 /// <summary>
 /// 무기 추상 클래스

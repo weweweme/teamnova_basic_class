@@ -1,9 +1,11 @@
-package entity.colonist;
+package gun;
 
-import entity.Bullet;
+import entity.colonist.Colonist;
+
+import gun.Bullet;
 import entity.enemy.Enemy;
-import world.Barricade;
-import world.GameMap;
+import structure.Barricade;
+import game.GameMap;
 
 /// <summary>
 /// 샷건 — 부채꼴 3발 동시 발사

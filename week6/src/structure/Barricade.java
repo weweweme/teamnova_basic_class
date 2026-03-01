@@ -1,4 +1,4 @@
-package world;
+package structure;
 
 /// <summary>
 /// 안전지대와 전장을 나누는 세로 방벽

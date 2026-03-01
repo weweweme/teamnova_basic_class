@@ -1,16 +1,16 @@
-package system;
+package game;
 
-import entity.Bullet;
+import gun.Bullet;
 import entity.colonist.Colonist;
 import entity.colonist.ColonistType;
 import entity.enemy.Enemy;
-import world.AmmoBox;
-import world.Barricade;
-import world.DayNightCycle;
-import world.GameMap;
-import world.GameMap.HitEffect;
-import world.Landmine;
-import world.Spike;
+import structure.AmmoBox;
+import structure.Barricade;
+import game.DayNightCycle;
+import game.GameMap;
+import game.GameMap.HitEffect;
+import structure.Landmine;
+import structure.Spike;
 
 import java.util.ArrayList;
 

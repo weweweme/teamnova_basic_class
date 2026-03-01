@@ -1,4 +1,4 @@
-package world;
+package game;
 
 /// <summary>
 /// 낮마다 랜덤으로 발생하는 이벤트

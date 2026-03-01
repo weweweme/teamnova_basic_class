@@ -34,6 +34,16 @@ public class Renderer {
     private final int DEATH_ANIM_MS = 800;
 
     /// <summary>
+    /// 빨간색 ANSI 색상 코드
+    /// </summary>
+    private final int COLOR_RED = 31;
+
+    /// <summary>
+    /// 초록색 ANSI 색상 코드
+    /// </summary>
+    private final int COLOR_GREEN = 32;
+
+    /// <summary>
     /// 짙은 회색 ANSI 색상 코드
     /// </summary>
     private final int COLOR_DARK_GRAY = 90;
@@ -215,9 +225,9 @@ public class Renderer {
         // 파괴: 빨간색, 피격: 빨간색, 수리: 초록색, 평상시: 기본색
         int color = 0;
         if (destroyed || barricade.isRecentlyHit()) {
-            color = 31;
+            color = COLOR_RED;
         } else if (barricade.isRecentlyRepaired()) {
-            color = 32;
+            color = COLOR_GREEN;
         }
 
         for (int row = 0; row < GameMap.HEIGHT; row++) {
@@ -233,6 +243,8 @@ public class Renderer {
     /// 파괴된 가시덫은 표시하지 않음
     /// </summary>
     private void drawSpikes() {
+        final int COLOR_YELLOW = 33;
+
         for (Spike spike : gameMap.getSpikes()) {
             if (spike.isDestroyed()) {
                 continue;
@@ -242,7 +254,7 @@ public class Renderer {
             for (int row = 0; row < GameMap.HEIGHT; row++) {
                 if (col >= 0 && col < GameMap.WIDTH) {
                     buffer[row][col] = '^';
-                    colorBuffer[row][col] = 33;
+                    colorBuffer[row][col] = COLOR_YELLOW;
                 }
             }
         }
@@ -261,7 +273,7 @@ public class Renderer {
             for (int row = 0; row < GameMap.HEIGHT; row++) {
                 if (col >= 0 && col < GameMap.WIDTH) {
                     buffer[row][col] = '@';
-                    colorBuffer[row][col] = 31;
+                    colorBuffer[row][col] = COLOR_RED;
                 }
             }
         }
@@ -280,7 +292,7 @@ public class Renderer {
             for (int row = 0; row < GameMap.HEIGHT; row++) {
                 if (col >= 0 && col < GameMap.WIDTH) {
                     buffer[row][col] = '=';
-                    colorBuffer[row][col] = 32;
+                    colorBuffer[row][col] = COLOR_GREEN;
                 }
             }
         }
@@ -336,7 +348,6 @@ public class Renderer {
     /// </summary>
     private void drawEnemies() {
         long now = System.currentTimeMillis();
-        final int COLOR_RED = 31;
 
         for (Enemy enemy : gameMap.getEnemies()) {
             int row = enemy.getPosition().getRow();
@@ -454,7 +465,7 @@ public class Renderer {
                 char ch = line.charAt(j);
                 if (ch != ' ') {
                     buffer[row][col] = ch;
-                    colorBuffer[row][col] = 31;
+                    colorBuffer[row][col] = COLOR_RED;
                 }
             }
         }
@@ -719,11 +730,16 @@ public class Renderer {
     /// 한글 등 전각 문자를 고려한 터미널 표시 폭 계산
     /// </summary>
     private int displayWidth(String text) {
+        final char KOREAN_START = 0xAC00;
+        final char KOREAN_END = 0xD7A3;
+        final char CJK_START = 0x3000;
+        final char CJK_END = 0x9FFF;
+
         int width = 0;
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
-            boolean isKorean = c >= 0xAC00 && c <= 0xD7A3;
-            boolean isCjk = c >= 0x3000 && c <= 0x9FFF;
+            boolean isKorean = c >= KOREAN_START && c <= KOREAN_END;
+            boolean isCjk = c >= CJK_START && c <= CJK_END;
             if (isKorean || isCjk) {
                 width += 2;
             } else {

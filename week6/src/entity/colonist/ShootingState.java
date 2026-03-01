@@ -78,7 +78,7 @@ public class ShootingState extends ColonistState {
         // 발사 간격은 장착한 무기에 따라 다름
         // 속사 패시브 + 탄약 상자 보너스를 곱연산
         Gun gun = colonist.getGun();
-        double typeBonus = colonist.getType().getFireRateBonus();
+        double typeBonus = colonist.getSpec().getFireRateBonus();
         double ammoMultiplier = colonist.getGameMap().getFireRateMultiplier();
         int interval = Math.max((int) (gun.getFireInterval() * typeBonus * ammoMultiplier), 1);
         if (tickCount < interval) {

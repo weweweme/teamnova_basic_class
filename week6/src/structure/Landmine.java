@@ -60,7 +60,7 @@ public class Landmine extends Structure {
                 enemy.takeDamage(BLAST_DAMAGE);
 
                 if (!enemy.isLiving()) {
-                    gameMap.addLog("[지뢰] " + enemy.getType().getDisplayName() + " 처치!");
+                    gameMap.addLog("[지뢰] " + enemy.getSpec().getDisplayName() + " 처치!");
                 }
             }
         }

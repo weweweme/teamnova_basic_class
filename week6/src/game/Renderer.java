@@ -332,7 +332,7 @@ public class Renderer {
         for (Enemy enemy : gameMap.getEnemies()) {
             int row = enemy.getPosition().getRow();
             int col = enemy.getPosition().getCol();
-            String[] block = enemy.getType().getBlock();
+            String[] block = enemy.getSpec().getBlock();
             int blockHeight = block.length;
 
             if (enemy.isLiving()) {
@@ -552,7 +552,7 @@ public class Renderer {
             String marker = (i == selectedIndex) ? " > " : "   ";
 
             if (colonist.isLiving()) {
-                String typeName = colonist.getType().getDisplayName();
+                String typeName = colonist.getSpec().getDisplayName();
                 String stateName = colonist.getCurrentState().getDisplayName();
                 lines.add(marker + "[" + colonist.getLabel() + "] " + typeName + " " + stateName);
             } else {
@@ -567,7 +567,7 @@ public class Renderer {
             Colonist selected = colonists.get(selectedIndex);
             lines.add(" ──────────────");
             lines.add(" " + selected.getColonistName());
-            lines.add(" 유형: " + selected.getType().getDisplayName());
+            lines.add(" 유형: " + selected.getSpec().getDisplayName());
 
             if (selected.isLiving()) {
                 lines.add(" 상태: " + selected.getCurrentState().getDisplayName());

@@ -57,7 +57,7 @@ public class Shotgun extends Gun {
         int bulletCol = Barricade.COLUMN + 2;
 
         // 적 블록 중앙 계산
-        String[] block = target.getType().getBlock();
+        String[] block = target.getSpec().getBlock();
         int centerRow = target.getPosition().getRow() + block.length / 2;
         int centerCol = target.getPosition().getCol() + block[0].length() / 2;
 

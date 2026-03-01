@@ -21,9 +21,14 @@ public class Colonist extends GameEntity {
     private static final int TICK_DELAY = 500;
 
     /// <summary>
-    /// 정착민 유형 (체력/발사간격/피해량 결정)
+    /// 정착민 유형 (타입 식별용)
     /// </summary>
     private final ColonistType type;
+
+    /// <summary>
+    /// 정착민 속성 데이터 (체력/패시브 등)
+    /// </summary>
+    private final ColonistSpec spec;
 
     /// <summary>
     /// 정착민 이름 (한글, 패널에서만 표시)
@@ -54,9 +59,10 @@ public class Colonist extends GameEntity {
     /// 지정한 유형, 이름, 위치, 맵으로 정착민 생성
     /// 체력은 유형의 최대 체력, 배회 상태로 시작
     /// </summary>
-    public Colonist(ColonistType type, String name, char label, Position position, GameMap gameMap) {
-        super(position, gameMap, type.getMaxHp());
+    public Colonist(ColonistType type, ColonistSpec spec, String name, char label, Position position, GameMap gameMap) {
+        super(position, gameMap, spec.getMaxHp());
         this.type = type;
+        this.spec = spec;
         this.name = name;
         this.label = label;
         this.gun = new Pistol();
@@ -87,7 +93,7 @@ public class Colonist extends GameEntity {
     /// </summary>
     @Override
     public int getMaxHp() {
-        return type.getMaxHp();
+        return spec.getMaxHp();
     }
 
     /// <summary>
@@ -114,6 +120,13 @@ public class Colonist extends GameEntity {
     /// </summary>
     public ColonistType getType() {
         return type;
+    }
+
+    /// <summary>
+    /// 정착민 속성 데이터 반환
+    /// </summary>
+    public ColonistSpec getSpec() {
+        return spec;
     }
 
     /// <summary>

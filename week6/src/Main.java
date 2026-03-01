@@ -1,10 +1,13 @@
 import entity.colonist.Colonist;
+import entity.colonist.ColonistFactory;
+import entity.colonist.ColonistSpec;
 import entity.colonist.ColonistType;
 import gun.Gun;
 import gun.Pistol;
 import gun.Shotgun;
 import gun.Rifle;
 import gun.Minigun;
+import entity.enemy.EnemyFactory;
 import entity.enemy.EnemyType;
 import structure.AmmoBox;
 import structure.Barricade;
@@ -93,11 +96,15 @@ public class Main {
         // 초기 보급품
         gameMap.getSupply().add(30);
 
+        // 팩토리 생성
+        ColonistFactory colonistFactory = new ColonistFactory();
+        EnemyFactory enemyFactory = new EnemyFactory();
+
         // 정착민 3명 배치 (안전지대 내, 각기 다른 유형)
         int centerRow = GameMap.HEIGHT / 2;
-        Colonist chulsoo = new Colonist(ColonistType.GUNNER, "김철수", gameMap.issueNextLabel(), new Position(centerRow, 3), gameMap);
-        Colonist younghee = new Colonist(ColonistType.SNIPER, "이영희", gameMap.issueNextLabel(), new Position(centerRow, 7), gameMap);
-        Colonist minsoo = new Colonist(ColonistType.ASSAULT, "박민수", gameMap.issueNextLabel(), new Position(centerRow, 11), gameMap);
+        Colonist chulsoo = new Colonist(ColonistType.GUNNER, colonistFactory.getSpec(ColonistType.GUNNER), "김철수", gameMap.issueNextLabel(), new Position(centerRow, 3), gameMap);
+        Colonist younghee = new Colonist(ColonistType.SNIPER, colonistFactory.getSpec(ColonistType.SNIPER), "이영희", gameMap.issueNextLabel(), new Position(centerRow, 7), gameMap);
+        Colonist minsoo = new Colonist(ColonistType.ASSAULT, colonistFactory.getSpec(ColonistType.ASSAULT), "박민수", gameMap.issueNextLabel(), new Position(centerRow, 11), gameMap);
         // 유형별 기본 무기 배정
         chulsoo.setGun(new Pistol());
         younghee.setGun(new Rifle());
@@ -284,7 +291,7 @@ public class Main {
                                 String recruitName = "신병" + recruitCount;
                                 int row = GameMap.HEIGHT / 2;
                                 int col = 3 + gameMap.getColonists().size() * 4;
-                                Colonist recruit = new Colonist(recruitType, recruitName, gameMap.issueNextLabel(), new Position(row, col), gameMap);
+                                Colonist recruit = new Colonist(recruitType, colonistFactory.getSpec(recruitType), recruitName, gameMap.issueNextLabel(), new Position(row, col), gameMap);
 
                                 // 유형별 기본 무기 배정
                                 switch (recruitType) {
@@ -301,7 +308,7 @@ public class Main {
 
                                 gameMap.addColonist(recruit);
                                 recruit.start();
-                                gameMap.addLog(">> " + recruitName + " (" + recruitType.getDisplayName() + ") 합류!");
+                                gameMap.addLog(">> " + recruitName + " (" + colonistFactory.getSpec(recruitType).getDisplayName() + ") 합류!");
                             }
 
                             recruitMode = false;
@@ -434,7 +441,7 @@ public class Main {
             for (EnemyType type : EnemyType.values()) {
                 int count = killsByType.getOrDefault(type, 0);
                 if (count > 0) {
-                    System.out.println("  " + type.getDisplayName() + ": " + count + "마리");
+                    System.out.println("  " + enemyFactory.getSpec(type).getDisplayName() + ": " + count + "마리");
                 }
             }
         }

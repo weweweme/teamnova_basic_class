@@ -52,7 +52,7 @@ public class Minigun extends Gun {
         int bulletCol = Barricade.COLUMN + 2;
 
         // 적 블록 중앙을 조준
-        String[] block = target.getType().getBlock();
+        String[] block = target.getSpec().getBlock();
         int aimRow = target.getPosition().getRow() + block.length / 2;
         int aimCol = target.getPosition().getCol() + block[0].length() / 2;
 

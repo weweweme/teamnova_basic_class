@@ -5,6 +5,8 @@ import game.Position;
 import game.Util;
 import entity.colonist.Colonist;
 import entity.enemy.Enemy;
+import entity.enemy.EnemyFactory;
+import entity.enemy.EnemySpec;
 import entity.enemy.EnemyType;
 import entity.colonist.ShootingState;
 import entity.colonist.WanderingState;
@@ -56,6 +58,11 @@ public class DayNightCycle extends Thread {
     /// 이 주기가 관리하는 맵 (적 스폰/제거용)
     /// </summary>
     private final GameMap gameMap;
+
+    /// <summary>
+    /// 적 종류별 속성 데이터를 제공하는 팩토리
+    /// </summary>
+    private final EnemyFactory enemyFactory;
 
     /// <summary>
     /// 난이도 설정 (적 수/보급/승리 일차 조절)
@@ -142,6 +149,7 @@ public class DayNightCycle extends Thread {
     /// </summary>
     public DayNightCycle(GameMap gameMap, DifficultySettings settings) {
         this.gameMap = gameMap;
+        this.enemyFactory = new EnemyFactory();
         this.settings = settings;
         this.day = 1;
         this.night = false;
@@ -394,7 +402,7 @@ public class DayNightCycle extends Thread {
         for (EnemyType type : EnemyType.values()) {
             int count = counts.getOrDefault(type, 0);
             if (count > 0) {
-                preview.add(type.getDisplayName() + "x" + count);
+                preview.add(enemyFactory.getSpec(type).getDisplayName() + "x" + count);
             }
         }
 
@@ -454,7 +462,7 @@ public class DayNightCycle extends Thread {
         // 전체 필요 높이 계산 (블록 높이 합 + 간격)
         int totalHeight = 0;
         for (EnemyType type : spawnList) {
-            totalHeight += type.getBlock().length;
+            totalHeight += enemyFactory.getSpec(type).getBlock().length;
         }
         // 적 사이 간격 (마지막 적 아래는 제외)
         totalHeight += spawnList.size() - 1;
@@ -467,7 +475,8 @@ public class DayNightCycle extends Thread {
 
         int currentRow = startRow;
         for (EnemyType type : spawnList) {
-            int blockHeight = type.getBlock().length;
+            EnemySpec spec = enemyFactory.getSpec(type);
+            int blockHeight = spec.getBlock().length;
 
             // 맵 높이를 넘으면 맨 위부터 다시 배치
             int maxRow = GameMap.HEIGHT - blockHeight;
@@ -476,7 +485,7 @@ public class DayNightCycle extends Thread {
             }
 
             int col = GameMap.WIDTH - 1;
-            Enemy enemy = new Enemy(type, new Position(currentRow, col), gameMap);
+            Enemy enemy = new Enemy(type, spec, new Position(currentRow, col), gameMap);
             pendingSpawns.add(enemy);
 
             // 블록 높이 + 간격 1칸

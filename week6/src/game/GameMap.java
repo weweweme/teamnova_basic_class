@@ -200,7 +200,7 @@ public class GameMap {
 
                 // 적의 블록 범위가 지뢰 열과 겹치는지 확인
                 int enemyCol = enemy.getPosition().getCol();
-                int blockWidth = enemy.getType().getBlock()[0].length();
+                int blockWidth = enemy.getSpec().getBlock()[0].length();
                 boolean overlaps = enemyCol <= mine.getColumn() && enemyCol + blockWidth > mine.getColumn();
 
                 if (overlaps) {
@@ -308,7 +308,7 @@ public class GameMap {
             EnemyType type = enemy.getType();
             killsByType.put(type, killsByType.getOrDefault(type, 0) + 1);
             // 처치 보상: 적 종류마다 다름 (일반 1~3, 강한 4~6, 보스 10~15)
-            supply.add(type.getReward());
+            supply.add(enemy.getSpec().getReward());
         }
     }
 
@@ -374,7 +374,7 @@ public class GameMap {
                 }
 
                 // 적 블록 범위 계산
-                String[] block = enemy.getType().getBlock();
+                String[] block = enemy.getSpec().getBlock();
                 int enemyRow = enemy.getPosition().getRow();
                 int enemyCol = enemy.getPosition().getCol();
                 int blockHeight = block.length;
@@ -402,7 +402,7 @@ public class GameMap {
 
                     // 적 처치 시 로그
                     if (!enemy.isLiving()) {
-                        String enemyName = enemy.getType().getDisplayName();
+                        String enemyName = enemy.getSpec().getDisplayName();
                         addLog("[" + bullet.getShooterLabel() + "] " + enemyName + " 처치!");
                     }
 

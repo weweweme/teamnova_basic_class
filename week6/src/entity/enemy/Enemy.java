@@ -16,9 +16,14 @@ import structure.Spike;
 public class Enemy extends GameEntity {
 
     /// <summary>
-    /// 이 적의 종류 (체력/공격력/속도/외형 결정)
+    /// 이 적의 종류 (타입 식별용)
     /// </summary>
     private final EnemyType type;
+
+    /// <summary>
+    /// 이 적의 속성 데이터 (체력/공격력/속도/외형 등)
+    /// </summary>
+    private final EnemySpec spec;
 
     /// <summary>
     /// 사망 시각 (0이면 살아있음, 양수면 사망 시점의 밀리초)
@@ -41,11 +46,12 @@ public class Enemy extends GameEntity {
     private static final int CHARGE_RANGE = 8;
 
     /// <summary>
-    /// 지정한 종류, 위치, 맵으로 적 생성
+    /// 지정한 종류, 속성, 위치, 맵으로 적 생성
     /// </summary>
-    public Enemy(EnemyType type, Position position, GameMap gameMap) {
-        super(position, gameMap, type.getMaxHp());
+    public Enemy(EnemyType type, EnemySpec spec, Position position, GameMap gameMap) {
+        super(position, gameMap, spec.getMaxHp());
         this.type = type;
+        this.spec = spec;
     }
 
     /// <summary>
@@ -70,7 +76,7 @@ public class Enemy extends GameEntity {
             Barricade barricade = getGameMap().getBarricade();
 
             // 재생 특성: 일정 틱마다 체력 1 회복
-            if (type.getTrait() == EnemyTrait.REGENERATING) {
+            if (spec.getTrait() == EnemyTrait.REGENERATING) {
                 regenTick++;
                 if (regenTick >= REGEN_INTERVAL) {
                     regenTick = 0;
@@ -82,7 +88,7 @@ public class Enemy extends GameEntity {
 
             // 이동량 결정 (돌진 특성: 바리케이드 근처에서 2칸 이동)
             int moveAmount = 1;
-            if (type.getTrait() == EnemyTrait.CHARGER) {
+            if (spec.getTrait() == EnemyTrait.CHARGER) {
                 boolean nearBarricade = currentCol - BARRICADE_STOP <= CHARGE_RANGE;
                 if (nearBarricade) {
                     moveAmount = 2;
@@ -99,7 +105,7 @@ public class Enemy extends GameEntity {
                     getPosition().setCol(newCol);
                     checkSpikes();
                 } else {
-                    barricade.takeDamage(type.getDamage());
+                    barricade.takeDamage(spec.getDamage());
                 }
             } else {
                 // 바리케이드 파괴: 정착민에게 돌진
@@ -117,7 +123,7 @@ public class Enemy extends GameEntity {
                         getPosition().setCol(newCol);
                         checkSpikes();
                     } else {
-                        target.takeDamage(type.getDamage());
+                        target.takeDamage(spec.getDamage());
                     }
                 } else if (currentCol > 0) {
                     // 살아있는 정착민 없음: 왼쪽으로 계속 이동
@@ -130,7 +136,7 @@ public class Enemy extends GameEntity {
                 }
             }
 
-            Util.delay(type.getTickDelay());
+            Util.delay(spec.getTickDelay());
         }
     }
 
@@ -178,7 +184,7 @@ public class Enemy extends GameEntity {
     /// </summary>
     @Override
     public int getMaxHp() {
-        return type.getMaxHp();
+        return spec.getMaxHp();
     }
 
     /// <summary>
@@ -189,7 +195,7 @@ public class Enemy extends GameEntity {
     public void takeDamage(int damage) {
         // 방어 특성: 피해 절반으로 감소 (최소 1)
         int actualDamage = damage;
-        if (type.getTrait() == EnemyTrait.ARMORED && damage > 1) {
+        if (spec.getTrait() == EnemyTrait.ARMORED && damage > 1) {
             actualDamage = damage / 2;
         }
 
@@ -205,6 +211,13 @@ public class Enemy extends GameEntity {
     /// </summary>
     public EnemyType getType() {
         return type;
+    }
+
+    /// <summary>
+    /// 적 속성 데이터 반환
+    /// </summary>
+    public EnemySpec getSpec() {
+        return spec;
     }
 
     /// <summary>

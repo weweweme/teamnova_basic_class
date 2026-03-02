@@ -8,6 +8,7 @@ import structure.AmmoBox;
 
 import gun.Bullet;
 import entity.colonist.Colonist;
+import entity.colonist.NameProvider;
 import entity.enemy.Enemy;
 import entity.enemy.EnemyType;
 
@@ -81,6 +82,11 @@ public class GameWorld {
     /// 합성 효과음 재생기
     /// </summary>
     private final SfxPlayer sfxPlayer;
+
+    /// <summary>
+    /// 정착민 이름 제공기 (중복 없는 랜덤 이름)
+    /// </summary>
+    private final NameProvider nameProvider = new NameProvider();
 
     /// <summary>
     /// 명중 이펙트의 지속 시간 (밀리초)
@@ -441,5 +447,12 @@ public class GameWorld {
     /// </summary>
     public SfxPlayer getSfxPlayer() {
         return sfxPlayer;
+    }
+
+    /// <summary>
+    /// 이름 제공기 반환
+    /// </summary>
+    public NameProvider getNameProvider() {
+        return nameProvider;
     }
 }

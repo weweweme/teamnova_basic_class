@@ -98,17 +98,14 @@ public class Main {
         // 정착민 3명 배치 (안전지대 내, 기본 유형)
         ColonistSpec basicSpec = colonistFactory.getSpec(ColonistType.BASIC);
         int centerRow = GameWorld.HEIGHT / 2;
-        Colonist chulsoo = new Colonist(ColonistType.BASIC, basicSpec, "김철수", gameWorld.issueNextLabel(), new Position(centerRow, 3), gameWorld);
-        Colonist younghee = new Colonist(ColonistType.BASIC, basicSpec, "이영희", gameWorld.issueNextLabel(), new Position(centerRow, 7), gameWorld);
-        Colonist minsoo = new Colonist(ColonistType.BASIC, basicSpec, "박민수", gameWorld.issueNextLabel(), new Position(centerRow, 11), gameWorld);
-        // 모든 정착민 피스톨로 시작
-        chulsoo.setGun(new Pistol());
-        younghee.setGun(new Pistol());
-        minsoo.setGun(new Pistol());
+        int[] startCols = {3, 7, 11};
 
-        gameWorld.addColonist(chulsoo);
-        gameWorld.addColonist(younghee);
-        gameWorld.addColonist(minsoo);
+        for (int startCol : startCols) {
+            String name = gameWorld.getNameProvider().pickName();
+            Colonist colonist = new Colonist(ColonistType.BASIC, basicSpec, name, gameWorld.issueNextLabel(), new Position(centerRow, startCol), gameWorld);
+            colonist.setGun(new Pistol());
+            gameWorld.addColonist(colonist);
+        }
 
         // 낮/밤 주기 생성 및 렌더러에 연결
         DifficultySettings settings = new DifficultySettings(selectedDifficulty);
@@ -127,9 +124,9 @@ public class Main {
 
         // 스레드 시작
         dayNightCycle.start();
-        chulsoo.start();
-        younghee.start();
-        minsoo.start();
+        for (Colonist colonist : gameWorld.getColonists()) {
+            colonist.start();
+        }
 
         // 렌더링 간격 (밀리초)
         final int RENDER_INTERVAL = 100;

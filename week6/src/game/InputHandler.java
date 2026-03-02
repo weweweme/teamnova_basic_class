@@ -108,11 +108,6 @@ public class InputHandler {
     private boolean cheatMode;
 
     /// <summary>
-    /// 모집 이름 카운터
-    /// </summary>
-    private int recruitCount;
-
-    /// <summary>
     /// 입력 처리기 생성
     /// </summary>
     public InputHandler(GameWorld gameWorld, Renderer renderer, DayNightCycle dayNightCycle, ColonistFactory colonistFactory) {
@@ -121,7 +116,6 @@ public class InputHandler {
         this.dayNightCycle = dayNightCycle;
         this.colonistFactory = colonistFactory;
         this.running = true;
-        this.recruitCount = 0;
     }
 
     /// <summary>
@@ -296,18 +290,17 @@ public class InputHandler {
         // 모집 비용 (보급품)
         final int RECRUIT_COST = 40;
         if (gameWorld.getSupply().spend(RECRUIT_COST)) {
-            recruitCount++;
-            String recruitName = "신병" + recruitCount;
+            String name = gameWorld.getNameProvider().pickName();
             // 왼쪽 바깥에서 등장하여 안전지대로 걸어 들어옴
             int row = GameWorld.HEIGHT / 2;
             int col = 0;
             ColonistSpec basicSpec = colonistFactory.getSpec(ColonistType.BASIC);
-            Colonist recruit = new Colonist(ColonistType.BASIC, basicSpec, recruitName, gameWorld.issueNextLabel(), new Position(row, col), gameWorld);
+            Colonist recruit = new Colonist(ColonistType.BASIC, basicSpec, name, gameWorld.issueNextLabel(), new Position(row, col), gameWorld);
             recruit.setGun(new Pistol());
 
             gameWorld.addColonist(recruit);
             recruit.start();
-            gameWorld.addLog(">> " + recruitName + " 합류!");
+            gameWorld.addLog(">> " + name + " 합류!");
         }
     }
 

@@ -380,13 +380,6 @@ public class GameWorld {
     }
 
     /// <summary>
-    /// 적 추가
-    /// </summary>
-    public void addEnemy(Enemy enemy) {
-        enemies.add(enemy);
-    }
-
-    /// <summary>
     /// 적을 맵에 배치하고 스레드 시작
     /// </summary>
     public void deployEnemy(Enemy enemy) {

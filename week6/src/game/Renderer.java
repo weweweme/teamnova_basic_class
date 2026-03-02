@@ -15,6 +15,16 @@ import java.util.Arrays;
 /// <summary>
 /// 게임 화면을 콘솔에 출력하는 클래스
 /// 맵 버퍼(좌측) + 우측 패널 + 하단 로그를 합쳐서 한번에 출력
+///
+/// 렌더링 파이프라인:
+///   1) clearBuffer: char/color 2차원 배열을 공백으로 초기화
+///   2) draw 메서드들: 오브젝트를 배경→전경 순서로 버퍼에 기록 (페인터 알고리즘)
+///   3) flush: 버퍼를 ANSI 이스케이프 코드와 함께 문자열로 조립하여 한번에 출력
+///
+/// 핵심 기법:
+///   - 더블 버퍼링: 화면에 직접 쓰지 않고 char[][] 버퍼에 먼저 그린 뒤 일괄 출력 (깜빡임 방지)
+///   - 제자리 덮어쓰기: \033[H로 커서를 맨 위로 이동한 뒤 기존 내용 위에 다시 그림 (스크롤 방지)
+///   - 색상 버퍼: int[][] colorBuffer에 ANSI 색상 코드를 저장, flush 시점에 적용
 /// </summary>
 public class Renderer {
 
@@ -173,6 +183,13 @@ public class Renderer {
         if (isGameOver()) {
             drawGameOverScreen();
         } else {
+            // 페인터 알고리즘: 뒤(배경)부터 앞(전경) 순서로 그려서 나중 것이 앞의 것을 덮어씀
+            // 1. 바리케이드 — 맵 전체 높이를 차지하는 배경 구조물
+            // 2. 가시덫/지뢰/탄약상자 — 바닥 위의 설치물
+            // 3. 정착민 — 구조물 위에 서 있는 아군 유닛
+            // 4. 적 — 느린 적 먼저, 빠른 적 나중에 그려서 빠른 적이 앞에 보임
+            // 5. 총알 — 유닛 위를 날아가는 투사체
+            // 6. 이펙트 — 명중/폭발 등 최상위 시각 효과
             drawBarricade();
             drawSpikes();
             drawLandmines();
@@ -345,11 +362,7 @@ public class Renderer {
 
     /// <summary>
     /// 모든 정착민을 버퍼에 그림
-    /// 살아있으면 기본색으로 블록 출력
-    /// 사망 시 3단계 애니메이션:
-    ///   Phase 1 (0~400ms): 전체 짙은 회색으로 정지
-    ///   Phase 2 (400~800ms): 아래부터 한 줄씩 소멸 (진행률에 비례)
-    ///   Phase 3 (800ms~): 완전 소멸, 아무것도 안 그림
+    /// 살아있으면 기본색으로 블록 출력, 사망 시 drawDeathAnimation으로 3단계 연출
     /// </summary>
     private void drawColonists() {
         long now = System.currentTimeMillis();
@@ -358,33 +371,11 @@ public class Renderer {
             int row = colonist.getPosition().getRow();
             int col = colonist.getPosition().getCol();
             String[] block = colonist.getBlock();
-            int blockHeight = block.length;
 
             if (colonist.isLiving()) {
                 drawBlock(row, col, block);
             } else {
-                // 사망 애니메이션
-                long elapsed = now - colonist.getDeathTime();
-
-                if (elapsed < DEATH_PHASE1_MS) {
-                    // Phase 1: 전체 짙은 회색으로 정지
-
-                    Arrays.fill(reusableColors, 0, blockHeight, COLOR_DARK_GRAY);
-                    drawColoredBlock(row, col, block, reusableColors, blockHeight);
-                } else if (elapsed < DEATH_ANIM_MS) {
-                    // Phase 2: 아래부터 한 줄씩 소멸
-                    int phase2Duration = DEATH_ANIM_MS - DEATH_PHASE1_MS;
-                    double progress = (double) (elapsed - DEATH_PHASE1_MS) / phase2Duration;
-                    int removedRows = (int) Math.ceil(progress * blockHeight);
-                    int visibleRows = blockHeight - removedRows;
-
-                    if (visibleRows > 0) {
-
-                        Arrays.fill(reusableColors, 0, visibleRows, COLOR_DARK_GRAY);
-                        drawColoredBlock(row, col, block, reusableColors, visibleRows);
-                    }
-                }
-                // Phase 3 (DEATH_ANIM_MS 이후): 아무것도 안 그림
+                drawDeathAnimation(now, colonist.getDeathTime(), row, col, block);
             }
         }
     }
@@ -393,13 +384,13 @@ public class Renderer {
     /// 맵의 모든 적을 버퍼에 그림
     /// 이동속도가 빠른 적(tickDelay 낮음)이 위에 보이도록 느린 적부터 먼저 그림
     /// 살아있는 적: HP 손실 비율만큼 위쪽 행부터 빨간색으로 채움
-    ///   예) HP 60% → 블록 상단 40%가 빨강, 하단 60%는 기본색
-    /// 죽은 적: 정착민과 동일한 3단계 사망 애니메이션
+    /// 사망 시 drawDeathAnimation으로 3단계 연출
     /// </summary>
     private void drawEnemies() {
         long now = System.currentTimeMillis();
 
         // 느린 적(tickDelay 큼)을 먼저 그리고, 빠른 적(tickDelay 작음)을 나중에 그림
+        // 페인터 알고리즘에 의해 나중에 그린 빠른 적이 겹칠 때 앞에 보임
         sortedEnemies.clear();
         sortedEnemies.addAll(gameWorld.getEnemies());
         sortedEnemies.sort((a, b) -> b.getSpec().getTickDelay() - a.getSpec().getTickDelay());
@@ -411,8 +402,10 @@ public class Renderer {
             int blockHeight = block.length;
 
             if (enemy.isLiving()) {
-                // 살아있는 적: HP 비율에 따라 위에서부터 빨간색
-
+                // ===== HP 시각화 =====
+                // 블록의 위쪽 행부터 빨간색으로 채워서 피해량을 표현
+                // 예) 블록 5줄, HP 60% → 손실 40% → 위 2줄 빨강, 아래 3줄 기본색
+                // hpRatio가 낮을수록 빨간 행이 많아져 "위에서 피가 차는" 연출
                 Arrays.fill(reusableColors, 0, blockHeight, 0);
 
                 double hpRatio = (double) enemy.getHp() / enemy.getMaxHp();
@@ -422,28 +415,7 @@ public class Renderer {
                 }
                 drawColoredBlock(row, col, block, reusableColors, blockHeight);
             } else {
-                // 죽은 적: 사망 애니메이션
-                long elapsed = now - enemy.getDeathTime();
-
-                if (elapsed < DEATH_PHASE1_MS) {
-                    // Phase 1: 전체 짙은 회색으로 정지
-
-                    Arrays.fill(reusableColors, 0, blockHeight, COLOR_DARK_GRAY);
-                    drawColoredBlock(row, col, block, reusableColors, blockHeight);
-                } else if (elapsed < DEATH_ANIM_MS) {
-                    // Phase 2: 아래부터 한 줄씩 소멸
-                    int phase2Duration = DEATH_ANIM_MS - DEATH_PHASE1_MS;
-                    double progress = (double) (elapsed - DEATH_PHASE1_MS) / phase2Duration;
-                    int removedRows = (int) Math.ceil(progress * blockHeight);
-                    int visibleRows = blockHeight - removedRows;
-
-                    if (visibleRows > 0) {
-
-                        Arrays.fill(reusableColors, 0, visibleRows, COLOR_DARK_GRAY);
-                        drawColoredBlock(row, col, block, reusableColors, visibleRows);
-                    }
-                }
-                // Phase 3 (DEATH_ANIM_MS 이후): 아무것도 안 그림 (제거 대기)
+                drawDeathAnimation(now, enemy.getDeathTime(), row, col, block);
             }
         }
     }
@@ -549,18 +521,14 @@ public class Renderer {
         int leftPad = (GameWorld.WIDTH - warningWidth) / 2;
         int rightPad = GameWorld.WIDTH - warningWidth - leftPad;
 
-        for (int i = 0; i < leftPad; i++) {
-            sb.append(' ');
-        }
+        sb.append(" ".repeat(Math.max(0, leftPad)));
 
         // 밝은 노랑 (ANSI 93)
         sb.append("\033[93m");
         sb.append(warning);
         sb.append("\033[0m");
 
-        for (int i = 0; i < rightPad; i++) {
-            sb.append(' ');
-        }
+        sb.append(" ".repeat(Math.max(0, rightPad)));
     }
 
     /// <summary>
@@ -588,6 +556,38 @@ public class Renderer {
                 buffer[bufferRow][bufferCol] = line.charAt(blockCol);
             }
         }
+    }
+
+    /// <summary>
+    /// 사망 애니메이션 공통 처리 (정착민/적 공용)
+    /// deathTime(사망 시각)과 현재 시각의 차이로 경과 시간을 구하고 3단계 연출:
+    ///   Phase 1 (0~400ms): 블록 전체를 짙은 회색으로 표시 (잠깐 멈춘 듯한 정지 연출)
+    ///   Phase 2 (400~800ms): 아래 행부터 한 줄씩 사라짐 (분해 연출)
+    ///   Phase 3 (800ms~): 아무것도 안 그림 (완전 소멸)
+    /// </summary>
+    private void drawDeathAnimation(long now, long deathTime, int row, int col, String[] block) {
+        long elapsed = now - deathTime;
+        int blockHeight = block.length;
+
+        if (elapsed < DEATH_PHASE1_MS) {
+            // Phase 1: 블록 전체를 짙은 회색으로 표시 (정지 연출)
+            Arrays.fill(reusableColors, 0, blockHeight, COLOR_DARK_GRAY);
+            drawColoredBlock(row, col, block, reusableColors, blockHeight);
+        } else if (elapsed < DEATH_ANIM_MS) {
+            // Phase 2: 아래부터 한 줄씩 소멸
+            // progress가 0→1로 증가하면서 removedRows도 0→blockHeight로 증가
+            // 예) 블록 3줄, progress 0.5 → 2줄 제거 → 윗 1줄만 회색으로 표시
+            int phase2Duration = DEATH_ANIM_MS - DEATH_PHASE1_MS;
+            double progress = (double) (elapsed - DEATH_PHASE1_MS) / phase2Duration;
+            int removedRows = (int) Math.ceil(progress * blockHeight);
+            int visibleRows = blockHeight - removedRows;
+
+            if (visibleRows > 0) {
+                Arrays.fill(reusableColors, 0, visibleRows, COLOR_DARK_GRAY);
+                drawColoredBlock(row, col, block, reusableColors, visibleRows);
+            }
+        }
+        // Phase 3 (800ms 이후): draw 호출을 안 하면 clearBuffer의 공백이 그대로 남음
     }
 
     /// <summary>
@@ -693,9 +693,13 @@ public class Renderer {
         final String COLOR_RESET = "\033[0m";
         final char NEWLINE = '\n';
 
+        // ===== 화면 조립 시작 =====
+        // StringBuilder에 전체 화면을 한번에 조립한 뒤 System.out.print로 일괄 출력
+        // 행별 println 대신 한번에 출력하여 터미널 깜빡임 방지 (더블 버퍼링)
         screenBuilder.setLength(0);
 
-        // 커서를 맨 위로 이동
+        // \033[H: 커서를 터미널 좌상단(1,1)으로 이동
+        // 화면을 지우지 않고 기존 내용 위에 덮어씀 (스크롤 발생 없음)
         screenBuilder.append(CURSOR_HOME);
 
         // 흔들림 오프셋 (행 루프 바깥에서 한 번만 조회)
@@ -706,7 +710,11 @@ public class Renderer {
         boolean waveWarning = gameWorld.getScreenEffects().isWaveWarningActive();
 
         for (int row = 0; row < totalHeight; row++) {
-            // 좌측 내용 (맵 / 구분선 / 로그)
+            // ===== 맵 행 출력 =====
+            // buffer[row][col]의 문자를 순서대로 출력
+            // colorBuffer[row][col]이 0이 아니면 해당 문자를 ANSI 색상으로 감쌈
+            //   예) colorBuffer가 31이면: \033[31m + 문자 + \033[0m (빨간색 출력 후 초기화)
+            // 흔들림 효과: shakeOffset만큼 가로 패딩을 넣어 맵이 좌우로 밀려 보이게 함
             if (row < GameWorld.HEIGHT) {
                 // 웨이브 경고 행: 한글 포함 문자열을 버퍼 대신 직접 출력
                 boolean isWarningRow = waveWarning && row == WAVE_WARNING_ROW;
@@ -747,11 +755,13 @@ public class Renderer {
                         screenBuilder.append(" ".repeat(Math.max(0, -shakeOffset)));
                     }
                 }
+            // ===== 로그 영역 =====
+            // 맵 아래 구분선 1줄 + 로그 8줄
+            // 최신 로그가 맨 위, 오래된 로그가 아래로 밀리는 채팅 스타일 배치
             } else if (row == GameWorld.HEIGHT) {
                 // 로그 구분선
                 screenBuilder.append("-".repeat(GameWorld.WIDTH));
             } else {
-                // 로그 줄 (상단 정렬: 최신 로그가 위, 오래된 로그가 아래로 밀림)
                 int logLine = row - GameWorld.HEIGHT - 1;
 
                 // 최신 로그부터 역순으로 표시 (채팅 스타일)
@@ -765,7 +775,9 @@ public class Renderer {
                 screenBuilder.append(padToWidth(logContent));
             }
 
-            // 우측 패널
+            // ===== 우측 패널 =====
+            // 각 행의 맵/로그 내용 뒤에 구분선(|||)과 패널 줄을 이어붙임
+            // 패널은 PanelBuilder가 생성한 텍스트 줄 목록 (시간, 보급, 정착민, 명령 안내)
             screenBuilder.append(PANEL_SEPARATOR);
             if (row < panelLines.size()) {
                 appendPadPanel(screenBuilder, panelLines.get(row));
@@ -776,7 +788,8 @@ public class Renderer {
             screenBuilder.append(NEWLINE);
         }
 
-        // 화면 아래 잔여 내용 지움
+        // ===== 최종 출력 =====
+        // \033[J: 커서 아래의 잔여 내용을 모두 지움 (이전 프레임이 더 길었을 때 잔상 방지)
         screenBuilder.append(CLEAR_BELOW);
 
         System.out.print(screenBuilder);

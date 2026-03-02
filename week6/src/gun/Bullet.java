@@ -41,6 +41,11 @@ public class Bullet {
     private final char shooterLabel;
 
     /// <summary>
+    /// 발사한 정착민의 이름 (처치 로그용)
+    /// </summary>
+    private final String shooterName;
+
+    /// <summary>
     /// 틱당 가로 이동 거리 (무기마다 다름)
     /// </summary>
     private final int speed;
@@ -79,13 +84,14 @@ public class Bullet {
     /// 모든 속성을 지정하여 총알 생성
     /// </summary>
     public Bullet(int startRow, int startCol, int targetRow, int targetCol, int damage,
-                  char shooterLabel, int speed, char bulletChar, int bulletColor, boolean piercing, int knockback, boolean crit) {
+                  char shooterLabel, String shooterName, int speed, char bulletChar, int bulletColor, boolean piercing, int knockback, boolean crit) {
         this.startRow = startRow;
         this.startCol = startCol;
         this.targetRow = targetRow;
         this.targetCol = targetCol;
         this.damage = damage;
         this.shooterLabel = shooterLabel;
+        this.shooterName = shooterName;
         this.speed = speed;
         this.bulletChar = bulletChar;
         this.bulletColor = bulletColor;
@@ -137,6 +143,13 @@ public class Bullet {
     /// </summary>
     public char getShooterLabel() {
         return shooterLabel;
+    }
+
+    /// <summary>
+    /// 발사한 정착민의 이름 반환
+    /// </summary>
+    public String getShooterName() {
+        return shooterName;
     }
 
     /// <summary>

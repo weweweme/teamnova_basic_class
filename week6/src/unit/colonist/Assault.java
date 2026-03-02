@@ -77,6 +77,6 @@ public class Assault extends Colonist {
         gameWorld.getScreenEffects().triggerScreenShake(SHAKE_DURATION, SHAKE_INTENSITY);
 
         gameWorld.getSfxPlayer().playShockwave();
-        gameWorld.addLog("[" + getLabel() + "] 충격파!");
+        gameWorld.addLog("[" + getLabel() + ": " + getColonistName() + "] 충격파!");
     }
 }

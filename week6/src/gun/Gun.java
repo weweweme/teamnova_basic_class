@@ -147,7 +147,7 @@ public abstract class Gun {
         int kb = getKnockback(colonist);
         Bullet bullet = new Bullet(
             bulletRow, bulletCol, aimRow, aimCol, finalDamage,
-            colonist.getLabel(), bulletSpeed, getBulletChar(), getBulletColor(), piercing, kb, isCrit
+            colonist.getLabel(), colonist.getColonistName(), bulletSpeed, getBulletChar(), getBulletColor(), piercing, kb, isCrit
         );
         gameWorld.addBullet(bullet);
     }

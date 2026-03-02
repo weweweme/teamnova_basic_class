@@ -124,7 +124,7 @@ public class BulletSystem {
                         sfx.playDeath();
                         String enemyName = enemy.getSpec().getDisplayName();
                         String critMark = bullet.isCrit() ? " 치명타!" : "";
-                        gameWorld.addLog("[" + bullet.getShooterLabel() + "] " + enemyName + " 처치!" + critMark);
+                        gameWorld.addLog("[" + bullet.getShooterLabel() + ": " + bullet.getShooterName() + "] " + enemyName + " 처치!" + critMark);
                     }
 
                     // 관통 총알은 제거하지 않고 계속 전진

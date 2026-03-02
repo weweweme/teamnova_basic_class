@@ -78,6 +78,6 @@ public class Sniper extends Colonist {
 
         gameWorld.getSfxPlayer().playPrecisionShot();
         String enemyName = strongest.getSpec().getDisplayName();
-        gameWorld.addLog("[" + getLabel() + "] 정밀 저격! → " + enemyName);
+        gameWorld.addLog("[" + getLabel() + ": " + getColonistName() + "] 정밀 저격! → " + enemyName);
     }
 }

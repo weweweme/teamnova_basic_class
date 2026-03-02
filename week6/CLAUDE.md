@@ -299,6 +299,8 @@ classDiagram
         int startRow/Col
         int targetRow/Col
         int damage
+        char shooterLabel
+        String shooterName
         boolean piercing
         boolean crit
         +advance()
@@ -366,6 +368,7 @@ classDiagram
     class ScreenEffects {
         +triggerScreenShake()
         +getScreenShakeOffset()
+        +getVerticalShakeOffset()
         +triggerWaveWarning()
         +isWaveWarningActive()
     }
@@ -550,9 +553,9 @@ graph TB
 | 유형 | 패시브 | 특수공격 (5발마다) |
 |------|--------|-------------------|
 | 기본 (BASIC) | 없음 | 없음 |
-| 사격수 (Gunner) | 속사 (발사 간격 20% 감소) | 속사 탄막 — 전체 적 3 데미지 + 탄흔 이펙트 |
-| 저격수 (Sniper) | 치명타 (30% 확률 2배) | 정밀 저격 — HP 최고 적에 50 데미지 + 강조 이펙트 |
-| 돌격수 (Assault) | 넉백 (명중 시 1칸) | 충격파 — 전체 적 5 데미지 + 5칸 넉백 + 화면 흔들림 |
+| 사격수 (Gunner) | 속사 (발사 간격 20% 감소) | 속사 탄막 — 전체 적 3 데미지 + 적 위치 노란 X + 탄흔 12개 |
+| 저격수 (Sniper) | 치명타 (30% 확률 2배) | 정밀 저격 — HP 최고 적 50 데미지 + 십자 조준선(X/+) + 빨간 탄도선 |
+| 돌격수 (Assault) | 넉백 (명중 시 1칸) | 충격파 — 전체 적 5 데미지 + 5칸 넉백 + 적 위치 ! + 충격파 ~ 3줄 + 흔들림 |
 
 **모집 / 승격**
 
@@ -616,13 +619,15 @@ graph TB
 - 0: 치트 모드
 - q: 종료/취소
 
+**로그 포맷**: `[라벨: 이름] 메시지` (예: `[A: 민수] 충격파!`, `[B: 수진] 늑대 처치!`)
+
 **색상**: ANSI 이스케이프 코드
 - 바리케이드: 피격 시 빨강, 수리 시 초록
 - 적: HP 비율에 따라 위에서부터 빨간색 채움
 - 정착민: 사망 시 회색 → 페이드 아웃 (800ms)
 - 총알/이펙트: 무기별 색상
 - 치명타: 밝은 빨강 `*` 3칸 (상/중/하)
-- 지뢰 폭발: 다이아몬드 이펙트 + 화면 흔들림 (200ms)
+- 지뢰 폭발: 다이아몬드 이펙트 + 화면 흔들림 (좌우+상하)
 - 웨이브 경고: 밤 시작 시 중앙 텍스트 (2초)
 
 **효과음**: javax.sound 사인파 합성 (8kHz/8bit/mono)

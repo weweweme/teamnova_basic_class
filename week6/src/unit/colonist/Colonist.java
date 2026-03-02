@@ -100,7 +100,7 @@ public class Colonist extends GameEntity {
 
         if (!isLiving()) {
             Util.beep();
-            getGameWorld().addLog("[" + label + "] " + name + " 사망");
+            getGameWorld().addLog("[" + label + ": " + name + "] 사망");
         }
     }
 
@@ -192,7 +192,7 @@ public class Colonist extends GameEntity {
         currentState.exit(this);
         currentState = newState;
         currentState.enter(this);
-        getGameWorld().addLog("[" + label + "] " + name + ": " + newState.getDisplayName());
+        getGameWorld().addLog("[" + label + ": " + name + "] " + newState.getDisplayName());
     }
 
     /// <summary>

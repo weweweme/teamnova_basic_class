@@ -61,6 +61,6 @@ public class Gunner extends Colonist {
         }
 
         gameWorld.getSfxPlayer().playBarrage();
-        gameWorld.addLog("[" + getLabel() + "] 속사 탄막!");
+        gameWorld.addLog("[" + getLabel() + ": " + getColonistName() + "] 속사 탄막!");
     }
 }

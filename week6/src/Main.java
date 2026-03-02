@@ -19,6 +19,8 @@ import game.Util;
 /// </summary>
 public class Main {
 
+    // javac -cp lib/jl1.0.1.jar -d out $(find src -name "*.java") && java -cp lib/jl1.0.1.jar:out Main
+
     public static void main(String[] args) {
         Util.enableRawMode();
 

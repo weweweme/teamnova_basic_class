@@ -21,27 +21,27 @@ public class Renderer {
     /// <summary>
     /// 사망 애니메이션 1단계 시간 (짙은 회색 정지)
     /// </summary>
-    private static final int DEATH_PHASE1_MS = 400;
+    private final int DEATH_PHASE1_MS = 400;
 
     /// <summary>
     /// 사망 애니메이션 전체 시간 (1단계 정지 + 2단계 분해)
     /// </summary>
-    private static final int DEATH_ANIM_MS = 800;
+    private final int DEATH_ANIM_MS = 800;
 
     /// <summary>
     /// 빨간색 ANSI 색상 코드
     /// </summary>
-    private static final int COLOR_RED = 31;
+    private final int COLOR_RED = 31;
 
     /// <summary>
     /// 초록색 ANSI 색상 코드
     /// </summary>
-    private static final int COLOR_GREEN = 32;
+    private final int COLOR_GREEN = 32;
 
     /// <summary>
     /// 짙은 회색 ANSI 색상 코드
     /// </summary>
-    private static final int COLOR_DARK_GRAY = 90;
+    private final int COLOR_DARK_GRAY = 90;
 
     /// <summary>
     /// 행별 색상 재사용 버퍼 (매 프레임 배열 재생성 방지)
@@ -689,14 +689,19 @@ public class Renderer {
         ArrayList<String> logs = gameWorld.getRecentLogs();
 
         // 전체 높이: 맵(20) + 구분선(1) + 로그(8) = 29줄
-        int LOG_LINES = 8;
-        int totalHeight = GameWorld.HEIGHT + 1 + LOG_LINES;
-        String PANEL_SEPARATOR = "|||";
+        final int LOG_LINES = 8;
+        final int totalHeight = GameWorld.HEIGHT + 1 + LOG_LINES;
+        final String PANEL_SEPARATOR = "|||";
+        final String CURSOR_HOME = "\033[H";
+        final String CLEAR_BELOW = "\033[J";
+        final String COLOR_PREFIX = "\033[";
+        final String COLOR_RESET = "\033[0m";
+        final char NEWLINE = '\n';
 
         screenBuilder.setLength(0);
 
         // 커서를 맨 위로 이동
-        screenBuilder.append("\033[H");
+        screenBuilder.append(CURSOR_HOME);
 
         // 흔들림 오프셋 (행 루프 바깥에서 한 번만 조회)
         int shakeOffset = gameWorld.getScreenEffects().getScreenShakeOffset();
@@ -715,9 +720,7 @@ public class Renderer {
                 } else {
                     // 오른쪽 이동: 앞에 빈 칸 추가
                     if (shakeOffset > 0) {
-                        for (int s = 0; s < shakeOffset; s++) {
-                            screenBuilder.append(' ');
-                        }
+                        screenBuilder.append(" ".repeat(shakeOffset));
                     }
 
                     // 수직 흔들림: 버퍼에서 읽을 소스 행을 이동 (맵 범위 내로 제한)
@@ -734,11 +737,11 @@ public class Renderer {
                     for (int col = startCol; col < startCol + renderWidth; col++) {
                         int color = colorBuffer[sourceRow][col];
                         if (color != 0) {
-                            screenBuilder.append("\033[");
+                            screenBuilder.append(COLOR_PREFIX);
                             screenBuilder.append(color);
                             screenBuilder.append('m');
                             screenBuilder.append(buffer[sourceRow][col]);
-                            screenBuilder.append("\033[0m");
+                            screenBuilder.append(COLOR_RESET);
                         } else {
                             screenBuilder.append(buffer[sourceRow][col]);
                         }
@@ -746,9 +749,7 @@ public class Renderer {
 
                     // 왼쪽 이동: 뒤에 빈 칸 추가 (패널 구분선 정렬 유지)
                     if (shakeOffset < 0) {
-                        for (int s = 0; s < -shakeOffset; s++) {
-                            screenBuilder.append(' ');
-                        }
+                        screenBuilder.append(" ".repeat(Math.max(0, -shakeOffset)));
                     }
                 }
             } else if (row == GameWorld.HEIGHT) {
@@ -777,11 +778,11 @@ public class Renderer {
                 appendPadPanel(screenBuilder, "");
             }
 
-            screenBuilder.append('\n');
+            screenBuilder.append(NEWLINE);
         }
 
         // 화면 아래 잔여 내용 지움
-        screenBuilder.append("\033[J");
+        screenBuilder.append(CLEAR_BELOW);
 
         System.out.print(screenBuilder);
         System.out.flush();

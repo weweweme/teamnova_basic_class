@@ -149,19 +149,14 @@ public class Renderer {
     }
 
     /// <summary>
-    /// 모든 정착민이 사망했는지 확인
+    /// 패배 조건 달성 여부 확인 (DayNightCycle에 위임)
     /// </summary>
     public boolean isGameOver() {
-        for (Colonist colonist : gameWorld.getColonists()) {
-            if (colonist.isLiving()) {
-                return false;
-            }
-        }
-        return true;
+        return dayNightCycle != null && dayNightCycle.isGameOver();
     }
 
     /// <summary>
-    /// 승리 조건 달성 여부 확인
+    /// 승리 조건 달성 여부 확인 (DayNightCycle에 위임)
     /// </summary>
     public boolean isVictory() {
         return dayNightCycle != null && dayNightCycle.isVictory();

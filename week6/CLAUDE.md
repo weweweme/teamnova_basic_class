@@ -435,7 +435,8 @@ GameWorld가 게임 로직의 주체이며, 다른 스레드는 GameWorld에 요
 | 클래스 | 책임 | 하지 않는 것 |
 |--------|------|-------------|
 | GameWorld | 물리(총알+지뢰), 적 생성, 정착민 상태 전환, 밤 종료 정리, 보급 지급 | 시간 관리, 입력 처리, 렌더링 |
-| DayNightCycle | 시간 측정, 낮/밤 전환 시점 결정, 웨이브 구성(WaveBuilder), 적 출현 타이밍 | 적 인스턴스 직접 생성, 정착민 상태 직접 변경 |
+| DayNightCycle | 시간 측정, 낮/밤 전환 시점 결정, 웨이브 구성(WaveBuilder), 적 출현 타이밍, 승리/패배 판정 | 적 인스턴스 직접 생성, 정착민 상태 직접 변경 |
+| Renderer | 화면 그리기, DayNightCycle의 승리/패배 결과를 읽어서 표시 | 게임 상태 판정 |
 | Main | 입력 폴링, updatePhysics 호출, 렌더링 트리거 | 총알/지뢰를 개별 처리, 게임 로직 직접 수행 |
 
 **스레드 간 동기화** (synchronized 메서드)
@@ -495,12 +496,11 @@ graph TD
     INIT --> LOOP[메인 루프]
 
     LOOP --> INPUT{키 입력?}
-    INPUT -->|있음| HANDLE[InputHandler.handleInput]
-    INPUT -->|없음| PHYSICS
-    HANDLE --> PHYSICS[100ms마다: 물리 갱신]
-    PHYSICS --> RENDER[Renderer.render]
-    RENDER -->|게임 중| LOOP
-    RENDER -->|승리/패배/종료| ENDSCENE[엔딩 컷씬 + 통계]
+    INPUT -->|있음| HANDLE[명령 처리]
+    INPUT -->|없음| TICK
+    HANDLE --> TICK[100ms마다: 물리 갱신 + 화면 그리기]
+    TICK -->|게임 중| LOOP
+    TICK -->|승리/패배/종료| ENDSCENE[엔딩 컷씬 + 통계]
     ENDSCENE -->|아무 키| TITLE
 ```
 
@@ -510,12 +510,13 @@ graph TD
         DAY[낮 페이즈 30초] -->|25초| PREPARE[정착민 바리케이드로 이동]
         PREPARE -->|30초| NIGHT[밤 페이즈]
         NIGHT --> SPAWN[적 생성 + 시간차 출현]
-        SPAWN --> BATTLE[전투: 적 이동 + 정착민 사격]
-        BATTLE -->|전멸| REWARD[밤 종료 정리 + 보급 지급]
+        SPAWN --> WATCH[전멸 감시]
+        WATCH -->|적 전멸| REWARD[밤 종료 정리 + 보급 지급]
         REWARD --> WANDER[정착민 배회 전환]
         WANDER --> CHECK{목표 일수 도달?}
         CHECK -->|아니오| DAY
         CHECK -->|예| VICTORY[승리]
+        WATCH -->|아군 전멸| GAMEOVER[패배]
     end
 ```
 

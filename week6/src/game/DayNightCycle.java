@@ -80,6 +80,11 @@ public class DayNightCycle extends Thread {
     private volatile boolean victory;
 
     /// <summary>
+    /// 패배 조건 달성 여부 (모든 정착민 사망)
+    /// </summary>
+    private volatile boolean gameOver;
+
+    /// <summary>
     /// 현재 낮에 발생한 이벤트 (null이면 아직 없음)
     /// </summary>
     private DayEvent currentEvent;
@@ -243,6 +248,13 @@ public class DayNightCycle extends Thread {
                 }
             }
 
+            // 전원 사망 감지
+            if (!gameOver && gameWorld.isAllColonistsDead()) {
+                gameOver = true;
+                Util.beep();
+                gameWorld.addLog("!! 모든 정착민이 사망했습니다 !!");
+            }
+
             // 틱 간격 (밀리초)
             final int TICK_DELAY = 500;
             Util.delay(TICK_DELAY);
@@ -328,6 +340,13 @@ public class DayNightCycle extends Thread {
     /// </summary>
     public boolean isVictory() {
         return victory;
+    }
+
+    /// <summary>
+    /// 패배 조건을 달성했는지 확인 (모든 정착민 사망)
+    /// </summary>
+    public boolean isGameOver() {
+        return gameOver;
     }
 
     /// <summary>

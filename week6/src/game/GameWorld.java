@@ -368,6 +368,18 @@ public class GameWorld {
     }
 
     /// <summary>
+    /// 살아있는 정착민이 한 명도 없는지 확인
+    /// </summary>
+    public boolean isAllColonistsDead() {
+        for (Colonist colonist : colonists) {
+            if (colonist.isLiving()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
     /// 적 추가
     /// </summary>
     public void addEnemy(Enemy enemy) {

@@ -280,15 +280,10 @@ public class PanelBuilder {
     }
 
     /// <summary>
-    /// 모든 정착민이 사망했는지 확인
+    /// 패배 조건 달성 여부 확인 (DayNightCycle에 위임)
     /// </summary>
     private boolean isGameOver() {
-        for (Colonist colonist : gameWorld.getColonists()) {
-            if (colonist.isLiving()) {
-                return false;
-            }
-        }
-        return true;
+        return dayNightCycle != null && dayNightCycle.isGameOver();
     }
 
     /// <summary>

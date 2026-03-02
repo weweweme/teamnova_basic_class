@@ -138,6 +138,16 @@ public class GameMap {
     private int shakeIntensity;
 
     /// <summary>
+    /// 웨이브 경고 표시 지속 시간 (밀리초)
+    /// </summary>
+    private static final int WAVE_WARNING_DURATION = 2000;
+
+    /// <summary>
+    /// 웨이브 경고 시작 시각 (밀리초, 0이면 비활성)
+    /// </summary>
+    private long waveWarningStartTime;
+
+    /// <summary>
     /// 맵 생성
     /// </summary>
     public GameMap() {
@@ -461,5 +471,29 @@ public class GameMap {
         // 50ms마다 방향 교대 (+intensity, -intensity, ...)
         boolean even = (elapsed / 50) % 2 == 0;
         return even ? shakeIntensity : -shakeIntensity;
+    }
+
+    /// <summary>
+    /// 웨이브 경고 발동 (밤 시작 시 호출)
+    /// </summary>
+    public synchronized void triggerWaveWarning() {
+        this.waveWarningStartTime = System.currentTimeMillis();
+    }
+
+    /// <summary>
+    /// 웨이브 경고 활성 여부 반환
+    /// </summary>
+    public synchronized boolean isWaveWarningActive() {
+        if (waveWarningStartTime == 0) {
+            return false;
+        }
+
+        long elapsed = System.currentTimeMillis() - waveWarningStartTime;
+        boolean expired = elapsed >= WAVE_WARNING_DURATION;
+        if (expired) {
+            waveWarningStartTime = 0;
+            return false;
+        }
+        return true;
     }
 }

@@ -255,6 +255,7 @@ public class DayNightCycle extends Thread {
 
                     Util.beep();
                     gameMap.addLog("── 밤이 찾아왔습니다 ──");
+                    gameMap.triggerWaveWarning();
                 } else if (!preparing && DAY_DURATION - elapsedInPhase <= PREPARE_DURATION) {
                     // 밤 5초 전: 사격 위치로 이동 시작
                     preparing = true;

@@ -454,6 +454,37 @@ public class Renderer {
     }
 
     /// <summary>
+    /// 웨이브 경고 행의 표시 폭 (가로 정렬 고정용)
+    /// </summary>
+    private static final int WAVE_WARNING_ROW = GameMap.HEIGHT / 2;
+
+    /// <summary>
+    /// 웨이브 경고 텍스트를 ANSI 색상과 함께 출력 (버퍼 대신 직접 렌더링)
+    /// 한글이 2칸 차지하므로, 버퍼를 거치지 않고 문자열로 직접 출력하여 폭 정렬 유지
+    /// </summary>
+    private void appendWaveWarningRow(StringBuilder sb) {
+        String warning = ">> 적이 밀려온다! <<";
+
+        // 좌측 패딩 (가로 중앙 정렬, 기존 displayWidth 재사용)
+        int warningWidth = displayWidth(warning);
+        int leftPad = (GameMap.WIDTH - warningWidth) / 2;
+        int rightPad = GameMap.WIDTH - warningWidth - leftPad;
+
+        for (int i = 0; i < leftPad; i++) {
+            sb.append(' ');
+        }
+
+        // 밝은 노랑 (ANSI 93)
+        sb.append("\033[93m");
+        sb.append(warning);
+        sb.append("\033[0m");
+
+        for (int i = 0; i < rightPad; i++) {
+            sb.append(' ');
+        }
+    }
+
+    /// <summary>
     /// 지정한 위치에 블록을 버퍼에 그림
     /// 맵 범위를 벗어나는 부분은 무시
     /// </summary>
@@ -577,36 +608,45 @@ public class Renderer {
         // 흔들림 오프셋 (행 루프 바깥에서 한 번만 조회)
         int shakeOffset = gameMap.getScreenShakeOffset();
 
+        // 웨이브 경고 활성 여부 (행 루프 바깥에서 한 번만 조회)
+        boolean waveWarning = gameMap.isWaveWarningActive();
+
         for (int row = 0; row < totalHeight; row++) {
             // 좌측 내용 (맵 / 구분선 / 로그)
             if (row < GameMap.HEIGHT) {
-                // 오른쪽 이동: 앞에 빈 칸 추가
-                if (shakeOffset > 0) {
-                    for (int s = 0; s < shakeOffset; s++) {
-                        screenBuilder.append(' ');
+                // 웨이브 경고 행: 한글 포함 문자열을 버퍼 대신 직접 출력
+                boolean isWarningRow = waveWarning && row == WAVE_WARNING_ROW;
+                if (isWarningRow) {
+                    appendWaveWarningRow(screenBuilder);
+                } else {
+                    // 오른쪽 이동: 앞에 빈 칸 추가
+                    if (shakeOffset > 0) {
+                        for (int s = 0; s < shakeOffset; s++) {
+                            screenBuilder.append(' ');
+                        }
                     }
-                }
 
-                // 맵 버퍼 (색상 적용, 흔들림 시 끝부분 잘림)
-                int renderWidth = GameMap.WIDTH - Math.abs(shakeOffset);
-                int startCol = shakeOffset < 0 ? -shakeOffset : 0;
-                for (int col = startCol; col < startCol + renderWidth; col++) {
-                    int color = colorBuffer[row][col];
-                    if (color != 0) {
-                        screenBuilder.append("\033[");
-                        screenBuilder.append(color);
-                        screenBuilder.append('m');
-                        screenBuilder.append(buffer[row][col]);
-                        screenBuilder.append("\033[0m");
-                    } else {
-                        screenBuilder.append(buffer[row][col]);
+                    // 맵 버퍼 (색상 적용, 흔들림 시 끝부분 잘림)
+                    int renderWidth = GameMap.WIDTH - Math.abs(shakeOffset);
+                    int startCol = shakeOffset < 0 ? -shakeOffset : 0;
+                    for (int col = startCol; col < startCol + renderWidth; col++) {
+                        int color = colorBuffer[row][col];
+                        if (color != 0) {
+                            screenBuilder.append("\033[");
+                            screenBuilder.append(color);
+                            screenBuilder.append('m');
+                            screenBuilder.append(buffer[row][col]);
+                            screenBuilder.append("\033[0m");
+                        } else {
+                            screenBuilder.append(buffer[row][col]);
+                        }
                     }
-                }
 
-                // 왼쪽 이동: 뒤에 빈 칸 추가 (패널 구분선 정렬 유지)
-                if (shakeOffset < 0) {
-                    for (int s = 0; s < -shakeOffset; s++) {
-                        screenBuilder.append(' ');
+                    // 왼쪽 이동: 뒤에 빈 칸 추가 (패널 구분선 정렬 유지)
+                    if (shakeOffset < 0) {
+                        for (int s = 0; s < -shakeOffset; s++) {
+                            screenBuilder.append(' ');
+                        }
                     }
                 }
             } else if (row == GameMap.HEIGHT) {

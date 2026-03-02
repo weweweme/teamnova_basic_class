@@ -181,17 +181,10 @@ public class GameWorld {
     }
 
     /// <summary>
-    /// 적 버프 레벨 1단계 증가 (강화)
+    /// 적 버프 레벨 조정 (양수=강화, 음수=약화)
     /// </summary>
-    public void increaseEnemyBuff() {
-        enemyBuffLevel++;
-    }
-
-    /// <summary>
-    /// 적 버프 레벨 1단계 감소 (약화)
-    /// </summary>
-    public void decreaseEnemyBuff() {
-        enemyBuffLevel--;
+    public void adjustEnemyBuff(int delta) {
+        enemyBuffLevel += delta;
     }
 
     /// <summary>

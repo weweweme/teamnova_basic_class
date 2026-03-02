@@ -645,14 +645,14 @@ public class InputHandler {
                 cheatMode = false;
                 break;
             case KEY_ENEMY_BUFF:
-                gameWorld.increaseEnemyBuff();
+                gameWorld.adjustEnemyBuff(1);
                 int buffLv = gameWorld.getEnemyBuffLevel();
                 gameWorld.addLog(">> [치트] 적 강화 Lv" + buffLv
                         + " (x" + String.format("%.1f", gameWorld.getEnemyBuffMultiplier()) + ")");
                 cheatMode = false;
                 break;
             case KEY_ENEMY_DEBUFF:
-                gameWorld.decreaseEnemyBuff();
+                gameWorld.adjustEnemyBuff(-1);
                 int debuffLv = gameWorld.getEnemyBuffLevel();
                 gameWorld.addLog(">> [치트] 적 약화 Lv" + debuffLv
                         + " (x" + String.format("%.1f", gameWorld.getEnemyBuffMultiplier()) + ")");

@@ -1,8 +1,6 @@
 import entity.colonist.Colonist;
 import entity.colonist.ColonistFactory;
-import entity.colonist.ColonistSpec;
-import entity.colonist.ColonistType;
-import gun.Pistol;
+import entity.colonist.ColonistSpawner;
 import entity.enemy.EnemyFactory;
 import entity.enemy.EnemyType;
 import game.DayNightCycle;
@@ -91,20 +89,17 @@ public class Main {
         // 초기 보급품
         gameWorld.getSupply().add(30);
 
-        // 팩토리 생성
+        // 팩토리 및 스포너 생성
         ColonistFactory colonistFactory = new ColonistFactory();
+        ColonistSpawner colonistSpawner = new ColonistSpawner(colonistFactory);
         EnemyFactory enemyFactory = new EnemyFactory();
 
         // 정착민 3명 배치 (안전지대 내, 기본 유형)
-        ColonistSpec basicSpec = colonistFactory.getSpec(ColonistType.BASIC);
         int centerRow = GameWorld.HEIGHT / 2;
         int[] startCols = {3, 7, 11};
 
         for (int startCol : startCols) {
-            String name = gameWorld.getNameProvider().pickName();
-            Colonist colonist = new Colonist(ColonistType.BASIC, basicSpec, name, gameWorld.issueNextLabel(), new Position(centerRow, startCol), gameWorld);
-            colonist.setGun(new Pistol());
-            gameWorld.addColonist(colonist);
+            colonistSpawner.spawn(gameWorld, new Position(centerRow, startCol));
         }
 
         // 낮/밤 주기 생성 및 렌더러에 연결
@@ -113,7 +108,7 @@ public class Main {
         renderer.setDayNightCycle(dayNightCycle);
 
         // 입력 처리기 생성 및 렌더러에 연결
-        InputHandler inputHandler = new InputHandler(gameWorld, renderer, dayNightCycle, colonistFactory);
+        InputHandler inputHandler = new InputHandler(gameWorld, renderer, dayNightCycle, colonistSpawner);
         renderer.setInputHandler(inputHandler);
 
         // BGM 재생 시작
@@ -122,11 +117,8 @@ public class Main {
 
         Util.clearScreen();
 
-        // 스레드 시작
+        // 스레드 시작 (정착민은 spawn()에서 이미 시작됨)
         dayNightCycle.start();
-        for (Colonist colonist : gameWorld.getColonists()) {
-            colonist.start();
-        }
 
         // 렌더링 간격 (밀리초)
         final int RENDER_INTERVAL = 100;

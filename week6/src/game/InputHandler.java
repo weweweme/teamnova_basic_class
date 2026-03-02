@@ -1,7 +1,7 @@
 package game;
 
 import entity.colonist.Colonist;
-import entity.colonist.ColonistFactory;
+import entity.colonist.ColonistSpawner;
 import entity.colonist.ColonistSpec;
 import entity.colonist.ColonistType;
 import gun.Gun;
@@ -78,9 +78,9 @@ public class InputHandler {
     private final DayNightCycle dayNightCycle;
 
     /// <summary>
-    /// 정착민 생성 팩토리
+    /// 정착민 생성 스포너
     /// </summary>
-    private final ColonistFactory colonistFactory;
+    private final ColonistSpawner colonistSpawner;
 
     /// <summary>
     /// 게임 계속 여부
@@ -110,11 +110,11 @@ public class InputHandler {
     /// <summary>
     /// 입력 처리기 생성
     /// </summary>
-    public InputHandler(GameWorld gameWorld, Renderer renderer, DayNightCycle dayNightCycle, ColonistFactory colonistFactory) {
+    public InputHandler(GameWorld gameWorld, Renderer renderer, DayNightCycle dayNightCycle, ColonistSpawner colonistSpawner) {
         this.gameWorld = gameWorld;
         this.renderer = renderer;
         this.dayNightCycle = dayNightCycle;
-        this.colonistFactory = colonistFactory;
+        this.colonistSpawner = colonistSpawner;
         this.running = true;
     }
 
@@ -290,17 +290,11 @@ public class InputHandler {
         // 모집 비용 (보급품)
         final int RECRUIT_COST = 40;
         if (gameWorld.getSupply().spend(RECRUIT_COST)) {
-            String name = gameWorld.getNameProvider().pickName();
             // 왼쪽 바깥에서 등장하여 안전지대로 걸어 들어옴
             int row = GameWorld.HEIGHT / 2;
             int col = 0;
-            ColonistSpec basicSpec = colonistFactory.getSpec(ColonistType.BASIC);
-            Colonist recruit = new Colonist(ColonistType.BASIC, basicSpec, name, gameWorld.issueNextLabel(), new Position(row, col), gameWorld);
-            recruit.setGun(new Pistol());
-
-            gameWorld.addColonist(recruit);
-            recruit.start();
-            gameWorld.addLog(">> " + name + " 합류!");
+            Colonist recruit = colonistSpawner.spawn(gameWorld, new Position(row, col));
+            gameWorld.addLog(">> " + recruit.getColonistName() + " 합류!");
         }
     }
 
@@ -424,7 +418,7 @@ public class InputHandler {
             final int PROMOTE_COST = 30;
             if (gameWorld.getSupply().spend(PROMOTE_COST)) {
                 Colonist target = gameWorld.getColonists().get(renderer.getSelectedIndex());
-                ColonistSpec newSpec = colonistFactory.getSpec(promoteType);
+                ColonistSpec newSpec = colonistSpawner.getSpec(promoteType);
                 target.promote(promoteType, newSpec);
                 gameWorld.addLog(">> " + target.getColonistName() + " → " + newSpec.getDisplayName() + " 승격!");
             }

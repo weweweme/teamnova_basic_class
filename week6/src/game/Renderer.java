@@ -673,10 +673,11 @@ public class Renderer {
                 // 로그 구분선
                 screenBuilder.append("-".repeat(GameWorld.WIDTH));
             } else {
-                // 로그 줄 (하단 정렬: 새 로그가 아래, 기존 로그가 위로)
+                // 로그 줄 (상단 정렬: 최신 로그가 위, 오래된 로그가 아래로 밀림)
                 int logLine = row - GameWorld.HEIGHT - 1;
-                int offset = LOG_LINES - logs.size();
-                int logIndex = logLine - offset;
+
+                // 최신 로그부터 역순으로 표시 (채팅 스타일)
+                int logIndex = logs.size() - 1 - logLine;
 
                 String logContent = "";
                 boolean hasLog = logIndex >= 0 && logIndex < logs.size();

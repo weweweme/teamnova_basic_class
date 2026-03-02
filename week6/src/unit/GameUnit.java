@@ -7,7 +7,7 @@ import game.GameWorld;
 /// 정착민과 적의 공통 상위 클래스
 /// 맵 위에서 체력과 위치를 가지며, 자기 스레드로 행동
 /// </summary>
-public abstract class GameEntity extends Thread {
+public abstract class GameUnit extends Thread {
 
     /// <summary>
     /// 맵 위의 위치
@@ -32,7 +32,7 @@ public abstract class GameEntity extends Thread {
     /// <summary>
     /// 지정한 위치와 맵으로 개체 생성, 체력은 최대로 시작
     /// </summary>
-    protected GameEntity(Position position, GameWorld gameWorld, int maxHp) {
+    protected GameUnit(Position position, GameWorld gameWorld, int maxHp) {
         this.position = position;
         this.gameWorld = gameWorld;
         this.hp = maxHp;

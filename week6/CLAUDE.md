@@ -21,11 +21,11 @@
 
 **unit 패키지 (유닛)**
 
-GameEntity가 Thread를 상속하여 각 정착민/적이 독립 스레드로 동작.
+GameUnit가 Thread를 상속하여 각 정착민/적이 독립 스레드로 동작.
 ColonistState는 상태 패턴으로 낮(배회) ↔ 밤(사격) 행동 전환.
 
 ```
-GameEntity (abstract, extends Thread — HP, 위치, 스레드 관리)
+GameUnit (abstract, extends Thread — HP, 위치, 스레드 관리)
 ├── Colonist (무기, 상태 패턴, 사망 애니메이션, 5발마다 specialAttack 콜백)
 │   ├── Gunner (속사 탄막 — 전체 적 소량 데미지)
 │   ├── Sniper (정밀 저격 — HP 최고 적 큰 데미지)
@@ -122,32 +122,42 @@ Position (행/열 좌표)
 ```mermaid
 graph TD
     subgraph "unit"
-        T[Thread] --> GE[GameEntity]
-        GE --> CO[Colonist]
-        CO --> GU2[Gunner]
-        CO --> SN[Sniper]
-        CO --> AS[Assault]
-        GE --> EN[Enemy]
-        EN --> CE[ChargerEnemy]
-        EN --> AE[ArmoredEnemy]
-        EN --> RE[RegeneratingEnemy]
-        CS[ColonistState] --> WS[WanderingState]
-        CS --> SS[ShootingState]
+        T[Thread] --> GE["GameUnit - HP, 위치, 생존 판정"]
+        GE --> CO["Colonist - 5발마다 특수공격"]
+        CO --> GU2["Gunner - 속사 탄막"]
+        CO --> SN["Sniper - 정밀 저격"]
+        CO --> AS["Assault - 충격파 넉백"]
+        GE --> EN["Enemy - 8틱마다 특수능력"]
+        EN --> CE["ChargerEnemy - 돌진 질주"]
+        EN --> AE["ArmoredEnemy - 피해 절반 + 방패 충돌"]
+        EN --> RE["RegeneratingEnemy - 자동 회복 + 치유 포자"]
     end
+```
+
+```mermaid
+graph TD
     subgraph "gun"
-        GU[Gun] --> PI[Pistol]
-        GU --> SG[Shotgun]
-        GU --> RI[Rifle]
-        GU --> MG[Minigun]
+        GU["Gun - 발사 간격, 데미지, 탄속"] --> PI["Pistol - 단발, 무료"]
+        GU --> SG["Shotgun - 부채꼴 3발"]
+        GU --> RI["Rifle - 관통 단발"]
+        GU --> MG["Minigun - 매 틱 연사"]
     end
+```
+
+```mermaid
+graph TD
     subgraph "structure"
-        ST[Structure] --> BA[Barricade]
-        ST --> BU[Buildable]
-        BU --> AB[AmmoBox]
-        BU --> TR[Trap]
-        TR --> SP[Spike]
-        TR --> LM[Landmine]
+        ST["Structure - 위치, 내구도"] --> BA["Barricade - 레벨업, 전체 높이"]
+        ST --> BU["Buildable - 건설 비용"]
+        BU --> AB["AmmoBox - 발사속도 30% 증가"]
+        BU --> TR["Trap - 피해량"]
+        TR --> SP["Spike - 적 통과 시 데미지"]
+        TR --> LM["Landmine - 일회용, 범위 폭발"]
     end
+```
+
+```mermaid
+graph TD
     subgraph "data (Type → Spec → Factory)"
         CT[ColonistType] -.-|조회| CF[ColonistFactory]
         CF -.-|생성| CSP[ColonistSpec]
@@ -162,11 +172,11 @@ graph TD
 
 ```mermaid
 classDiagram
-    Thread <|-- GameEntity
-    GameEntity *-- Position
-    GameEntity --> GameWorld : 참조
+    Thread <|-- GameUnit
+    GameUnit *-- Position
+    GameUnit --> GameWorld : 참조
 
-    class GameEntity {
+    class GameUnit {
         Position position
         int hp
     }
@@ -185,7 +195,7 @@ classDiagram
 
 ```mermaid
 classDiagram
-    GameEntity <|-- Colonist
+    GameUnit <|-- Colonist
     Colonist <|-- Gunner
     Colonist <|-- Sniper
     Colonist <|-- Assault
@@ -232,7 +242,7 @@ classDiagram
 
 ```mermaid
 classDiagram
-    GameEntity <|-- Enemy
+    GameUnit <|-- Enemy
     Enemy <|-- ChargerEnemy
     Enemy <|-- ArmoredEnemy
     Enemy <|-- RegeneratingEnemy
@@ -456,32 +466,34 @@ GameWorld가 게임 로직의 주체이며, 다른 스레드는 GameWorld에 요
 
 ```mermaid
 graph TD
-    subgraph Main["Main 스레드"]
-        INPUT[입력 처리] --> PHYSICS[물리 갱신]
-        PHYSICS --> RENDER[화면 렌더링]
+    subgraph Main["Main 스레드 - 게임 루프"]
+        M1[입력 처리] --> M2[GameWorld.updatePhysics 호출]
+        M2 --> M3[Renderer.render 호출]
+    end
+
+    subgraph GW["GameWorld - 게임 상태 관리"]
+        direction LR
+        GW1["100x20 맵"]
+        GW2["물리 처리 및 맵 최신화"]
     end
 
     subgraph DNC["DayNightCycle 스레드"]
-        TIME[시간 측정] --> TRANSITION[낮/밤 전환 판정]
-        TRANSITION --> GW_CALL[상태 전환 + 적 생성 + 보급 지급 요청]
+        D1[시간 관리] --> D2[전환 판정 + 승리/패배]
     end
 
     subgraph COL["Colonist 스레드 x N"]
-        STATE[상태별 행동] --> SHOOT[총알 생성]
-        STATE --> SKILL[특수공격 이펙트]
+        C1[배회 / 사격]
     end
 
     subgraph ENE["Enemy 스레드 x N"]
-        MOVE[이동] --> ATTACK[바리케이드/정착민 공격]
-        MOVE --> ESKILL[특수능력 이펙트]
+        E1[이동 / 공격]
     end
 
-    GW_CALL --> GW[GameWorld]
-    PHYSICS --> GW
-    SHOOT --> GW
-    SKILL --> GW
-    ATTACK --> GW
-    ESKILL --> GW
+    M2 -->|물리 처리 요청| GW
+    M3 -->|상태 읽기| GW
+    D2 -->|전환, 생성, 보급 요청| GW
+    C1 -->|총알, 이펙트| GW
+    E1 -->|공격, 이펙트| GW
 ```
 
 ### 게임 루프 흐름
@@ -518,6 +530,70 @@ graph TD
         CHECK -->|예| VICTORY[승리]
         WATCH -->|아군 전멸| GAMEOVER[패배]
     end
+```
+
+```mermaid
+graph TD
+    subgraph "Colonist 스레드 (500ms 틱)"
+        C_START[상태 진입] --> C_LOOP{살아있는가?}
+        C_LOOP -->|예| C_DAY{현재 상태}
+
+        subgraph "낮: 배회"
+            C_HEAL[6틱마다 자동 회복]
+            C_HEAL --> C_MOVE[안전지대 랜덤 이동]
+        end
+
+        subgraph "밤: 사격"
+            C_ARR{배치 완료?}
+            C_ARR -->|아니오| C_GO[바리케이드로 이동]
+            C_ARR -->|예| C_FIRE{발사 간격 도달?}
+            C_FIRE -->|예| C_SHOOT[가장 가까운 적에게 사격]
+            C_SHOOT --> C_SPEC{5발째?}
+            C_SPEC -->|예| C_SKILL[특수공격]
+        end
+
+        C_DAY -->|배회| C_HEAL
+        C_DAY -->|사격| C_ARR
+
+        C_MOVE --> C_LOOP
+        C_GO --> C_LOOP
+        C_FIRE -->|아니오| C_LOOP
+        C_SPEC -->|아니오| C_LOOP
+        C_SKILL --> C_LOOP
+    end
+
+    C_LOOP -->|사망| C_DEAD[사망 로그 + 스레드 종료]
+```
+
+```mermaid
+graph TD
+    subgraph "Enemy 스레드 (200~700ms 틱)"
+        E_START[출현] --> E_LOOP{살아있는가?}
+        E_LOOP -->|예| E_TICK[패시브 적용 + 특수능력 카운트]
+        E_TICK --> E_BARI{바리케이드 건재?}
+
+        subgraph "바리케이드 공략"
+            E_POS{바리케이드 도착?}
+            E_POS -->|아니오| E_FORWARD[전진 + 가시덫 충돌]
+            E_POS -->|예| E_ATK_B[바리케이드 공격]
+        end
+
+        subgraph "안전지대 침투"
+            E_FIND{정착민 발견?}
+            E_FIND -->|예| E_CHASE[정착민에게 돌진 + 공격]
+            E_FIND -->|아니오| E_LEFT[왼쪽 끝까지 전진]
+        end
+
+        E_BARI -->|건재| E_POS
+        E_BARI -->|파괴됨| E_FIND
+
+        E_FORWARD --> E_LOOP
+        E_ATK_B --> E_LOOP
+        E_CHASE --> E_LOOP
+        E_LEFT --> E_LOOP
+    end
+
+    E_LOOP -->|사망| E_DEAD[사망 + 스레드 종료]
 ```
 
 ### 렌더링 파이프라인
@@ -564,7 +640,7 @@ graph TB
     enemy["<b>unit/enemy</b><br/>Enemy, ChargerEnemy<br/>ArmoredEnemy, RegeneratingEnemy<br/>EnemySpec, EnemyFactory, EnemyTrait"]
     gun["<b>gun</b><br/>Gun, Bullet<br/>Pistol, Shotgun<br/>Rifle, Minigun"]
     structure["<b>structure</b><br/>Structure, Buildable<br/>Barricade, Trap<br/>Spike, Landmine, AmmoBox"]
-    unit["<b>unit</b><br/>GameEntity, Position<br/>Direction"]
+    unit["<b>unit</b><br/>GameUnit, Position<br/>Direction"]
 
     Main --> game
     Main --> colonist

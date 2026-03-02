@@ -1,6 +1,6 @@
 package unit.enemy;
 
-import unit.GameEntity;
+import unit.GameUnit;
 import unit.colonist.Colonist;
 import game.Position;
 import game.Util;
@@ -14,7 +14,7 @@ import structure.Spike;
 /// 자기 스레드에서 매 틱마다 왼쪽으로 한 칸씩 이동
 /// 서브클래스(ChargerEnemy, ArmoredEnemy, RegeneratingEnemy)가 특성별 행동과 스킬을 구현
 /// </summary>
-public class Enemy extends GameEntity {
+public class Enemy extends GameUnit {
 
     /// <summary>
     /// 이 적의 종류 (타입 식별용)

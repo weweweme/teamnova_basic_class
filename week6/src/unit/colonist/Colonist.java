@@ -3,7 +3,7 @@ package unit.colonist;
 import gun.Gun;
 import gun.Pistol;
 
-import unit.GameEntity;
+import unit.GameUnit;
 import game.Position;
 import game.Util;
 import game.GameWorld;
@@ -13,7 +13,7 @@ import game.GameWorld;
 /// 각 정착민은 자기 스레드에서 자율적으로 행동
 /// 상태 패턴으로 행동을 관리 (WanderingState, ShootingState 등)
 /// </summary>
-public class Colonist extends GameEntity {
+public class Colonist extends GameUnit {
 
     /// <summary>
     /// 정착민 유형 (타입 식별용)

@@ -7,7 +7,6 @@ import game.GameWorld;
 import game.BgmPlayer;
 import game.Cutscene;
 import game.Difficulty;
-import game.DifficultySettings;
 import game.InputHandler;
 import game.Position;
 import game.Renderer;
@@ -117,8 +116,7 @@ public class Main {
             }
 
             // 낮/밤 주기 생성 및 렌더러에 연결
-            DifficultySettings settings = new DifficultySettings(selectedDifficulty);
-            DayNightCycle dayNightCycle = new DayNightCycle(gameWorld, settings);
+            DayNightCycle dayNightCycle = new DayNightCycle(gameWorld, selectedDifficulty);
             renderer.setDayNightCycle(dayNightCycle);
 
             // 입력 처리기 생성 및 렌더러에 연결

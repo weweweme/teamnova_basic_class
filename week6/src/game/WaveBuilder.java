@@ -27,9 +27,9 @@ public class WaveBuilder {
                                                 EnemyType.ZOMBIE, EnemyType.RAT, EnemyType.SLIME};
 
     /// <summary>
-    /// 난이도 설정 (적 수 배율 적용용)
+    /// 난이도 (적 수 배율 적용용)
     /// </summary>
-    private final DifficultySettings settings;
+    private final Difficulty difficulty;
 
     /// <summary>
     /// 웨이브 적 목록 (매 웨이브마다 clear 후 재사용)
@@ -39,8 +39,8 @@ public class WaveBuilder {
     /// <summary>
     /// 지정한 난이도로 웨이브 빌더 생성
     /// </summary>
-    public WaveBuilder(DifficultySettings settings) {
-        this.settings = settings;
+    public WaveBuilder(Difficulty difficulty) {
+        this.difficulty = difficulty;
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public class WaveBuilder {
         }
 
         // 강한 몬스터 (일차 / 2 마리, 난이도 배율 적용)
-        int strongCount = settings.applyEnemyCount(day / 2);
+        int strongCount = difficulty.applyEnemyCount(day / 2);
         for (int i = 0; i < strongCount; i++) {
             int index = (int) (Math.random() * STRONGS.length);
             wave.add(STRONGS[index]);
@@ -119,7 +119,7 @@ public class WaveBuilder {
         if (stormActive) {
             baseNormalCount = baseNormalCount * 3 / 2;
         }
-        int normalCount = settings.applyEnemyCount(baseNormalCount);
+        int normalCount = difficulty.applyEnemyCount(baseNormalCount);
         for (int i = 0; i < normalCount; i++) {
             int index = (int) (Math.random() * NORMALS.length);
             wave.add(NORMALS[index]);

@@ -44,7 +44,8 @@ ColonistState (abstract — enter/update/exit)
 
 **데이터 계층 (Type → Spec → Factory)**
 
-열거형은 순수 타입 식별자, 데이터는 Spec, 생성은 Factory가 담당.
+종류가 많은 열거형(적 12종, 정착민 4종)은 타입 식별자만 두고 데이터는 Spec, 생성은 Factory가 담당.
+종류가 적은 열거형(난이도 3종)은 데이터를 열거형에 직접 포함.
 
 ```
 ColonistType (BASIC, GUNNER, SNIPER, ASSAULT)
@@ -110,8 +111,7 @@ SfxPlayer (효과음 — javax.sound 사인파 합성)
 HitEffect (명중 이펙트 데이터)
 LogEntry (로그 메시지 데이터)
 Util (터미널 모드, 화면 클리어, 딜레이, 랜덤)
-DifficultySettings (난이도별 배율)
-Difficulty (EASY, NORMAL, HARD)
+Difficulty (EASY, NORMAL, HARD — 밸런스 수치 포함)
 DayEvent (SUPPLY_DROP, WANDERER, STORM_WARNING, CALM_DAY)
 Direction (8방향 이동 벡터)
 Position (행/열 좌표)
@@ -420,13 +420,13 @@ classDiagram
 
     DayNightCycle --> GameWorld
     DayNightCycle *-- WaveBuilder
-    DayNightCycle --> DifficultySettings
+    DayNightCycle --> Difficulty
 
     PanelBuilder --> GameWorld
     PanelBuilder --> InputHandler
     PanelBuilder --> DayNightCycle
 
-    WaveBuilder --> DifficultySettings
+    WaveBuilder --> Difficulty
 ```
 
 ### 스레드 모델
@@ -841,16 +841,19 @@ java -cp lib/jl1.0.1.jar:out Main
   // 나쁜 예: 가변 static 필드
   private static int count = 0;
   ```
-- **열거형은 순수 타입 식별자**: 열거형(enum)에 데이터와 메서드를 넣지 않는다. 데이터는 별도의 Spec 데이터 클래스에, 조회는 Factory 클래스에서 담당
+- **열거형 데이터 기준**: 종류가 적고(5개 이하) 필드도 적은(5개 이하) 열거형은 데이터를 직접 포함. 종류가 많거나 필드가 많으면 Spec/Factory로 분리
   ```java
-  // 나쁜 예: 열거형이 데이터까지 보유
-  public enum EnemyType {
-      WOLF("늑대", 30, 3, 400, ...);
-      private final String name;
-      public String getName() { return name; }
+  // 좋은 예: 3종 × 4필드 → 열거형에 직접 포함
+  public enum Difficulty {
+      EASY("쉬움", 0.7, 1.5, 7),
+      NORMAL("보통", 1.0, 1.0, 10),
+      HARD("어려움", 1.3, 0.7, 15);
+      private final String displayName;
+      private final double enemyMultiplier;
+      // ...
   }
 
-  // 좋은 예: 열거형은 타입만, 데이터는 분리
+  // 좋은 예: 12종 × 8필드 → Spec/Factory 분리
   public enum EnemyType { WOLF, SPIDER, ... }
   public class EnemySpec { /* 데이터 필드 */ }
   public class EnemyFactory { /* Type → Spec 매핑 */ }

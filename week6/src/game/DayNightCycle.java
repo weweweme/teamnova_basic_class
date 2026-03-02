@@ -30,9 +30,9 @@ public class DayNightCycle extends Thread {
     private final GameWorld gameWorld;
 
     /// <summary>
-    /// 난이도 설정 (적 수/보급/승리 일차 조절)
+    /// 난이도 (적 수/보급/승리 일차 조절)
     /// </summary>
-    private final DifficultySettings settings;
+    private final Difficulty difficulty;
 
     /// <summary>
     /// 현재 일차 (1부터 시작)
@@ -127,10 +127,10 @@ public class DayNightCycle extends Thread {
     /// <summary>
     /// 지정한 맵과 난이도로 낮/밤 주기 생성, 1일차 낮부터 시작
     /// </summary>
-    public DayNightCycle(GameWorld gameWorld, DifficultySettings settings) {
+    public DayNightCycle(GameWorld gameWorld, Difficulty difficulty) {
         this.gameWorld = gameWorld;
-        this.settings = settings;
-        this.waveBuilder = new WaveBuilder(settings);
+        this.difficulty = difficulty;
+        this.waveBuilder = new WaveBuilder(difficulty);
         this.day = 1;
         this.night = false;
         this.elapsedInPhase = 0;
@@ -180,15 +180,15 @@ public class DayNightCycle extends Thread {
                     barricadeBroken = false;
 
                     // 밤 종료 정리: 죽은 적 제거, 가시덫 정리, 보급 지급
-                    int[] result = gameWorld.endNight(settings, barricadeHpAtNightStart);
+                    int[] result = gameWorld.endNight(difficulty, barricadeHpAtNightStart);
                     int dailySupply = result[0];
                     int perfectBonus = result[1];
 
                     gameWorld.switchColonistsToWandering();
-                    if (day > settings.getWinDay()) {
+                    if (day > difficulty.getWinDay()) {
                         victory = true;
                         Util.beep();
-                        gameWorld.addLog("══ 승리! " + settings.getWinDay() + "일을 버텨냈습니다! ══");
+                        gameWorld.addLog("══ 승리! " + difficulty.getWinDay() + "일을 버텨냈습니다! ══");
                     } else {
                         String bonusText = perfectBonus > 0 ? " +보너스" + perfectBonus : "";
                         gameWorld.addLog("── " + day + "일차 낮 시작 (보급 +" + dailySupply + bonusText + ") ──");
@@ -374,7 +374,7 @@ public class DayNightCycle extends Thread {
     /// 선택된 난이도 이름 반환 (패널 표시용)
     /// </summary>
     public String getDifficultyName() {
-        return settings.getDifficulty().getDisplayName();
+        return difficulty.getDisplayName();
     }
 
     /// <summary>

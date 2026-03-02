@@ -498,13 +498,13 @@ public class GameWorld {
     /// 밤 종료 시 정리 작업: 죽은 적 제거, 파괴된 가시덫 제거, 보급품 지급
     /// 반환: [일일보급, 무피해보너스]
     /// </summary>
-    public int[] endNight(DifficultySettings settings, int barricadeHpAtNightStart) {
+    public int[] endNight(Difficulty difficulty, int barricadeHpAtNightStart) {
         removeDeadEnemies();
         removeDestroyedSpikes();
 
         // 매일 자동 지급되는 보급품 양
         final int DAILY_SUPPLY = 20;
-        int dailySupply = settings.applySupply(DAILY_SUPPLY);
+        int dailySupply = difficulty.applySupply(DAILY_SUPPLY);
         supply.add(dailySupply);
 
         // 무피해 생존 보너스: 바리케이드가 피해를 받지 않았으면 추가 보급

@@ -3,7 +3,7 @@ package gun;
 import entity.colonist.Colonist;
 
 import entity.enemy.Enemy;
-import game.GameMap;
+import game.GameWorld;
 
 /// <summary>
 /// 샷건 — 부채꼴 3발 동시 발사
@@ -29,9 +29,9 @@ public class Shotgun extends Gun {
     /// 적 중앙 + 위/아래로 3발을 부채꼴 발사
     /// </summary>
     @Override
-    public void fire(Colonist colonist, Enemy target, GameMap gameMap) {
+    public void fire(Colonist colonist, Enemy target, GameWorld gameWorld) {
         for (int offset : OFFSETS) {
-            fireBullet(colonist, target, gameMap, false, offset);
+            fireBullet(colonist, target, gameWorld, false, offset);
         }
     }
 }

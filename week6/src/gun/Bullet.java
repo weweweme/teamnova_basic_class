@@ -1,6 +1,6 @@
 package gun;
 
-import game.GameMap;
+import game.GameWorld;
 
 /// <summary>
 /// 정착민이 발사한 총알
@@ -179,8 +179,8 @@ public class Bullet {
     /// </summary>
     public boolean isOffScreen() {
         int currentRow = getRow();
-        boolean outOfWidth = col >= GameMap.WIDTH;
-        boolean outOfHeight = currentRow < 0 || currentRow >= GameMap.HEIGHT;
+        boolean outOfWidth = col >= GameWorld.WIDTH;
+        boolean outOfHeight = currentRow < 0 || currentRow >= GameWorld.HEIGHT;
         return outOfWidth || outOfHeight;
     }
 }

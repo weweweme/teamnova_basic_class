@@ -47,7 +47,7 @@ public class Renderer {
     /// 행별 색상 재사용 버퍼 (매 프레임 배열 재생성 방지)
     /// 맵 높이만큼 확보하면 모든 블록에 대응 가능
     /// </summary>
-    private final int[] reusableColors = new int[GameMap.HEIGHT];
+    private final int[] reusableColors = new int[GameWorld.HEIGHT];
 
     /// <summary>
     /// 화면 출력 재사용 버퍼
@@ -72,7 +72,7 @@ public class Renderer {
     /// <summary>
     /// 출력할 게임 맵
     /// </summary>
-    private final GameMap gameMap;
+    private final GameWorld gameWorld;
 
     /// <summary>
     /// 낮/밤 주기 (시간 표시용)
@@ -92,10 +92,10 @@ public class Renderer {
     /// <summary>
     /// 지정한 맵으로 렌더러 생성
     /// </summary>
-    public Renderer(GameMap gameMap) {
-        this.gameMap = gameMap;
-        this.buffer = new char[GameMap.HEIGHT][GameMap.WIDTH];
-        this.colorBuffer = new int[GameMap.HEIGHT][GameMap.WIDTH];
+    public Renderer(GameWorld gameWorld) {
+        this.gameWorld = gameWorld;
+        this.buffer = new char[GameWorld.HEIGHT][GameWorld.WIDTH];
+        this.colorBuffer = new int[GameWorld.HEIGHT][GameWorld.WIDTH];
         this.selectedIndex = 0;
     }
 
@@ -118,7 +118,7 @@ public class Renderer {
     /// </summary>
     public void setInputHandler(InputHandler inputHandler) {
         this.inputHandler = inputHandler;
-        this.panelBuilder = new PanelBuilder(gameMap, inputHandler);
+        this.panelBuilder = new PanelBuilder(gameWorld, inputHandler);
         this.panelBuilder.setDayNightCycle(dayNightCycle);
     }
 
@@ -126,7 +126,7 @@ public class Renderer {
     /// 다음 정착민 선택 (↓ 키)
     /// </summary>
     public void selectNext() {
-        int count = gameMap.getColonists().size();
+        int count = gameWorld.getColonists().size();
         if (count > 0) {
             selectedIndex = (selectedIndex + 1) % count;
         }
@@ -136,7 +136,7 @@ public class Renderer {
     /// 이전 정착민 선택 (↑ 키)
     /// </summary>
     public void selectPrevious() {
-        int count = gameMap.getColonists().size();
+        int count = gameWorld.getColonists().size();
         if (count > 0) {
             selectedIndex = (selectedIndex - 1 + count) % count;
         }
@@ -146,7 +146,7 @@ public class Renderer {
     /// 모든 정착민이 사망했는지 확인
     /// </summary>
     public boolean isGameOver() {
-        for (Colonist colonist : gameMap.getColonists()) {
+        for (Colonist colonist : gameWorld.getColonists()) {
             if (colonist.isLiving()) {
                 return false;
             }
@@ -188,8 +188,8 @@ public class Renderer {
     /// 버퍼를 공백으로 초기화
     /// </summary>
     private void clearBuffer() {
-        for (int row = 0; row < GameMap.HEIGHT; row++) {
-            for (int col = 0; col < GameMap.WIDTH; col++) {
+        for (int row = 0; row < GameWorld.HEIGHT; row++) {
+            for (int col = 0; col < GameWorld.WIDTH; col++) {
                 buffer[row][col] = ' ';
                 colorBuffer[row][col] = 0;
             }
@@ -201,7 +201,7 @@ public class Renderer {
     /// 파괴되었으면 빨간색 .. 으로 표시
     /// </summary>
     private void drawBarricade() {
-        Barricade barricade = gameMap.getBarricade();
+        Barricade barricade = gameWorld.getBarricade();
         boolean destroyed = barricade.isDestroyed();
         char wallChar = destroyed ? '.' : '#';
 
@@ -213,7 +213,7 @@ public class Renderer {
             color = COLOR_GREEN;
         }
 
-        for (int row = 0; row < GameMap.HEIGHT; row++) {
+        for (int row = 0; row < GameWorld.HEIGHT; row++) {
             buffer[row][Barricade.COLUMN] = wallChar;
             buffer[row][Barricade.COLUMN + 1] = wallChar;
             colorBuffer[row][Barricade.COLUMN] = color;
@@ -228,14 +228,14 @@ public class Renderer {
     private void drawSpikes() {
         final int COLOR_YELLOW = 33;
 
-        for (Spike spike : gameMap.getSpikes()) {
+        for (Spike spike : gameWorld.getSpikes()) {
             if (spike.isDestroyed()) {
                 continue;
             }
             int col = spike.getColumn();
 
-            for (int row = 0; row < GameMap.HEIGHT; row++) {
-                if (col >= 0 && col < GameMap.WIDTH) {
+            for (int row = 0; row < GameWorld.HEIGHT; row++) {
+                if (col >= 0 && col < GameWorld.WIDTH) {
                     buffer[row][col] = '^';
                     colorBuffer[row][col] = COLOR_YELLOW;
                 }
@@ -247,14 +247,14 @@ public class Renderer {
     /// 설치된 지뢰를 세로로 그림 (@ 문자, 빨간색)
     /// </summary>
     private void drawLandmines() {
-        for (Landmine mine : gameMap.getLandmines()) {
+        for (Landmine mine : gameWorld.getLandmines()) {
             if (mine.isDestroyed()) {
                 continue;
             }
             int col = mine.getColumn();
 
-            for (int row = 0; row < GameMap.HEIGHT; row++) {
-                if (col >= 0 && col < GameMap.WIDTH) {
+            for (int row = 0; row < GameWorld.HEIGHT; row++) {
+                if (col >= 0 && col < GameWorld.WIDTH) {
                     buffer[row][col] = '@';
                     colorBuffer[row][col] = COLOR_RED;
                 }
@@ -266,14 +266,14 @@ public class Renderer {
     /// 안전지대에 설치된 탄약 상자를 그림 (= 문자, 초록색)
     /// </summary>
     private void drawAmmoBoxes() {
-        for (AmmoBox box : gameMap.getAmmoBoxes()) {
+        for (AmmoBox box : gameWorld.getAmmoBoxes()) {
             if (box.isDestroyed()) {
                 continue;
             }
             int col = box.getColumn();
 
-            for (int row = 0; row < GameMap.HEIGHT; row++) {
-                if (col >= 0 && col < GameMap.WIDTH) {
+            for (int row = 0; row < GameWorld.HEIGHT; row++) {
+                if (col >= 0 && col < GameWorld.WIDTH) {
                     buffer[row][col] = '=';
                     colorBuffer[row][col] = COLOR_GREEN;
                 }
@@ -288,7 +288,7 @@ public class Renderer {
     private void drawColonists() {
         long now = System.currentTimeMillis();
 
-        for (Colonist colonist : gameMap.getColonists()) {
+        for (Colonist colonist : gameWorld.getColonists()) {
             int row = colonist.getPosition().getRow();
             int col = colonist.getPosition().getCol();
             String[] block = colonist.getBlock();
@@ -331,7 +331,7 @@ public class Renderer {
     private void drawEnemies() {
         long now = System.currentTimeMillis();
 
-        for (Enemy enemy : gameMap.getEnemies()) {
+        for (Enemy enemy : gameWorld.getEnemies()) {
             int row = enemy.getPosition().getRow();
             int col = enemy.getPosition().getCol();
             String[] block = enemy.getSpec().getBlock();
@@ -379,11 +379,11 @@ public class Renderer {
     /// 날아가는 총알을 버퍼에 * 로 그림
     /// </summary>
     private void drawBullets() {
-        for (Bullet bullet : gameMap.getBullets()) {
+        for (Bullet bullet : gameWorld.getBullets()) {
             int row = bullet.getRow();
             int col = bullet.getCol();
 
-            if (row >= 0 && row < GameMap.HEIGHT && col >= 0 && col < GameMap.WIDTH) {
+            if (row >= 0 && row < GameWorld.HEIGHT && col >= 0 && col < GameWorld.WIDTH) {
                 buffer[row][col] = bullet.getBulletChar();
                 if (bullet.getBulletColor() != 0) {
                     colorBuffer[row][col] = bullet.getBulletColor();
@@ -396,11 +396,11 @@ public class Renderer {
     /// 명중 이펙트를 버퍼에 노란색 ! 로 그림
     /// </summary>
     private void drawEffects() {
-        for (HitEffect effect : gameMap.getEffects()) {
+        for (HitEffect effect : gameWorld.getEffects()) {
             int row = effect.getRow();
             int col = effect.getCol();
 
-            if (row >= 0 && row < GameMap.HEIGHT && col >= 0 && col < GameMap.WIDTH) {
+            if (row >= 0 && row < GameWorld.HEIGHT && col >= 0 && col < GameWorld.WIDTH) {
                 buffer[row][col] = effect.getEffectChar();
                 colorBuffer[row][col] = effect.getEffectColor();
             }
@@ -426,21 +426,21 @@ public class Renderer {
         };
 
         // 세로 중앙 정렬
-        int startRow = (GameMap.HEIGHT - art.length) / 2;
+        int startRow = (GameWorld.HEIGHT - art.length) / 2;
         // 가로 중앙 정렬
         int artWidth = art[0].length();
-        int startCol = (GameMap.WIDTH - artWidth) / 2;
+        int startCol = (GameWorld.WIDTH - artWidth) / 2;
 
         for (int i = 0; i < art.length; i++) {
             int row = startRow + i;
-            if (row < 0 || row >= GameMap.HEIGHT) {
+            if (row < 0 || row >= GameWorld.HEIGHT) {
                 continue;
             }
 
             String line = art[i];
             for (int j = 0; j < line.length(); j++) {
                 int col = startCol + j;
-                if (col < 0 || col >= GameMap.WIDTH) {
+                if (col < 0 || col >= GameWorld.WIDTH) {
                     continue;
                 }
 
@@ -456,7 +456,7 @@ public class Renderer {
     /// <summary>
     /// 웨이브 경고 행의 표시 폭 (가로 정렬 고정용)
     /// </summary>
-    private static final int WAVE_WARNING_ROW = GameMap.HEIGHT / 2;
+    private static final int WAVE_WARNING_ROW = GameWorld.HEIGHT / 2;
 
     /// <summary>
     /// 웨이브 경고 텍스트를 ANSI 색상과 함께 출력 (버퍼 대신 직접 렌더링)
@@ -467,8 +467,8 @@ public class Renderer {
 
         // 좌측 패딩 (가로 중앙 정렬, 기존 displayWidth 재사용)
         int warningWidth = displayWidth(warning);
-        int leftPad = (GameMap.WIDTH - warningWidth) / 2;
-        int rightPad = GameMap.WIDTH - warningWidth - leftPad;
+        int leftPad = (GameWorld.WIDTH - warningWidth) / 2;
+        int rightPad = GameWorld.WIDTH - warningWidth - leftPad;
 
         for (int i = 0; i < leftPad; i++) {
             sb.append(' ');
@@ -492,7 +492,7 @@ public class Renderer {
         for (int blockRow = 0; blockRow < block.length; blockRow++) {
             int bufferRow = startRow + blockRow;
 
-            if (bufferRow < 0 || bufferRow >= GameMap.HEIGHT) {
+            if (bufferRow < 0 || bufferRow >= GameWorld.HEIGHT) {
                 continue;
             }
 
@@ -501,7 +501,7 @@ public class Renderer {
             for (int blockCol = 0; blockCol < line.length(); blockCol++) {
                 int bufferCol = startCol + blockCol;
 
-                if (bufferCol < 0 || bufferCol >= GameMap.WIDTH) {
+                if (bufferCol < 0 || bufferCol >= GameWorld.WIDTH) {
                     continue;
                 }
 
@@ -518,7 +518,7 @@ public class Renderer {
         for (int blockRow = 0; blockRow < rows; blockRow++) {
             int bufferRow = startRow + blockRow;
 
-            if (bufferRow < 0 || bufferRow >= GameMap.HEIGHT) {
+            if (bufferRow < 0 || bufferRow >= GameWorld.HEIGHT) {
                 continue;
             }
 
@@ -528,7 +528,7 @@ public class Renderer {
             for (int blockCol = 0; blockCol < line.length(); blockCol++) {
                 int bufferCol = startCol + blockCol;
 
-                if (bufferCol < 0 || bufferCol >= GameMap.WIDTH) {
+                if (bufferCol < 0 || bufferCol >= GameWorld.WIDTH) {
                     continue;
                 }
 
@@ -583,7 +583,7 @@ public class Renderer {
     /// </summary>
     private String padToWidth(String text) {
         int currentWidth = displayWidth(text);
-        return text + " ".repeat(Math.max(0, GameMap.WIDTH - currentWidth));
+        return text + " ".repeat(Math.max(0, GameWorld.WIDTH - currentWidth));
     }
 
     /// <summary>
@@ -593,11 +593,11 @@ public class Renderer {
     private void flush() {
         panelBuilder.build(selectedIndex);
         ArrayList<String> panelLines = panelBuilder.getPanelLines();
-        ArrayList<String> logs = gameMap.getRecentLogs();
+        ArrayList<String> logs = gameWorld.getRecentLogs();
 
         // 전체 높이: 맵(20) + 구분선(1) + 로그(8) = 29줄
         int LOG_LINES = 8;
-        int totalHeight = GameMap.HEIGHT + 1 + LOG_LINES;
+        int totalHeight = GameWorld.HEIGHT + 1 + LOG_LINES;
         String PANEL_SEPARATOR = "|||";
 
         screenBuilder.setLength(0);
@@ -606,14 +606,14 @@ public class Renderer {
         screenBuilder.append("\033[H");
 
         // 흔들림 오프셋 (행 루프 바깥에서 한 번만 조회)
-        int shakeOffset = gameMap.getScreenShakeOffset();
+        int shakeOffset = gameWorld.getScreenEffects().getScreenShakeOffset();
 
         // 웨이브 경고 활성 여부 (행 루프 바깥에서 한 번만 조회)
-        boolean waveWarning = gameMap.isWaveWarningActive();
+        boolean waveWarning = gameWorld.getScreenEffects().isWaveWarningActive();
 
         for (int row = 0; row < totalHeight; row++) {
             // 좌측 내용 (맵 / 구분선 / 로그)
-            if (row < GameMap.HEIGHT) {
+            if (row < GameWorld.HEIGHT) {
                 // 웨이브 경고 행: 한글 포함 문자열을 버퍼 대신 직접 출력
                 boolean isWarningRow = waveWarning && row == WAVE_WARNING_ROW;
                 if (isWarningRow) {
@@ -627,7 +627,7 @@ public class Renderer {
                     }
 
                     // 맵 버퍼 (색상 적용, 흔들림 시 끝부분 잘림)
-                    int renderWidth = GameMap.WIDTH - Math.abs(shakeOffset);
+                    int renderWidth = GameWorld.WIDTH - Math.abs(shakeOffset);
                     int startCol = shakeOffset < 0 ? -shakeOffset : 0;
                     for (int col = startCol; col < startCol + renderWidth; col++) {
                         int color = colorBuffer[row][col];
@@ -649,12 +649,12 @@ public class Renderer {
                         }
                     }
                 }
-            } else if (row == GameMap.HEIGHT) {
+            } else if (row == GameWorld.HEIGHT) {
                 // 로그 구분선
-                screenBuilder.append("-".repeat(GameMap.WIDTH));
+                screenBuilder.append("-".repeat(GameWorld.WIDTH));
             } else {
                 // 로그 줄 (하단 정렬: 새 로그가 아래, 기존 로그가 위로)
-                int logLine = row - GameMap.HEIGHT - 1;
+                int logLine = row - GameWorld.HEIGHT - 1;
                 int offset = LOG_LINES - logs.size();
                 int logIndex = logLine - offset;
 

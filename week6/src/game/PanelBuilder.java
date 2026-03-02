@@ -14,7 +14,7 @@ public class PanelBuilder {
     /// <summary>
     /// 게임 맵 (보급품, 정착민, 적 정보 조회용)
     /// </summary>
-    private final GameMap gameMap;
+    private final GameWorld gameWorld;
 
     /// <summary>
     /// 입력 처리기 (메뉴 모드 상태 조회용)
@@ -39,8 +39,8 @@ public class PanelBuilder {
     /// <summary>
     /// 패널 빌더 생성
     /// </summary>
-    public PanelBuilder(GameMap gameMap, InputHandler inputHandler) {
-        this.gameMap = gameMap;
+    public PanelBuilder(GameWorld gameWorld, InputHandler inputHandler) {
+        this.gameWorld = gameWorld;
         this.inputHandler = inputHandler;
     }
 
@@ -64,7 +64,7 @@ public class PanelBuilder {
     /// </summary>
     public void build(int selectedIndex) {
         panelLines.clear();
-        ArrayList<Colonist> colonists = gameMap.getColonists();
+        ArrayList<Colonist> colonists = gameWorld.getColonists();
 
         // 시간 표시
         if (dayNightCycle != null) {
@@ -77,7 +77,7 @@ public class PanelBuilder {
             }
 
             if (dayNightCycle.isNight()) {
-                int alive = gameMap.getEnemies().size();
+                int alive = gameWorld.getEnemies().size();
                 int pending = dayNightCycle.getPendingCount();
                 int total = dayNightCycle.getTotalWaveSize();
                 int defeated = total - alive - pending;
@@ -88,10 +88,10 @@ public class PanelBuilder {
         }
 
         // 보급품 + 바리케이드
-        Barricade barricade = gameMap.getBarricade();
-        panelLines.add(" [보급] " + gameMap.getSupply().getAmount());
+        Barricade barricade = gameWorld.getBarricade();
+        panelLines.add(" [보급] " + gameWorld.getSupply().getAmount());
         panelLines.add(" [바리] Lv" + barricade.getLevel() + " " + buildBar(barricade.getHp(), barricade.getMaxHp()));
-        panelLines.add(" [처치] " + gameMap.getEnemiesKilled() + "마리");
+        panelLines.add(" [처치] " + gameWorld.getEnemiesKilled() + "마리");
         panelLines.add("");
 
         // 정착민 목록
@@ -137,7 +137,7 @@ public class PanelBuilder {
             panelLines.add(" 버텨냈습니다!");
             panelLines.add("");
             panelLines.add(" [통계]");
-            panelLines.add(" 처치: " + gameMap.getEnemiesKilled() + "마리");
+            panelLines.add(" 처치: " + gameWorld.getEnemiesKilled() + "마리");
             panelLines.add("");
             panelLines.add(" q: 종료");
         } else if (isGameOver()) {
@@ -150,7 +150,7 @@ public class PanelBuilder {
             if (dayNightCycle != null) {
                 panelLines.add(" 생존: " + dayNightCycle.getDay() + "일");
             }
-            panelLines.add(" 처치: " + gameMap.getEnemiesKilled() + "마리");
+            panelLines.add(" 처치: " + gameWorld.getEnemiesKilled() + "마리");
             panelLines.add("");
             panelLines.add(" q: 종료");
         } else {
@@ -159,7 +159,7 @@ public class PanelBuilder {
             boolean isNight = dayNightCycle != null && dayNightCycle.isNight();
             if (isNight) {
                 // 밤: 전투 상태 표시
-                int alive = gameMap.getEnemies().size();
+                int alive = gameWorld.getEnemies().size();
                 int pending = dayNightCycle.getPendingCount();
                 int total = dayNightCycle.getTotalWaveSize();
                 int defeated = total - alive - pending;
@@ -184,7 +184,7 @@ public class PanelBuilder {
                 panelLines.add(" 1: 보급품 +999");
                 panelLines.add(" 2: 전원 회복");
                 panelLines.add(" 3: 적 전멸");
-                String invStatus = gameMap.isInvincible() ? "ON" : "OFF";
+                String invStatus = gameWorld.isInvincible() ? "ON" : "OFF";
                 panelLines.add(" 4: 무적 (" + invStatus + ")");
                 panelLines.add(" 5: 바리케이드 MAX");
                 panelLines.add(" 6: 전원 미니건");
@@ -257,7 +257,7 @@ public class PanelBuilder {
     /// 모든 정착민이 사망했는지 확인
     /// </summary>
     private boolean isGameOver() {
-        for (Colonist colonist : gameMap.getColonists()) {
+        for (Colonist colonist : gameWorld.getColonists()) {
             if (colonist.isLiving()) {
                 return false;
             }

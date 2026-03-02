@@ -3,7 +3,7 @@ package entity.colonist;
 import game.Direction;
 import game.Util;
 import structure.Barricade;
-import game.GameMap;
+import game.GameWorld;
 
 /// <summary>
 /// 배회 상태 — 안전지대(바리케이드 왼쪽)에서 랜덤으로 돌아다님
@@ -51,7 +51,7 @@ public class WanderingState extends ColonistState {
         int newCol = colonist.getPosition().getCol() + direction.getDeltaCol();
 
         // 안전지대 범위 안에서만 이동
-        boolean validRow = newRow >= 0 && newRow < GameMap.HEIGHT;
+        boolean validRow = newRow >= 0 && newRow < GameWorld.HEIGHT;
 
         // 안전지대 오른쪽 끝 (블록에서 가장 넓은 행이 바리케이드와 겹치지 않도록)
         String[] block = colonist.getBlock();

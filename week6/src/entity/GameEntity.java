@@ -1,7 +1,7 @@
 package entity;
 
 import game.Position;
-import game.GameMap;
+import game.GameWorld;
 
 /// <summary>
 /// 정착민과 적의 공통 상위 클래스
@@ -17,7 +17,7 @@ public abstract class GameEntity extends Thread {
     /// <summary>
     /// 이 개체가 속한 맵
     /// </summary>
-    private final GameMap gameMap;
+    private final GameWorld gameWorld;
 
     /// <summary>
     /// 현재 체력
@@ -32,9 +32,9 @@ public abstract class GameEntity extends Thread {
     /// <summary>
     /// 지정한 위치와 맵으로 개체 생성, 체력은 최대로 시작
     /// </summary>
-    protected GameEntity(Position position, GameMap gameMap, int maxHp) {
+    protected GameEntity(Position position, GameWorld gameWorld, int maxHp) {
         this.position = position;
-        this.gameMap = gameMap;
+        this.gameWorld = gameWorld;
         this.hp = maxHp;
         this.running = true;
     }
@@ -49,8 +49,8 @@ public abstract class GameEntity extends Thread {
     /// <summary>
     /// 이 개체가 속한 맵 반환
     /// </summary>
-    public GameMap getGameMap() {
-        return gameMap;
+    public GameWorld getGameWorld() {
+        return gameWorld;
     }
 
     /// <summary>

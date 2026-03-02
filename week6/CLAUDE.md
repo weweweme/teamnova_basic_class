@@ -87,7 +87,8 @@ Structure (column, maxHp — 내구도 관리)
 Main (진입점 — 난이도 선택, 초기화, 메인 루프)
 DayNightCycle (Thread — 낮/밤 전환, 적 스폰, 이벤트)
 WaveBuilder (일차별 적 웨이브 구성)
-GameMap (게임 상태 컨테이너 — 모든 엔티티/구조물 관리)
+GameWorld (게임 상태 컨테이너 — 엔티티/구조물/자원 관리)
+ScreenEffects (화면 효과 — 흔들림, 웨이브 경고)
 BulletSystem (총알 이동 + 충돌 처리)
 Renderer (화면 렌더링 — 버퍼 기반)
 PanelBuilder (오른쪽 정보 패널 생성)
@@ -95,6 +96,7 @@ InputHandler (키 입력 읽기 + 명령 디스패치)
 Supply (보급품 자원 관리)
 Cutscene (스토리 애니메이션)
 BgmPlayer (Thread — JLayer MP3 루프 재생)
+SfxPlayer (효과음 — javax.sound 사인파 합성)
 HitEffect (명중 이펙트 데이터)
 LogEntry (로그 메시지 데이터)
 Util (터미널 모드, 화면 클리어, 딜레이, 랜덤)
@@ -154,7 +156,7 @@ graph TD
     START[Main] --> TITLE[타이틀 화면]
     TITLE --> DIFF[난이도 선택]
     DIFF --> INTRO[인트로 컷씬]
-    INTRO --> INIT[초기화: GameMap + 정착민 3명 + 스레드 시작]
+    INTRO --> INIT[초기화: GameWorld + 정착민 3명 + 스레드 시작]
     INIT --> LOOP[메인 루프]
 
     LOOP --> INPUT{키 입력?}
@@ -185,7 +187,7 @@ graph TD
 ```mermaid
 graph TB
     Main["<b>Main</b><br/>진입점"]
-    game["<b>game</b><br/>DayNightCycle, GameMap<br/>BulletSystem, Renderer<br/>PanelBuilder, InputHandler<br/>WaveBuilder, Supply<br/>Cutscene, BgmPlayer"]
+    game["<b>game</b><br/>DayNightCycle, GameWorld<br/>ScreenEffects, BulletSystem<br/>Renderer, PanelBuilder<br/>InputHandler, WaveBuilder<br/>Supply, Cutscene<br/>BgmPlayer, SfxPlayer"]
     colonist["<b>entity/colonist</b><br/>Colonist, ColonistState<br/>WanderingState, ShootingState<br/>ColonistSpec, ColonistFactory"]
     enemy["<b>entity/enemy</b><br/>Enemy, EnemySpec<br/>EnemyFactory, EnemyTrait"]
     gun["<b>gun</b><br/>Gun, Bullet<br/>Pistol, Shotgun<br/>Rifle, Minigun"]
@@ -341,7 +343,7 @@ java -cp lib/jl1.0.1.jar:out Main
   }
 
   // 좋은 예: 각 클래스가 자기 상수를 소유
-  public class GameMap {
+  public class GameWorld {
       public static final int WIDTH = 60;
   }
   public class Colonist {
@@ -568,6 +570,15 @@ java -cp lib/jl1.0.1.jar:out Main
           super(column, 10);
       }
   }
+  ```
+- **필수 의존성은 생성자로 주입**: 객체가 동작하는 데 반드시 필요한 의존성은 setter가 아닌 생성자 파라미터로 받는다. 객체는 생성 직후부터 사용 가능한 상태여야 한다
+  ```java
+  // 나쁜 예: setter로 나중에 주입 (호출 전까지 null 위험)
+  GameWorld gameWorld = new GameWorld();
+  gameWorld.setSfxPlayer(sfxPlayer);
+
+  // 좋은 예: 생성자에서 받아서 즉시 사용 가능
+  GameWorld gameWorld = new GameWorld(sfxPlayer);
   ```
 - **반복 호출되는 메서드에서 컬렉션/배열 재생성 금지**: 매 프레임·매 틱 호출되는 메서드에서 `new ArrayList`, `new int[]` 등을 매번 생성하지 않는다. 클래스 필드로 선언하고 `clear()` / `Arrays.fill()`로 재사용
   ```java

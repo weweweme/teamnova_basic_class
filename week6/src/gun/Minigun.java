@@ -3,7 +3,7 @@ package gun;
 import entity.colonist.Colonist;
 
 import entity.enemy.Enemy;
-import game.GameMap;
+import game.GameWorld;
 
 /// <summary>
 /// 미니건 — 초고속 연사 무기
@@ -19,7 +19,7 @@ public class Minigun extends Gun {
     /// 단발 총알 1개를 적 중앙을 향해 발사 (매 틱마다 반복)
     /// </summary>
     @Override
-    public void fire(Colonist colonist, Enemy target, GameMap gameMap) {
-        fireBullet(colonist, target, gameMap, false, 0);
+    public void fire(Colonist colonist, Enemy target, GameWorld gameWorld) {
+        fireBullet(colonist, target, gameWorld, false, 0);
     }
 }

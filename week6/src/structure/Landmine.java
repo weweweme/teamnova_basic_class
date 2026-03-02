@@ -1,6 +1,6 @@
 package structure;
 
-import game.GameMap;
+import game.GameWorld;
 import game.HitEffect;
 
 import entity.enemy.Enemy;
@@ -29,7 +29,7 @@ public class Landmine extends Trap {
     /// 폭발 처리: 범위 내 모든 적에게 데미지
     /// 폭발 후 자동 파괴됨
     /// </summary>
-    public void explode(ArrayList<Enemy> enemies, GameMap gameMap) {
+    public void explode(ArrayList<Enemy> enemies, GameWorld gameWorld) {
         int mineCol = getColumn();
 
         for (Enemy enemy : enemies) {
@@ -45,13 +45,13 @@ public class Landmine extends Trap {
                 enemy.takeDamage(getDamage());
 
                 if (!enemy.isLiving()) {
-                    gameMap.addLog("[지뢰] " + enemy.getSpec().getDisplayName() + " 처치!");
+                    gameWorld.addLog("[지뢰] " + enemy.getSpec().getDisplayName() + " 처치!");
                 }
             }
         }
 
         // 폭발 이펙트 추가 (다이아몬드 형태, 중심에서 바깥으로 갈수록 약해짐)
-        int centerRow = GameMap.HEIGHT / 2;
+        int centerRow = GameWorld.HEIGHT / 2;
         long now = System.currentTimeMillis();
 
         // 밝은 빨간색 ANSI 코드
@@ -61,7 +61,7 @@ public class Landmine extends Trap {
 
         for (int dr = -BLAST_RANGE; dr <= BLAST_RANGE; dr++) {
             int row = centerRow + dr;
-            boolean validRow = row >= 0 && row < GameMap.HEIGHT;
+            boolean validRow = row >= 0 && row < GameWorld.HEIGHT;
             if (!validRow) {
                 continue;
             }
@@ -75,16 +75,16 @@ public class Landmine extends Trap {
 
             for (int dc = -colRange; dc <= colRange; dc++) {
                 int col = mineCol + dc;
-                boolean validCol = col >= 0 && col < GameMap.WIDTH;
+                boolean validCol = col >= 0 && col < GameWorld.WIDTH;
                 if (validCol) {
-                    gameMap.getEffects().add(new HitEffect(row, col, now, effectChar, effectColor));
+                    gameWorld.getEffects().add(new HitEffect(row, col, now, effectChar, effectColor));
                 }
             }
         }
 
         // 화면 흔들림 (200ms, 강도 2) + 폭발음
-        gameMap.triggerScreenShake(200, 2);
-        gameMap.getSfxPlayer().playExplosion();
+        gameWorld.getScreenEffects().triggerScreenShake(200, 2);
+        gameWorld.getSfxPlayer().playExplosion();
 
         // 지뢰 파괴
         takeDamage(getMaxHp());

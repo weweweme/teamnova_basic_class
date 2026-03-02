@@ -4,7 +4,7 @@ import gun.Gun;
 
 import entity.enemy.Enemy;
 import structure.Barricade;
-import game.GameMap;
+import game.GameWorld;
 
 /// <summary>
 /// 사격 상태 — 밤에 바리케이드에 붙어서 가장 가까운 적을 조준 사격
@@ -50,10 +50,10 @@ public class ShootingState extends ColonistState {
         arrived = false;
 
         // 정착민 목록에서 자기 순번으로 목표 행 계산 (겹침 방지)
-        GameMap gameMap = colonist.getGameMap();
-        int index = gameMap.getColonists().indexOf(colonist);
-        int count = gameMap.getColonists().size();
-        int spacing = GameMap.HEIGHT / (count + 1);
+        GameWorld gameWorld = colonist.getGameWorld();
+        int index = gameWorld.getColonists().indexOf(colonist);
+        int count = gameWorld.getColonists().size();
+        int spacing = GameWorld.HEIGHT / (count + 1);
         targetRow = spacing * (index + 1);
 
         if (instant) {
@@ -79,7 +79,7 @@ public class ShootingState extends ColonistState {
         // 속사 패시브 + 탄약 상자 보너스를 곱연산
         Gun gun = colonist.getGun();
         double typeBonus = colonist.getSpec().getFireRateBonus();
-        double ammoMultiplier = colonist.getGameMap().getFireRateMultiplier();
+        double ammoMultiplier = colonist.getGameWorld().getFireRateMultiplier();
         int interval = Math.max((int) (gun.getFireInterval() * typeBonus * ammoMultiplier), 1);
         if (tickCount < interval) {
             return;
@@ -94,8 +94,8 @@ public class ShootingState extends ColonistState {
         }
 
         // 무기에 발사를 위임 (무기마다 총알 패턴이 다름)
-        gun.fire(colonist, target, colonist.getGameMap());
-        colonist.getGameMap().getSfxPlayer().playShoot();
+        gun.fire(colonist, target, colonist.getGameWorld());
+        colonist.getGameWorld().getSfxPlayer().playShoot();
     }
 
     /// <summary>
@@ -146,11 +146,11 @@ public class ShootingState extends ColonistState {
     /// 없으면 null 반환
     /// </summary>
     private Enemy findNearestEnemy(Colonist colonist) {
-        GameMap gameMap = colonist.getGameMap();
+        GameWorld gameWorld = colonist.getGameWorld();
         Enemy nearest = null;
         int minDistance = Integer.MAX_VALUE;
 
-        for (Enemy enemy : gameMap.getEnemies()) {
+        for (Enemy enemy : gameWorld.getEnemies()) {
             if (!enemy.isLiving()) {
                 continue;
             }

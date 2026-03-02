@@ -6,7 +6,7 @@ import gun.Pistol;
 import entity.enemy.EnemyFactory;
 import entity.enemy.EnemyType;
 import game.DayNightCycle;
-import game.GameMap;
+import game.GameWorld;
 import game.BgmPlayer;
 import game.Cutscene;
 import game.Difficulty;
@@ -14,6 +14,7 @@ import game.DifficultySettings;
 import game.InputHandler;
 import game.Position;
 import game.Renderer;
+import game.SfxPlayer;
 import game.Util;
 
 /// <summary>
@@ -83,11 +84,12 @@ public class Main {
         Cutscene.intro().play();
 
         // ===== 게임 초기화 =====
-        GameMap gameMap = new GameMap();
-        Renderer renderer = new Renderer(gameMap);
+        SfxPlayer sfxPlayer = new SfxPlayer();
+        GameWorld gameWorld = new GameWorld(sfxPlayer);
+        Renderer renderer = new Renderer(gameWorld);
 
         // 초기 보급품
-        gameMap.getSupply().add(30);
+        gameWorld.getSupply().add(30);
 
         // 팩토리 생성
         ColonistFactory colonistFactory = new ColonistFactory();
@@ -95,26 +97,26 @@ public class Main {
 
         // 정착민 3명 배치 (안전지대 내, 기본 유형)
         ColonistSpec basicSpec = colonistFactory.getSpec(ColonistType.BASIC);
-        int centerRow = GameMap.HEIGHT / 2;
-        Colonist chulsoo = new Colonist(ColonistType.BASIC, basicSpec, "김철수", gameMap.issueNextLabel(), new Position(centerRow, 3), gameMap);
-        Colonist younghee = new Colonist(ColonistType.BASIC, basicSpec, "이영희", gameMap.issueNextLabel(), new Position(centerRow, 7), gameMap);
-        Colonist minsoo = new Colonist(ColonistType.BASIC, basicSpec, "박민수", gameMap.issueNextLabel(), new Position(centerRow, 11), gameMap);
+        int centerRow = GameWorld.HEIGHT / 2;
+        Colonist chulsoo = new Colonist(ColonistType.BASIC, basicSpec, "김철수", gameWorld.issueNextLabel(), new Position(centerRow, 3), gameWorld);
+        Colonist younghee = new Colonist(ColonistType.BASIC, basicSpec, "이영희", gameWorld.issueNextLabel(), new Position(centerRow, 7), gameWorld);
+        Colonist minsoo = new Colonist(ColonistType.BASIC, basicSpec, "박민수", gameWorld.issueNextLabel(), new Position(centerRow, 11), gameWorld);
         // 모든 정착민 피스톨로 시작
         chulsoo.setGun(new Pistol());
         younghee.setGun(new Pistol());
         minsoo.setGun(new Pistol());
 
-        gameMap.addColonist(chulsoo);
-        gameMap.addColonist(younghee);
-        gameMap.addColonist(minsoo);
+        gameWorld.addColonist(chulsoo);
+        gameWorld.addColonist(younghee);
+        gameWorld.addColonist(minsoo);
 
         // 낮/밤 주기 생성 및 렌더러에 연결
         DifficultySettings settings = new DifficultySettings(selectedDifficulty);
-        DayNightCycle dayNightCycle = new DayNightCycle(gameMap, settings);
+        DayNightCycle dayNightCycle = new DayNightCycle(gameWorld, settings);
         renderer.setDayNightCycle(dayNightCycle);
 
         // 입력 처리기 생성 및 렌더러에 연결
-        InputHandler inputHandler = new InputHandler(gameMap, renderer, dayNightCycle, colonistFactory);
+        InputHandler inputHandler = new InputHandler(gameWorld, renderer, dayNightCycle, colonistFactory);
         renderer.setInputHandler(inputHandler);
 
         // BGM 재생 시작
@@ -156,8 +158,8 @@ public class Main {
             // 일정 간격마다 총알 전진 + 화면 갱신
             long now = System.currentTimeMillis();
             if (now - lastRenderTime >= RENDER_INTERVAL) {
-                gameMap.advanceBullets();
-                gameMap.checkLandmines();
+                gameWorld.advanceBullets();
+                gameWorld.checkLandmines();
                 renderer.render();
                 lastRenderTime = now;
             }
@@ -168,8 +170,8 @@ public class Main {
         // ===== 종료 =====
         bgmPlayer.stopPlaying();
         dayNightCycle.stopRunning();
-        gameMap.clearEnemies();
-        for (Colonist colonist : gameMap.getColonists()) {
+        gameWorld.clearEnemies();
+        for (Colonist colonist : gameWorld.getColonists()) {
             colonist.stopRunning();
         }
 
@@ -185,7 +187,7 @@ public class Main {
 
         // 게임 통계 출력
         int survivors = 0;
-        for (Colonist colonist : gameMap.getColonists()) {
+        for (Colonist colonist : gameWorld.getColonists()) {
             if (colonist.isLiving()) {
                 survivors++;
             }
@@ -193,11 +195,11 @@ public class Main {
 
         System.out.println("=== 게임 통계 ===");
         System.out.println("생존 일수: " + dayNightCycle.getDay() + "일");
-        System.out.println("생존자: " + survivors + "/" + gameMap.getColonists().size() + "명");
-        System.out.println("처치한 적: " + gameMap.getEnemiesKilled() + "마리");
+        System.out.println("생존자: " + survivors + "/" + gameWorld.getColonists().size() + "명");
+        System.out.println("처치한 적: " + gameWorld.getEnemiesKilled() + "마리");
 
         // 종류별 처치 수 출력
-        java.util.HashMap<EnemyType, Integer> killsByType = gameMap.getKillsByType();
+        java.util.HashMap<EnemyType, Integer> killsByType = gameWorld.getKillsByType();
         if (!killsByType.isEmpty()) {
             System.out.println();
             System.out.println("── 종류별 처치 ──");

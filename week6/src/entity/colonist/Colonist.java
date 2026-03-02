@@ -6,7 +6,7 @@ import gun.Pistol;
 import entity.GameEntity;
 import game.Position;
 import game.Util;
-import game.GameMap;
+import game.GameWorld;
 
 /// <summary>
 /// 정착민 한 명을 나타내는 클래스
@@ -59,8 +59,8 @@ public class Colonist extends GameEntity {
     /// 지정한 유형, 이름, 위치, 맵으로 정착민 생성
     /// 체력은 유형의 최대 체력, 배회 상태로 시작
     /// </summary>
-    public Colonist(ColonistType type, ColonistSpec spec, String name, char label, Position position, GameMap gameMap) {
-        super(position, gameMap, spec.getMaxHp());
+    public Colonist(ColonistType type, ColonistSpec spec, String name, char label, Position position, GameWorld gameWorld) {
+        super(position, gameWorld, spec.getMaxHp());
         this.type = type;
         this.spec = spec;
         this.name = name;
@@ -95,7 +95,7 @@ public class Colonist extends GameEntity {
 
         if (!isLiving()) {
             Util.beep();
-            getGameMap().addLog("[" + label + "] " + name + " 사망");
+            getGameWorld().addLog("[" + label + "] " + name + " 사망");
         }
     }
 
@@ -113,7 +113,7 @@ public class Colonist extends GameEntity {
     /// </summary>
     @Override
     public void takeDamage(int damage) {
-        if (getGameMap().isInvincible()) {
+        if (getGameWorld().isInvincible()) {
             return;
         }
         super.takeDamage(damage);
@@ -168,7 +168,7 @@ public class Colonist extends GameEntity {
         currentState.exit(this);
         currentState = newState;
         currentState.enter(this);
-        getGameMap().addLog("[" + label + "] " + name + ": " + newState.getDisplayName());
+        getGameWorld().addLog("[" + label + "] " + name + ": " + newState.getDisplayName());
     }
 
     /// <summary>

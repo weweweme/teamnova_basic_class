@@ -16,11 +16,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /// <summary>
-/// 게임 맵 전체를 관리하는 클래스
-/// 80x20 크기의 사이드뷰 맵으로, 왼쪽은 안전지대, 오른쪽은 전장
-/// 정착민/적/로그 등 모든 게임 오브젝트를 보유
+/// 게임 월드 전체를 관리하는 클래스
+/// 100x20 크기의 사이드뷰 맵으로, 왼쪽은 안전지대, 오른쪽은 전장
+/// 정착민/적/구조물/자원 등 모든 게임 오브젝트를 보유
 /// </summary>
-public class GameMap {
+public class GameWorld {
 
     /// <summary>
     /// 맵 가로 크기 (문자 단위)
@@ -73,9 +73,14 @@ public class GameMap {
     private final BulletSystem bulletSystem = new BulletSystem();
 
     /// <summary>
+    /// 화면 효과 (흔들림, 웨이브 경고 등)
+    /// </summary>
+    private final ScreenEffects screenEffects = new ScreenEffects();
+
+    /// <summary>
     /// 합성 효과음 재생기
     /// </summary>
-    private final SfxPlayer sfxPlayer = new SfxPlayer();
+    private final SfxPlayer sfxPlayer;
 
     /// <summary>
     /// 명중 이펙트의 지속 시간 (밀리초)
@@ -128,35 +133,18 @@ public class GameMap {
     private boolean invincible;
 
     /// <summary>
-    /// 화면 흔들림 시작 시각 (밀리초)
+    /// 게임 월드 생성
     /// </summary>
-    private long shakeStartTime;
-
-    /// <summary>
-    /// 화면 흔들림 지속 시간 (밀리초, 0이면 비활성)
-    /// </summary>
-    private int shakeDuration;
-
-    /// <summary>
-    /// 화면 흔들림 강도 (좌우 이동 칸 수)
-    /// </summary>
-    private int shakeIntensity;
-
-    /// <summary>
-    /// 웨이브 경고 표시 지속 시간 (밀리초)
-    /// </summary>
-    private static final int WAVE_WARNING_DURATION = 2000;
-
-    /// <summary>
-    /// 웨이브 경고 시작 시각 (밀리초, 0이면 비활성)
-    /// </summary>
-    private long waveWarningStartTime;
-
-    /// <summary>
-    /// 맵 생성
-    /// </summary>
-    public GameMap() {
+    public GameWorld(SfxPlayer sfxPlayer) {
+        this.sfxPlayer = sfxPlayer;
         this.enemiesKilled = 0;
+    }
+
+    /// <summary>
+    /// 화면 효과 반환
+    /// </summary>
+    public ScreenEffects getScreenEffects() {
+        return screenEffects;
     }
 
     /// <summary>
@@ -296,7 +284,7 @@ public class GameMap {
     }
 
     /// <summary>
-    /// 맵에 정착민 추가
+    /// 정착민 추가
     /// </summary>
     public void addColonist(Colonist colonist) {
         colonists.add(colonist);
@@ -310,7 +298,7 @@ public class GameMap {
     }
 
     /// <summary>
-    /// 맵에 적 추가
+    /// 적 추가
     /// </summary>
     public void addEnemy(Enemy enemy) {
         enemies.add(enemy);
@@ -446,60 +434,6 @@ public class GameMap {
         effectsCopy.clear();
         effectsCopy.addAll(effects);
         return effectsCopy;
-    }
-
-    /// <summary>
-    /// 화면 흔들림 발동
-    /// </summary>
-    public synchronized void triggerScreenShake(int durationMs, int intensity) {
-        this.shakeStartTime = System.currentTimeMillis();
-        this.shakeDuration = durationMs;
-        this.shakeIntensity = intensity;
-    }
-
-    /// <summary>
-    /// 현재 흔들림 오프셋 반환 (0이면 흔들림 없음)
-    /// 50ms마다 좌우 방향 교대
-    /// </summary>
-    public synchronized int getScreenShakeOffset() {
-        if (shakeDuration == 0) {
-            return 0;
-        }
-
-        long elapsed = System.currentTimeMillis() - shakeStartTime;
-        boolean expired = elapsed >= shakeDuration;
-        if (expired) {
-            shakeDuration = 0;
-            return 0;
-        }
-
-        // 50ms마다 방향 교대 (+intensity, -intensity, ...)
-        boolean even = (elapsed / 50) % 2 == 0;
-        return even ? shakeIntensity : -shakeIntensity;
-    }
-
-    /// <summary>
-    /// 웨이브 경고 발동 (밤 시작 시 호출)
-    /// </summary>
-    public synchronized void triggerWaveWarning() {
-        this.waveWarningStartTime = System.currentTimeMillis();
-    }
-
-    /// <summary>
-    /// 웨이브 경고 활성 여부 반환
-    /// </summary>
-    public synchronized boolean isWaveWarningActive() {
-        if (waveWarningStartTime == 0) {
-            return false;
-        }
-
-        long elapsed = System.currentTimeMillis() - waveWarningStartTime;
-        boolean expired = elapsed >= WAVE_WARNING_DURATION;
-        if (expired) {
-            waveWarningStartTime = 0;
-            return false;
-        }
-        return true;
     }
 
     /// <summary>

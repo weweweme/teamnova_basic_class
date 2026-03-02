@@ -4,7 +4,7 @@ import entity.colonist.Colonist;
 
 import entity.enemy.Enemy;
 import structure.Barricade;
-import game.GameMap;
+import game.GameWorld;
 
 /// <summary>
 /// 무기 추상 클래스
@@ -87,7 +87,7 @@ public abstract class Gun {
     /// 총알을 생성하여 맵에 추가
     /// 서브클래스마다 발사 패턴이 다름 (단발, 산탄, 관통 등)
     /// </summary>
-    public abstract void fire(Colonist colonist, Enemy target, GameMap gameMap);
+    public abstract void fire(Colonist colonist, Enemy target, GameWorld gameWorld);
 
     /// <summary>
     /// 총알 표시 문자 반환
@@ -121,7 +121,7 @@ public abstract class Gun {
     /// 공통 발사 로직: 적 중앙 조준 → 크리티컬 → 넉백 → 총알 생성
     /// aimRowOffset으로 조준점을 상하로 이동 가능 (샷건 산탄용)
     /// </summary>
-    protected void fireBullet(Colonist colonist, Enemy target, GameMap gameMap,
+    protected void fireBullet(Colonist colonist, Enemy target, GameWorld gameWorld,
                               boolean piercing, int aimRowOffset) {
         int bulletRow = colonist.getPosition().getRow();
         int bulletCol = Barricade.COLUMN + 2;
@@ -141,7 +141,7 @@ public abstract class Gun {
             bulletRow, bulletCol, aimRow, aimCol, finalDamage,
             colonist.getLabel(), bulletSpeed, getBulletChar(), getBulletColor(), piercing, kb, isCrit
         );
-        gameMap.addBullet(bullet);
+        gameWorld.addBullet(bullet);
     }
 
     /// <summary>

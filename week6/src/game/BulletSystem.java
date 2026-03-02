@@ -10,7 +10,7 @@ import java.util.ArrayList;
 /// 총알의 이동과 충돌 처리를 담당하는 시스템
 /// 충돌은 총알과 적, 두 객체 사이의 판정이므로
 /// Bullet 내부가 아닌 이 시스템에서 처리
-/// 스레드 안전은 GameMap이 보장 (이 클래스의 메서드는 동기화하지 않음)
+/// 스레드 안전은 GameWorld이 보장 (이 클래스의 메서드는 동기화하지 않음)
 /// </summary>
 public class BulletSystem {
 
@@ -49,7 +49,7 @@ public class BulletSystem {
     /// 모든 총알을 전진시키고, 적과 충돌 검사
     /// 적에 명중하면 피해를 주고 총알 제거, 화면 밖이면 제거
     /// </summary>
-    public void advanceBullets(ArrayList<Enemy> enemies, ArrayList<HitEffect> effects, GameMap gameMap) {
+    public void advanceBullets(ArrayList<Enemy> enemies, ArrayList<HitEffect> effects, GameWorld gameWorld) {
         bulletsToRemove.clear();
 
         for (Bullet bullet : bullets) {
@@ -84,13 +84,13 @@ public class BulletSystem {
                     // 넉백 적용 (명중 시 적을 오른쪽으로 밀어냄)
                     if (bullet.getKnockback() > 0 && enemy.isLiving()) {
                         int newCol = enemy.getPosition().getCol() + bullet.getKnockback();
-                        if (newCol < GameMap.WIDTH) {
+                        if (newCol < GameWorld.WIDTH) {
                             enemy.getPosition().setCol(newCol);
                         }
                     }
 
                     // 명중 효과음
-                    SfxPlayer sfx = gameMap.getSfxPlayer();
+                    SfxPlayer sfx = gameWorld.getSfxPlayer();
                     if (bullet.isCrit()) {
                         sfx.playCrit();
                     } else {
@@ -109,7 +109,7 @@ public class BulletSystem {
                             effects.add(new HitEffect(bullet.getRow() - 1, bullet.getCol(), now, '*', COLOR_BRIGHT_RED));
                         }
                         // 아래쪽 이펙트
-                        boolean belowValid = bullet.getRow() + 1 < GameMap.HEIGHT;
+                        boolean belowValid = bullet.getRow() + 1 < GameWorld.HEIGHT;
                         if (belowValid) {
                             effects.add(new HitEffect(bullet.getRow() + 1, bullet.getCol(), now, '*', COLOR_BRIGHT_RED));
                         }
@@ -124,7 +124,7 @@ public class BulletSystem {
                         sfx.playDeath();
                         String enemyName = enemy.getSpec().getDisplayName();
                         String critMark = bullet.isCrit() ? " 치명타!" : "";
-                        gameMap.addLog("[" + bullet.getShooterLabel() + "] " + enemyName + " 처치!" + critMark);
+                        gameWorld.addLog("[" + bullet.getShooterLabel() + "] " + enemyName + " 처치!" + critMark);
                     }
 
                     // 관통 총알은 제거하지 않고 계속 전진

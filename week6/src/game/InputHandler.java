@@ -65,7 +65,7 @@ public class InputHandler {
     /// <summary>
     /// 게임 맵
     /// </summary>
-    private final GameMap gameMap;
+    private final GameWorld gameWorld;
 
     /// <summary>
     /// 렌더러 (정착민 선택 전달용)
@@ -115,8 +115,8 @@ public class InputHandler {
     /// <summary>
     /// 입력 처리기 생성
     /// </summary>
-    public InputHandler(GameMap gameMap, Renderer renderer, DayNightCycle dayNightCycle, ColonistFactory colonistFactory) {
-        this.gameMap = gameMap;
+    public InputHandler(GameWorld gameWorld, Renderer renderer, DayNightCycle dayNightCycle, ColonistFactory colonistFactory) {
+        this.gameWorld = gameWorld;
         this.renderer = renderer;
         this.dayNightCycle = dayNightCycle;
         this.colonistFactory = colonistFactory;
@@ -216,13 +216,13 @@ public class InputHandler {
         }
 
         if (purchased != null) {
-            Colonist selected = gameMap.getColonists().get(renderer.getSelectedIndex());
+            Colonist selected = gameWorld.getColonists().get(renderer.getSelectedIndex());
             boolean alive = selected.isLiving();
-            boolean affordable = gameMap.getSupply().spend(purchased.getCost());
+            boolean affordable = gameWorld.getSupply().spend(purchased.getCost());
 
             if (alive && affordable) {
                 selected.setGun(purchased);
-                gameMap.addLog(">> " + selected.getColonistName() + " → " + purchased.getName() + " 장착");
+                gameWorld.addLog(">> " + selected.getColonistName() + " → " + purchased.getName() + " 장착");
             }
 
             shopMode = false;
@@ -242,23 +242,23 @@ public class InputHandler {
         final int STRUCTURE_SPACING = 5;
         switch (key) {
             case KEY_SPIKE: {
-                int totalStructures = gameMap.getSpikes().size() + gameMap.getLandmines().size();
+                int totalStructures = gameWorld.getSpikes().size() + gameWorld.getLandmines().size();
                 int spikeCol = Barricade.COLUMN + STRUCTURE_SPACING * (totalStructures + 1);
                 Spike spike = new Spike(spikeCol);
-                if (gameMap.getSupply().spend(spike.getCost())) {
-                    gameMap.addSpike(spike);
-                    gameMap.addLog(">> 가시덫 설치 (열 " + spikeCol + ")");
+                if (gameWorld.getSupply().spend(spike.getCost())) {
+                    gameWorld.addSpike(spike);
+                    gameWorld.addLog(">> 가시덫 설치 (열 " + spikeCol + ")");
                 }
                 buildMode = false;
                 break;
             }
             case KEY_LANDMINE: {
-                int totalStructures = gameMap.getSpikes().size() + gameMap.getLandmines().size();
+                int totalStructures = gameWorld.getSpikes().size() + gameWorld.getLandmines().size();
                 int mineCol = Barricade.COLUMN + STRUCTURE_SPACING * (totalStructures + 1);
                 Landmine landmine = new Landmine(mineCol);
-                if (gameMap.getSupply().spend(landmine.getCost())) {
-                    gameMap.addLandmine(landmine);
-                    gameMap.addLog(">> 지뢰 설치 (열 " + mineCol + ")");
+                if (gameWorld.getSupply().spend(landmine.getCost())) {
+                    gameWorld.addLandmine(landmine);
+                    gameWorld.addLog(">> 지뢰 설치 (열 " + mineCol + ")");
                 }
                 buildMode = false;
                 break;
@@ -266,20 +266,20 @@ public class InputHandler {
             case KEY_AMMOBOX: {
                 // 탄약 상자 설치 열 (바리케이드 왼쪽 안전지대)
                 final int AMMOBOX_COL = 1;
-                int ammoCol = AMMOBOX_COL + gameMap.getAmmoBoxes().size() * 2;
+                int ammoCol = AMMOBOX_COL + gameWorld.getAmmoBoxes().size() * 2;
                 AmmoBox ammoBox = new AmmoBox(ammoCol);
-                if (gameMap.getSupply().spend(ammoBox.getCost())) {
-                    gameMap.addAmmoBox(ammoBox);
-                    gameMap.addLog(">> 탄약 상자 설치");
+                if (gameWorld.getSupply().spend(ammoBox.getCost())) {
+                    gameWorld.addAmmoBox(ammoBox);
+                    gameWorld.addLog(">> 탄약 상자 설치");
                 }
                 buildMode = false;
                 break;
             }
             case KEY_UPGRADE:
-                Barricade barricade = gameMap.getBarricade();
-                if (barricade.canUpgrade() && gameMap.getSupply().spend(barricade.getUpgradeCost())) {
+                Barricade barricade = gameWorld.getBarricade();
+                if (barricade.canUpgrade() && gameWorld.getSupply().spend(barricade.getUpgradeCost())) {
                     barricade.upgrade();
-                    gameMap.addLog(">> 바리케이드 강화 Lv" + barricade.getLevel() + " (최대HP " + barricade.getMaxHp() + ")");
+                    gameWorld.addLog(">> 바리케이드 강화 Lv" + barricade.getLevel() + " (최대HP " + barricade.getMaxHp() + ")");
                 }
                 buildMode = false;
                 break;
@@ -295,19 +295,19 @@ public class InputHandler {
     private void recruit() {
         // 모집 비용 (보급품)
         final int RECRUIT_COST = 40;
-        if (gameMap.getSupply().spend(RECRUIT_COST)) {
+        if (gameWorld.getSupply().spend(RECRUIT_COST)) {
             recruitCount++;
             String recruitName = "신병" + recruitCount;
             // 왼쪽 바깥에서 등장하여 안전지대로 걸어 들어옴
-            int row = GameMap.HEIGHT / 2;
+            int row = GameWorld.HEIGHT / 2;
             int col = 0;
             ColonistSpec basicSpec = colonistFactory.getSpec(ColonistType.BASIC);
-            Colonist recruit = new Colonist(ColonistType.BASIC, basicSpec, recruitName, gameMap.issueNextLabel(), new Position(row, col), gameMap);
+            Colonist recruit = new Colonist(ColonistType.BASIC, basicSpec, recruitName, gameWorld.issueNextLabel(), new Position(row, col), gameWorld);
             recruit.setGun(new Pistol());
 
-            gameMap.addColonist(recruit);
+            gameWorld.addColonist(recruit);
             recruit.start();
-            gameMap.addLog(">> " + recruitName + " 합류!");
+            gameWorld.addLog(">> " + recruitName + " 합류!");
         }
     }
 
@@ -347,12 +347,12 @@ public class InputHandler {
                 break;
             case KEY_REPAIR:
                 // 낮에만 사용 가능
-                if (!dayNightCycle.isNight() && gameMap.getSupply().spend(REPAIR_COST)) {
+                if (!dayNightCycle.isNight() && gameWorld.getSupply().spend(REPAIR_COST)) {
 
                     // 수리량 (HP)
                     final int REPAIR_AMOUNT = 30;
-                    gameMap.getBarricade().repair(REPAIR_AMOUNT);
-                    gameMap.addLog(">> 바리케이드 수리 (+" + REPAIR_AMOUNT + ")");
+                    gameWorld.getBarricade().repair(REPAIR_AMOUNT);
+                    gameWorld.addLog(">> 바리케이드 수리 (+" + REPAIR_AMOUNT + ")");
                 }
                 break;
             case KEY_WEAPON:
@@ -362,14 +362,14 @@ public class InputHandler {
                 }
                 break;
             case KEY_HEAL:
-                if (!dayNightCycle.isNight() && gameMap.getSupply().spend(HEAL_COST)) {
-                    Colonist selected = gameMap.getColonists().get(renderer.getSelectedIndex());
+                if (!dayNightCycle.isNight() && gameWorld.getSupply().spend(HEAL_COST)) {
+                    Colonist selected = gameWorld.getColonists().get(renderer.getSelectedIndex());
                     if (selected.isLiving()) {
 
                         // 치료량 (HP)
                         final int HEAL_AMOUNT = 30;
                         selected.heal(HEAL_AMOUNT);
-                        gameMap.addLog(">> " + selected.getColonistName() + " 치료 (+" + HEAL_AMOUNT + ")");
+                        gameWorld.addLog(">> " + selected.getColonistName() + " 치료 (+" + HEAL_AMOUNT + ")");
                     }
                 }
                 break;
@@ -381,7 +381,7 @@ public class InputHandler {
                 break;
             case KEY_RECRUIT:
                 // 낮에만 모집 (최대 인원 미만일 때만)
-                boolean canRecruit = !dayNightCycle.isNight() && gameMap.getColonists().size() < MAX_COLONISTS;
+                boolean canRecruit = !dayNightCycle.isNight() && gameWorld.getColonists().size() < MAX_COLONISTS;
                 if (canRecruit) {
                     recruit();
                 }
@@ -389,7 +389,7 @@ public class InputHandler {
             case KEY_PROMOTE:
                 // 낮에만 승격 모드 진입 (선택된 정착민이 BASIC일 때만)
                 if (!dayNightCycle.isNight()) {
-                    Colonist target = gameMap.getColonists().get(renderer.getSelectedIndex());
+                    Colonist target = gameWorld.getColonists().get(renderer.getSelectedIndex());
                     boolean canPromote = target.isLiving() && target.getType() == ColonistType.BASIC;
                     if (canPromote) {
                         promoteMode = true;
@@ -429,11 +429,11 @@ public class InputHandler {
         if (promoteType != null) {
             // 승격 비용 (보급품)
             final int PROMOTE_COST = 30;
-            if (gameMap.getSupply().spend(PROMOTE_COST)) {
-                Colonist target = gameMap.getColonists().get(renderer.getSelectedIndex());
+            if (gameWorld.getSupply().spend(PROMOTE_COST)) {
+                Colonist target = gameWorld.getColonists().get(renderer.getSelectedIndex());
                 ColonistSpec newSpec = colonistFactory.getSpec(promoteType);
                 target.promote(promoteType, newSpec);
-                gameMap.addLog(">> " + target.getColonistName() + " → " + newSpec.getDisplayName() + " 승격!");
+                gameWorld.addLog(">> " + target.getColonistName() + " → " + newSpec.getDisplayName() + " 승격!");
             }
             promoteMode = false;
         }
@@ -452,54 +452,54 @@ public class InputHandler {
 
         switch (key) {
             case KEY_SUPPLY:
-                gameMap.getSupply().add(999);
-                gameMap.addLog(">> [치트] 보급품 +999");
+                gameWorld.getSupply().add(999);
+                gameWorld.addLog(">> [치트] 보급품 +999");
                 cheatMode = false;
                 break;
             case KEY_HEAL_ALL:
-                for (Colonist colonist : gameMap.getColonists()) {
+                for (Colonist colonist : gameWorld.getColonists()) {
                     if (colonist.isLiving()) {
                         colonist.heal(9999);
                     }
                 }
-                gameMap.getBarricade().repair(9999);
-                gameMap.addLog(">> [치트] 전원 회복 완료");
+                gameWorld.getBarricade().repair(9999);
+                gameWorld.addLog(">> [치트] 전원 회복 완료");
                 cheatMode = false;
                 break;
             case KEY_KILL_ALL:
-                for (Enemy enemy : gameMap.getEnemies()) {
+                for (Enemy enemy : gameWorld.getEnemies()) {
                     if (enemy.isLiving()) {
                         enemy.takeDamage(99999);
                     }
                 }
                 dayNightCycle.clearPendingSpawns();
-                gameMap.addLog(">> [치트] 적 전멸");
+                gameWorld.addLog(">> [치트] 적 전멸");
                 cheatMode = false;
                 break;
             case KEY_INVINCIBLE:
-                boolean nowInvincible = !gameMap.isInvincible();
-                gameMap.setInvincible(nowInvincible);
-                gameMap.getBarricade().setInvincible(nowInvincible);
+                boolean nowInvincible = !gameWorld.isInvincible();
+                gameWorld.setInvincible(nowInvincible);
+                gameWorld.getBarricade().setInvincible(nowInvincible);
                 String status = nowInvincible ? "ON" : "OFF";
-                gameMap.addLog(">> [치트] 무적 모드 " + status);
+                gameWorld.addLog(">> [치트] 무적 모드 " + status);
                 cheatMode = false;
                 break;
             case KEY_MAX_BARRICADE:
-                Barricade barricade = gameMap.getBarricade();
+                Barricade barricade = gameWorld.getBarricade();
                 while (barricade.canUpgrade()) {
                     barricade.upgrade();
                 }
                 barricade.repair(9999);
-                gameMap.addLog(">> [치트] 바리케이드 MAX (Lv" + barricade.getLevel() + ")");
+                gameWorld.addLog(">> [치트] 바리케이드 MAX (Lv" + barricade.getLevel() + ")");
                 cheatMode = false;
                 break;
             case KEY_ALL_MINIGUN:
-                for (Colonist colonist : gameMap.getColonists()) {
+                for (Colonist colonist : gameWorld.getColonists()) {
                     if (colonist.isLiving()) {
                         colonist.setGun(new Minigun());
                     }
                 }
-                gameMap.addLog(">> [치트] 전원 미니건 장착");
+                gameWorld.addLog(">> [치트] 전원 미니건 장착");
                 cheatMode = false;
                 break;
             case KEY_QUIT:

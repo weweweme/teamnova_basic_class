@@ -31,7 +31,7 @@ public class DayNightCycle extends Thread {
     /// <summary>
     /// 이 주기가 관리하는 맵 (적 스폰/제거용)
     /// </summary>
-    private final GameMap gameMap;
+    private final GameWorld gameWorld;
 
     /// <summary>
     /// 적 종류별 속성 데이터를 제공하는 팩토리
@@ -131,8 +131,8 @@ public class DayNightCycle extends Thread {
     /// <summary>
     /// 지정한 맵과 난이도로 낮/밤 주기 생성, 1일차 낮부터 시작
     /// </summary>
-    public DayNightCycle(GameMap gameMap, DifficultySettings settings) {
-        this.gameMap = gameMap;
+    public DayNightCycle(GameWorld gameWorld, DifficultySettings settings) {
+        this.gameWorld = gameWorld;
         this.enemyFactory = new EnemyFactory();
         this.settings = settings;
         this.waveBuilder = new WaveBuilder(settings);
@@ -155,16 +155,16 @@ public class DayNightCycle extends Thread {
 
             if (night) {
                 // 바리케이드 파괴 감지
-                if (!barricadeBroken && gameMap.getBarricade().isDestroyed()) {
+                if (!barricadeBroken && gameWorld.getBarricade().isDestroyed()) {
                     barricadeBroken = true;
                     Util.beep();
-                    gameMap.addLog("!! 바리케이드가 무너졌습니다 !!");
+                    gameWorld.addLog("!! 바리케이드가 무너졌습니다 !!");
                 }
 
                 // 밤: 대기 중인 적 시간차 출현
                 if (!pendingSpawns.isEmpty() && now >= nextSpawnTime) {
                     Enemy enemy = pendingSpawns.remove(0);
-                    gameMap.addEnemy(enemy);
+                    gameWorld.addEnemy(enemy);
                     enemy.start();
 
                     // 다음 스폰까지 랜덤 딜레이 (MIN ~ MAX 사이)
@@ -175,10 +175,10 @@ public class DayNightCycle extends Thread {
                 }
 
                 // 죽은 적 제거, 모두 출현하고 전멸하면 낮으로 전환
-                gameMap.removeDeadEnemies();
+                gameWorld.removeDeadEnemies();
 
                 boolean allSpawned = pendingSpawns.isEmpty();
-                boolean allEnemiesDead = gameMap.getEnemies().isEmpty();
+                boolean allEnemiesDead = gameWorld.getEnemies().isEmpty();
                 if (allSpawned && allEnemiesDead) {
                     night = false;
                     day++;
@@ -188,26 +188,26 @@ public class DayNightCycle extends Thread {
                     // 매일 자동 지급되는 보급품 양
                     final int DAILY_SUPPLY = 20;
                     int dailySupply = settings.applySupply(DAILY_SUPPLY);
-                    gameMap.getSupply().add(dailySupply);
-                    gameMap.removeDestroyedSpikes();
+                    gameWorld.getSupply().add(dailySupply);
+                    gameWorld.removeDestroyedSpikes();
 
                     // 무피해 생존 보너스: 바리케이드가 피해를 받지 않았으면 추가 보급
-                    boolean perfectNight = gameMap.getBarricade().getHp() >= barricadeHpAtNightStart;
+                    boolean perfectNight = gameWorld.getBarricade().getHp() >= barricadeHpAtNightStart;
 
                     // 무피해 생존 보너스 보급품
                     final int PERFECT_BONUS = 10;
                     if (perfectNight) {
-                        gameMap.getSupply().add(PERFECT_BONUS);
+                        gameWorld.getSupply().add(PERFECT_BONUS);
                     }
 
                     switchToWandering();
                     if (day > settings.getWinDay()) {
                         victory = true;
                         Util.beep();
-                        gameMap.addLog("══ 승리! " + settings.getWinDay() + "일을 버텨냈습니다! ══");
+                        gameWorld.addLog("══ 승리! " + settings.getWinDay() + "일을 버텨냈습니다! ══");
                     } else {
                         String bonusText = perfectNight ? " +보너스" + PERFECT_BONUS : "";
-                        gameMap.addLog("── " + day + "일차 낮 시작 (보급 +" + dailySupply + bonusText + ") ──");
+                        gameWorld.addLog("── " + day + "일차 낮 시작 (보급 +" + dailySupply + bonusText + ") ──");
                         triggerDayEvent();
                     }
                 }
@@ -247,20 +247,20 @@ public class DayNightCycle extends Thread {
                     if (hasBoss) {
                         Util.beep();
                         Util.beep();
-                        gameMap.addLog("!! ★ 보스가 출현합니다 ★ !!");
+                        gameWorld.addLog("!! ★ 보스가 출현합니다 ★ !!");
                     }
 
                     // 밤 시작 시 바리케이드 체력 기록 (무피해 보너스 판정용)
-                    barricadeHpAtNightStart = gameMap.getBarricade().getHp();
+                    barricadeHpAtNightStart = gameWorld.getBarricade().getHp();
 
-                    gameMap.getSfxPlayer().playWaveStart();
-                    gameMap.addLog("── 밤이 찾아왔습니다 ──");
-                    gameMap.triggerWaveWarning();
+                    gameWorld.getSfxPlayer().playWaveStart();
+                    gameWorld.addLog("── 밤이 찾아왔습니다 ──");
+                    gameWorld.getScreenEffects().triggerWaveWarning();
                 } else if (!preparing && DAY_DURATION - elapsedInPhase <= PREPARE_DURATION) {
                     // 밤 5초 전: 사격 위치로 이동 시작
                     preparing = true;
                     switchToShooting(false);
-                    gameMap.addLog(">> 정착민들이 바리케이드로 이동합니다");
+                    gameWorld.addLog(">> 정착민들이 바리케이드로 이동합니다");
                 }
             }
 
@@ -294,16 +294,16 @@ public class DayNightCycle extends Thread {
         Random random = new Random();
         currentEvent = events[random.nextInt(events.length)];
 
-        gameMap.addLog(">> [이벤트] " + currentEvent.getMessage());
+        gameWorld.addLog(">> [이벤트] " + currentEvent.getMessage());
 
         switch (currentEvent) {
             case SUPPLY_DROP:
-                gameMap.getSupply().add(currentEvent.getValue());
+                gameWorld.getSupply().add(currentEvent.getValue());
                 break;
             case WANDERER:
                 // 랜덤 살아있는 정착민 HP 회복
                 ArrayList<Colonist> alive = new ArrayList<>();
-                for (Colonist colonist : gameMap.getColonists()) {
+                for (Colonist colonist : gameWorld.getColonists()) {
                     if (colonist.isLiving()) {
                         alive.add(colonist);
                     }
@@ -311,7 +311,7 @@ public class DayNightCycle extends Thread {
                 if (!alive.isEmpty()) {
                     Colonist target = alive.get(random.nextInt(alive.size()));
                     target.heal(currentEvent.getValue());
-                    gameMap.addLog(">> " + target.getColonistName() + " HP +" + currentEvent.getValue());
+                    gameWorld.addLog(">> " + target.getColonistName() + " HP +" + currentEvent.getValue());
                 }
                 break;
             case STORM_WARNING:
@@ -392,7 +392,7 @@ public class DayNightCycle extends Thread {
     /// </summary>
     public ArrayList<String> getWavePreview() {
         wavePreviewLines.clear();
-        if (pendingSpawns.isEmpty() && gameMap.getEnemies().isEmpty()) {
+        if (pendingSpawns.isEmpty() && gameWorld.getEnemies().isEmpty()) {
             return wavePreviewLines;
         }
 
@@ -401,7 +401,7 @@ public class DayNightCycle extends Thread {
         for (Enemy enemy : pendingSpawns) {
             previewCounts.put(enemy.getType(), previewCounts.getOrDefault(enemy.getType(), 0) + 1);
         }
-        for (Enemy enemy : gameMap.getEnemies()) {
+        for (Enemy enemy : gameWorld.getEnemies()) {
             previewCounts.put(enemy.getType(), previewCounts.getOrDefault(enemy.getType(), 0) + 1);
         }
 
@@ -435,7 +435,7 @@ public class DayNightCycle extends Thread {
     /// 각 정착민마다 별도 상태 객체 생성 (tickCount 등 개별 관리)
     /// </summary>
     private void switchToShooting(boolean instant) {
-        for (Colonist colonist : gameMap.getColonists()) {
+        for (Colonist colonist : gameWorld.getColonists()) {
             if (colonist.isLiving()) {
                 colonist.changeState(new ShootingState(instant));
             }
@@ -446,7 +446,7 @@ public class DayNightCycle extends Thread {
     /// 살아있는 모든 정착민을 배회 상태로 전환
     /// </summary>
     private void switchToWandering() {
-        for (Colonist colonist : gameMap.getColonists()) {
+        for (Colonist colonist : gameWorld.getColonists()) {
             if (colonist.isLiving()) {
                 colonist.changeState(new WanderingState());
             }
@@ -474,7 +474,7 @@ public class DayNightCycle extends Thread {
         totalHeight += spawnList.size() - 1;
 
         // 중앙 기준으로 시작 행 계산
-        int startRow = (GameMap.HEIGHT - totalHeight) / 2;
+        int startRow = (GameWorld.HEIGHT - totalHeight) / 2;
         if (startRow < 0) {
             startRow = 0;
         }
@@ -485,13 +485,13 @@ public class DayNightCycle extends Thread {
             int blockHeight = spec.getBlock().length;
 
             // 맵 높이를 넘으면 맨 위부터 다시 배치
-            int maxRow = GameMap.HEIGHT - blockHeight;
+            int maxRow = GameWorld.HEIGHT - blockHeight;
             if (currentRow > maxRow) {
                 currentRow = 0;
             }
 
-            int col = GameMap.WIDTH - 1;
-            Enemy enemy = new Enemy(type, spec, new Position(currentRow, col), gameMap);
+            int col = GameWorld.WIDTH - 1;
+            Enemy enemy = new Enemy(type, spec, new Position(currentRow, col), gameWorld);
             pendingSpawns.add(enemy);
 
             // 블록 높이 + 간격 1칸

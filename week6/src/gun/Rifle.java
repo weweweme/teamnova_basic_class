@@ -3,7 +3,7 @@ package gun;
 import entity.colonist.Colonist;
 
 import entity.enemy.Enemy;
-import game.GameMap;
+import game.GameWorld;
 
 /// <summary>
 /// 라이플 — 관통 단발 무기
@@ -20,7 +20,7 @@ public class Rifle extends Gun {
     /// 적에 명중해도 사라지지 않고 계속 직진
     /// </summary>
     @Override
-    public void fire(Colonist colonist, Enemy target, GameMap gameMap) {
-        fireBullet(colonist, target, gameMap, true, 0);
+    public void fire(Colonist colonist, Enemy target, GameWorld gameWorld) {
+        fireBullet(colonist, target, gameWorld, true, 0);
     }
 }

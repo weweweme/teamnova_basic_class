@@ -5,7 +5,7 @@ import entity.colonist.Colonist;
 import game.Position;
 import game.Util;
 import structure.Barricade;
-import game.GameMap;
+import game.GameWorld;
 import structure.Spike;
 
 /// <summary>
@@ -38,8 +38,8 @@ public class Enemy extends GameEntity {
     /// <summary>
     /// 지정한 종류, 속성, 위치, 맵으로 적 생성
     /// </summary>
-    public Enemy(EnemyType type, EnemySpec spec, Position position, GameMap gameMap) {
-        super(position, gameMap, spec.getMaxHp());
+    public Enemy(EnemyType type, EnemySpec spec, Position position, GameWorld gameWorld) {
+        super(position, gameWorld, spec.getMaxHp());
         this.type = type;
         this.spec = spec;
     }
@@ -53,7 +53,7 @@ public class Enemy extends GameEntity {
     public void run() {
         while (isRunning() && isLiving()) {
             int currentCol = getPosition().getCol();
-            Barricade barricade = getGameMap().getBarricade();
+            Barricade barricade = getGameWorld().getBarricade();
 
             // 재생 특성: 일정 틱마다 체력 1 회복
             if (spec.getTrait() == EnemyTrait.REGENERATING) {
@@ -137,7 +137,7 @@ public class Enemy extends GameEntity {
         Colonist nearest = null;
         int minDist = Integer.MAX_VALUE;
 
-        for (Colonist colonist : getGameMap().getColonists()) {
+        for (Colonist colonist : getGameWorld().getColonists()) {
             if (!colonist.isLiving()) {
                 continue;
             }
@@ -156,7 +156,7 @@ public class Enemy extends GameEntity {
     private void checkSpikes() {
         int col = getPosition().getCol();
 
-        for (Spike spike : getGameMap().getSpikes()) {
+        for (Spike spike : getGameWorld().getSpikes()) {
             if (spike.isDestroyed()) {
                 continue;
             }

@@ -95,9 +95,9 @@ Structure (row, column, maxHp — 위치 + 내구도 관리)
 
 ```
 Main (진입점 — 타이틀↔게임 반복, 난이도 선택, 초기화, 메인 루프)
-DayNightCycle (Thread — 낮/밤 전환, 적 스폰, 이벤트)
+DayNightCycle (Thread — 낮/밤 시간 관리, 적 시간차 출현, 이벤트)
 WaveBuilder (일차별 적 웨이브 구성)
-GameWorld (게임 상태 컨테이너 — 엔티티/구조물/자원/적버프 관리)
+GameWorld (게임 로직 주체 — 물리/적 생성/상태 전환/밤 종료 처리)
 ScreenEffects (화면 효과 — 흔들림, 웨이브 경고)
 BulletSystem (총알 이동 + 충돌 처리)
 Renderer (화면 렌더링 — 버퍼 기반)
@@ -348,6 +348,7 @@ classDiagram
 classDiagram
     GameWorld *-- BulletSystem
     GameWorld *-- ScreenEffects
+    GameWorld *-- EnemyFactory
     GameWorld *-- Supply
     GameWorld *-- Barricade
     GameWorld *-- SfxPlayer
@@ -360,11 +361,13 @@ classDiagram
     GameWorld o-- "0..*" LogEntry
 
     class GameWorld {
-        +addColonist()
-        +addEnemy()
+        +updatePhysics()
+        +createWaveEnemies()
+        +deployEnemy()
+        +switchColonistsToShooting()
+        +switchColonistsToWandering()
+        +endNight()
         +addBullet()
-        +advanceBullets()
-        +checkLandmines()
         +addLog()
     }
     class ScreenEffects {
@@ -406,7 +409,6 @@ classDiagram
     InputHandler --> ColonistSpawner
 
     DayNightCycle --> GameWorld
-    DayNightCycle --> EnemyFactory
     DayNightCycle *-- WaveBuilder
     DayNightCycle --> DifficultySettings
 
@@ -421,10 +423,65 @@ classDiagram
 
 | 스레드 | 클래스 | 틱 간격 | 역할 |
 |--------|--------|---------|------|
-| Main | Main | 16ms (입력) / 100ms (물리) | 입력 폴링, 총알 이동, 지뢰 체크, 렌더링 |
-| DayNightCycle | DayNightCycle | 500ms | 낮↔밤 전환, 적 스폰, 이벤트 발생 |
+| Main | Main | 16ms (입력) / 100ms (물리) | 입력 폴링, 물리 갱신(updatePhysics), 렌더링 |
+| DayNightCycle | DayNightCycle | 500ms | 낮↔밤 시간 관리, 적 시간차 출현, 이벤트 발생 |
 | Colonist ×N | Colonist | 500ms | 배회/자동회복 (낮), 이동/사격 (밤) |
 | Enemy ×N | Enemy | 200~700ms (종류별) | 이동, 공격, 특성 적용 |
+
+**책임 분리 원칙**
+
+GameWorld가 게임 로직의 주체이며, 다른 스레드는 GameWorld에 요청하여 상태를 변경한다.
+
+| 클래스 | 책임 | 하지 않는 것 |
+|--------|------|-------------|
+| GameWorld | 물리(총알+지뢰), 적 생성, 정착민 상태 전환, 밤 종료 정리, 보급 지급 | 시간 관리, 입력 처리, 렌더링 |
+| DayNightCycle | 시간 측정, 낮/밤 전환 시점 결정, 웨이브 구성(WaveBuilder), 적 출현 타이밍 | 적 인스턴스 직접 생성, 정착민 상태 직접 변경 |
+| Main | 입력 폴링, updatePhysics 호출, 렌더링 트리거 | 총알/지뢰를 개별 처리, 게임 로직 직접 수행 |
+
+**스레드 간 동기화** (synchronized 메서드)
+
+| 메서드 | 호출 스레드 | 보호 대상 |
+|--------|-----------|----------|
+| `addBullet()` | Colonist ×N | bulletSystem |
+| `getBullets()` | Main (렌더링) | bulletSystem |
+| `advanceBullets()` | Main (물리) | bulletSystem, enemies, effects |
+| `checkLandmines()` | Main (물리) | landmines, enemies |
+| `addLog()` | 모든 스레드 | logs |
+| `getRecentLogs()` | Main (렌더링) | logs |
+| `addEffect()` | Colonist ×N, Enemy ×N | effects |
+| `getEffects()` | Main (렌더링) | effects |
+
+**스레드 상호작용**
+
+```mermaid
+graph TD
+    subgraph Main["Main 스레드"]
+        INPUT[입력 처리] --> PHYSICS[물리 갱신]
+        PHYSICS --> RENDER[화면 렌더링]
+    end
+
+    subgraph DNC["DayNightCycle 스레드"]
+        TIME[시간 측정] --> TRANSITION[낮/밤 전환 판정]
+        TRANSITION --> GW_CALL[상태 전환 + 적 생성 + 보급 지급 요청]
+    end
+
+    subgraph COL["Colonist 스레드 x N"]
+        STATE[상태별 행동] --> SHOOT[총알 생성]
+        STATE --> SKILL[특수공격 이펙트]
+    end
+
+    subgraph ENE["Enemy 스레드 x N"]
+        MOVE[이동] --> ATTACK[바리케이드/정착민 공격]
+        MOVE --> ESKILL[특수능력 이펙트]
+    end
+
+    GW_CALL --> GW[GameWorld]
+    PHYSICS --> GW
+    SHOOT --> GW
+    SKILL --> GW
+    ATTACK --> GW
+    ESKILL --> GW
+```
 
 ### 게임 루프 흐름
 
@@ -440,7 +497,7 @@ graph TD
     LOOP --> INPUT{키 입력?}
     INPUT -->|있음| HANDLE[InputHandler.handleInput]
     INPUT -->|없음| PHYSICS
-    HANDLE --> PHYSICS[100ms마다: 총알 이동 + 지뢰 체크]
+    HANDLE --> PHYSICS[100ms마다: 물리 갱신]
     PHYSICS --> RENDER[Renderer.render]
     RENDER -->|게임 중| LOOP
     RENDER -->|승리/패배/종료| ENDSCENE[엔딩 컷씬 + 통계]
@@ -452,10 +509,11 @@ graph TD
     subgraph "DayNightCycle 스레드 (500ms 틱)"
         DAY[낮 페이즈 30초] -->|25초| PREPARE[정착민 바리케이드로 이동]
         PREPARE -->|30초| NIGHT[밤 페이즈]
-        NIGHT --> SPAWN[적 시차 스폰]
+        NIGHT --> SPAWN[적 생성 + 시간차 출현]
         SPAWN --> BATTLE[전투: 적 이동 + 정착민 사격]
-        BATTLE -->|전멸| REWARD[보급품 지급 + 이벤트]
-        REWARD --> CHECK{목표 일수 도달?}
+        BATTLE -->|전멸| REWARD[밤 종료 정리 + 보급 지급]
+        REWARD --> WANDER[정착민 배회 전환]
+        WANDER --> CHECK{목표 일수 도달?}
         CHECK -->|아니오| DAY
         CHECK -->|예| VICTORY[승리]
     end

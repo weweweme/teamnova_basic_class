@@ -94,36 +94,31 @@ public class PanelBuilder {
         panelLines.add(" [처치] " + gameWorld.getEnemiesKilled() + "마리");
         panelLines.add("");
 
-        // 정착민 목록
+        // 정착민 목록 (사망한 정착민은 숨김)
         panelLines.add(" [정착민]");
         for (int i = 0; i < colonists.size(); i++) {
             Colonist colonist = colonists.get(i);
-            String marker = (i == selectedIndex) ? " > " : "   ";
-
-            if (colonist.isLiving()) {
-                String typeName = colonist.getSpec().getDisplayName();
-                String stateName = colonist.getCurrentState().getDisplayName();
-                panelLines.add(marker + "[" + colonist.getLabel() + "] " + typeName + " " + stateName);
-            } else {
-                panelLines.add(marker + "[" + colonist.getLabel() + "] 사망");
+            if (!colonist.isLiving()) {
+                continue;
             }
+            String marker = (i == selectedIndex) ? " > " : "   ";
+            String typeName = colonist.getSpec().getDisplayName();
+            String stateName = colonist.getCurrentState().getDisplayName();
+            panelLines.add(marker + "[" + colonist.getLabel() + "] " + typeName + " " + stateName);
         }
 
         panelLines.add("");
 
-        // 선택된 정착민 상세 정보
+        // 선택된 정착민 상세 정보 (살아있을 때만 표시)
         if (!colonists.isEmpty()) {
             Colonist selected = colonists.get(selectedIndex);
-            panelLines.add(" ──────────────");
-            panelLines.add(" " + selected.getColonistName());
-            panelLines.add(" 유형: " + selected.getSpec().getDisplayName());
-
             if (selected.isLiving()) {
+                panelLines.add(" ──────────────");
+                panelLines.add(" " + selected.getColonistName());
+                panelLines.add(" 유형: " + selected.getSpec().getDisplayName());
                 panelLines.add(" 상태: " + selected.getCurrentState().getDisplayName());
                 panelLines.add(" 체력: " + buildBar(selected.getHp(), selected.getMaxHp()));
                 panelLines.add(" 무기: " + selected.getGun().getName());
-            } else {
-                panelLines.add(" 상태: 사망");
             }
         }
 
@@ -139,7 +134,7 @@ public class PanelBuilder {
             panelLines.add(" [통계]");
             panelLines.add(" 처치: " + gameWorld.getEnemiesKilled() + "마리");
             panelLines.add("");
-            panelLines.add(" q: 종료");
+            panelLines.add(" q: 타이틀로");
         } else if (isGameOver()) {
             panelLines.add(" ──────────────");
             panelLines.add(" [게임 오버]");
@@ -152,7 +147,7 @@ public class PanelBuilder {
             }
             panelLines.add(" 처치: " + gameWorld.getEnemiesKilled() + "마리");
             panelLines.add("");
-            panelLines.add(" q: 종료");
+            panelLines.add(" q: 타이틀로");
         } else {
             panelLines.add(" ──────────────");
 
@@ -177,7 +172,7 @@ public class PanelBuilder {
                     }
                 }
 
-                panelLines.add(" q: 종료");
+                panelLines.add(" q: 타이틀로");
             } else if (inputHandler.isCheatMode()) {
                 // 치트 모드
                 panelLines.add(" [치트]");
@@ -257,7 +252,7 @@ public class PanelBuilder {
                 panelLines.add(" 5: 모집 (보급40)");
                 panelLines.add(" 6: 승격 (보급30)");
                 panelLines.add(" n: 밤 건너뛰기");
-                panelLines.add(" q: 종료");
+                panelLines.add(" q: 타이틀로");
             }
         }
     }

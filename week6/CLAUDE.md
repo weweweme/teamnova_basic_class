@@ -94,15 +94,15 @@ Structure (row, column, maxHp — 위치 + 내구도 관리)
 **game 패키지 (게임 시스템)**
 
 ```
-Main (진입점 — 난이도 선택, 초기화, 메인 루프)
+Main (진입점 — 타이틀↔게임 반복, 난이도 선택, 초기화, 메인 루프)
 DayNightCycle (Thread — 낮/밤 전환, 적 스폰, 이벤트)
 WaveBuilder (일차별 적 웨이브 구성)
-GameWorld (게임 상태 컨테이너 — 엔티티/구조물/자원 관리)
+GameWorld (게임 상태 컨테이너 — 엔티티/구조물/자원/적버프 관리)
 ScreenEffects (화면 효과 — 흔들림, 웨이브 경고)
 BulletSystem (총알 이동 + 충돌 처리)
 Renderer (화면 렌더링 — 버퍼 기반)
 PanelBuilder (오른쪽 정보 패널 생성)
-InputHandler (키 입력 읽기 + 명령 디스패치)
+InputHandler (키 입력 읽기 + 명령 디스패치 + 한글 자모→영문 변환)
 Supply (보급품 자원 관리)
 Cutscene (스토리 애니메이션)
 BgmPlayer (Thread — JLayer MP3 루프 재생)
@@ -431,7 +431,8 @@ classDiagram
 ```mermaid
 graph TD
     START[Main] --> TITLE[타이틀 화면]
-    TITLE --> DIFF[난이도 선택]
+    TITLE -->|q| EXIT[프로그램 종료]
+    TITLE -->|1/2/3| DIFF[난이도 선택]
     DIFF --> INTRO[인트로 컷씬]
     INTRO --> INIT[초기화: GameWorld + 정착민 3명 + 스레드 시작]
     INIT --> LOOP[메인 루프]
@@ -442,7 +443,8 @@ graph TD
     HANDLE --> PHYSICS[100ms마다: 총알 이동 + 지뢰 체크]
     PHYSICS --> RENDER[Renderer.render]
     RENDER -->|게임 중| LOOP
-    RENDER -->|승리/패배| ENDSCENE[엔딩 컷씬 + 통계]
+    RENDER -->|승리/패배/종료| ENDSCENE[엔딩 컷씬 + 통계]
+    ENDSCENE -->|아무 키| TITLE
 ```
 
 ```mermaid

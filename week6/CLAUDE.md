@@ -26,7 +26,10 @@ ColonistState는 상태 패턴으로 낮(배회) ↔ 밤(사격) 행동 전환.
 
 ```
 GameEntity (abstract, extends Thread — HP, 위치, 스레드 관리)
-├── Colonist (무기, 상태 패턴, 승격, 사망 애니메이션)
+├── Colonist (무기, 상태 패턴, 사망 애니메이션, 5발마다 specialAttack 콜백)
+│   ├── Gunner (속사 탄막 — 전체 적 소량 데미지)
+│   ├── Sniper (정밀 저격 — HP 최고 적 큰 데미지)
+│   └── Assault (충격파 — 전체 적 넉백 + 화면 흔들림)
 └── Enemy (특성 적용, 바리케이드/정착민 공격, 스파이크 충돌)
 ```
 
@@ -44,7 +47,7 @@ ColonistState (abstract — enter/update/exit)
 ColonistType (BASIC, GUNNER, SNIPER, ASSAULT)
 ColonistSpec (이름, 체력, 발사배율, 치명타, 넉백, 블록 템플릿)
 ColonistFactory (Type → Spec 매핑)
-ColonistSpawner (정착민 생성 — Spec/이름/라벨/무기/등록/시작 일괄 처리)
+ColonistSpawner (정착민 생성/승격 — 스레드 교체 포함)
 NameProvider (30개 이름 풀에서 중복 없이 랜덤 선택)
 
 EnemyType (WOLF, SPIDER, SKELETON, ZOMBIE, RAT, SLIME, BEAR, BANDIT, SCORPION, ORC, DRAGON, GOLEM)
@@ -116,6 +119,9 @@ graph TD
     subgraph "unit"
         T[Thread] --> GE[GameEntity]
         GE --> CO[Colonist]
+        CO --> GU2[Gunner]
+        CO --> SN[Sniper]
+        CO --> AS[Assault]
         GE --> EN[Enemy]
         CS[ColonistState] --> WS[WanderingState]
         CS --> SS[ShootingState]
@@ -172,6 +178,9 @@ classDiagram
 ```mermaid
 classDiagram
     GameEntity <|-- Colonist
+    Colonist <|-- Gunner
+    Colonist <|-- Sniper
+    Colonist <|-- Assault
     ColonistState <|-- WanderingState
     ColonistState <|-- ShootingState
 
@@ -185,20 +194,29 @@ classDiagram
 
     ColonistSpawner --> ColonistFactory : Spec 조회
     ColonistSpawner --> NameProvider : 이름 생성
-    ColonistSpawner ..> Colonist : 생성
+    ColonistSpawner ..> Colonist : 생성/승격
 
     class Colonist {
         ColonistType type
         ColonistSpec spec
-        ColonistState currentState
-        Gun gun
-        char label
-        +promote()
+        int shotCount
+        +onShoot(Enemy) 카운팅+specialAttack
+        #specialAttack(Enemy) 빈 구현
+        +transferStateFrom(Colonist)
         +changeState()
+    }
+    class Gunner {
+        #specialAttack() 속사 탄막
+    }
+    class Sniper {
+        #specialAttack() 정밀 저격
+    }
+    class Assault {
+        #specialAttack() 충격파
     }
     class ColonistSpawner {
         +spawn(GameWorld, Position)
-        +getSpec(ColonistType)
+        +promote(Colonist, ColonistType, GameWorld)
     }
 ```
 
@@ -329,6 +347,9 @@ classDiagram
         +playExplosion()
         +playDeath()
         +playWaveStart()
+        +playBarrage()
+        +playPrecisionShot()
+        +playShockwave()
     }
 ```
 
@@ -457,7 +478,7 @@ sequenceDiagram
 graph TB
     Main["<b>Main</b><br/>진입점"]
     game["<b>game</b><br/>DayNightCycle, GameWorld<br/>ScreenEffects, BulletSystem<br/>Renderer, PanelBuilder<br/>InputHandler, WaveBuilder<br/>Supply, Cutscene<br/>BgmPlayer, SfxPlayer"]
-    colonist["<b>unit/colonist</b><br/>Colonist, ColonistState<br/>WanderingState, ShootingState<br/>ColonistSpec, ColonistFactory<br/>ColonistSpawner, NameProvider"]
+    colonist["<b>unit/colonist</b><br/>Colonist, Gunner, Sniper, Assault<br/>ColonistState, WanderingState, ShootingState<br/>ColonistSpec, ColonistFactory<br/>ColonistSpawner, NameProvider"]
     enemy["<b>unit/enemy</b><br/>Enemy, EnemySpec<br/>EnemyFactory, EnemyTrait"]
     gun["<b>gun</b><br/>Gun, Bullet<br/>Pistol, Shotgun<br/>Rifle, Minigun"]
     structure["<b>structure</b><br/>Structure, Buildable<br/>Barricade, Trap<br/>Spike, Landmine, AmmoBox"]
@@ -491,21 +512,21 @@ graph TB
 
 ### 게임 메카닉
 
-**정착민 패시브**
+**정착민 패시브 / 특수공격**
 
-| 유형 | 패시브 | 효과 |
-|------|--------|------|
-| 기본 (BASIC) | 없음 | 모집 시 기본 유형, 승격으로 전직 가능 |
-| 사격수 (GUNNER) | 속사 | 발사 간격 20% 감소 |
-| 저격수 (SNIPER) | 치명타 | 30% 확률로 데미지 2배 |
-| 돌격수 (ASSAULT) | 넉백 | 명중 시 적 1칸 밀어냄 |
+| 유형 | 패시브 | 특수공격 (5발마다) |
+|------|--------|-------------------|
+| 기본 (BASIC) | 없음 | 없음 |
+| 사격수 (Gunner) | 속사 (발사 간격 20% 감소) | 속사 탄막 — 전체 적 3 데미지 + 탄흔 이펙트 |
+| 저격수 (Sniper) | 치명타 (30% 확률 2배) | 정밀 저격 — HP 최고 적에 50 데미지 + 강조 이펙트 |
+| 돌격수 (Assault) | 넉백 (명중 시 1칸) | 충격파 — 전체 적 5 데미지 + 5칸 넉백 + 화면 흔들림 |
 
 **모집 / 승격**
 
 | 명령 | 비용 | 효과 |
 |------|------|------|
 | 모집 | 40 | BASIC 정착민 즉시 합류 (최대 5명) |
-| 승격 | 30 | BASIC → GUNNER/SNIPER/ASSAULT 전직 |
+| 승격 | 30 | BASIC → Gunner/Sniper/Assault 서브클래스로 교체 (체력·무기 이전) |
 
 **무기**
 
@@ -574,6 +595,7 @@ graph TB
 **효과음**: javax.sound 사인파 합성 (8kHz/8bit/mono)
 - 발사 (800Hz/30ms), 명중 (300Hz/50ms), 치명타 (600→1200Hz/80ms)
 - 폭발 (80Hz/200ms), 사망 (400→100Hz/120ms), 웨이브 시작 (600Hz×2)
+- 속사 탄막 (1000→800Hz/150ms), 정밀 저격 (800→1600Hz/100ms), 충격파 (100Hz/300ms)
 
 ## 협업 방식
 

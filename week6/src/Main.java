@@ -47,8 +47,8 @@ public class Main {
         title.append("      │  [무기] 피스톨 / 샷건 / 라이플 / 미니건     │\n");
         title.append("      ├─────────────────────────────────────────────┤\n");
         title.append("      │  [조작]  ↑↓ 정착민 선택 / q 종료            │\n");
-        title.append("      │  [낮] 1수리 2무기 3치료 4건설         │\n");
-        title.append("      │       5모집 6승격 n밤                  │\n");
+        title.append("      │  [낮] 1수리 2무기 3치료 4건설               │\n");
+        title.append("      │       5모집 6승격 n밤                       │\n");
         title.append("      └─────────────────────────────────────────────┘\n");
         title.append("\n");
         title.append("              [난이도 선택]\n");

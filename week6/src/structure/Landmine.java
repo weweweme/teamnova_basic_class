@@ -50,13 +50,35 @@ public class Landmine extends Trap {
             }
         }
 
-        // 폭발 이펙트 추가
-        int groundRow = GameMap.HEIGHT - 3;
+        // 폭발 이펙트 추가 (다이아몬드 형태, 중심에서 바깥으로 갈수록 약해짐)
+        int centerRow = GameMap.HEIGHT / 2;
         long now = System.currentTimeMillis();
-        for (int col = mineCol - BLAST_RANGE; col <= mineCol + BLAST_RANGE; col++) {
-            boolean validCol = col >= 0 && col < GameMap.WIDTH;
-            if (validCol) {
-                gameMap.getEffects().add(new HitEffect(groundRow, col, now, '*', 31));
+
+        // 밝은 빨간색 ANSI 코드
+        final int COLOR_BRIGHT_RED = 91;
+        // 노란색 ANSI 코드
+        final int COLOR_YELLOW = 33;
+
+        for (int dr = -BLAST_RANGE; dr <= BLAST_RANGE; dr++) {
+            int row = centerRow + dr;
+            boolean validRow = row >= 0 && row < GameMap.HEIGHT;
+            if (!validRow) {
+                continue;
+            }
+
+            // 중심에서 멀어질수록 가로 범위 축소 (다이아몬드)
+            int colRange = BLAST_RANGE - Math.abs(dr);
+            // 중심 행은 밝은 빨강 + '*', 바깥 행은 노랑 + '·'
+            boolean isCenter = dr == 0;
+            char effectChar = isCenter ? '*' : '.';
+            int effectColor = isCenter ? COLOR_BRIGHT_RED : COLOR_YELLOW;
+
+            for (int dc = -colRange; dc <= colRange; dc++) {
+                int col = mineCol + dc;
+                boolean validCol = col >= 0 && col < GameMap.WIDTH;
+                if (validCol) {
+                    gameMap.getEffects().add(new HitEffect(row, col, now, effectChar, effectColor));
+                }
             }
         }
 

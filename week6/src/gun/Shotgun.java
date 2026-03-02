@@ -34,4 +34,12 @@ public class Shotgun extends Gun {
             fireBullet(colonist, target, gameWorld, false, offset);
         }
     }
+
+    /// <summary>
+    /// 샷건 전용 발사음 — 저음 폭발 + 고음 파열 2연발
+    /// </summary>
+    @Override
+    public void playFireSound(game.SfxPlayer sfxPlayer) {
+        sfxPlayer.playShotgunBlast();
+    }
 }

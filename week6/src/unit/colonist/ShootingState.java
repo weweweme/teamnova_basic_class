@@ -95,7 +95,7 @@ public class ShootingState extends ColonistState {
 
         // 무기에 발사를 위임 (무기마다 총알 패턴이 다름)
         gun.fire(colonist, target, colonist.getGameWorld());
-        colonist.getGameWorld().getSfxPlayer().playShoot();
+        gun.playFireSound(colonist.getGameWorld().getSfxPlayer());
 
         // 서브클래스별 특수효과 (발사 횟수 기반 주기적 발동)
         colonist.onShoot(target);

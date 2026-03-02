@@ -90,6 +90,14 @@ public abstract class Gun {
     public abstract void fire(Colonist colonist, Enemy target, GameWorld gameWorld);
 
     /// <summary>
+    /// 발사 효과음 재생
+    /// 무기별로 오버라이드하여 고유 발사음 사용 가능
+    /// </summary>
+    public void playFireSound(game.SfxPlayer sfxPlayer) {
+        sfxPlayer.playShoot();
+    }
+
+    /// <summary>
     /// 총알 표시 문자 반환
     /// </summary>
     public char getBulletChar() {

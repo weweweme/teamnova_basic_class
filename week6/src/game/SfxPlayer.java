@@ -94,6 +94,55 @@ public class SfxPlayer {
     }
 
     /// <summary>
+    /// 샷건 발사음 — 저음 폭발 + 고음 파열 2연발 (팡! 느낌)
+    /// </summary>
+    public void playShotgunBlast() {
+        Thread thread = new Thread(() -> {
+            // 주의: AudioSystem.getSourceDataLine()은 checked exception이라 try-catch 필수 (컴파일러 요구)
+            try {
+                SourceDataLine line = AudioSystem.getSourceDataLine(FORMAT);
+                line.open(FORMAT);
+                line.start();
+
+                // 1단: 저음 폭발 (150Hz, 40ms)
+                int samples1 = SAMPLE_RATE * 40 / 1000;
+                byte[] burst1 = new byte[samples1];
+                for (int i = 0; i < samples1; i++) {
+                    double angle = 2.0 * Math.PI * 150 * i / SAMPLE_RATE;
+                    // 진폭을 점차 감쇠시켜 폭발감
+                    double decay = 1.0 - (double) i / samples1;
+                    burst1[i] = (byte) (Math.sin(angle) * 100 * decay);
+                }
+                line.write(burst1, 0, burst1.length);
+
+                // 짧은 간격 (10ms 무음)
+                int silenceSamples = SAMPLE_RATE * 10 / 1000;
+                byte[] silence = new byte[silenceSamples];
+                line.write(silence, 0, silence.length);
+
+                // 2단: 고음 파열 (600→200Hz 하강 스윕, 50ms)
+                int samples2 = SAMPLE_RATE * 50 / 1000;
+                byte[] burst2 = new byte[samples2];
+                for (int i = 0; i < samples2; i++) {
+                    double progress = (double) i / samples2;
+                    double freq = 600 + (200 - 600) * progress;
+                    double angle = 2.0 * Math.PI * freq * i / SAMPLE_RATE;
+                    double decay = 1.0 - progress;
+                    burst2[i] = (byte) (Math.sin(angle) * 90 * decay);
+                }
+                line.write(burst2, 0, burst2.length);
+
+                line.drain();
+                line.close();
+            } catch (Exception e) {
+                // 오디오 장치 없거나 열 수 없을 때 무시 (게임 진행에 영향 없음)
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    /// <summary>
     /// 명중음 (300Hz, 50ms)
     /// </summary>
     public void playHit() {

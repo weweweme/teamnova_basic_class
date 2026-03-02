@@ -87,6 +87,13 @@ public abstract class GameEntity extends Thread {
     }
 
     /// <summary>
+    /// 체력을 직접 설정 (승격 시 이전 체력 복원용)
+    /// </summary>
+    protected void setHp(int hp) {
+        this.hp = hp;
+    }
+
+    /// <summary>
     /// 스레드를 안전하게 종료
     /// </summary>
     public void stopRunning() {

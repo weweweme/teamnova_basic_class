@@ -2,7 +2,6 @@ package game;
 
 import unit.colonist.Colonist;
 import unit.colonist.ColonistSpawner;
-import unit.colonist.ColonistSpec;
 import unit.colonist.ColonistType;
 import gun.Gun;
 import gun.Pistol;
@@ -418,9 +417,8 @@ public class InputHandler {
             final int PROMOTE_COST = 30;
             if (gameWorld.getSupply().spend(PROMOTE_COST)) {
                 Colonist target = gameWorld.getColonists().get(renderer.getSelectedIndex());
-                ColonistSpec newSpec = colonistSpawner.getSpec(promoteType);
-                target.promote(promoteType, newSpec);
-                gameWorld.addLog(">> " + target.getColonistName() + " → " + newSpec.getDisplayName() + " 승격!");
+                Colonist promoted = colonistSpawner.promote(target, promoteType, gameWorld);
+                gameWorld.addLog(">> " + promoted.getColonistName() + " → " + promoted.getSpec().getDisplayName() + " 승격!");
             }
             promoteMode = false;
         }

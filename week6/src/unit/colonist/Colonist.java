@@ -16,14 +16,14 @@ import game.GameWorld;
 public class Colonist extends GameEntity {
 
     /// <summary>
-    /// 정착민 유형 (타입 식별용, 승격 시 변경됨)
+    /// 정착민 유형 (타입 식별용)
     /// </summary>
-    private ColonistType type;
+    private final ColonistType type;
 
     /// <summary>
-    /// 정착민 속성 데이터 (체력/패시브 등, 승격 시 변경됨)
+    /// 정착민 속성 데이터 (체력/패시브 등)
     /// </summary>
-    private ColonistSpec spec;
+    private final ColonistSpec spec;
 
     /// <summary>
     /// 정착민 이름 (한글, 패널에서만 표시)
@@ -54,6 +54,11 @@ public class Colonist extends GameEntity {
     /// 사망 시각 (0이면 살아있음, 양수면 사망 시점의 밀리초)
     /// </summary>
     private long deathTime;
+
+    /// <summary>
+    /// 발사 횟수 카운터 (SPECIAL_INTERVAL 도달 시 특수효과 발동)
+    /// </summary>
+    private int shotCount;
 
     /// <summary>
     /// 지정한 유형, 이름, 위치, 맵으로 정착민 생성
@@ -145,19 +150,38 @@ public class Colonist extends GameEntity {
     }
 
     /// <summary>
-    /// BASIC에서 전문 유형으로 승격
-    /// 유형과 속성이 변경되고, 최대 체력이 올라가면 그만큼 회복
+    /// 이전 정착민의 체력과 무기를 이어받기 (승격 시 호출)
+    /// 최대 체력 증가분만큼 추가 회복
     /// </summary>
-    public void promote(ColonistType newType, ColonistSpec newSpec) {
-        int oldMaxHp = spec.getMaxHp();
-        this.type = newType;
-        this.spec = newSpec;
+    public void transferStateFrom(Colonist old) {
+        this.gun = old.gun;
 
-        // 최대 체력 증가분만큼 회복
-        int hpGain = newSpec.getMaxHp() - oldMaxHp;
-        if (hpGain > 0) {
-            heal(hpGain);
+        // 이전 체력 + 최대 체력 증가분
+        int hpGain = Math.max(this.getMaxHp() - old.getMaxHp(), 0);
+        int targetHp = Math.min(old.getHp() + hpGain, this.getMaxHp());
+        setHp(targetHp);
+    }
+
+    /// <summary>
+    /// 발사 직후 호출되는 콜백
+    /// 발사 횟수를 세고, SPECIAL_INTERVAL에 도달하면 specialAttack() 발동
+    /// </summary>
+    public void onShoot(unit.enemy.Enemy target) {
+        shotCount++;
+        final int SPECIAL_INTERVAL = 5;
+        if (shotCount < SPECIAL_INTERVAL) {
+            return;
         }
+        shotCount = 0;
+        specialAttack(target);
+    }
+
+    /// <summary>
+    /// 주기적으로 발동하는 특수공격
+    /// 서브클래스에서 역할별 고유 효과를 구현
+    /// </summary>
+    protected void specialAttack(unit.enemy.Enemy target) {
+        // 기본 정착민은 특수공격 없음
     }
 
     /// <summary>

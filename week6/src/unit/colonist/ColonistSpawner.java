@@ -7,6 +7,7 @@ import gun.Pistol;
 /// <summary>
 /// 정착민 생성을 담당하는 클래스
 /// Spec 조회, 이름/라벨 발급, 무기 장착, 월드 등록, 스레드 시작까지 일괄 처리
+/// 승격 시 서브클래스 교체도 담당
 /// </summary>
 public class ColonistSpawner {
 
@@ -40,7 +41,50 @@ public class ColonistSpawner {
     }
 
     /// <summary>
-    /// 유형별 Spec 조회 (승격 등에서 사용)
+    /// BASIC 정착민을 전문 유형으로 승격
+    /// 새 서브클래스(Gunner/Sniper/Assault)를 생성하고
+    /// 이전 체력과 무기를 이어받은 뒤 특수효과 발동
+    /// </summary>
+    public Colonist promote(Colonist old, ColonistType newType, GameWorld gameWorld) {
+        ColonistSpec newSpec = factory.getSpec(newType);
+        String name = old.getColonistName();
+        char label = old.getLabel();
+        Position position = old.getPosition();
+
+        // 역할에 맞는 서브클래스 생성
+        Colonist promoted;
+        switch (newType) {
+            case GUNNER:
+                promoted = new Gunner(newSpec, name, label, position, gameWorld);
+                break;
+            case SNIPER:
+                promoted = new Sniper(newSpec, name, label, position, gameWorld);
+                break;
+            case ASSAULT:
+                promoted = new Assault(newSpec, name, label, position, gameWorld);
+                break;
+            default:
+                return old;
+        }
+
+        // 이전 정착민의 체력과 무기 이어받기
+        promoted.transferStateFrom(old);
+
+        // 이전 정착민 스레드 정지
+        old.stopRunning();
+
+        // 목록에서 교체 (같은 인덱스에 새 인스턴스 배치)
+        int index = gameWorld.getColonists().indexOf(old);
+        gameWorld.getColonists().set(index, promoted);
+
+        // 새 스레드 시작
+        promoted.start();
+
+        return promoted;
+    }
+
+    /// <summary>
+    /// 유형별 Spec 조회 (패널 표시 등에서 사용)
     /// </summary>
     public ColonistSpec getSpec(ColonistType type) {
         return factory.getSpec(type);

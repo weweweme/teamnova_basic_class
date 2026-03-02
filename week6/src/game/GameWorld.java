@@ -432,6 +432,13 @@ public class GameWorld {
     }
 
     /// <summary>
+    /// 이펙트 추가 (승격 특수효과 등 외부에서 직접 이펙트 생성 시 사용)
+    /// </summary>
+    public synchronized void addEffect(HitEffect effect) {
+        effects.add(effect);
+    }
+
+    /// <summary>
     /// 만료된 이펙트를 제거하고 남은 이펙트 목록 복사본 반환
     /// </summary>
     public synchronized ArrayList<HitEffect> getEffects() {

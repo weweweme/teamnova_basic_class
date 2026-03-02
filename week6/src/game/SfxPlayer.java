@@ -122,6 +122,27 @@ public class SfxPlayer {
     }
 
     /// <summary>
+    /// 속사 탄막 효과음 (1000→800Hz 하강 스윕, 150ms)
+    /// </summary>
+    public void playBarrage() {
+        playSweep(1000, 800, 150);
+    }
+
+    /// <summary>
+    /// 정밀 저격 효과음 (800→1600Hz 상승 스윕, 100ms)
+    /// </summary>
+    public void playPrecisionShot() {
+        playSweep(800, 1600, 100);
+    }
+
+    /// <summary>
+    /// 충격파 효과음 (100Hz 저음, 300ms)
+    /// </summary>
+    public void playShockwave() {
+        playTone(100, 300);
+    }
+
+    /// <summary>
     /// 밤 시작 경보음 (600Hz 비프 2회)
     /// </summary>
     public void playWaveStart() {

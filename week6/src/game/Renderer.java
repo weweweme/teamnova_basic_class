@@ -28,30 +28,49 @@ import java.util.Arrays;
 /// </summary>
 public class Renderer {
 
+    // ===== 상수 =====
+
+    /// <summary>
+    /// 웨이브 경고 텍스트를 표시할 행 (맵 세로 중앙)
+    /// </summary>
+    private static final int WAVE_WARNING_ROW = GameWorld.HEIGHT / 2;
+
     /// <summary>
     /// 사망 애니메이션 1단계 시간 (짙은 회색 정지)
     /// </summary>
-    private final int DEATH_PHASE1_MS = 400;
+    private static final int DEATH_PHASE1_MS = 400;
 
     /// <summary>
     /// 사망 애니메이션 전체 시간 (1단계 정지 + 2단계 분해)
     /// </summary>
-    private final int DEATH_ANIM_MS = 800;
+    private static final int DEATH_ANIM_MS = 800;
 
     /// <summary>
     /// 빨간색 ANSI 색상 코드
     /// </summary>
-    private final int COLOR_RED = 31;
+    private static final int COLOR_RED = 31;
 
     /// <summary>
     /// 초록색 ANSI 색상 코드
     /// </summary>
-    private final int COLOR_GREEN = 32;
+    private static final int COLOR_GREEN = 32;
 
     /// <summary>
     /// 짙은 회색 ANSI 색상 코드
     /// </summary>
-    private final int COLOR_DARK_GRAY = 90;
+    private static final int COLOR_DARK_GRAY = 90;
+
+    // ===== 핵심 버퍼 =====
+
+    /// <summary>
+    /// 화면 버퍼 [행][열], 매 프레임마다 새로 채움
+    /// </summary>
+    private final char[][] buffer;
+
+    /// <summary>
+    /// 색상 버퍼 [행][열], ANSI 색상 코드 (0이면 기본색, 31=빨강, 90=짙은 회색)
+    /// </summary>
+    private final int[][] colorBuffer;
 
     /// <summary>
     /// 행별 색상 재사용 버퍼 (매 프레임 배열 재생성 방지)
@@ -65,19 +84,12 @@ public class Renderer {
     private final StringBuilder screenBuilder = new StringBuilder(8192);
 
     /// <summary>
-    /// 우측 패널 빌더
+    /// 적 정렬용 재사용 리스트 (매 프레임 재생성 방지)
+    /// 이동속도가 빠른 적이 위에 보이도록 tickDelay 내림차순 정렬
     /// </summary>
-    private PanelBuilder panelBuilder;
+    private final ArrayList<Enemy> sortedEnemies = new ArrayList<>();
 
-    /// <summary>
-    /// 화면 버퍼 [행][열], 매 프레임마다 새로 채움
-    /// </summary>
-    private final char[][] buffer;
-
-    /// <summary>
-    /// 색상 버퍼 [행][열], ANSI 색상 코드 (0이면 기본색, 31=빨강, 90=짙은 회색)
-    /// </summary>
-    private final int[][] colorBuffer;
+    // ===== 의존 객체 =====
 
     /// <summary>
     /// 출력할 게임 맵
@@ -90,20 +102,21 @@ public class Renderer {
     private DayNightCycle dayNightCycle;
 
     /// <summary>
-    /// 현재 선택된 정착민 번호
-    /// </summary>
-    private int selectedIndex;
-
-    /// <summary>
     /// 입력 처리기 (메뉴 모드 상태 조회용)
     /// </summary>
     private InputHandler inputHandler;
 
     /// <summary>
-    /// 적 정렬용 재사용 리스트 (매 프레임 재생성 방지)
-    /// 이동속도가 빠른 적이 위에 보이도록 tickDelay 내림차순 정렬
+    /// 우측 패널 빌더
     /// </summary>
-    private final ArrayList<Enemy> sortedEnemies = new ArrayList<>();
+    private PanelBuilder panelBuilder;
+
+    /// <summary>
+    /// 현재 선택된 정착민 번호
+    /// </summary>
+    private int selectedIndex;
+
+    // ===== 생성자 =====
 
     /// <summary>
     /// 지정한 맵으로 렌더러 생성
@@ -115,18 +128,13 @@ public class Renderer {
         this.selectedIndex = 0;
     }
 
+    // ── 설정 ──
+
     /// <summary>
     /// 낮/밤 주기 설정
     /// </summary>
     public void setDayNightCycle(DayNightCycle dayNightCycle) {
         this.dayNightCycle = dayNightCycle;
-    }
-
-    /// <summary>
-    /// 선택된 정착민 번호 반환
-    /// </summary>
-    public int getSelectedIndex() {
-        return selectedIndex;
     }
 
     /// <summary>
@@ -136,6 +144,15 @@ public class Renderer {
         this.inputHandler = inputHandler;
         this.panelBuilder = new PanelBuilder(gameWorld, inputHandler);
         this.panelBuilder.setDayNightCycle(dayNightCycle);
+    }
+
+    // ── 정착민 선택 ──
+
+    /// <summary>
+    /// 선택된 정착민 번호 반환
+    /// </summary>
+    public int getSelectedIndex() {
+        return selectedIndex;
     }
 
     /// <summary>
@@ -158,6 +175,8 @@ public class Renderer {
         }
     }
 
+    // ── 게임 상태 조회 ──
+
     /// <summary>
     /// 패배 조건 달성 여부 확인 (DayNightCycle에 위임)
     /// </summary>
@@ -171,6 +190,8 @@ public class Renderer {
     public boolean isVictory() {
         return dayNightCycle != null && dayNightCycle.isVictory();
     }
+
+    // ── 렌더링 파이프라인 ──
 
     /// <summary>
     /// 매 프레임 호출되는 렌더링 진입점
@@ -220,6 +241,8 @@ public class Renderer {
             }
         }
     }
+
+    // ── draw: 배경/구조물 ──
 
     /// <summary>
     /// 바리케이드를 세로로 그림 (## 문자, 맵 전체 높이)
@@ -309,56 +332,7 @@ public class Renderer {
         }
     }
 
-    /// <summary>
-    /// 배치 모드 커서를 버퍼에 그림
-    /// 500ms 주기로 구조물 문자(^/@/=)와 커서(+)를 번갈아 표시
-    /// </summary>
-    private void drawPlacementCursor() {
-        int row = inputHandler.getCursorRow();
-        int col = inputHandler.getCursorCol();
-        int type = inputHandler.getPlacementType();
-
-        boolean validRow = row >= 0 && row < GameWorld.HEIGHT;
-        boolean validCol = col >= 0 && col < GameWorld.WIDTH;
-        if (!validRow || !validCol) {
-            return;
-        }
-
-        // 깜빡임: 500ms 주기로 구조물 문자 ↔ 커서 '+' 전환
-        final int BLINK_INTERVAL = 500;
-        boolean showStructure = (System.currentTimeMillis() / BLINK_INTERVAL) % 2 == 0;
-
-        // 밝은 흰색 (커서 표시용)
-        final int COLOR_BRIGHT_WHITE = 97;
-        // 구조물별 색상
-        final int COLOR_YELLOW = 33;
-
-        final int TYPE_SPIKE = 1;
-        final int TYPE_LANDMINE = 2;
-        final int TYPE_AMMOBOX = 3;
-
-        if (showStructure) {
-            // 구조물 미리보기 표시
-            switch (type) {
-                case TYPE_SPIKE:
-                    buffer[row][col] = '^';
-                    colorBuffer[row][col] = COLOR_YELLOW;
-                    break;
-                case TYPE_LANDMINE:
-                    buffer[row][col] = '@';
-                    colorBuffer[row][col] = COLOR_RED;
-                    break;
-                case TYPE_AMMOBOX:
-                    buffer[row][col] = '=';
-                    colorBuffer[row][col] = COLOR_GREEN;
-                    break;
-            }
-        } else {
-            // 십자 커서 표시
-            buffer[row][col] = '+';
-            colorBuffer[row][col] = COLOR_BRIGHT_WHITE;
-        }
-    }
+    // ── draw: 유닛 ──
 
     /// <summary>
     /// 모든 정착민을 버퍼에 그림
@@ -420,6 +394,8 @@ public class Renderer {
         }
     }
 
+    // ── draw: 투사체/이펙트 ──
+
     /// <summary>
     /// 날아가는 총알을 버퍼에 그림
     /// 총알의 현재 위치는 Bullet.getRow()가 발사→조준 직선 보간으로 계산
@@ -453,6 +429,59 @@ public class Renderer {
                 buffer[row][col] = effect.getEffectChar();
                 colorBuffer[row][col] = effect.getEffectColor();
             }
+        }
+    }
+
+    // ── draw: UI/특수 ──
+
+    /// <summary>
+    /// 배치 모드 커서를 버퍼에 그림
+    /// 500ms 주기로 구조물 문자(^/@/=)와 커서(+)를 번갈아 표시
+    /// </summary>
+    private void drawPlacementCursor() {
+        int row = inputHandler.getCursorRow();
+        int col = inputHandler.getCursorCol();
+        int type = inputHandler.getPlacementType();
+
+        boolean validRow = row >= 0 && row < GameWorld.HEIGHT;
+        boolean validCol = col >= 0 && col < GameWorld.WIDTH;
+        if (!validRow || !validCol) {
+            return;
+        }
+
+        // 깜빡임: 500ms 주기로 구조물 문자 ↔ 커서 '+' 전환
+        final int BLINK_INTERVAL = 500;
+        boolean showStructure = (System.currentTimeMillis() / BLINK_INTERVAL) % 2 == 0;
+
+        // 밝은 흰색 (커서 표시용)
+        final int COLOR_BRIGHT_WHITE = 97;
+        // 구조물별 색상
+        final int COLOR_YELLOW = 33;
+
+        final int TYPE_SPIKE = 1;
+        final int TYPE_LANDMINE = 2;
+        final int TYPE_AMMOBOX = 3;
+
+        if (showStructure) {
+            // 구조물 미리보기 표시
+            switch (type) {
+                case TYPE_SPIKE:
+                    buffer[row][col] = '^';
+                    colorBuffer[row][col] = COLOR_YELLOW;
+                    break;
+                case TYPE_LANDMINE:
+                    buffer[row][col] = '@';
+                    colorBuffer[row][col] = COLOR_RED;
+                    break;
+                case TYPE_AMMOBOX:
+                    buffer[row][col] = '=';
+                    colorBuffer[row][col] = COLOR_GREEN;
+                    break;
+            }
+        } else {
+            // 십자 커서 표시
+            buffer[row][col] = '+';
+            colorBuffer[row][col] = COLOR_BRIGHT_WHITE;
         }
     }
 
@@ -504,32 +533,7 @@ public class Renderer {
         }
     }
 
-    /// <summary>
-    /// 웨이브 경고 행의 표시 폭 (가로 정렬 고정용)
-    /// </summary>
-    private static final int WAVE_WARNING_ROW = GameWorld.HEIGHT / 2;
-
-    /// <summary>
-    /// 웨이브 경고 텍스트를 ANSI 색상과 함께 출력 (버퍼 대신 직접 렌더링)
-    /// 한글이 2칸 차지하므로, 버퍼를 거치지 않고 문자열로 직접 출력하여 폭 정렬 유지
-    /// </summary>
-    private void appendWaveWarningRow(StringBuilder sb) {
-        String warning = ">> 적이 밀려온다! <<";
-
-        // 좌측 패딩 (가로 중앙 정렬, 기존 displayWidth 재사용)
-        int warningWidth = displayWidth(warning);
-        int leftPad = (GameWorld.WIDTH - warningWidth) / 2;
-        int rightPad = GameWorld.WIDTH - warningWidth - leftPad;
-
-        sb.append(" ".repeat(Math.max(0, leftPad)));
-
-        // 밝은 노랑 (ANSI 93)
-        sb.append("\033[93m");
-        sb.append(warning);
-        sb.append("\033[0m");
-
-        sb.append(" ".repeat(Math.max(0, rightPad)));
-    }
+    // ── 버퍼 유틸리티 ──
 
     /// <summary>
     /// 지정한 위치에 블록(여러 줄 문자 배열)을 버퍼에 복사
@@ -554,6 +558,35 @@ public class Renderer {
                 }
 
                 buffer[bufferRow][bufferCol] = line.charAt(blockCol);
+            }
+        }
+    }
+
+    /// <summary>
+    /// drawBlock의 색상 버전 — 블록의 앞쪽 rows행만 그리면서 행마다 다른 색상 적용
+    /// rowColors[i]가 0이면 기본색, 0이 아니면 해당 행 전체에 ANSI 색상 코드 적용
+    /// 적 HP 표시(빨강 그라데이션)와 사망 애니메이션(회색 부분 렌더링)에 사용
+    /// </summary>
+    private void drawColoredBlock(int startRow, int startCol, String[] block, int[] rowColors, int rows) {
+        for (int blockRow = 0; blockRow < rows; blockRow++) {
+            int bufferRow = startRow + blockRow;
+
+            if (bufferRow < 0 || bufferRow >= GameWorld.HEIGHT) {
+                continue;
+            }
+
+            String line = block[blockRow];
+            int color = rowColors[blockRow];
+
+            for (int blockCol = 0; blockCol < line.length(); blockCol++) {
+                int bufferCol = startCol + blockCol;
+
+                if (bufferCol < 0 || bufferCol >= GameWorld.WIDTH) {
+                    continue;
+                }
+
+                buffer[bufferRow][bufferCol] = line.charAt(blockCol);
+                colorBuffer[bufferRow][bufferCol] = color;
             }
         }
     }
@@ -590,82 +623,7 @@ public class Renderer {
         // Phase 3 (800ms 이후): draw 호출을 안 하면 clearBuffer의 공백이 그대로 남음
     }
 
-    /// <summary>
-    /// drawBlock의 색상 버전 — 블록의 앞쪽 rows행만 그리면서 행마다 다른 색상 적용
-    /// rowColors[i]가 0이면 기본색, 0이 아니면 해당 행 전체에 ANSI 색상 코드 적용
-    /// 적 HP 표시(빨강 그라데이션)와 사망 애니메이션(회색 부분 렌더링)에 사용
-    /// </summary>
-    private void drawColoredBlock(int startRow, int startCol, String[] block, int[] rowColors, int rows) {
-        for (int blockRow = 0; blockRow < rows; blockRow++) {
-            int bufferRow = startRow + blockRow;
-
-            if (bufferRow < 0 || bufferRow >= GameWorld.HEIGHT) {
-                continue;
-            }
-
-            String line = block[blockRow];
-            int color = rowColors[blockRow];
-
-            for (int blockCol = 0; blockCol < line.length(); blockCol++) {
-                int bufferCol = startCol + blockCol;
-
-                if (bufferCol < 0 || bufferCol >= GameWorld.WIDTH) {
-                    continue;
-                }
-
-                buffer[bufferRow][bufferCol] = line.charAt(blockCol);
-                colorBuffer[bufferRow][bufferCol] = color;
-            }
-        }
-    }
-
-    /// <summary>
-    /// 패널 한 줄을 고정 폭에 맞춰 대상 버퍼에 직접 추가
-    /// 짧으면 공백으로 채우고, 길면 잘라냄
-    /// </summary>
-    private void appendPadPanel(StringBuilder dest, String text) {
-
-        // 우측 패널 가로 크기 (구분선 제외)
-        final int PANEL_WIDTH = 22;
-        if (text.length() >= PANEL_WIDTH) {
-            dest.append(text, 0, PANEL_WIDTH);
-        } else {
-            dest.append(text);
-            int padding = PANEL_WIDTH - text.length();
-            dest.append(" ".repeat(padding));
-        }
-    }
-
-    /// <summary>
-    /// 한글 등 전각 문자를 고려한 터미널 표시 폭 계산
-    /// </summary>
-    private int displayWidth(String text) {
-        final char KOREAN_START = 0xAC00;
-        final char KOREAN_END = 0xD7A3;
-        final char CJK_START = 0x3000;
-        final char CJK_END = 0x9FFF;
-
-        int width = 0;
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            boolean isKorean = c >= KOREAN_START && c <= KOREAN_END;
-            boolean isCjk = c >= CJK_START && c <= CJK_END;
-            if (isKorean || isCjk) {
-                width += 2;
-            } else {
-                width += 1;
-            }
-        }
-        return width;
-    }
-
-    /// <summary>
-    /// 문자열을 지정한 표시 폭에 맞춰 공백으로 패딩
-    /// </summary>
-    private String padToWidth(String text) {
-        int currentWidth = displayWidth(text);
-        return text + " ".repeat(Math.max(0, GameWorld.WIDTH - currentWidth));
-    }
+    // ── 화면 출력 ──
 
     /// <summary>
     /// 최종 화면 조립 및 출력 — 모든 draw 완료 후 호출
@@ -794,5 +752,75 @@ public class Renderer {
 
         System.out.print(screenBuilder);
         System.out.flush();
+    }
+
+    /// <summary>
+    /// 웨이브 경고 텍스트를 ANSI 색상과 함께 출력 (버퍼 대신 직접 렌더링)
+    /// 한글이 2칸 차지하므로, 버퍼를 거치지 않고 문자열로 직접 출력하여 폭 정렬 유지
+    /// </summary>
+    private void appendWaveWarningRow(StringBuilder sb) {
+        String warning = ">> 적이 밀려온다! <<";
+
+        // 좌측 패딩 (가로 중앙 정렬, 기존 displayWidth 재사용)
+        int warningWidth = displayWidth(warning);
+        int leftPad = (GameWorld.WIDTH - warningWidth) / 2;
+        int rightPad = GameWorld.WIDTH - warningWidth - leftPad;
+
+        sb.append(" ".repeat(Math.max(0, leftPad)));
+
+        // 밝은 노랑 (ANSI 93)
+        sb.append("\033[93m");
+        sb.append(warning);
+        sb.append("\033[0m");
+
+        sb.append(" ".repeat(Math.max(0, rightPad)));
+    }
+
+    /// <summary>
+    /// 패널 한 줄을 고정 폭에 맞춰 대상 버퍼에 직접 추가
+    /// 짧으면 공백으로 채우고, 길면 잘라냄
+    /// </summary>
+    private void appendPadPanel(StringBuilder dest, String text) {
+
+        // 우측 패널 가로 크기 (구분선 제외)
+        final int PANEL_WIDTH = 22;
+        if (text.length() >= PANEL_WIDTH) {
+            dest.append(text, 0, PANEL_WIDTH);
+        } else {
+            dest.append(text);
+            int padding = PANEL_WIDTH - text.length();
+            dest.append(" ".repeat(padding));
+        }
+    }
+
+    /// <summary>
+    /// 한글 등 전각 문자를 고려한 터미널 표시 폭 계산
+    /// </summary>
+    private int displayWidth(String text) {
+        final char KOREAN_START = 0xAC00;
+        final char KOREAN_END = 0xD7A3;
+        final char CJK_START = 0x3000;
+        final char CJK_END = 0x9FFF;
+
+        int width = 0;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            boolean isKorean = c >= KOREAN_START && c <= KOREAN_END;
+            boolean isCjk = c >= CJK_START && c <= CJK_END;
+            if (isKorean || isCjk) {
+                width += 2;
+            } else {
+                width += 1;
+            }
+        }
+        return width;
+    }
+
+    /// <summary>
+    /// 문자열을 지정한 표시 폭에 맞춰 공백으로 패딩
+    /// </summary>
+    private String padToWidth(String text) {
+        int currentWidth = displayWidth(text);
+        return text + " ".repeat(Math.max(0, GameWorld.WIDTH - currentWidth));
     }
 }

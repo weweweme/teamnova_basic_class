@@ -495,7 +495,7 @@ sequenceDiagram
         R->>Buf: drawLandmines() — @ 빨간색 단일 셀
         R->>Buf: drawAmmoBoxes() — = 초록색 단일 셀
         R->>Buf: drawColonists() — 블록 + 사망 3단계 애니메이션
-        R->>Buf: drawEnemies() — 블록 + HP 빨강 그라데이션
+        R->>Buf: drawEnemies() — 속도순 정렬 (느린→빠른), 블록 + HP 빨강 그라데이션
         R->>Buf: drawBullets() — 무기별 문자/색상
         R->>Buf: drawEffects() — 명중/치명타/폭발 이펙트
         R->>Buf: drawPlacementCursor() — 배치 모드 커서 (500ms 깜빡임)
@@ -510,6 +510,8 @@ sequenceDiagram
 ```
 
 **버퍼 방식의 핵심**: `char[20][100]` 버퍼와 `int[20][100]` 색상 버퍼에 모든 오브젝트를 그린 뒤, flush()에서 한 번에 `StringBuilder`로 조립하여 `System.out.print()`로 출력한다. 행별 `println()` 대신 전체를 한 번에 출력하여 터미널 깜빡임을 방지한다.
+
+**Z-order (겹침 우선순위)**: 같은 버퍼 위치에 여러 오브젝트가 그려지면 나중에 그린 것이 보인다. 렌더링 순서가 곧 Z-order이다. 적은 `drawEnemies()`에서 tickDelay 내림차순 정렬 후 그려서, 이동 속도가 빠른 적이 느린 적 위에 표시된다.
 
 ### 패키지 간 의존관계
 

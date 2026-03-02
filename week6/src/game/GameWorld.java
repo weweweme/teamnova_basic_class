@@ -139,6 +139,12 @@ public class GameWorld {
     private boolean invincible;
 
     /// <summary>
+    /// 적 버프 레벨 (0=기본, 양수=강화, 음수=약화)
+    /// 치트 모드에서 조절하며, 레벨당 스탯 20% 변동
+    /// </summary>
+    private int enemyBuffLevel;
+
+    /// <summary>
     /// 게임 월드 생성
     /// </summary>
     public GameWorld(SfxPlayer sfxPlayer) {
@@ -165,6 +171,34 @@ public class GameWorld {
     /// </summary>
     public void setInvincible(boolean invincible) {
         this.invincible = invincible;
+    }
+
+    /// <summary>
+    /// 적 버프 레벨 반환
+    /// </summary>
+    public int getEnemyBuffLevel() {
+        return enemyBuffLevel;
+    }
+
+    /// <summary>
+    /// 적 버프 레벨 1단계 증가 (강화)
+    /// </summary>
+    public void increaseEnemyBuff() {
+        enemyBuffLevel++;
+    }
+
+    /// <summary>
+    /// 적 버프 레벨 1단계 감소 (약화)
+    /// </summary>
+    public void decreaseEnemyBuff() {
+        enemyBuffLevel--;
+    }
+
+    /// <summary>
+    /// 적 버프 배율 반환 (레벨당 20%, 최소 0.2배)
+    /// </summary>
+    public double getEnemyBuffMultiplier() {
+        return Math.max(0.2, 1.0 + 0.2 * enemyBuffLevel);
     }
 
     /// <summary>

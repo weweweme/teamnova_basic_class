@@ -589,6 +589,8 @@ public class InputHandler {
         final int KEY_INVINCIBLE = '4';
         final int KEY_MAX_BARRICADE = '5';
         final int KEY_ALL_MINIGUN = '6';
+        final int KEY_ENEMY_BUFF = '7';
+        final int KEY_ENEMY_DEBUFF = '8';
 
         switch (key) {
             case KEY_SUPPLY:
@@ -640,6 +642,20 @@ public class InputHandler {
                     }
                 }
                 gameWorld.addLog(">> [치트] 전원 미니건 장착");
+                cheatMode = false;
+                break;
+            case KEY_ENEMY_BUFF:
+                gameWorld.increaseEnemyBuff();
+                int buffLv = gameWorld.getEnemyBuffLevel();
+                gameWorld.addLog(">> [치트] 적 강화 Lv" + buffLv
+                        + " (x" + String.format("%.1f", gameWorld.getEnemyBuffMultiplier()) + ")");
+                cheatMode = false;
+                break;
+            case KEY_ENEMY_DEBUFF:
+                gameWorld.decreaseEnemyBuff();
+                int debuffLv = gameWorld.getEnemyBuffLevel();
+                gameWorld.addLog(">> [치트] 적 약화 Lv" + debuffLv
+                        + " (x" + String.format("%.1f", gameWorld.getEnemyBuffMultiplier()) + ")");
                 cheatMode = false;
                 break;
             case KEY_QUIT:

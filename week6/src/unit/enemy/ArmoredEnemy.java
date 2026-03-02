@@ -64,7 +64,7 @@ public class ArmoredEnemy extends Enemy {
         if (atBarricade && !gameWorld.getBarricade().isDestroyed()) {
             // 바리케이드 앞: 2배 데미지 추가 공격
             final int BASH_MULTIPLIER = 2;
-            gameWorld.getBarricade().takeDamage(getSpec().getDamage() * BASH_MULTIPLIER);
+            gameWorld.getBarricade().takeDamage(getBuffedDamage() * BASH_MULTIPLIER);
             gameWorld.addEffect(new HitEffect(row, currentCol, now, '#', COLOR_BLUE));
             gameWorld.addLog(name + " — 방패 충돌!");
         } else {

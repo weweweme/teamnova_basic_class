@@ -27,6 +27,11 @@ public class Enemy extends GameEntity {
     private final EnemySpec spec;
 
     /// <summary>
+    /// 스폰 시 적용된 추가 최대 체력 (버프 레벨에 따라 결정)
+    /// </summary>
+    private int bonusMaxHp;
+
+    /// <summary>
     /// 사망 시각 (0이면 살아있음, 양수면 사망 시점의 밀리초)
     /// </summary>
     private long deathTime;
@@ -78,7 +83,7 @@ public class Enemy extends GameEntity {
                     getPosition().setCol(newCol);
                     checkSpikes();
                 } else {
-                    barricade.takeDamage(spec.getDamage());
+                    barricade.takeDamage(getBuffedDamage());
                 }
             } else {
                 // 바리케이드 파괴: 정착민에게 돌진
@@ -96,7 +101,7 @@ public class Enemy extends GameEntity {
                         getPosition().setCol(newCol);
                         checkSpikes();
                     } else {
-                        target.takeDamage(spec.getDamage());
+                        target.takeDamage(getBuffedDamage());
                     }
 
                 } else if (currentCol > 0) {
@@ -110,7 +115,7 @@ public class Enemy extends GameEntity {
                 }
             }
 
-            Util.delay(spec.getTickDelay());
+            Util.delay(getBuffedTickDelay());
         }
     }
 
@@ -199,11 +204,41 @@ public class Enemy extends GameEntity {
     }
 
     /// <summary>
-    /// 최대 체력 반환
+    /// 스폰 시 호출: 현재 버프 레벨에 따라 추가 HP 부여
+    /// </summary>
+    public void applySpawnBuff() {
+        double multiplier = getGameWorld().getEnemyBuffMultiplier();
+        int buffedMax = (int) (spec.getMaxHp() * multiplier);
+        bonusMaxHp = buffedMax - spec.getMaxHp();
+        if (bonusMaxHp > 0) {
+            heal(bonusMaxHp);
+        }
+    }
+
+    /// <summary>
+    /// 버프 적용된 공격력 반환 (실시간으로 GameWorld 버프 레벨 반영)
+    /// </summary>
+    protected int getBuffedDamage() {
+        double multiplier = getGameWorld().getEnemyBuffMultiplier();
+        return Math.max(1, (int) (spec.getDamage() * multiplier));
+    }
+
+    /// <summary>
+    /// 버프 적용된 행동 간격 반환 (배율이 클수록 빨라짐, 최소 100ms)
+    /// </summary>
+    protected int getBuffedTickDelay() {
+        double multiplier = getGameWorld().getEnemyBuffMultiplier();
+        // 최소 행동 간격 (밀리초)
+        final int MIN_TICK_DELAY = 100;
+        return Math.max(MIN_TICK_DELAY, (int) (spec.getTickDelay() / multiplier));
+    }
+
+    /// <summary>
+    /// 최대 체력 반환 (스폰 시 적용된 보너스 포함)
     /// </summary>
     @Override
     public int getMaxHp() {
-        return spec.getMaxHp();
+        return spec.getMaxHp() + Math.max(0, bonusMaxHp);
     }
 
     /// <summary>

@@ -143,6 +143,27 @@ public class SfxPlayer {
     }
 
     /// <summary>
+    /// 돌진 질주 효과음 (500→1000Hz 상승 스윕, 80ms)
+    /// </summary>
+    public void playChargeRush() {
+        playSweep(500, 1000, 80);
+    }
+
+    /// <summary>
+    /// 방패 충돌 효과음 (200Hz 저음, 150ms)
+    /// </summary>
+    public void playShieldBash() {
+        playTone(200, 150);
+    }
+
+    /// <summary>
+    /// 치유 포자 효과음 (400→600Hz 상승 스윕, 120ms)
+    /// </summary>
+    public void playHealingSpore() {
+        playSweep(400, 600, 120);
+    }
+
+    /// <summary>
     /// 밤 시작 경보음 (600Hz 비프 2회)
     /// </summary>
     public void playWaveStart() {

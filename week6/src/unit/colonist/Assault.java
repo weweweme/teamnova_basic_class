@@ -10,26 +10,6 @@ import unit.enemy.Enemy;
 public class Assault extends Colonist {
 
     /// <summary>
-    /// 충격파 데미지
-    /// </summary>
-    private static final int SHOCKWAVE_DAMAGE = 5;
-
-    /// <summary>
-    /// 넉백 거리 (칸)
-    /// </summary>
-    private static final int KNOCKBACK_DISTANCE = 5;
-
-    /// <summary>
-    /// 화면 흔들림 지속 시간 (밀리초)
-    /// </summary>
-    private static final int SHAKE_DURATION = 500;
-
-    /// <summary>
-    /// 화면 흔들림 강도 (칸)
-    /// </summary>
-    private static final int SHAKE_INTENSITY = 2;
-
-    /// <summary>
     /// 돌격수 생성
     /// </summary>
     public Assault(ColonistSpec spec, String name, char label,
@@ -51,10 +31,12 @@ public class Assault extends Colonist {
                 continue;
             }
 
+            final int SHOCKWAVE_DAMAGE = 5;
             enemy.takeDamage(SHOCKWAVE_DAMAGE);
 
             // 넉백 (오른쪽으로 밀어냄, 맵 밖으로 나가지 않도록 제한)
             if (enemy.isLiving()) {
+                final int KNOCKBACK_DISTANCE = 5;
                 int newCol = enemy.getPosition().getCol() + KNOCKBACK_DISTANCE;
                 if (newCol < GameWorld.WIDTH) {
                     enemy.getPosition().setCol(newCol);
@@ -63,6 +45,8 @@ public class Assault extends Colonist {
         }
 
         // 화면 흔들림 발동
+        final int SHAKE_DURATION = 500;
+        final int SHAKE_INTENSITY = 2;
         gameWorld.getScreenEffects().triggerScreenShake(SHAKE_DURATION, SHAKE_INTENSITY);
 
         gameWorld.getSfxPlayer().playShockwave();

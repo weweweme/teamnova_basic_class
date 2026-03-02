@@ -1,5 +1,8 @@
 package unit.enemy;
 
+import game.GameWorld;
+import game.Position;
+
 import java.util.HashMap;
 
 /// <summary>
@@ -121,5 +124,24 @@ public class EnemyFactory {
     /// </summary>
     public EnemySpec getSpec(EnemyType type) {
         return specs.get(type);
+    }
+
+    /// <summary>
+    /// 적 종류에 맞는 서브클래스 인스턴스를 생성
+    /// 특성(trait)에 따라 ChargerEnemy, ArmoredEnemy, RegeneratingEnemy를 반환
+    /// STANDARD 특성은 기본 Enemy를 반환
+    /// </summary>
+    public Enemy create(EnemyType type, Position position, GameWorld gameWorld) {
+        EnemySpec spec = specs.get(type);
+        switch (spec.getTrait()) {
+            case CHARGER:
+                return new ChargerEnemy(type, spec, position, gameWorld);
+            case ARMORED:
+                return new ArmoredEnemy(type, spec, position, gameWorld);
+            case REGENERATING:
+                return new RegeneratingEnemy(type, spec, position, gameWorld);
+            default:
+                return new Enemy(type, spec, position, gameWorld);
+        }
     }
 }

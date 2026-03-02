@@ -491,7 +491,7 @@ public class DayNightCycle extends Thread {
             }
 
             int col = GameWorld.WIDTH - 1;
-            Enemy enemy = new Enemy(type, spec, new Position(currentRow, col), gameWorld);
+            Enemy enemy = enemyFactory.create(type, new Position(currentRow, col), gameWorld);
             pendingSpawns.add(enemy);
 
             // 블록 높이 + 간격 1칸

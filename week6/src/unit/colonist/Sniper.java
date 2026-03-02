@@ -11,16 +11,6 @@ import unit.enemy.Enemy;
 public class Sniper extends Colonist {
 
     /// <summary>
-    /// 정밀 저격 데미지
-    /// </summary>
-    private static final int PRECISION_DAMAGE = 50;
-
-    /// <summary>
-    /// 이펙트 색상 (밝은 빨강)
-    /// </summary>
-    private static final int COLOR_BRIGHT_RED = 91;
-
-    /// <summary>
     /// 저격수 생성
     /// </summary>
     public Sniper(ColonistSpec spec, String name, char label,
@@ -52,6 +42,7 @@ public class Sniper extends Colonist {
         }
 
         // 대상에게 큰 데미지
+        final int PRECISION_DAMAGE = 50;
         strongest.takeDamage(PRECISION_DAMAGE);
 
         // 적 위치에 강조 이펙트 (중심 + 상하)
@@ -59,6 +50,7 @@ public class Sniper extends Colonist {
         int targetCol = strongest.getPosition().getCol();
         long now = System.currentTimeMillis();
 
+        final int COLOR_BRIGHT_RED = 91;
         gameWorld.addEffect(new HitEffect(targetRow, targetCol, now, '*', COLOR_BRIGHT_RED));
         if (targetRow - 1 >= 0) {
             gameWorld.addEffect(new HitEffect(targetRow - 1, targetCol, now, '*', COLOR_BRIGHT_RED));

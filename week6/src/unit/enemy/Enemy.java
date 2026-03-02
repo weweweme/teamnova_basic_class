@@ -12,6 +12,7 @@ import structure.Spike;
 /// 밤에 오른쪽에서 출현하여 좌측으로 이동하는 적
 /// 종류(EnemyType)에 따라 체력, 공격력, 속도, 외형이 다름
 /// 자기 스레드에서 매 틱마다 왼쪽으로 한 칸씩 이동
+/// 서브클래스(ChargerEnemy, ArmoredEnemy, RegeneratingEnemy)가 특성별 행동과 스킬을 구현
 /// </summary>
 public class Enemy extends GameEntity {
 
@@ -31,9 +32,9 @@ public class Enemy extends GameEntity {
     private long deathTime;
 
     /// <summary>
-    /// 재생 특성용 틱 카운터
+    /// 특수 스킬 발동용 틱 카운터
     /// </summary>
-    private int regenTick;
+    private int abilityTick;
 
     /// <summary>
     /// 지정한 종류, 속성, 위치, 맵으로 적 생성
@@ -52,37 +53,20 @@ public class Enemy extends GameEntity {
     @Override
     public void run() {
         while (isRunning() && isLiving()) {
+            // 서브클래스별 매 틱 처리 (재생 등)
+            onTick();
+
+            // 특수 스킬 카운터
+            tickAbility();
+
             int currentCol = getPosition().getCol();
             Barricade barricade = getGameWorld().getBarricade();
 
-            // 재생 특성: 일정 틱마다 체력 1 회복
-            if (spec.getTrait() == EnemyTrait.REGENERATING) {
-                regenTick++;
-
-                // 재생 간격 (틱 수)
-                final int REGEN_INTERVAL = 3;
-                if (regenTick >= REGEN_INTERVAL) {
-                    regenTick = 0;
-                    if (getHp() < getMaxHp()) {
-                        heal(1);
-                    }
-                }
-            }
-
-            // 이동량 결정 (돌진 특성: 바리케이드 근처에서 2칸 이동)
-            int moveAmount = 1;
+            // 이동량 결정 (서브클래스에서 오버라이드 가능)
+            int moveAmount = getMoveAmount();
 
             // 바리케이드 바로 오른쪽에서 멈추는 열
             final int BARRICADE_STOP = Barricade.COLUMN + 2;
-            if (spec.getTrait() == EnemyTrait.CHARGER) {
-
-                // 돌진 특성이 발동하는 바리케이드까지의 거리 (열 수)
-                final int CHARGE_RANGE = 8;
-                boolean nearBarricade = currentCol - BARRICADE_STOP <= CHARGE_RANGE;
-                if (nearBarricade) {
-                    moveAmount = 2;
-                }
-            }
 
             if (!barricade.isDestroyed()) {
                 // 바리케이드 건재: 바리케이드까지 이동 후 공격
@@ -128,6 +112,43 @@ public class Enemy extends GameEntity {
 
             Util.delay(spec.getTickDelay());
         }
+    }
+
+    /// <summary>
+    /// 매 틱마다 호출되는 훅 메서드
+    /// 서브클래스에서 오버라이드하여 패시브 효과(재생 등) 구현
+    /// </summary>
+    protected void onTick() {
+        // 기본 적은 매 틱 추가 행동 없음
+    }
+
+    /// <summary>
+    /// 이동량 반환 (기본 1칸)
+    /// 서브클래스에서 오버라이드하여 돌진 등 구현
+    /// </summary>
+    protected int getMoveAmount() {
+        return 1;
+    }
+
+    /// <summary>
+    /// 특수 스킬 카운터를 증가시키고, 간격에 도달하면 specialAbility() 발동
+    /// </summary>
+    private void tickAbility() {
+        abilityTick++;
+        final int ABILITY_INTERVAL = 8;
+        if (abilityTick < ABILITY_INTERVAL) {
+            return;
+        }
+        abilityTick = 0;
+        specialAbility();
+    }
+
+    /// <summary>
+    /// 주기적으로 발동하는 특수 스킬
+    /// 서브클래스에서 역할별 고유 효과를 구현
+    /// </summary>
+    protected void specialAbility() {
+        // 기본 적은 특수 스킬 없음
     }
 
     /// <summary>
@@ -178,17 +199,10 @@ public class Enemy extends GameEntity {
 
     /// <summary>
     /// 피해를 받아 체력 감소, 사망 시 시각 기록
-    /// 방어 특성은 받는 피해가 50% 감소
     /// </summary>
     @Override
     public void takeDamage(int damage) {
-        // 방어 특성: 피해 절반으로 감소 (최소 1)
-        int actualDamage = damage;
-        if (spec.getTrait() == EnemyTrait.ARMORED && damage > 1) {
-            actualDamage = damage / 2;
-        }
-
-        super.takeDamage(actualDamage);
+        super.takeDamage(damage);
 
         if (getHp() == 0 && deathTime == 0) {
             deathTime = System.currentTimeMillis();

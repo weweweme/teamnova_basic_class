@@ -1,6 +1,8 @@
 package unit.colonist;
 
 import game.GameWorld;
+import game.HitEffect;
+import structure.Barricade;
 import unit.enemy.Enemy;
 
 /// <summary>
@@ -25,11 +27,22 @@ public class Assault extends Colonist {
     protected void specialAttack(Enemy target) {
         GameWorld gameWorld = getGameWorld();
 
-        // 모든 살아있는 적에게 데미지 + 넉백
+        long now = System.currentTimeMillis();
+        final int COLOR_CYAN = 96;
+        final int COLOR_BRIGHT_WHITE = 97;
+
+        // 모든 살아있는 적에게 데미지 + 넉백 + 충격 이펙트
         for (Enemy enemy : gameWorld.getEnemies()) {
             if (!enemy.isLiving()) {
                 continue;
             }
+
+            // 적 위치에 충격 이펙트 (밀려나기 전)
+            int enemyRow = enemy.getPosition().getRow();
+            int enemyCol = enemy.getPosition().getCol();
+            String[] block = enemy.getSpec().getBlock();
+            int centerRow = enemyRow + block.length / 2;
+            gameWorld.addEffect(new HitEffect(centerRow, enemyCol, now, '!', COLOR_BRIGHT_WHITE));
 
             final int SHOCKWAVE_DAMAGE = 5;
             enemy.takeDamage(SHOCKWAVE_DAMAGE);
@@ -37,10 +50,24 @@ public class Assault extends Colonist {
             // 넉백 (오른쪽으로 밀어냄, 맵 밖으로 나가지 않도록 제한)
             if (enemy.isLiving()) {
                 final int KNOCKBACK_DISTANCE = 5;
-                int newCol = enemy.getPosition().getCol() + KNOCKBACK_DISTANCE;
+                int newCol = enemyCol + KNOCKBACK_DISTANCE;
                 if (newCol < GameWorld.WIDTH) {
                     enemy.getPosition().setCol(newCol);
                 }
+            }
+        }
+
+        // 바리케이드에서 전장까지 수평 충격파 라인 (3줄)
+        int waveStart = Barricade.COLUMN + 3;
+        int centerRow = GameWorld.HEIGHT / 2;
+        final int WAVE_SPACING = 3;
+        for (int c = waveStart; c < GameWorld.WIDTH; c += WAVE_SPACING) {
+            gameWorld.addEffect(new HitEffect(centerRow, c, now, '~', COLOR_CYAN));
+            if (centerRow - 3 >= 0) {
+                gameWorld.addEffect(new HitEffect(centerRow - 3, c, now, '~', COLOR_CYAN));
+            }
+            if (centerRow + 3 < GameWorld.HEIGHT) {
+                gameWorld.addEffect(new HitEffect(centerRow + 3, c, now, '~', COLOR_CYAN));
             }
         }
 

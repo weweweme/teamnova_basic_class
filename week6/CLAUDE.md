@@ -30,7 +30,10 @@ GameEntity (abstract, extends Thread — HP, 위치, 스레드 관리)
 │   ├── Gunner (속사 탄막 — 전체 적 소량 데미지)
 │   ├── Sniper (정밀 저격 — HP 최고 적 큰 데미지)
 │   └── Assault (충격파 — 전체 적 넉백 + 화면 흔들림)
-└── Enemy (특성 적용, 바리케이드/정착민 공격, 스파이크 충돌)
+└── Enemy (이동, 바리케이드/정착민 공격, 8틱마다 specialAbility 콜백)
+    ├── ChargerEnemy (돌진 질주 — 3칸 추가 전진 + 잔상)
+    ├── ArmoredEnemy (방패 충돌 — 바리케이드 2배 공격 또는 1회 피해 무효)
+    └── RegeneratingEnemy (치유 포자 — 모든 적 HP 회복)
 ```
 
 ```
@@ -52,7 +55,7 @@ NameProvider (30개 이름 풀에서 중복 없이 랜덤 선택)
 
 EnemyType (WOLF, SPIDER, SKELETON, ZOMBIE, RAT, SLIME, BEAR, BANDIT, SCORPION, ORC, DRAGON, GOLEM)
 EnemySpec (이름, 체력, 데미지, 이동속도, 보상, 특성, 블록)
-EnemyFactory (Type → Spec 매핑)
+EnemyFactory (Type → Spec 매핑, create()로 특성별 서브클래스 생성)
 
 EnemyTrait (STANDARD, CHARGER, ARMORED, REGENERATING)
 ```
@@ -61,11 +64,12 @@ EnemyTrait (STANDARD, CHARGER, ARMORED, REGENERATING)
 
 Gun이 공통 속성을 생성자로 받고, fire()만 서브클래스에서 구현.
 fireBullet()이 공통 발사 로직 (조준, 크리티컬, 넉백, 총알 생성).
+playFireSound()로 무기별 발사음을 다형적으로 재생 (샷건은 전용 폭발음).
 
 ```
-Gun (abstract — name, cost, fireInterval, damage, bulletSpeed, bulletChar, bulletColor)
+Gun (abstract — name, cost, fireInterval, damage, bulletSpeed, bulletChar, bulletColor, playFireSound)
 ├── Pistol   (단발, 비용 0, 기본 무기)
-├── Shotgun  (부채꼴 3발 ±2행, 비용 25)
+├── Shotgun  (부채꼴 3발 ±2행, 비용 25, 전용 발사음)
 ├── Rifle    (관통 단발, 비용 20)
 └── Minigun  (매 틱 단발, 비용 30)
 
@@ -123,6 +127,9 @@ graph TD
         CO --> SN[Sniper]
         CO --> AS[Assault]
         GE --> EN[Enemy]
+        EN --> CE[ChargerEnemy]
+        EN --> AE[ArmoredEnemy]
+        EN --> RE[RegeneratingEnemy]
         CS[ColonistState] --> WS[WanderingState]
         CS --> SS[ShootingState]
     end
@@ -225,17 +232,38 @@ classDiagram
 ```mermaid
 classDiagram
     GameEntity <|-- Enemy
+    Enemy <|-- ChargerEnemy
+    Enemy <|-- ArmoredEnemy
+    Enemy <|-- RegeneratingEnemy
     Enemy *-- EnemyType
     Enemy *-- EnemySpec
     EnemySpec *-- EnemyTrait
 
     EnemyFactory --> EnemyType
     EnemyFactory --> EnemySpec : 생성
+    EnemyFactory ..> Enemy : create()
 
     class Enemy {
         EnemyType type
         EnemySpec spec
+        int abilityTick
+        #getMoveAmount() 기본 1칸
+        #onTick() 빈 구현
+        #specialAbility() 빈 구현
+    }
+    class ChargerEnemy {
+        #getMoveAmount() 근접 시 2칸
+        #specialAbility() 돌진 질주
+    }
+    class ArmoredEnemy {
+        boolean shieldActive
+        +takeDamage() 피해 절반
+        #specialAbility() 방패 충돌
+    }
+    class RegeneratingEnemy {
         int regenTick
+        #onTick() 3틱마다 회복
+        #specialAbility() 치유 포자
     }
     class EnemySpec {
         String displayName
@@ -264,6 +292,7 @@ classDiagram
         int damage
         int bulletSpeed
         +fire()*
+        +playFireSound()
         #fireBullet()
     }
     class Bullet {
@@ -342,6 +371,7 @@ classDiagram
     }
     class SfxPlayer {
         +playShoot()
+        +playShotgunBlast()
         +playHit()
         +playCrit()
         +playExplosion()
@@ -350,6 +380,9 @@ classDiagram
         +playBarrage()
         +playPrecisionShot()
         +playShockwave()
+        +playChargeRush()
+        +playShieldBash()
+        +playHealingSpore()
     }
 ```
 
@@ -432,7 +465,7 @@ graph TD
 │  (바리케이드, 구조물, 정착민, 적, 총알, 이펙트)   │|||  (정보)  │
 ├─────────────── 구분선 (-) ──────────────────┤|||        │
 │              로그 영역 (8행)                  │|||        │
-│  (하단 정렬, 최신 로그가 아래쪽)                │|||        │
+│  (상단 정렬, 최신 로그가 위쪽 — 채팅 스타일)      │|||        │
 └─────────────────────────────────────────────┘└──────────┘
 ```
 
@@ -465,7 +498,7 @@ sequenceDiagram
     R->>R: flush() — 최종 화면 조립
     R->>PB: build() — 우측 패널 생성
     R->>R: 행 순회: 맵 버퍼 + ANSI 색상 + 흔들림 오프셋
-    R->>R: 행 순회: 구분선 + 로그 (하단 정렬)
+    R->>R: 행 순회: 구분선 + 로그 (상단 정렬, 최신 먼저)
     R->>R: 각 행에 ||| + 패널 텍스트 결합
     R->>Out: StringBuilder 일괄 출력 (깜빡임 방지)
 ```
@@ -479,7 +512,7 @@ graph TB
     Main["<b>Main</b><br/>진입점"]
     game["<b>game</b><br/>DayNightCycle, GameWorld<br/>ScreenEffects, BulletSystem<br/>Renderer, PanelBuilder<br/>InputHandler, WaveBuilder<br/>Supply, Cutscene<br/>BgmPlayer, SfxPlayer"]
     colonist["<b>unit/colonist</b><br/>Colonist, Gunner, Sniper, Assault<br/>ColonistState, WanderingState, ShootingState<br/>ColonistSpec, ColonistFactory<br/>ColonistSpawner, NameProvider"]
-    enemy["<b>unit/enemy</b><br/>Enemy, EnemySpec<br/>EnemyFactory, EnemyTrait"]
+    enemy["<b>unit/enemy</b><br/>Enemy, ChargerEnemy<br/>ArmoredEnemy, RegeneratingEnemy<br/>EnemySpec, EnemyFactory, EnemyTrait"]
     gun["<b>gun</b><br/>Gun, Bullet<br/>Pistol, Shotgun<br/>Rifle, Minigun"]
     structure["<b>structure</b><br/>Structure, Buildable<br/>Barricade, Trap<br/>Spike, Landmine, AmmoBox"]
     unit["<b>unit</b><br/>GameEntity, Position<br/>Direction"]
@@ -537,14 +570,14 @@ graph TB
 | 라이플 | 20 | 5틱 | 8 | 6 | 관통 단발 |
 | 미니건 | 30 | 1틱 | 2 | 4 | 매 틱 단발 |
 
-**적 특성**
+**적 특성 / 특수 스킬**
 
-| 특성 | 효과 |
-|------|------|
-| STANDARD | 기본 이동 |
-| CHARGER | 바리케이드 8칸 이내에서 2칸 이동 |
-| ARMORED | 받는 데미지 ÷2 |
-| REGENERATING | 3틱마다 +1 HP |
+| 특성 | 서브클래스 | 패시브 | 특수 스킬 (8틱마다) |
+|------|-----------|--------|-------------------|
+| STANDARD | Enemy (기본) | 없음 | 없음 |
+| CHARGER | ChargerEnemy | 바리케이드 8칸 이내 2칸 이동 | 돌진 질주 — 3칸 추가 전진 + 잔상 이펙트 |
+| ARMORED | ArmoredEnemy | 받는 데미지 ÷2 | 방패 충돌 — 바리케이드 2배 공격 / 방어 강화 (1회 피해 무효) |
+| REGENERATING | RegeneratingEnemy | 3틱마다 +1 HP | 치유 포자 — 모든 적 HP 5 회복 + 초록 이펙트 |
 
 **구조물**
 
@@ -593,9 +626,11 @@ graph TB
 - 웨이브 경고: 밤 시작 시 중앙 텍스트 (2초)
 
 **효과음**: javax.sound 사인파 합성 (8kHz/8bit/mono)
-- 발사 (800Hz/30ms), 명중 (300Hz/50ms), 치명타 (600→1200Hz/80ms)
-- 폭발 (80Hz/200ms), 사망 (400→100Hz/120ms), 웨이브 시작 (600Hz×2)
-- 속사 탄막 (1000→800Hz/150ms), 정밀 저격 (800→1600Hz/100ms), 충격파 (100Hz/300ms)
+- 발사 (800Hz/30ms), 샷건 (150Hz 폭발+600→200Hz 파열), 명중 (300Hz/50ms)
+- 치명타 (600→1200Hz/80ms), 폭발 (80Hz/200ms), 사망 (400→100Hz/120ms)
+- 웨이브 시작 (600Hz×2)
+- 정착민 스킬: 속사 탄막 (1000→800Hz/150ms), 정밀 저격 (800→1600Hz/100ms), 충격파 (100Hz/300ms)
+- 적 스킬: 돌진 질주 (500→1000Hz/80ms), 방패 충돌 (200Hz/150ms), 치유 포자 (400→600Hz/120ms)
 
 ## 협업 방식
 

@@ -45,18 +45,35 @@ public class Sniper extends Colonist {
         final int PRECISION_DAMAGE = 50;
         strongest.takeDamage(PRECISION_DAMAGE);
 
-        // 적 위치에 강조 이펙트 (중심 + 상하)
+        // 적 블록 중앙 좌표 계산
         int targetRow = strongest.getPosition().getRow();
         int targetCol = strongest.getPosition().getCol();
+        String[] block = strongest.getSpec().getBlock();
+        int centerRow = targetRow + block.length / 2;
+        int centerCol = targetCol + block[0].length() / 2;
         long now = System.currentTimeMillis();
 
         final int COLOR_BRIGHT_RED = 91;
-        gameWorld.addEffect(new HitEffect(targetRow, targetCol, now, '*', COLOR_BRIGHT_RED));
-        if (targetRow - 1 >= 0) {
-            gameWorld.addEffect(new HitEffect(targetRow - 1, targetCol, now, '*', COLOR_BRIGHT_RED));
+        final int COLOR_RED = 31;
+
+        // 적 중앙에 큰 십자 조준선 이펙트
+        gameWorld.addEffect(new HitEffect(centerRow, centerCol, now, 'X', COLOR_BRIGHT_RED));
+
+        // 상하좌우 조준선 (+ 모양)
+        int[][] crossOffsets = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-2, 0}, {2, 0}};
+        for (int[] offset : crossOffsets) {
+            int r = centerRow + offset[0];
+            int c = centerCol + offset[1];
+            if (r >= 0 && r < GameWorld.HEIGHT && c >= 0 && c < GameWorld.WIDTH) {
+                gameWorld.addEffect(new HitEffect(r, c, now, '+', COLOR_BRIGHT_RED));
+            }
         }
-        if (targetRow + 1 < GameWorld.HEIGHT) {
-            gameWorld.addEffect(new HitEffect(targetRow + 1, targetCol, now, '*', COLOR_BRIGHT_RED));
+
+        // 바리케이드에서 적까지 탄도선 (빨간 '-' 라인)
+        int trailStart = structure.Barricade.COLUMN + 3;
+        final int TRAIL_SPACING = 2;
+        for (int c = trailStart; c < centerCol; c += TRAIL_SPACING) {
+            gameWorld.addEffect(new HitEffect(centerRow, c, now, '-', COLOR_RED));
         }
 
         gameWorld.getSfxPlayer().playPrecisionShot();

@@ -8,7 +8,7 @@
 
 **게임**: "표류자들 - The Castaways" (타워 디펜스 서바이벌)
 - 3명의 정착민이 바리케이드를 사이에 두고 적 웨이브를 방어
-- 낮: 자원 관리 (수리, 치료, 무기 구매, 건설, 모집)
+- 낮: 자원 관리 (수리, 치료, 무기 구매, 건설, 모집, 승격)
 - 밤: 적 웨이브 전투 (자동 사격)
 - 승리 조건: 난이도별 목표 일수 생존 (쉬움 7일 / 보통 10일 / 어려움 15일)
 
@@ -26,7 +26,7 @@ ColonistState는 상태 패턴으로 낮(배회) ↔ 밤(사격) 행동 전환.
 
 ```
 GameEntity (abstract, extends Thread — HP, 위치, 스레드 관리)
-├── Colonist (무기, 상태 패턴, 사망 애니메이션)
+├── Colonist (무기, 상태 패턴, 승격, 사망 애니메이션)
 └── Enemy (특성 적용, 바리케이드/정착민 공격, 스파이크 충돌)
 ```
 
@@ -41,7 +41,7 @@ ColonistState (abstract — enter/update/exit)
 열거형은 순수 타입 식별자, 데이터는 Spec, 생성은 Factory가 담당.
 
 ```
-ColonistType (GUNNER, SNIPER, ASSAULT)
+ColonistType (BASIC, GUNNER, SNIPER, ASSAULT)
 ColonistSpec (이름, 체력, 발사배율, 치명타, 넉백, 블록 템플릿)
 ColonistFactory (Type → Spec 매핑)
 
@@ -64,7 +64,7 @@ Gun (abstract — name, cost, fireInterval, damage, bulletSpeed, bulletChar, bul
 ├── Rifle    (관통 단발, 비용 20)
 └── Minigun  (매 틱 단발, 비용 30)
 
-Bullet (데이터 클래스 — 시작/목표 좌표, 데미지, 관통, 넉백)
+Bullet (데이터 클래스 — 시작/목표 좌표, 데미지, 관통, 넉백, 치명타)
 ```
 
 **structure 패키지 (구조물)**
@@ -140,6 +140,214 @@ graph TD
     end
 ```
 
+### 패키지별 클래스 관계
+
+**entity 패키지**
+
+```mermaid
+classDiagram
+    Thread <|-- GameEntity
+    GameEntity *-- Position
+    GameEntity --> GameWorld : 참조
+
+    class GameEntity {
+        Position position
+        int hp
+    }
+    class Position {
+        int row
+        int col
+    }
+    class Direction {
+        <<enum>>
+        int deltaRow
+        int deltaCol
+    }
+```
+
+**entity/colonist 패키지**
+
+```mermaid
+classDiagram
+    GameEntity <|-- Colonist
+    ColonistState <|-- WanderingState
+    ColonistState <|-- ShootingState
+
+    Colonist *-- ColonistType
+    Colonist *-- ColonistSpec
+    Colonist *-- ColonistState
+    Colonist --> Gun : 장착
+
+    ColonistFactory --> ColonistType
+    ColonistFactory --> ColonistSpec : 생성
+
+    class Colonist {
+        ColonistType type
+        ColonistSpec spec
+        ColonistState currentState
+        Gun gun
+        char label
+        +promote()
+        +changeState()
+    }
+```
+
+**entity/enemy 패키지**
+
+```mermaid
+classDiagram
+    GameEntity <|-- Enemy
+    Enemy *-- EnemyType
+    Enemy *-- EnemySpec
+    EnemySpec *-- EnemyTrait
+
+    EnemyFactory --> EnemyType
+    EnemyFactory --> EnemySpec : 생성
+
+    class Enemy {
+        EnemyType type
+        EnemySpec spec
+        int regenTick
+    }
+    class EnemySpec {
+        String displayName
+        int maxHp
+        int damage
+        int tickDelay
+        int reward
+        EnemyTrait trait
+    }
+```
+
+**gun 패키지**
+
+```mermaid
+classDiagram
+    Gun <|-- Pistol
+    Gun <|-- Shotgun
+    Gun <|-- Rifle
+    Gun <|-- Minigun
+    Gun ..> Bullet : 생성
+
+    class Gun {
+        String name
+        int cost
+        int fireInterval
+        int damage
+        int bulletSpeed
+        +fire()*
+        #fireBullet()
+    }
+    class Bullet {
+        int startRow/Col
+        int targetRow/Col
+        int damage
+        boolean piercing
+        boolean crit
+        +advance()
+        +getRow()
+    }
+```
+
+**structure 패키지**
+
+```mermaid
+classDiagram
+    Structure <|-- Barricade
+    Structure <|-- Buildable
+    Buildable <|-- AmmoBox
+    Buildable <|-- Trap
+    Trap <|-- Spike
+    Trap <|-- Landmine
+
+    class Structure {
+        int column
+        int maxHp
+        int hp
+    }
+    class Buildable {
+        int cost
+    }
+    class Trap {
+        int damage
+    }
+    class Barricade {
+        int level
+        boolean invincible
+        +upgrade()
+    }
+    class Landmine {
+        +explode()
+    }
+```
+
+**game 패키지 — GameWorld 소유 관계**
+
+```mermaid
+classDiagram
+    GameWorld *-- BulletSystem
+    GameWorld *-- ScreenEffects
+    GameWorld *-- Supply
+    GameWorld *-- Barricade
+    GameWorld *-- SfxPlayer
+    GameWorld o-- "0..*" Colonist
+    GameWorld o-- "0..*" Enemy
+    GameWorld o-- "0..*" Spike
+    GameWorld o-- "0..*" Landmine
+    GameWorld o-- "0..*" AmmoBox
+    GameWorld o-- "0..*" HitEffect
+    GameWorld o-- "0..*" LogEntry
+
+    class GameWorld {
+        +addColonist()
+        +addEnemy()
+        +addBullet()
+        +advanceBullets()
+        +checkLandmines()
+        +addLog()
+    }
+    class ScreenEffects {
+        +triggerScreenShake()
+        +getScreenShakeOffset()
+        +triggerWaveWarning()
+        +isWaveWarningActive()
+    }
+    class SfxPlayer {
+        +playShoot()
+        +playHit()
+        +playCrit()
+        +playExplosion()
+        +playDeath()
+        +playWaveStart()
+    }
+```
+
+**game 패키지 — 시스템 간 참조**
+
+```mermaid
+classDiagram
+    Renderer --> GameWorld
+    Renderer --> PanelBuilder
+    Renderer --> DayNightCycle
+    Renderer --> InputHandler
+
+    InputHandler --> GameWorld
+    InputHandler --> Renderer
+    InputHandler --> DayNightCycle
+    InputHandler --> ColonistFactory
+
+    DayNightCycle --> GameWorld
+    DayNightCycle --> EnemyFactory
+    DayNightCycle *-- WaveBuilder
+    DayNightCycle --> DifficultySettings
+
+    PanelBuilder --> GameWorld
+    PanelBuilder --> InputHandler
+    PanelBuilder --> DayNightCycle
+
+    WaveBuilder --> DifficultySettings
+```
+
 ### 스레드 모델
 
 | 스레드 | 클래스 | 틱 간격 | 역할 |
@@ -181,6 +389,57 @@ graph TD
         CHECK -->|예| VICTORY[승리]
     end
 ```
+
+### 렌더링 파이프라인
+
+매 프레임(~100ms) Main 루프에서 `Renderer.render()`를 호출하여 화면을 갱신한다.
+
+**화면 구조** (한 줄에 좌측 + 패널 구분선 + 우측 패널)
+```
+┌─────────────────── 100칸 ───────────────────┐┌── 22칸 ──┐
+│              맵 버퍼 (20행)                  │|||  패널   │
+│  (바리케이드, 구조물, 정착민, 적, 총알, 이펙트)   │|||  (정보)  │
+├─────────────── 구분선 (-) ──────────────────┤|||        │
+│              로그 영역 (8행)                  │|||        │
+│  (하단 정렬, 최신 로그가 아래쪽)                │|||        │
+└─────────────────────────────────────────────┘└──────────┘
+```
+
+**렌더링 순서** (뒤에 그린 것이 앞에 보임)
+
+```mermaid
+sequenceDiagram
+    participant Main
+    participant R as Renderer
+    participant Buf as buffer/colorBuffer
+    participant PB as PanelBuilder
+    participant Out as System.out
+
+    Main->>R: render()
+    R->>Buf: clearBuffer() — 공백 + 색상 0으로 초기화
+
+    alt 게임오버
+        R->>Buf: drawGameOverScreen() — GAME OVER 아스키 아트
+    else 정상 플레이
+        R->>Buf: drawBarricade() — ## 세로벽, 피격/수리 색상
+        R->>Buf: drawSpikes() — ^ 노란색 세로
+        R->>Buf: drawLandmines() — @ 빨간색 세로
+        R->>Buf: drawAmmoBoxes() — = 초록색 세로
+        R->>Buf: drawColonists() — 블록 + 사망 3단계 애니메이션
+        R->>Buf: drawEnemies() — 블록 + HP 빨강 그라데이션
+        R->>Buf: drawBullets() — 무기별 문자/색상
+        R->>Buf: drawEffects() — 명중/치명타/폭발 이펙트
+    end
+
+    R->>R: flush() — 최종 화면 조립
+    R->>PB: build() — 우측 패널 생성
+    R->>R: 행 순회: 맵 버퍼 + ANSI 색상 + 흔들림 오프셋
+    R->>R: 행 순회: 구분선 + 로그 (하단 정렬)
+    R->>R: 각 행에 ||| + 패널 텍스트 결합
+    R->>Out: StringBuilder 일괄 출력 (깜빡임 방지)
+```
+
+**버퍼 방식의 핵심**: `char[20][100]` 버퍼와 `int[20][100]` 색상 버퍼에 모든 오브젝트를 그린 뒤, flush()에서 한 번에 `StringBuilder`로 조립하여 `System.out.print()`로 출력한다. 행별 `println()` 대신 전체를 한 번에 출력하여 터미널 깜빡임을 방지한다.
 
 ### 패키지 간 의존관계
 
@@ -226,9 +485,17 @@ graph TB
 
 | 유형 | 패시브 | 효과 |
 |------|--------|------|
+| 기본 (BASIC) | 없음 | 모집 시 기본 유형, 승격으로 전직 가능 |
 | 사격수 (GUNNER) | 속사 | 발사 간격 20% 감소 |
 | 저격수 (SNIPER) | 치명타 | 30% 확률로 데미지 2배 |
 | 돌격수 (ASSAULT) | 넉백 | 명중 시 적 1칸 밀어냄 |
+
+**모집 / 승격**
+
+| 명령 | 비용 | 효과 |
+|------|------|------|
+| 모집 | 40 | BASIC 정착민 즉시 합류 (최대 5명) |
+| 승격 | 30 | BASIC → GUNNER/SNIPER/ASSAULT 전직 |
 
 **무기**
 
@@ -280,7 +547,7 @@ graph TB
 
 **조작**: 터미널 raw 모드 (화살표 키 즉시 입력)
 - ↑↓: 정착민 선택
-- 1~5: 수리/무기/치료/건설/모집
+- 1~6: 수리/무기/치료/건설/모집/승격
 - n: 밤으로 건너뛰기
 - 0: 치트 모드
 - q: 종료/취소
@@ -290,6 +557,13 @@ graph TB
 - 적: HP 비율에 따라 위에서부터 빨간색 채움
 - 정착민: 사망 시 회색 → 페이드 아웃 (800ms)
 - 총알/이펙트: 무기별 색상
+- 치명타: 밝은 빨강 `*` 3칸 (상/중/하)
+- 지뢰 폭발: 다이아몬드 이펙트 + 화면 흔들림 (200ms)
+- 웨이브 경고: 밤 시작 시 중앙 텍스트 (2초)
+
+**효과음**: javax.sound 사인파 합성 (8kHz/8bit/mono)
+- 발사 (800Hz/30ms), 명중 (300Hz/50ms), 치명타 (600→1200Hz/80ms)
+- 폭발 (80Hz/200ms), 사망 (400→100Hz/120ms), 웨이브 시작 (600Hz×2)
 
 ## 협업 방식
 

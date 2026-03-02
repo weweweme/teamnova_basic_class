@@ -162,8 +162,9 @@ public class Renderer {
     }
 
     /// <summary>
-    /// 맵 전체를 화면에 출력
-    /// 버퍼를 초기화하고, 오브젝트를 그린 뒤 패널과 함께 출력
+    /// 매 프레임 호출되는 렌더링 진입점
+    /// 1) 버퍼 초기화 → 2) 오브젝트 그리기 (뒤→앞 순서) → 3) flush로 화면 출력
+    /// 게임오버 시에는 오브젝트 대신 GAME OVER 아스키 아트만 그림
     /// </summary>
     public void render() {
         clearBuffer();
@@ -185,7 +186,8 @@ public class Renderer {
     }
 
     /// <summary>
-    /// 버퍼를 공백으로 초기화
+    /// char 버퍼를 공백, 색상 버퍼를 0(기본색)으로 초기화
+    /// 매 프레임 시작 시 이전 프레임 잔상을 지움
     /// </summary>
     private void clearBuffer() {
         for (int row = 0; row < GameWorld.HEIGHT; row++) {
@@ -283,7 +285,11 @@ public class Renderer {
 
     /// <summary>
     /// 모든 정착민을 버퍼에 그림
-    /// 살아있으면 기본색, 죽었으면 회색 → 소멸 애니메이션
+    /// 살아있으면 기본색으로 블록 출력
+    /// 사망 시 3단계 애니메이션:
+    ///   Phase 1 (0~400ms): 전체 짙은 회색으로 정지
+    ///   Phase 2 (400~800ms): 아래부터 한 줄씩 소멸 (진행률에 비례)
+    ///   Phase 3 (800ms~): 완전 소멸, 아무것도 안 그림
     /// </summary>
     private void drawColonists() {
         long now = System.currentTimeMillis();
@@ -325,8 +331,9 @@ public class Renderer {
 
     /// <summary>
     /// 맵의 모든 적을 버퍼에 그림
-    /// 살아있는 적: HP 비율에 따라 위에서부터 빨간색
-    /// 죽은 적: 짙은 회색 → 아래부터 소멸 애니메이션
+    /// 살아있는 적: HP 손실 비율만큼 위쪽 행부터 빨간색으로 채움
+    ///   예) HP 60% → 블록 상단 40%가 빨강, 하단 60%는 기본색
+    /// 죽은 적: 정착민과 동일한 3단계 사망 애니메이션
     /// </summary>
     private void drawEnemies() {
         long now = System.currentTimeMillis();
@@ -376,7 +383,9 @@ public class Renderer {
     }
 
     /// <summary>
-    /// 날아가는 총알을 버퍼에 * 로 그림
+    /// 날아가는 총알을 버퍼에 그림
+    /// 총알의 현재 위치는 Bullet.getRow()가 발사→조준 직선 보간으로 계산
+    /// 무기별로 다른 문자와 색상 사용 (Bullet의 bulletChar, bulletColor)
     /// </summary>
     private void drawBullets() {
         for (Bullet bullet : gameWorld.getBullets()) {
@@ -393,7 +402,9 @@ public class Renderer {
     }
 
     /// <summary>
-    /// 명중 이펙트를 버퍼에 노란색 ! 로 그림
+    /// 일시적 이펙트를 버퍼에 그림 (200ms 지속)
+    /// 일반 명중: 노란색 !, 치명타: 밝은 빨강 * 3칸, 폭발: 다이아몬드 형태
+    /// GameWorld.getEffects()에서 만료되지 않은 이펙트만 반환
     /// </summary>
     private void drawEffects() {
         for (HitEffect effect : gameWorld.getEffects()) {
@@ -485,8 +496,9 @@ public class Renderer {
     }
 
     /// <summary>
-    /// 지정한 위치에 블록을 버퍼에 그림
-    /// 맵 범위를 벗어나는 부분은 무시
+    /// 지정한 위치에 블록(여러 줄 문자 배열)을 버퍼에 복사
+    /// 맵 경계(0~WIDTH, 0~HEIGHT)를 벗어나는 문자는 자동으로 잘림
+    /// 정착민/적의 외형 블록(String[])을 그릴 때 사용
     /// </summary>
     private void drawBlock(int startRow, int startCol, String[] block) {
         for (int blockRow = 0; blockRow < block.length; blockRow++) {
@@ -511,8 +523,9 @@ public class Renderer {
     }
 
     /// <summary>
-    /// 지정한 위치에 블록의 앞쪽 rows행을 버퍼에 그리면서 행별 색상도 기록
-    /// rowColors[i]가 0이 아니면 해당 행에 ANSI 색상 적용
+    /// drawBlock의 색상 버전 — 블록의 앞쪽 rows행만 그리면서 행마다 다른 색상 적용
+    /// rowColors[i]가 0이면 기본색, 0이 아니면 해당 행 전체에 ANSI 색상 코드 적용
+    /// 적 HP 표시(빨강 그라데이션)와 사망 애니메이션(회색 부분 렌더링)에 사용
     /// </summary>
     private void drawColoredBlock(int startRow, int startCol, String[] block, int[] rowColors, int rows) {
         for (int blockRow = 0; blockRow < rows; blockRow++) {
@@ -587,8 +600,15 @@ public class Renderer {
     }
 
     /// <summary>
-    /// 버퍼와 우측 패널을 합쳐서 화면에 한번에 출력
-    /// 맵 영역 + 구분선 + 로그 영역 모두 우측 패널과 나란히 표시
+    /// 최종 화면 조립 및 출력 — 모든 draw 완료 후 호출
+    /// 1) 커서를 터미널 맨 위로 이동 (ANSI \033[H)
+    /// 2) 행 순회하며 좌측(맵/구분선/로그) + 우측(패널)을 한 줄씩 조립
+    ///    - 맵 행: 화면 흔들림 오프셋 적용, 색상 버퍼로 ANSI 코드 삽입
+    ///    - 웨이브 경고 행: 버퍼 대신 한글 문자열 직접 삽입 (폭 정렬 유지)
+    ///    - 구분선 행: '-' 반복
+    ///    - 로그 행: 하단 정렬 (최신 로그가 아래쪽)
+    /// 3) StringBuilder 하나로 전체 화면을 조립한 뒤 System.out.print로 일괄 출력
+    ///    (행별 println 대신 한번에 출력하여 깜빡임 방지)
     /// </summary>
     private void flush() {
         panelBuilder.build(selectedIndex);

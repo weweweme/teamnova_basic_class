@@ -1,8 +1,8 @@
-import entity.colonist.Colonist;
-import entity.colonist.ColonistFactory;
-import entity.colonist.ColonistSpawner;
-import entity.enemy.EnemyFactory;
-import entity.enemy.EnemyType;
+import unit.colonist.Colonist;
+import unit.colonist.ColonistFactory;
+import unit.colonist.ColonistSpawner;
+import unit.enemy.EnemyFactory;
+import unit.enemy.EnemyType;
 import game.DayNightCycle;
 import game.GameWorld;
 import game.BgmPlayer;

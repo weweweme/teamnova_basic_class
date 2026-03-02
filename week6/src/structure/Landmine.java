@@ -3,7 +3,7 @@ package structure;
 import game.GameWorld;
 import game.HitEffect;
 
-import entity.enemy.Enemy;
+import unit.enemy.Enemy;
 
 import java.util.ArrayList;
 

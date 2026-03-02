@@ -19,7 +19,7 @@
 
 ### 상속 구조
 
-**entity 패키지 (생명체)**
+**unit 패키지 (유닛)**
 
 GameEntity가 Thread를 상속하여 각 정착민/적이 독립 스레드로 동작.
 ColonistState는 상태 패턴으로 낮(배회) ↔ 밤(사격) 행동 전환.
@@ -44,6 +44,8 @@ ColonistState (abstract — enter/update/exit)
 ColonistType (BASIC, GUNNER, SNIPER, ASSAULT)
 ColonistSpec (이름, 체력, 발사배율, 치명타, 넉백, 블록 템플릿)
 ColonistFactory (Type → Spec 매핑)
+ColonistSpawner (정착민 생성 — Spec/이름/라벨/무기/등록/시작 일괄 처리)
+NameProvider (30개 이름 풀에서 중복 없이 랜덤 선택)
 
 EnemyType (WOLF, SPIDER, SKELETON, ZOMBIE, RAT, SLIME, BEAR, BANDIT, SCORPION, ORC, DRAGON, GOLEM)
 EnemySpec (이름, 체력, 데미지, 이동속도, 보상, 특성, 블록)
@@ -111,7 +113,7 @@ Position (행/열 좌표)
 
 ```mermaid
 graph TD
-    subgraph "entity"
+    subgraph "unit"
         T[Thread] --> GE[GameEntity]
         GE --> CO[Colonist]
         GE --> EN[Enemy]
@@ -142,7 +144,7 @@ graph TD
 
 ### 패키지별 클래스 관계
 
-**entity 패키지**
+**unit 패키지**
 
 ```mermaid
 classDiagram
@@ -165,7 +167,7 @@ classDiagram
     }
 ```
 
-**entity/colonist 패키지**
+**unit/colonist 패키지**
 
 ```mermaid
 classDiagram
@@ -181,6 +183,10 @@ classDiagram
     ColonistFactory --> ColonistType
     ColonistFactory --> ColonistSpec : 생성
 
+    ColonistSpawner --> ColonistFactory : Spec 조회
+    ColonistSpawner --> NameProvider : 이름 생성
+    ColonistSpawner ..> Colonist : 생성
+
     class Colonist {
         ColonistType type
         ColonistSpec spec
@@ -190,9 +196,13 @@ classDiagram
         +promote()
         +changeState()
     }
+    class ColonistSpawner {
+        +spawn(GameWorld, Position)
+        +getSpec(ColonistType)
+    }
 ```
 
-**entity/enemy 패키지**
+**unit/enemy 패키지**
 
 ```mermaid
 classDiagram
@@ -334,7 +344,7 @@ classDiagram
     InputHandler --> GameWorld
     InputHandler --> Renderer
     InputHandler --> DayNightCycle
-    InputHandler --> ColonistFactory
+    InputHandler --> ColonistSpawner
 
     DayNightCycle --> GameWorld
     DayNightCycle --> EnemyFactory
@@ -447,11 +457,11 @@ sequenceDiagram
 graph TB
     Main["<b>Main</b><br/>진입점"]
     game["<b>game</b><br/>DayNightCycle, GameWorld<br/>ScreenEffects, BulletSystem<br/>Renderer, PanelBuilder<br/>InputHandler, WaveBuilder<br/>Supply, Cutscene<br/>BgmPlayer, SfxPlayer"]
-    colonist["<b>entity/colonist</b><br/>Colonist, ColonistState<br/>WanderingState, ShootingState<br/>ColonistSpec, ColonistFactory"]
-    enemy["<b>entity/enemy</b><br/>Enemy, EnemySpec<br/>EnemyFactory, EnemyTrait"]
+    colonist["<b>unit/colonist</b><br/>Colonist, ColonistState<br/>WanderingState, ShootingState<br/>ColonistSpec, ColonistFactory<br/>ColonistSpawner, NameProvider"]
+    enemy["<b>unit/enemy</b><br/>Enemy, EnemySpec<br/>EnemyFactory, EnemyTrait"]
     gun["<b>gun</b><br/>Gun, Bullet<br/>Pistol, Shotgun<br/>Rifle, Minigun"]
     structure["<b>structure</b><br/>Structure, Buildable<br/>Barricade, Trap<br/>Spike, Landmine, AmmoBox"]
-    entity["<b>entity</b><br/>GameEntity, Position<br/>Direction"]
+    unit["<b>unit</b><br/>GameEntity, Position<br/>Direction"]
 
     Main --> game
     Main --> colonist
@@ -462,12 +472,12 @@ graph TB
     game --> gun
     game --> structure
 
-    colonist --> entity
+    colonist --> unit
     colonist --> gun
     colonist --> structure
     colonist --> game
 
-    enemy --> entity
+    enemy --> unit
     enemy --> structure
     enemy --> game
 

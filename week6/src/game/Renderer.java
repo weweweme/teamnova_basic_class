@@ -1,8 +1,8 @@
 package game;
 
 import gun.Bullet;
-import entity.colonist.Colonist;
-import entity.enemy.Enemy;
+import unit.colonist.Colonist;
+import unit.enemy.Enemy;
 import structure.AmmoBox;
 import structure.Barricade;
 import game.HitEffect;

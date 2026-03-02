@@ -1,4 +1,4 @@
-package entity.enemy;
+package unit.enemy;
 
 /// <summary>
 /// 적 한 종류의 속성 데이터를 담는 클래스

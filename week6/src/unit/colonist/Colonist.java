@@ -1,9 +1,9 @@
-package entity.colonist;
+package unit.colonist;
 
 import gun.Gun;
 import gun.Pistol;
 
-import entity.GameEntity;
+import unit.GameEntity;
 import game.Position;
 import game.Util;
 import game.GameWorld;

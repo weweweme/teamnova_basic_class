@@ -1,4 +1,4 @@
-package entity.colonist;
+package unit.colonist;
 
 /// <summary>
 /// 정착민 유형을 나타내는 열거형

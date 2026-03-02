@@ -1,4 +1,4 @@
-package entity.enemy;
+package unit.enemy;
 
 import java.util.HashMap;
 

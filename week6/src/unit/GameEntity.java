@@ -1,4 +1,4 @@
-package entity;
+package unit;
 
 import game.Position;
 import game.GameWorld;

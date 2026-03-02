@@ -1,8 +1,8 @@
 package gun;
 
-import entity.colonist.Colonist;
+import unit.colonist.Colonist;
 
-import entity.enemy.Enemy;
+import unit.enemy.Enemy;
 import structure.Barricade;
 import game.GameWorld;
 

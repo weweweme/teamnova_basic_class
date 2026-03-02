@@ -1,4 +1,4 @@
-package entity.colonist;
+package unit.colonist;
 
 /// <summary>
 /// 정착민 한 유형의 속성 데이터를 담는 클래스

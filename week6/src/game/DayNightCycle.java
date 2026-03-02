@@ -1,12 +1,12 @@
 package game;
 
-import entity.colonist.Colonist;
-import entity.enemy.Enemy;
-import entity.enemy.EnemyFactory;
-import entity.enemy.EnemySpec;
-import entity.enemy.EnemyType;
-import entity.colonist.ShootingState;
-import entity.colonist.WanderingState;
+import unit.colonist.Colonist;
+import unit.enemy.Enemy;
+import unit.enemy.EnemyFactory;
+import unit.enemy.EnemySpec;
+import unit.enemy.EnemyType;
+import unit.colonist.ShootingState;
+import unit.colonist.WanderingState;
 
 import java.util.ArrayList;
 import java.util.Collections;

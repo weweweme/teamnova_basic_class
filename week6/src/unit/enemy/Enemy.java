@@ -1,7 +1,7 @@
-package entity.enemy;
+package unit.enemy;
 
-import entity.GameEntity;
-import entity.colonist.Colonist;
+import unit.GameEntity;
+import unit.colonist.Colonist;
 import game.Position;
 import game.Util;
 import structure.Barricade;

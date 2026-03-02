@@ -1,4 +1,4 @@
-package entity.colonist;
+package unit.colonist;
 
 import game.GameWorld;
 import game.Position;

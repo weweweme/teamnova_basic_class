@@ -1,4 +1,4 @@
-package entity.colonist;
+package unit.colonist;
 
 import java.util.ArrayList;
 import java.util.Random;

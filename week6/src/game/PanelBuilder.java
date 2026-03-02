@@ -1,6 +1,6 @@
 package game;
 
-import entity.colonist.Colonist;
+import unit.colonist.Colonist;
 import structure.Barricade;
 
 import java.util.ArrayList;

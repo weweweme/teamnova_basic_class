@@ -10,7 +10,10 @@
       "WebSearch",
       "Bash(curl:*)",
       "Bash(grep:*)",
-      "Bash(java:*)"
+      "Bash(java:*)",
+      "Bash(while read f)",
+      "Bash(do sed -i '' 's/entity\\\\./unit\\\\./g; s/package entity;/package unit;/g; s/package entity$/package unit/' \"$f\")",
+      "Bash(done)"
     ]
   }
 }

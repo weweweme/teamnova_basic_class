@@ -1,4 +1,4 @@
-package entity.enemy;
+package unit.enemy;
 
 /// <summary>
 /// 적의 행동 특성을 정의하는 열거형

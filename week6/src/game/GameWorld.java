@@ -7,10 +7,10 @@ import structure.Landmine;
 import structure.AmmoBox;
 
 import gun.Bullet;
-import entity.colonist.Colonist;
-import entity.colonist.NameProvider;
-import entity.enemy.Enemy;
-import entity.enemy.EnemyType;
+import unit.colonist.Colonist;
+import unit.colonist.NameProvider;
+import unit.enemy.Enemy;
+import unit.enemy.EnemyType;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;

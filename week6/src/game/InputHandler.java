@@ -1,15 +1,15 @@
 package game;
 
-import entity.colonist.Colonist;
-import entity.colonist.ColonistSpawner;
-import entity.colonist.ColonistSpec;
-import entity.colonist.ColonistType;
+import unit.colonist.Colonist;
+import unit.colonist.ColonistSpawner;
+import unit.colonist.ColonistSpec;
+import unit.colonist.ColonistType;
 import gun.Gun;
 import gun.Pistol;
 import gun.Shotgun;
 import gun.Rifle;
 import gun.Minigun;
-import entity.enemy.Enemy;
+import unit.enemy.Enemy;
 import structure.AmmoBox;
 import structure.Barricade;
 import structure.Landmine;

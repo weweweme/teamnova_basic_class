@@ -1,6 +1,6 @@
 package game;
 
-import entity.enemy.EnemyType;
+import unit.enemy.EnemyType;
 
 import java.util.ArrayList;
 

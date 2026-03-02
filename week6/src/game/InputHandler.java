@@ -670,6 +670,7 @@ public class InputHandler {
     /// 키 하나를 읽어서 반환
     /// 화살표 키는 KEY_UP/DOWN/LEFT/RIGHT 상수로 반환
     /// Enter는 KEY_ENTER, q는 KEY_QUIT 반환
+    /// 한글 자모(ㅂ 등)는 대응하는 영문 키로 변환
     /// 그 외 키는 문자 코드 그대로 반환
     /// </summary>
     public static int readKey() {
@@ -680,6 +681,8 @@ public class InputHandler {
         final int ENTER_WINDOWS = 13;
         // 화살표 키 후속 바이트 대기 시간 (밀리초)
         final int ARROW_KEY_DELAY = 10;
+        // 멀티바이트 UTF-8 시작 바이트의 최솟값 (2바이트 시작: 110xxxxx)
+        final int UTF8_MULTIBYTE_START = 0xC0;
 
         // 주의: System.in.read()와 Thread.sleep()은 checked exception이라 try-catch 필수 (컴파일러 요구)
         try {
@@ -711,6 +714,15 @@ public class InputHandler {
                 return INVALID_INPUT;
             }
 
+            // 멀티바이트 UTF-8 처리 (한글 IME 활성 시 ㅂ→q 등 변환)
+            if (ch >= UTF8_MULTIBYTE_START) {
+                ch = decodeKoreanKey(ch);
+                if (ch == INVALID_INPUT) {
+                    return INVALID_INPUT;
+                }
+                // 매핑된 영문 키를 아래 로직에서 계속 처리
+            }
+
             // Enter 키 (운영체제에 따라 다른 코드가 올 수 있음)
             if (ch == ENTER_UNIX || ch == ENTER_WINDOWS) {
                 return KEY_ENTER;
@@ -726,6 +738,94 @@ public class InputHandler {
         } catch (Exception e) {
             // IOException, InterruptedException 등 (컴파일러 요구사항)
             return INVALID_INPUT;
+        }
+    }
+
+    /// <summary>
+    /// 멀티바이트 UTF-8 문자를 읽어 한글 자모이면 대응하는 영문 키로 변환
+    /// 한글 자모가 아니면 INVALID_INPUT 반환
+    /// </summary>
+    private static int decodeKoreanKey(int firstByte) {
+        // 주의: System.in.read()는 checked exception이라 try-catch 필수 (컴파일러 요구)
+        try {
+            // UTF-8 후속 바이트 수 결정 (첫 바이트의 상위 비트 패턴으로 판단)
+            // 4바이트 시작 (11110xxx)
+            final int UTF8_4BYTE = 0xF0;
+            // 3바이트 시작 (1110xxxx) — 한글 자모가 여기 해당
+            final int UTF8_3BYTE = 0xE0;
+
+            int bytesRemaining;
+            int codePoint;
+            if (firstByte >= UTF8_4BYTE) {
+                bytesRemaining = 3;
+                codePoint = firstByte & 0x07;
+            } else if (firstByte >= UTF8_3BYTE) {
+                bytesRemaining = 2;
+                codePoint = firstByte & 0x0F;
+            } else {
+                bytesRemaining = 1;
+                codePoint = firstByte & 0x1F;
+            }
+
+            // 후속 바이트 읽기 (각 바이트의 하위 6비트를 코드포인트에 결합)
+            for (int i = 0; i < bytesRemaining; i++) {
+                int next = System.in.read();
+                codePoint = (codePoint << 6) | (next & 0x3F);
+            }
+
+            return mapKoreanToEnglish(codePoint);
+        } catch (Exception e) {
+            // IOException (컴파일러 요구사항)
+            return INVALID_INPUT;
+        }
+    }
+
+    /// <summary>
+    /// 한글 자모 유니코드를 2벌식 자판 기준 영문 키로 변환
+    /// 한글 자모가 아니면 INVALID_INPUT 반환
+    /// </summary>
+    private static int mapKoreanToEnglish(int codePoint) {
+        switch (codePoint) {
+            // 기본 자음 (ㄱ~ㅎ)
+            case 0x3131: return 'r';  // ㄱ
+            case 0x3134: return 's';  // ㄴ
+            case 0x3137: return 'e';  // ㄷ
+            case 0x3139: return 'f';  // ㄹ
+            case 0x3141: return 'a';  // ㅁ
+            case 0x3142: return 'q';  // ㅂ
+            case 0x3145: return 't';  // ㅅ
+            case 0x3147: return 'd';  // ㅇ
+            case 0x3148: return 'w';  // ㅈ
+            case 0x314A: return 'c';  // ㅊ
+            case 0x314B: return 'z';  // ㅋ
+            case 0x314C: return 'x';  // ㅌ
+            case 0x314D: return 'v';  // ㅍ
+            case 0x314E: return 'g';  // ㅎ
+
+            // 쌍자음 (Shift 입력)
+            case 0x3132: return 'R';  // ㄲ
+            case 0x3138: return 'E';  // ㄸ
+            case 0x3143: return 'Q';  // ㅃ
+            case 0x3146: return 'T';  // ㅆ
+            case 0x3149: return 'W';  // ㅉ
+
+            // 모음 (ㅏ~ㅣ)
+            case 0x314F: return 'k';  // ㅏ
+            case 0x3150: return 'o';  // ㅐ
+            case 0x3151: return 'i';  // ㅑ
+            case 0x3152: return 'O';  // ㅒ
+            case 0x3153: return 'j';  // ㅓ
+            case 0x3154: return 'p';  // ㅔ
+            case 0x3155: return 'u';  // ㅕ
+            case 0x3156: return 'P';  // ㅖ
+            case 0x3157: return 'h';  // ㅗ
+            case 0x315B: return 'y';  // ㅛ
+            case 0x315C: return 'n';  // ㅜ
+            case 0x3160: return 'b';  // ㅠ
+            case 0x3161: return 'm';  // ㅡ
+            case 0x3163: return 'l';  // ㅣ
+
+            default: return INVALID_INPUT;
         }
     }
 }

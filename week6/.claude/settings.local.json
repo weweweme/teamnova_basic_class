@@ -13,7 +13,9 @@
       "Bash(java:*)",
       "Bash(while read f)",
       "Bash(do sed -i '' 's/entity\\\\./unit\\\\./g; s/package entity;/package unit;/g; s/package entity$/package unit/' \"$f\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: 게임 종료 후 타이틀 화면으로 돌아가기\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")"
     ]
   }
 }

@@ -191,6 +191,7 @@ public class PanelBuilder {
                 int buffLv = gameWorld.getEnemyBuffLevel();
                 panelLines.add(" 7: 적 강화 (Lv" + buffLv + ")");
                 panelLines.add(" 8: 적 약화");
+                panelLines.add(" 9: 정착민 즉사");
                 panelLines.add(" q: 닫기");
             } else if (inputHandler.isShopMode()) {
                 // 무기 상점 모드

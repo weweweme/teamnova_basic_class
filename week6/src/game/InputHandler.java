@@ -591,6 +591,7 @@ public class InputHandler {
         final int KEY_ALL_MINIGUN = '6';
         final int KEY_ENEMY_BUFF = '7';
         final int KEY_ENEMY_DEBUFF = '8';
+        final int KEY_KILL_COLONIST = '9';
 
         switch (key) {
             case KEY_SUPPLY:
@@ -656,6 +657,21 @@ public class InputHandler {
                 int debuffLv = gameWorld.getEnemyBuffLevel();
                 gameWorld.addLog(">> [치트] 적 약화 Lv" + debuffLv
                         + " (x" + String.format("%.1f", gameWorld.getEnemyBuffMultiplier()) + ")");
+                cheatMode = false;
+                break;
+            case KEY_KILL_COLONIST:
+                // 살아있는 정착민 중 랜덤 1명 즉사
+                java.util.ArrayList<Colonist> alive = new java.util.ArrayList<>();
+                for (Colonist colonist : gameWorld.getColonists()) {
+                    if (colonist.isLiving()) {
+                        alive.add(colonist);
+                    }
+                }
+                if (!alive.isEmpty()) {
+                    Colonist victim = alive.get(Util.rand(alive.size()));
+                    victim.takeDamage(99999);
+                    gameWorld.addLog(">> [치트] " + victim.getColonistName() + " 즉사!");
+                }
                 cheatMode = false;
                 break;
             case KEY_QUIT:

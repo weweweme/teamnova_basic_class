@@ -9,7 +9,11 @@ import structure.AmmoBox;
 import gun.Bullet;
 import unit.colonist.Colonist;
 import unit.colonist.NameProvider;
+import unit.colonist.ShootingState;
+import unit.colonist.WanderingState;
 import unit.enemy.Enemy;
+import unit.enemy.EnemyFactory;
+import unit.enemy.EnemySpec;
 import unit.enemy.EnemyType;
 
 import java.util.ArrayDeque;
@@ -82,6 +86,11 @@ public class GameWorld {
     /// 합성 효과음 재생기
     /// </summary>
     private final SfxPlayer sfxPlayer;
+
+    /// <summary>
+    /// 적 종류별 속성 데이터를 제공하는 팩토리
+    /// </summary>
+    private final EnemyFactory enemyFactory = new EnemyFactory();
 
     /// <summary>
     /// 정착민 이름 제공기 (중복 없는 랜덤 이름)
@@ -336,10 +345,88 @@ public class GameWorld {
     }
 
     /// <summary>
+    /// 살아있는 모든 정착민을 사격 상태로 전환
+    /// 각 정착민마다 별도 상태 객체 생성 (tickCount 등 개별 관리)
+    /// </summary>
+    public void switchColonistsToShooting(boolean instant) {
+        for (Colonist colonist : colonists) {
+            if (colonist.isLiving()) {
+                colonist.changeState(new ShootingState(instant));
+            }
+        }
+    }
+
+    /// <summary>
+    /// 살아있는 모든 정착민을 배회 상태로 전환
+    /// </summary>
+    public void switchColonistsToWandering() {
+        for (Colonist colonist : colonists) {
+            if (colonist.isLiving()) {
+                colonist.changeState(new WanderingState());
+            }
+        }
+    }
+
+    /// <summary>
     /// 적 추가
     /// </summary>
     public void addEnemy(Enemy enemy) {
         enemies.add(enemy);
+    }
+
+    /// <summary>
+    /// 적을 맵에 배치하고 스레드 시작
+    /// </summary>
+    public void deployEnemy(Enemy enemy) {
+        enemies.add(enemy);
+        enemy.start();
+    }
+
+    /// <summary>
+    /// 웨이브 적 목록(EnemyType)을 받아 Enemy 인스턴스를 생성
+    /// 맵 중앙 기준으로 블록 높이 + 간격 1칸씩 배치
+    /// </summary>
+    public ArrayList<Enemy> createWaveEnemies(ArrayList<EnemyType> spawnList) {
+        ArrayList<Enemy> created = new ArrayList<>();
+        if (spawnList.isEmpty()) {
+            return created;
+        }
+
+        // 전체 필요 높이 계산 (블록 높이 합 + 간격)
+        int totalHeight = 0;
+        for (EnemyType type : spawnList) {
+            totalHeight += enemyFactory.getSpec(type).getBlock().length;
+        }
+        // 적 사이 간격 (마지막 적 아래는 제외)
+        totalHeight += spawnList.size() - 1;
+
+        // 중앙 기준으로 시작 행 계산
+        int startRow = (HEIGHT - totalHeight) / 2;
+        if (startRow < 0) {
+            startRow = 0;
+        }
+
+        int currentRow = startRow;
+        for (EnemyType type : spawnList) {
+            EnemySpec spec = enemyFactory.getSpec(type);
+            int blockHeight = spec.getBlock().length;
+
+            // 맵 높이를 넘으면 맨 위부터 다시 배치
+            int maxRow = HEIGHT - blockHeight;
+            if (currentRow > maxRow) {
+                currentRow = 0;
+            }
+
+            int col = WIDTH - 1;
+            Enemy enemy = enemyFactory.create(type, new Position(currentRow, col), this);
+            enemy.applySpawnBuff();
+            created.add(enemy);
+
+            // 블록 높이 + 간격 1칸
+            currentRow += blockHeight + 1;
+        }
+
+        return created;
     }
 
     /// <summary>
@@ -391,6 +478,40 @@ public class GameWorld {
     }
 
     /// <summary>
+    /// 밤 종료 결과 재사용 버퍼 [일일보급, 무피해보너스]
+    /// </summary>
+    private final int[] nightEndResult = new int[2];
+
+    /// <summary>
+    /// 밤 종료 시 정리 작업: 죽은 적 제거, 파괴된 가시덫 제거, 보급품 지급
+    /// 반환: [일일보급, 무피해보너스]
+    /// </summary>
+    public int[] endNight(DifficultySettings settings, int barricadeHpAtNightStart) {
+        removeDeadEnemies();
+        removeDestroyedSpikes();
+
+        // 매일 자동 지급되는 보급품 양
+        final int DAILY_SUPPLY = 20;
+        int dailySupply = settings.applySupply(DAILY_SUPPLY);
+        supply.add(dailySupply);
+
+        // 무피해 생존 보너스: 바리케이드가 피해를 받지 않았으면 추가 보급
+        boolean perfectNight = barricade.getHp() >= barricadeHpAtNightStart;
+
+        // 무피해 생존 보너스 보급품
+        final int PERFECT_BONUS = 10;
+        int perfectBonus = 0;
+        if (perfectNight) {
+            perfectBonus = PERFECT_BONUS;
+            supply.add(perfectBonus);
+        }
+
+        nightEndResult[0] = dailySupply;
+        nightEndResult[1] = perfectBonus;
+        return nightEndResult;
+    }
+
+    /// <summary>
     /// 처치한 적 수 반환
     /// </summary>
     public int getEnemiesKilled() {
@@ -419,8 +540,15 @@ public class GameWorld {
     }
 
     /// <summary>
+    /// 매 렌더 틱마다 호출: 총알 전진 + 지뢰 폭발 처리
+    /// </summary>
+    public void updatePhysics() {
+        advanceBullets();
+        checkLandmines();
+    }
+
+    /// <summary>
     /// 모든 총알을 전진시키고, 적과 충돌 검사
-    /// Main 루프에서 매 렌더 틱마다 호출
     /// </summary>
     public synchronized void advanceBullets() {
         bulletSystem.advanceBullets(enemies, effects, this);
@@ -486,6 +614,13 @@ public class GameWorld {
     /// </summary>
     public SfxPlayer getSfxPlayer() {
         return sfxPlayer;
+    }
+
+    /// <summary>
+    /// 적 팩토리 반환
+    /// </summary>
+    public EnemyFactory getEnemyFactory() {
+        return enemyFactory;
     }
 
     /// <summary>

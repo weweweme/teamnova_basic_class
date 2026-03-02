@@ -1,7 +1,6 @@
 import unit.colonist.Colonist;
 import unit.colonist.ColonistFactory;
 import unit.colonist.ColonistSpawner;
-import unit.enemy.EnemyFactory;
 import unit.enemy.EnemyType;
 import game.DayNightCycle;
 import game.GameWorld;
@@ -28,7 +27,6 @@ public class Main {
         SfxPlayer sfxPlayer = new SfxPlayer();
         ColonistFactory colonistFactory = new ColonistFactory();
         ColonistSpawner colonistSpawner = new ColonistSpawner(colonistFactory);
-        EnemyFactory enemyFactory = new EnemyFactory();
 
         // ===== 게임 반복 (타이틀 → 플레이 → 통계 → 타이틀 ...) =====
         while (true) {
@@ -163,8 +161,7 @@ public class Main {
                 // 일정 간격마다 총알 전진 + 화면 갱신
                 long now = System.currentTimeMillis();
                 if (now - lastRenderTime >= RENDER_INTERVAL) {
-                    gameWorld.advanceBullets();
-                    gameWorld.checkLandmines();
+                    gameWorld.updatePhysics();
                     renderer.render();
                     lastRenderTime = now;
                 }
@@ -211,7 +208,7 @@ public class Main {
                 for (EnemyType type : EnemyType.values()) {
                     int count = killsByType.getOrDefault(type, 0);
                     if (count > 0) {
-                        stats.append("  " + enemyFactory.getSpec(type).getDisplayName() + ": " + count + "마리\n");
+                        stats.append("  " + gameWorld.getEnemyFactory().getSpec(type).getDisplayName() + ": " + count + "마리\n");
                     }
                 }
             }

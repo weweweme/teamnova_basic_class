@@ -479,36 +479,16 @@ graph TD
 **렌더링 순서** (뒤에 그린 것이 앞에 보임)
 
 ```mermaid
-sequenceDiagram
-    participant Main
-    participant R as Renderer
-    participant Buf as buffer/colorBuffer
-    participant PB as PanelBuilder
-    participant Out as System.out
-
-    Main->>R: render()
-    R->>Buf: clearBuffer() — 공백 + 색상 0으로 초기화
-
-    alt 게임오버
-        R->>Buf: drawGameOverScreen() — GAME OVER 아스키 아트
-    else 정상 플레이
-        R->>Buf: drawBarricade() — ## 세로벽, 피격/수리 색상
-        R->>Buf: drawSpikes() — ^ 노란색 단일 셀
-        R->>Buf: drawLandmines() — @ 빨간색 단일 셀
-        R->>Buf: drawAmmoBoxes() — = 초록색 단일 셀
-        R->>Buf: drawColonists() — 블록 + 사망 3단계 애니메이션
-        R->>Buf: drawEnemies() — 속도순 정렬 (느린→빠른), 블록 + HP 빨강 그라데이션
-        R->>Buf: drawBullets() — 무기별 문자/색상
-        R->>Buf: drawEffects() — 명중/치명타/폭발 이펙트
-        R->>Buf: drawPlacementCursor() — 배치 모드 커서 (500ms 깜빡임)
-    end
-
-    R->>R: flush() — 최종 화면 조립
-    R->>PB: build() — 우측 패널 생성
-    R->>R: 행 순회: 맵 버퍼 + ANSI 색상 + 흔들림 오프셋
-    R->>R: 행 순회: 구분선 + 로그 (상단 정렬, 최신 먼저)
-    R->>R: 각 행에 ||| + 패널 텍스트 결합
-    R->>Out: StringBuilder 일괄 출력 (깜빡임 방지)
+graph TD
+    R["render() - 100ms마다 호출"] --> CLEAR["clearBuffer - 전체 공백으로 초기화"]
+    CLEAR --> D1[drawBarricade]
+    D1 --> D2[drawSpikes / drawLandmines / drawAmmoBoxes]
+    D2 --> D3[drawColonists]
+    D3 --> D4["drawEnemies (느린순, 빠른순 정렬)"]
+    D4 --> D5[drawBullets]
+    D5 --> D6[drawEffects]
+    D6 --> D7[drawPlacementCursor]
+    D7 --> FLUSH["flush - buffer를 System.out에 출력"]
 ```
 
 **버퍼 방식의 핵심**: `char[20][100]` 버퍼와 `int[20][100]` 색상 버퍼에 모든 오브젝트를 그린 뒤, flush()에서 한 번에 `StringBuilder`로 조립하여 `System.out.print()`로 출력한다. 행별 `println()` 대신 전체를 한 번에 출력하여 터미널 깜빡임을 방지한다.

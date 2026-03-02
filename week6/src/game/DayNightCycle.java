@@ -2,11 +2,7 @@ package game;
 
 import unit.colonist.Colonist;
 import unit.enemy.Enemy;
-import unit.enemy.EnemyFactory;
-import unit.enemy.EnemySpec;
 import unit.enemy.EnemyType;
-import unit.colonist.ShootingState;
-import unit.colonist.WanderingState;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,11 +28,6 @@ public class DayNightCycle extends Thread {
     /// 이 주기가 관리하는 맵 (적 스폰/제거용)
     /// </summary>
     private final GameWorld gameWorld;
-
-    /// <summary>
-    /// 적 종류별 속성 데이터를 제공하는 팩토리
-    /// </summary>
-    private final EnemyFactory enemyFactory;
 
     /// <summary>
     /// 난이도 설정 (적 수/보급/승리 일차 조절)
@@ -133,7 +124,6 @@ public class DayNightCycle extends Thread {
     /// </summary>
     public DayNightCycle(GameWorld gameWorld, DifficultySettings settings) {
         this.gameWorld = gameWorld;
-        this.enemyFactory = new EnemyFactory();
         this.settings = settings;
         this.waveBuilder = new WaveBuilder(settings);
         this.day = 1;
@@ -164,8 +154,7 @@ public class DayNightCycle extends Thread {
                 // 밤: 대기 중인 적 시간차 출현
                 if (!pendingSpawns.isEmpty() && now >= nextSpawnTime) {
                     Enemy enemy = pendingSpawns.remove(0);
-                    gameWorld.addEnemy(enemy);
-                    enemy.start();
+                    gameWorld.deployEnemy(enemy);
 
                     // 다음 스폰까지 랜덤 딜레이 (MIN ~ MAX 사이)
                     // 적 시간차 스폰 최대 간격 (밀리초)
@@ -185,28 +174,18 @@ public class DayNightCycle extends Thread {
                     elapsedInPhase = 0;
                     barricadeBroken = false;
 
-                    // 매일 자동 지급되는 보급품 양
-                    final int DAILY_SUPPLY = 20;
-                    int dailySupply = settings.applySupply(DAILY_SUPPLY);
-                    gameWorld.getSupply().add(dailySupply);
-                    gameWorld.removeDestroyedSpikes();
+                    // 밤 종료 정리: 죽은 적 제거, 가시덫 정리, 보급 지급
+                    int[] result = gameWorld.endNight(settings, barricadeHpAtNightStart);
+                    int dailySupply = result[0];
+                    int perfectBonus = result[1];
 
-                    // 무피해 생존 보너스: 바리케이드가 피해를 받지 않았으면 추가 보급
-                    boolean perfectNight = gameWorld.getBarricade().getHp() >= barricadeHpAtNightStart;
-
-                    // 무피해 생존 보너스 보급품
-                    final int PERFECT_BONUS = 10;
-                    if (perfectNight) {
-                        gameWorld.getSupply().add(PERFECT_BONUS);
-                    }
-
-                    switchToWandering();
+                    gameWorld.switchColonistsToWandering();
                     if (day > settings.getWinDay()) {
                         victory = true;
                         Util.beep();
                         gameWorld.addLog("══ 승리! " + settings.getWinDay() + "일을 버텨냈습니다! ══");
                     } else {
-                        String bonusText = perfectNight ? " +보너스" + PERFECT_BONUS : "";
+                        String bonusText = perfectBonus > 0 ? " +보너스" + perfectBonus : "";
                         gameWorld.addLog("── " + day + "일차 낮 시작 (보급 +" + dailySupply + bonusText + ") ──");
                         triggerDayEvent();
                     }
@@ -222,7 +201,7 @@ public class DayNightCycle extends Thread {
 
                     if (skipRequested || !preparing) {
                         // 건너뛰기 또는 준비 없이 밤이 된 경우: 즉시 배치
-                        switchToShooting(true);
+                        gameWorld.switchColonistsToShooting(true);
                     }
 
                     skipRequested = false;
@@ -259,7 +238,7 @@ public class DayNightCycle extends Thread {
                 } else if (!preparing && DAY_DURATION - elapsedInPhase <= PREPARE_DURATION) {
                     // 밤 5초 전: 사격 위치로 이동 시작
                     preparing = true;
-                    switchToShooting(false);
+                    gameWorld.switchColonistsToShooting(false);
                     gameWorld.addLog(">> 정착민들이 바리케이드로 이동합니다");
                 }
             }
@@ -408,7 +387,7 @@ public class DayNightCycle extends Thread {
         for (EnemyType type : EnemyType.values()) {
             int count = previewCounts.getOrDefault(type, 0);
             if (count > 0) {
-                wavePreviewLines.add(enemyFactory.getSpec(type).getDisplayName() + "x" + count);
+                wavePreviewLines.add(gameWorld.getEnemyFactory().getSpec(type).getDisplayName() + "x" + count);
             }
         }
 
@@ -431,75 +410,12 @@ public class DayNightCycle extends Thread {
     }
 
     /// <summary>
-    /// 살아있는 모든 정착민을 사격 상태로 전환
-    /// 각 정착민마다 별도 상태 객체 생성 (tickCount 등 개별 관리)
-    /// </summary>
-    private void switchToShooting(boolean instant) {
-        for (Colonist colonist : gameWorld.getColonists()) {
-            if (colonist.isLiving()) {
-                colonist.changeState(new ShootingState(instant));
-            }
-        }
-    }
-
-    /// <summary>
-    /// 살아있는 모든 정착민을 배회 상태로 전환
-    /// </summary>
-    private void switchToWandering() {
-        for (Colonist colonist : gameWorld.getColonists()) {
-            if (colonist.isLiving()) {
-                colonist.changeState(new WanderingState());
-            }
-        }
-    }
-
-    /// <summary>
-    /// 맵 오른쪽 가장자리에 적을 출현시키고 스레드 시작
-    /// buildWave()로 구성된 적 목록을 중앙 기준으로 배치
-    /// 적끼리 위아래 1칸 이상 간격을 두고 배치
+    /// 웨이브 구성을 결정하고 GameWorld에 적 생성을 요청
+    /// 생성된 적은 대기열에 추가하여 시간차 출현
     /// </summary>
     private void spawnEnemies() {
         ArrayList<EnemyType> spawnList = waveBuilder.buildWave(day, stormActive);
-
-        if (spawnList.isEmpty()) {
-            return;
-        }
-
-        // 전체 필요 높이 계산 (블록 높이 합 + 간격)
-        int totalHeight = 0;
-        for (EnemyType type : spawnList) {
-            totalHeight += enemyFactory.getSpec(type).getBlock().length;
-        }
-        // 적 사이 간격 (마지막 적 아래는 제외)
-        totalHeight += spawnList.size() - 1;
-
-        // 중앙 기준으로 시작 행 계산
-        int startRow = (GameWorld.HEIGHT - totalHeight) / 2;
-        if (startRow < 0) {
-            startRow = 0;
-        }
-
-        int currentRow = startRow;
-        for (EnemyType type : spawnList) {
-            EnemySpec spec = enemyFactory.getSpec(type);
-            int blockHeight = spec.getBlock().length;
-
-            // 맵 높이를 넘으면 맨 위부터 다시 배치
-            int maxRow = GameWorld.HEIGHT - blockHeight;
-            if (currentRow > maxRow) {
-                currentRow = 0;
-            }
-
-            int col = GameWorld.WIDTH - 1;
-            Enemy enemy = enemyFactory.create(type, new Position(currentRow, col), gameWorld);
-            enemy.applySpawnBuff();
-            pendingSpawns.add(enemy);
-
-            // 블록 높이 + 간격 1칸
-            currentRow += blockHeight + 1;
-        }
-
-        // 총 마릿수 기록
+        pendingSpawns.addAll(gameWorld.createWaveEnemies(spawnList));
         totalWaveSize = pendingSpawns.size();
 
         // 출현 순서 섞기 (위치는 고정, 등장 순서만 랜덤)

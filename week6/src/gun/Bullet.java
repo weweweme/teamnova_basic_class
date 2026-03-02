@@ -66,15 +66,20 @@ public class Bullet {
     private final int knockback;
 
     /// <summary>
+    /// 치명타 여부 (true면 명중 시 강조 이펙트)
+    /// </summary>
+    private final boolean crit;
+
+    /// <summary>
     /// 총알의 현재 열
     /// </summary>
     private int col;
 
     /// <summary>
-    /// 모든 속성을 지정하여 총알 생성 (넉백 포함)
+    /// 모든 속성을 지정하여 총알 생성
     /// </summary>
     public Bullet(int startRow, int startCol, int targetRow, int targetCol, int damage,
-                  char shooterLabel, int speed, char bulletChar, int bulletColor, boolean piercing, int knockback) {
+                  char shooterLabel, int speed, char bulletChar, int bulletColor, boolean piercing, int knockback, boolean crit) {
         this.startRow = startRow;
         this.startCol = startCol;
         this.targetRow = targetRow;
@@ -86,6 +91,7 @@ public class Bullet {
         this.bulletColor = bulletColor;
         this.piercing = piercing;
         this.knockback = knockback;
+        this.crit = crit;
         this.col = startCol;
     }
 
@@ -159,6 +165,13 @@ public class Bullet {
     /// </summary>
     public int getKnockback() {
         return knockback;
+    }
+
+    /// <summary>
+    /// 치명타 여부 반환
+    /// </summary>
+    public boolean isCrit() {
+        return crit;
     }
 
     /// <summary>

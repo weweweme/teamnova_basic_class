@@ -89,15 +89,33 @@ public class BulletSystem {
                         }
                     }
 
-                    // 무기별 명중 이펙트 (총알의 문자/색상 사용)
-                    char hitChar = bullet.getBulletChar() == '*' ? '!' : bullet.getBulletChar();
-                    int hitColor = bullet.getBulletColor() != 0 ? bullet.getBulletColor() : 33;
-                    effects.add(new HitEffect(bullet.getRow(), bullet.getCol(), System.currentTimeMillis(), hitChar, hitColor));
+                    // 명중 이펙트 (치명타면 밝은 빨강 ★, 일반이면 무기별 문자/색상)
+                    long now = System.currentTimeMillis();
+                    if (bullet.isCrit()) {
+                        // 치명타: 중심 ★ + 상하 * 로 강조
+                        final int COLOR_BRIGHT_RED = 91;
+                        effects.add(new HitEffect(bullet.getRow(), bullet.getCol(), now, '*', COLOR_BRIGHT_RED));
+                        // 위쪽 이펙트
+                        boolean aboveValid = bullet.getRow() - 1 >= 0;
+                        if (aboveValid) {
+                            effects.add(new HitEffect(bullet.getRow() - 1, bullet.getCol(), now, '*', COLOR_BRIGHT_RED));
+                        }
+                        // 아래쪽 이펙트
+                        boolean belowValid = bullet.getRow() + 1 < GameMap.HEIGHT;
+                        if (belowValid) {
+                            effects.add(new HitEffect(bullet.getRow() + 1, bullet.getCol(), now, '*', COLOR_BRIGHT_RED));
+                        }
+                    } else {
+                        char hitChar = bullet.getBulletChar() == '*' ? '!' : bullet.getBulletChar();
+                        int hitColor = bullet.getBulletColor() != 0 ? bullet.getBulletColor() : 33;
+                        effects.add(new HitEffect(bullet.getRow(), bullet.getCol(), now, hitChar, hitColor));
+                    }
 
-                    // 적 처치 시 로그
+                    // 적 처치 시 로그 (치명타 처치면 강조)
                     if (!enemy.isLiving()) {
                         String enemyName = enemy.getSpec().getDisplayName();
-                        gameMap.addLog("[" + bullet.getShooterLabel() + "] " + enemyName + " 처치!");
+                        String critMark = bullet.isCrit() ? " 치명타!" : "";
+                        gameMap.addLog("[" + bullet.getShooterLabel() + "] " + enemyName + " 처치!" + critMark);
                     }
 
                     // 관통 총알은 제거하지 않고 계속 전진

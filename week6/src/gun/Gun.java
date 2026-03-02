@@ -131,25 +131,17 @@ public abstract class Gun {
         int aimRow = target.getPosition().getRow() + block.length / 2 + aimRowOffset;
         int aimCol = target.getPosition().getCol() + block[0].length() / 2;
 
-        int finalDamage = applyCrit(damage, colonist);
+        // 치명타 판정
+        double critChance = colonist.getSpec().getCritChance();
+        boolean isCrit = critChance > 0 && Math.random() < critChance;
+        int finalDamage = isCrit ? damage * 2 : damage;
+
         int kb = getKnockback(colonist);
         Bullet bullet = new Bullet(
             bulletRow, bulletCol, aimRow, aimCol, finalDamage,
-            colonist.getLabel(), bulletSpeed, getBulletChar(), getBulletColor(), piercing, kb
+            colonist.getLabel(), bulletSpeed, getBulletChar(), getBulletColor(), piercing, kb, isCrit
         );
         gameMap.addBullet(bullet);
-    }
-
-    /// <summary>
-    /// 정착민의 치명타 패시브 적용 (확률에 따라 데미지 2배)
-    /// </summary>
-    private int applyCrit(int baseDamage, Colonist colonist) {
-        double critChance = colonist.getSpec().getCritChance();
-        boolean isCrit = critChance > 0 && Math.random() < critChance;
-        if (isCrit) {
-            return baseDamage * 2;
-        }
-        return baseDamage;
     }
 
     /// <summary>

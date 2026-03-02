@@ -89,6 +89,14 @@ public class BulletSystem {
                         }
                     }
 
+                    // 명중 효과음
+                    SfxPlayer sfx = gameMap.getSfxPlayer();
+                    if (bullet.isCrit()) {
+                        sfx.playCrit();
+                    } else {
+                        sfx.playHit();
+                    }
+
                     // 명중 이펙트 (치명타면 밝은 빨강 ★, 일반이면 무기별 문자/색상)
                     long now = System.currentTimeMillis();
                     if (bullet.isCrit()) {
@@ -111,8 +119,9 @@ public class BulletSystem {
                         effects.add(new HitEffect(bullet.getRow(), bullet.getCol(), now, hitChar, hitColor));
                     }
 
-                    // 적 처치 시 로그 (치명타 처치면 강조)
+                    // 적 처치 시 로그 + 사망음 (치명타 처치면 강조)
                     if (!enemy.isLiving()) {
+                        sfx.playDeath();
                         String enemyName = enemy.getSpec().getDisplayName();
                         String critMark = bullet.isCrit() ? " 치명타!" : "";
                         gameMap.addLog("[" + bullet.getShooterLabel() + "] " + enemyName + " 처치!" + critMark);

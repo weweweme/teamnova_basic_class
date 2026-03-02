@@ -8,7 +8,9 @@
       "Bash(gh issue create:*)",
       "Bash(brew list:*)",
       "WebSearch",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(grep:*)",
+      "Bash(java:*)"
     ]
   }
 }

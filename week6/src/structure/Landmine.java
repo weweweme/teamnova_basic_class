@@ -82,8 +82,9 @@ public class Landmine extends Trap {
             }
         }
 
-        // 화면 흔들림 (200ms, 강도 2)
+        // 화면 흔들림 (200ms, 강도 2) + 폭발음
         gameMap.triggerScreenShake(200, 2);
+        gameMap.getSfxPlayer().playExplosion();
 
         // 지뢰 파괴
         takeDamage(getMaxHp());

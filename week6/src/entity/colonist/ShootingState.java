@@ -95,6 +95,7 @@ public class ShootingState extends ColonistState {
 
         // 무기에 발사를 위임 (무기마다 총알 패턴이 다름)
         gun.fire(colonist, target, colonist.getGameMap());
+        colonist.getGameMap().getSfxPlayer().playShoot();
     }
 
     /// <summary>

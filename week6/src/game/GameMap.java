@@ -73,6 +73,11 @@ public class GameMap {
     private final BulletSystem bulletSystem = new BulletSystem();
 
     /// <summary>
+    /// 합성 효과음 재생기
+    /// </summary>
+    private final SfxPlayer sfxPlayer = new SfxPlayer();
+
+    /// <summary>
     /// 명중 이펙트의 지속 시간 (밀리초)
     /// </summary>
     private static final int EFFECT_DURATION = 200;
@@ -495,5 +500,12 @@ public class GameMap {
             return false;
         }
         return true;
+    }
+
+    /// <summary>
+    /// 효과음 재생기 반환
+    /// </summary>
+    public SfxPlayer getSfxPlayer() {
+        return sfxPlayer;
     }
 }

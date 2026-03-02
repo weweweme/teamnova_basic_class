@@ -253,7 +253,7 @@ public class DayNightCycle extends Thread {
                     // 밤 시작 시 바리케이드 체력 기록 (무피해 보너스 판정용)
                     barricadeHpAtNightStart = gameMap.getBarricade().getHp();
 
-                    Util.beep();
+                    gameMap.getSfxPlayer().playWaveStart();
                     gameMap.addLog("── 밤이 찾아왔습니다 ──");
                     gameMap.triggerWaveWarning();
                 } else if (!preparing && DAY_DURATION - elapsedInPhase <= PREPARE_DURATION) {

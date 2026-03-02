@@ -62,6 +62,30 @@ public class ScreenEffects {
     }
 
     /// <summary>
+    /// 수직 흔들림 오프셋 반환 (0이면 흔들림 없음)
+    /// 수평 흔들림과 다른 주기(75ms)로 교대하여 불규칙한 진동 생성
+    /// </summary>
+    public synchronized int getVerticalShakeOffset() {
+        if (shakeDuration == 0) {
+            return 0;
+        }
+
+        long elapsed = System.currentTimeMillis() - shakeStartTime;
+        boolean expired = elapsed >= shakeDuration;
+        if (expired) {
+            return 0;
+        }
+
+        // 75ms마다 방향 교대 (수평과 다른 주기로 불규칙 효과)
+        int phase = (int) (elapsed / 75) % 3;
+        switch (phase) {
+            case 0: return 1;
+            case 1: return -1;
+            default: return 0;
+        }
+    }
+
+    /// <summary>
     /// 웨이브 경고 발동 (밤 시작 시 호출)
     /// </summary>
     public synchronized void triggerWaveWarning() {

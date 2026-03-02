@@ -627,6 +627,7 @@ public class Renderer {
 
         // 흔들림 오프셋 (행 루프 바깥에서 한 번만 조회)
         int shakeOffset = gameWorld.getScreenEffects().getScreenShakeOffset();
+        int verticalShake = gameWorld.getScreenEffects().getVerticalShakeOffset();
 
         // 웨이브 경고 활성 여부 (행 루프 바깥에서 한 번만 조회)
         boolean waveWarning = gameWorld.getScreenEffects().isWaveWarningActive();
@@ -646,19 +647,27 @@ public class Renderer {
                         }
                     }
 
+                    // 수직 흔들림: 버퍼에서 읽을 소스 행을 이동 (맵 범위 내로 제한)
+                    int sourceRow = row + verticalShake;
+                    if (sourceRow < 0) {
+                        sourceRow = 0;
+                    } else if (sourceRow >= GameWorld.HEIGHT) {
+                        sourceRow = GameWorld.HEIGHT - 1;
+                    }
+
                     // 맵 버퍼 (색상 적용, 흔들림 시 끝부분 잘림)
                     int renderWidth = GameWorld.WIDTH - Math.abs(shakeOffset);
                     int startCol = shakeOffset < 0 ? -shakeOffset : 0;
                     for (int col = startCol; col < startCol + renderWidth; col++) {
-                        int color = colorBuffer[row][col];
+                        int color = colorBuffer[sourceRow][col];
                         if (color != 0) {
                             screenBuilder.append("\033[");
                             screenBuilder.append(color);
                             screenBuilder.append('m');
-                            screenBuilder.append(buffer[row][col]);
+                            screenBuilder.append(buffer[sourceRow][col]);
                             screenBuilder.append("\033[0m");
                         } else {
-                            screenBuilder.append(buffer[row][col]);
+                            screenBuilder.append(buffer[sourceRow][col]);
                         }
                     }
 

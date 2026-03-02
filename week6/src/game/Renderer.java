@@ -574,11 +574,23 @@ public class Renderer {
         // 커서를 맨 위로 이동
         screenBuilder.append("\033[H");
 
+        // 흔들림 오프셋 (행 루프 바깥에서 한 번만 조회)
+        int shakeOffset = gameMap.getScreenShakeOffset();
+
         for (int row = 0; row < totalHeight; row++) {
             // 좌측 내용 (맵 / 구분선 / 로그)
             if (row < GameMap.HEIGHT) {
-                // 맵 버퍼 (색상 적용)
-                for (int col = 0; col < GameMap.WIDTH; col++) {
+                // 오른쪽 이동: 앞에 빈 칸 추가
+                if (shakeOffset > 0) {
+                    for (int s = 0; s < shakeOffset; s++) {
+                        screenBuilder.append(' ');
+                    }
+                }
+
+                // 맵 버퍼 (색상 적용, 흔들림 시 끝부분 잘림)
+                int renderWidth = GameMap.WIDTH - Math.abs(shakeOffset);
+                int startCol = shakeOffset < 0 ? -shakeOffset : 0;
+                for (int col = startCol; col < startCol + renderWidth; col++) {
                     int color = colorBuffer[row][col];
                     if (color != 0) {
                         screenBuilder.append("\033[");
@@ -588,6 +600,13 @@ public class Renderer {
                         screenBuilder.append("\033[0m");
                     } else {
                         screenBuilder.append(buffer[row][col]);
+                    }
+                }
+
+                // 왼쪽 이동: 뒤에 빈 칸 추가 (패널 구분선 정렬 유지)
+                if (shakeOffset < 0) {
+                    for (int s = 0; s < -shakeOffset; s++) {
+                        screenBuilder.append(' ');
                     }
                 }
             } else if (row == GameMap.HEIGHT) {

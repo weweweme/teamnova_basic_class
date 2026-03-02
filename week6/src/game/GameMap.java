@@ -123,6 +123,21 @@ public class GameMap {
     private boolean invincible;
 
     /// <summary>
+    /// 화면 흔들림 시작 시각 (밀리초)
+    /// </summary>
+    private long shakeStartTime;
+
+    /// <summary>
+    /// 화면 흔들림 지속 시간 (밀리초, 0이면 비활성)
+    /// </summary>
+    private int shakeDuration;
+
+    /// <summary>
+    /// 화면 흔들림 강도 (좌우 이동 칸 수)
+    /// </summary>
+    private int shakeIntensity;
+
+    /// <summary>
     /// 맵 생성
     /// </summary>
     public GameMap() {
@@ -418,4 +433,33 @@ public class GameMap {
         return effectsCopy;
     }
 
+    /// <summary>
+    /// 화면 흔들림 발동
+    /// </summary>
+    public synchronized void triggerScreenShake(int durationMs, int intensity) {
+        this.shakeStartTime = System.currentTimeMillis();
+        this.shakeDuration = durationMs;
+        this.shakeIntensity = intensity;
+    }
+
+    /// <summary>
+    /// 현재 흔들림 오프셋 반환 (0이면 흔들림 없음)
+    /// 50ms마다 좌우 방향 교대
+    /// </summary>
+    public synchronized int getScreenShakeOffset() {
+        if (shakeDuration == 0) {
+            return 0;
+        }
+
+        long elapsed = System.currentTimeMillis() - shakeStartTime;
+        boolean expired = elapsed >= shakeDuration;
+        if (expired) {
+            shakeDuration = 0;
+            return 0;
+        }
+
+        // 50ms마다 방향 교대 (+intensity, -intensity, ...)
+        boolean even = (elapsed / 50) % 2 == 0;
+        return even ? shakeIntensity : -shakeIntensity;
+    }
 }

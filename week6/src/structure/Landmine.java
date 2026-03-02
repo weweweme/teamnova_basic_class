@@ -19,10 +19,10 @@ public class Landmine extends Trap {
     private static final int BLAST_RANGE = 3;
 
     /// <summary>
-    /// 지정한 열에 지뢰 설치 (일회용, 비용 25, 폭발 데미지 15)
+    /// 지정한 위치에 지뢰 설치 (일회용, 비용 25, 폭발 데미지 15)
     /// </summary>
-    public Landmine(int column) {
-        super(column, 1, 25, 15);
+    public Landmine(int row, int column) {
+        super(row, column, 1, 25, 15);
     }
 
     /// <summary>
@@ -50,8 +50,8 @@ public class Landmine extends Trap {
             }
         }
 
-        // 폭발 이펙트 추가 (다이아몬드 형태, 중심에서 바깥으로 갈수록 약해짐)
-        int centerRow = GameWorld.HEIGHT / 2;
+        // 폭발 이펙트 추가 (다이아몬드 형태, 지뢰 위치를 중심으로)
+        int centerRow = getRow();
         long now = System.currentTimeMillis();
 
         // 밝은 빨간색 ANSI 코드

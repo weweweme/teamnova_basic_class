@@ -8,6 +8,11 @@ package structure;
 public abstract class Structure {
 
     /// <summary>
+    /// 건물이 위치한 행
+    /// </summary>
+    private final int row;
+
+    /// <summary>
     /// 건물이 위치한 열
     /// </summary>
     private final int column;
@@ -23,12 +28,20 @@ public abstract class Structure {
     private int hp;
 
     /// <summary>
-    /// 지정한 열에 건물 생성, 내구도를 최대치로 초기화
+    /// 지정한 위치에 건물 생성, 내구도를 최대치로 초기화
     /// </summary>
-    protected Structure(int column, int maxHp) {
+    protected Structure(int row, int column, int maxHp) {
+        this.row = row;
         this.column = column;
         this.maxHp = maxHp;
         this.hp = maxHp;
+    }
+
+    /// <summary>
+    /// 건물이 위치한 행 반환
+    /// </summary>
+    public int getRow() {
+        return row;
     }
 
     /// <summary>

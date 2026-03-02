@@ -238,10 +238,15 @@ public class GameWorld {
                     continue;
                 }
 
-                // 적의 블록 범위가 지뢰 열과 겹치는지 확인
+                // 적의 블록 범위가 지뢰의 행+열과 겹치는지 확인
                 int enemyCol = enemy.getPosition().getCol();
-                int blockWidth = enemy.getSpec().getBlock()[0].length();
-                boolean overlaps = enemyCol <= mine.getColumn() && enemyCol + blockWidth > mine.getColumn();
+                int enemyRow = enemy.getPosition().getRow();
+                String[] block = enemy.getSpec().getBlock();
+                int blockWidth = block[0].length();
+                int blockHeight = block.length;
+                boolean colOverlap = enemyCol <= mine.getColumn() && enemyCol + blockWidth > mine.getColumn();
+                boolean rowOverlap = enemyRow <= mine.getRow() && enemyRow + blockHeight > mine.getRow();
+                boolean overlaps = colOverlap && rowOverlap;
 
                 if (overlaps) {
                     addLog("[폭발] 지뢰 기폭!");

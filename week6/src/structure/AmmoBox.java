@@ -7,10 +7,10 @@ package structure;
 public class AmmoBox extends Buildable {
 
     /// <summary>
-    /// 지정한 열에 탄약 상자 설치 (내구도 1, 비용 20)
+    /// 지정한 위치에 탄약 상자 설치 (내구도 1, 비용 20)
     /// </summary>
-    public AmmoBox(int column) {
-        super(column, 1, 20);
+    public AmmoBox(int row, int column) {
+        super(row, column, 1, 20);
     }
 
     /// <summary>

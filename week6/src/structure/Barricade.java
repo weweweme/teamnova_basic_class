@@ -50,7 +50,7 @@ public class Barricade extends Structure {
     /// 최대 내구도로 바리케이드 생성
     /// </summary>
     public Barricade() {
-        super(COLUMN, 100);
+        super(0, COLUMN, 100);
         this.level = 1;
     }
 

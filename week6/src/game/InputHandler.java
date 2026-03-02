@@ -107,6 +107,26 @@ public class InputHandler {
     private boolean cheatMode;
 
     /// <summary>
+    /// 배치 모드 여부 (커서로 구조물 설치 위치 선택 중)
+    /// </summary>
+    private boolean placementMode;
+
+    /// <summary>
+    /// 배치할 구조물 종류 (1=가시덫, 2=지뢰, 3=탄약상자)
+    /// </summary>
+    private int placementType;
+
+    /// <summary>
+    /// 배치 커서의 행 위치
+    /// </summary>
+    private int cursorRow;
+
+    /// <summary>
+    /// 배치 커서의 열 위치
+    /// </summary>
+    private int cursorCol;
+
+    /// <summary>
     /// 입력 처리기 생성
     /// </summary>
     public InputHandler(GameWorld gameWorld, Renderer renderer, DayNightCycle dayNightCycle, ColonistSpawner colonistSpawner) {
@@ -153,6 +173,34 @@ public class InputHandler {
     }
 
     /// <summary>
+    /// 배치 모드 여부 반환
+    /// </summary>
+    public boolean isPlacementMode() {
+        return placementMode;
+    }
+
+    /// <summary>
+    /// 배치할 구조물 종류 반환 (1=가시덫, 2=지뢰, 3=탄약상자)
+    /// </summary>
+    public int getPlacementType() {
+        return placementType;
+    }
+
+    /// <summary>
+    /// 배치 커서 행 반환
+    /// </summary>
+    public int getCursorRow() {
+        return cursorRow;
+    }
+
+    /// <summary>
+    /// 배치 커서 열 반환
+    /// </summary>
+    public int getCursorCol() {
+        return cursorCol;
+    }
+
+    /// <summary>
     /// 키 입력에 따라 게임 명령 실행
     /// </summary>
     public void handleInput(int key) {
@@ -164,6 +212,8 @@ public class InputHandler {
             handleShopMode(key);
         } else if (promoteMode) {
             handlePromoteMode(key);
+        } else if (placementMode) {
+            handlePlacementMode(key);
         } else if (buildMode) {
             handleBuildMode(key);
         } else {
@@ -223,7 +273,7 @@ public class InputHandler {
     }
 
     /// <summary>
-    /// 건설 모드: 구조물 설치 또는 취소
+    /// 건설 모드: 구조물 종류 선택 → 배치 모드 진입, 바리케이드 강화는 즉시 처리
     /// </summary>
     private void handleBuildMode(int key) {
         final int KEY_SPIKE = '1';
@@ -231,43 +281,30 @@ public class InputHandler {
         final int KEY_AMMOBOX = '3';
         final int KEY_UPGRADE = '4';
 
-        // 구조물 간격 (바리케이드 기준 오른쪽으로)
-        final int STRUCTURE_SPACING = 5;
+        // 구조물별 비용 (배치 확정 시 차감)
+        final int SPIKE_COST = 20;
+        final int LANDMINE_COST = 25;
+        final int AMMOBOX_COST = 20;
+
         switch (key) {
-            case KEY_SPIKE: {
-                int totalStructures = gameWorld.getSpikes().size() + gameWorld.getLandmines().size();
-                int spikeCol = Barricade.COLUMN + STRUCTURE_SPACING * (totalStructures + 1);
-                Spike spike = new Spike(spikeCol);
-                if (gameWorld.getSupply().spend(spike.getCost())) {
-                    gameWorld.addSpike(spike);
-                    gameWorld.addLog(">> 가시덫 설치 (열 " + spikeCol + ")");
+            case KEY_SPIKE:
+                if (gameWorld.getSupply().getAmount() >= SPIKE_COST) {
+                    enterPlacementMode(1);
                 }
                 buildMode = false;
                 break;
-            }
-            case KEY_LANDMINE: {
-                int totalStructures = gameWorld.getSpikes().size() + gameWorld.getLandmines().size();
-                int mineCol = Barricade.COLUMN + STRUCTURE_SPACING * (totalStructures + 1);
-                Landmine landmine = new Landmine(mineCol);
-                if (gameWorld.getSupply().spend(landmine.getCost())) {
-                    gameWorld.addLandmine(landmine);
-                    gameWorld.addLog(">> 지뢰 설치 (열 " + mineCol + ")");
+            case KEY_LANDMINE:
+                if (gameWorld.getSupply().getAmount() >= LANDMINE_COST) {
+                    enterPlacementMode(2);
                 }
                 buildMode = false;
                 break;
-            }
-            case KEY_AMMOBOX: {
-                // 탄약 상자 설치 열 (바리케이드 왼쪽 안전지대)
-                final int AMMOBOX_COL = 1;
-                int ammoCol = AMMOBOX_COL + gameWorld.getAmmoBoxes().size() * 2;
-                AmmoBox ammoBox = new AmmoBox(ammoCol);
-                if (gameWorld.getSupply().spend(ammoBox.getCost())) {
-                    gameWorld.addAmmoBox(ammoBox);
-                    gameWorld.addLog(">> 탄약 상자 설치");
+            case KEY_AMMOBOX:
+                if (gameWorld.getSupply().getAmount() >= AMMOBOX_COST) {
+                    enterPlacementMode(3);
                 }
                 buildMode = false;
                 break;
-            }
             case KEY_UPGRADE:
                 Barricade barricade = gameWorld.getBarricade();
                 if (barricade.canUpgrade() && gameWorld.getSupply().spend(barricade.getUpgradeCost())) {
@@ -280,6 +317,124 @@ public class InputHandler {
                 buildMode = false;
                 break;
         }
+    }
+
+    /// <summary>
+    /// 배치 모드 진입 (커서 초기 위치 설정)
+    /// 함정은 전장(바리케이드 오른쪽), 탄약상자는 안전지대(바리케이드 왼쪽)에서 시작
+    /// </summary>
+    private void enterPlacementMode(int type) {
+        placementMode = true;
+        placementType = type;
+        cursorRow = GameWorld.HEIGHT / 2;
+
+        // 탄약 상자 기본 커서 열 (안전지대 중앙)
+        final int AMMOBOX_DEFAULT_COL = 7;
+        // 함정 기본 커서 열 (바리케이드 오른쪽 전장)
+        final int TRAP_DEFAULT_COL = 20;
+
+        // 탄약 상자는 안전지대, 함정은 전장에서 시작
+        final int TYPE_AMMOBOX = 3;
+        if (type == TYPE_AMMOBOX) {
+            cursorCol = AMMOBOX_DEFAULT_COL;
+        } else {
+            cursorCol = TRAP_DEFAULT_COL;
+        }
+    }
+
+    /// <summary>
+    /// 배치 모드: 화살표로 커서 이동, Enter로 설치 확정, q로 취소
+    /// 커서는 유효 영역 내에서만 이동 가능
+    /// </summary>
+    private void handlePlacementMode(int key) {
+        // 전장 시작 열 (바리케이드 다음 칸부터)
+        final int BATTLEFIELD_START = Barricade.COLUMN + 2;
+        // 안전지대 끝 열 (바리케이드 직전)
+        final int SAFE_ZONE_END = Barricade.COLUMN - 1;
+        // 탄약 상자 타입 번호
+        final int TYPE_AMMOBOX = 3;
+
+        switch (key) {
+            case KEY_UP:
+                if (cursorRow > 0) {
+                    cursorRow--;
+                }
+                break;
+            case KEY_DOWN:
+                if (cursorRow < GameWorld.HEIGHT - 1) {
+                    cursorRow++;
+                }
+                break;
+            case KEY_LEFT:
+                if (placementType == TYPE_AMMOBOX) {
+                    // 탄약 상자: 안전지대 내에서만 이동
+                    if (cursorCol > 0) {
+                        cursorCol--;
+                    }
+                } else {
+                    // 함정: 전장 내에서만 이동
+                    if (cursorCol > BATTLEFIELD_START) {
+                        cursorCol--;
+                    }
+                }
+                break;
+            case KEY_RIGHT:
+                if (placementType == TYPE_AMMOBOX) {
+                    // 탄약 상자: 안전지대 끝까지
+                    if (cursorCol < SAFE_ZONE_END) {
+                        cursorCol++;
+                    }
+                } else {
+                    // 함정: 맵 오른쪽 끝까지
+                    if (cursorCol < GameWorld.WIDTH - 1) {
+                        cursorCol++;
+                    }
+                }
+                break;
+            case KEY_ENTER:
+                confirmPlacement();
+                break;
+            case KEY_QUIT:
+                placementMode = false;
+                break;
+        }
+    }
+
+    /// <summary>
+    /// 커서 위치에 구조물 설치 확정 (비용 차감 + 구조물 생성)
+    /// </summary>
+    private void confirmPlacement() {
+        final int TYPE_SPIKE = 1;
+        final int TYPE_LANDMINE = 2;
+        final int TYPE_AMMOBOX = 3;
+
+        switch (placementType) {
+            case TYPE_SPIKE: {
+                Spike spike = new Spike(cursorRow, cursorCol);
+                if (gameWorld.getSupply().spend(spike.getCost())) {
+                    gameWorld.addSpike(spike);
+                    gameWorld.addLog(">> 가시덫 설치 (" + cursorRow + "," + cursorCol + ")");
+                }
+                break;
+            }
+            case TYPE_LANDMINE: {
+                Landmine landmine = new Landmine(cursorRow, cursorCol);
+                if (gameWorld.getSupply().spend(landmine.getCost())) {
+                    gameWorld.addLandmine(landmine);
+                    gameWorld.addLog(">> 지뢰 설치 (" + cursorRow + "," + cursorCol + ")");
+                }
+                break;
+            }
+            case TYPE_AMMOBOX: {
+                AmmoBox ammoBox = new AmmoBox(cursorRow, cursorCol);
+                if (gameWorld.getSupply().spend(ammoBox.getCost())) {
+                    gameWorld.addAmmoBox(ammoBox);
+                    gameWorld.addLog(">> 탄약 상자 설치 (" + cursorRow + "," + cursorCol + ")");
+                }
+                break;
+            }
+        }
+        placementMode = false;
     }
 
     /// <summary>

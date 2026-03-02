@@ -12,10 +12,10 @@ public abstract class Trap extends Buildable {
     private final int damage;
 
     /// <summary>
-    /// 지정한 열에 함정 생성, 내구도·비용·피해량 설정
+    /// 지정한 위치에 함정 생성, 내구도·비용·피해량 설정
     /// </summary>
-    protected Trap(int column, int maxHp, int cost, int damage) {
-        super(column, maxHp, cost);
+    protected Trap(int row, int column, int maxHp, int cost, int damage) {
+        super(row, column, maxHp, cost);
         this.damage = damage;
     }
 

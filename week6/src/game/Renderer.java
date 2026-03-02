@@ -182,6 +182,11 @@ public class Renderer {
             drawEffects();
         }
 
+        // 배치 모드 커서는 모든 오브젝트 위에 표시
+        if (inputHandler != null && inputHandler.isPlacementMode()) {
+            drawPlacementCursor();
+        }
+
         flush();
     }
 
@@ -224,7 +229,7 @@ public class Renderer {
     }
 
     /// <summary>
-    /// 설치된 가시덫을 세로로 그림 (^^ 문자, 맵 전체 높이)
+    /// 설치된 가시덫을 해당 위치에 한 칸으로 그림 (^ 문자, 노란색)
     /// 파괴된 가시덫은 표시하지 않음
     /// </summary>
     private void drawSpikes() {
@@ -234,52 +239,106 @@ public class Renderer {
             if (spike.isDestroyed()) {
                 continue;
             }
+            int row = spike.getRow();
             int col = spike.getColumn();
 
-            for (int row = 0; row < GameWorld.HEIGHT; row++) {
-                if (col >= 0 && col < GameWorld.WIDTH) {
-                    buffer[row][col] = '^';
-                    colorBuffer[row][col] = COLOR_YELLOW;
-                }
+            boolean validRow = row >= 0 && row < GameWorld.HEIGHT;
+            boolean validCol = col >= 0 && col < GameWorld.WIDTH;
+            if (validRow && validCol) {
+                buffer[row][col] = '^';
+                colorBuffer[row][col] = COLOR_YELLOW;
             }
         }
     }
 
     /// <summary>
-    /// 설치된 지뢰를 세로로 그림 (@ 문자, 빨간색)
+    /// 설치된 지뢰를 해당 위치에 한 칸으로 그림 (@ 문자, 빨간색)
     /// </summary>
     private void drawLandmines() {
         for (Landmine mine : gameWorld.getLandmines()) {
             if (mine.isDestroyed()) {
                 continue;
             }
+            int row = mine.getRow();
             int col = mine.getColumn();
 
-            for (int row = 0; row < GameWorld.HEIGHT; row++) {
-                if (col >= 0 && col < GameWorld.WIDTH) {
-                    buffer[row][col] = '@';
-                    colorBuffer[row][col] = COLOR_RED;
-                }
+            boolean validRow = row >= 0 && row < GameWorld.HEIGHT;
+            boolean validCol = col >= 0 && col < GameWorld.WIDTH;
+            if (validRow && validCol) {
+                buffer[row][col] = '@';
+                colorBuffer[row][col] = COLOR_RED;
             }
         }
     }
 
     /// <summary>
-    /// 안전지대에 설치된 탄약 상자를 그림 (= 문자, 초록색)
+    /// 안전지대에 설치된 탄약 상자를 해당 위치에 한 칸으로 그림 (= 문자, 초록색)
     /// </summary>
     private void drawAmmoBoxes() {
         for (AmmoBox box : gameWorld.getAmmoBoxes()) {
             if (box.isDestroyed()) {
                 continue;
             }
+            int row = box.getRow();
             int col = box.getColumn();
 
-            for (int row = 0; row < GameWorld.HEIGHT; row++) {
-                if (col >= 0 && col < GameWorld.WIDTH) {
+            boolean validRow = row >= 0 && row < GameWorld.HEIGHT;
+            boolean validCol = col >= 0 && col < GameWorld.WIDTH;
+            if (validRow && validCol) {
+                buffer[row][col] = '=';
+                colorBuffer[row][col] = COLOR_GREEN;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 배치 모드 커서를 버퍼에 그림
+    /// 500ms 주기로 구조물 문자(^/@/=)와 커서(+)를 번갈아 표시
+    /// </summary>
+    private void drawPlacementCursor() {
+        int row = inputHandler.getCursorRow();
+        int col = inputHandler.getCursorCol();
+        int type = inputHandler.getPlacementType();
+
+        boolean validRow = row >= 0 && row < GameWorld.HEIGHT;
+        boolean validCol = col >= 0 && col < GameWorld.WIDTH;
+        if (!validRow || !validCol) {
+            return;
+        }
+
+        // 깜빡임: 500ms 주기로 구조물 문자 ↔ 커서 '+' 전환
+        final int BLINK_INTERVAL = 500;
+        boolean showStructure = (System.currentTimeMillis() / BLINK_INTERVAL) % 2 == 0;
+
+        // 밝은 흰색 (커서 표시용)
+        final int COLOR_BRIGHT_WHITE = 97;
+        // 구조물별 색상
+        final int COLOR_YELLOW = 33;
+
+        final int TYPE_SPIKE = 1;
+        final int TYPE_LANDMINE = 2;
+        final int TYPE_AMMOBOX = 3;
+
+        if (showStructure) {
+            // 구조물 미리보기 표시
+            switch (type) {
+                case TYPE_SPIKE:
+                    buffer[row][col] = '^';
+                    colorBuffer[row][col] = COLOR_YELLOW;
+                    break;
+                case TYPE_LANDMINE:
+                    buffer[row][col] = '@';
+                    colorBuffer[row][col] = COLOR_RED;
+                    break;
+                case TYPE_AMMOBOX:
                     buffer[row][col] = '=';
                     colorBuffer[row][col] = COLOR_GREEN;
-                }
+                    break;
             }
+        } else {
+            // 십자 커서 표시
+            buffer[row][col] = '+';
+            colorBuffer[row][col] = COLOR_BRIGHT_WHITE;
         }
     }
 

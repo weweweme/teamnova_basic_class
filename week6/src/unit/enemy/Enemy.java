@@ -172,16 +172,25 @@ public class Enemy extends GameEntity {
     }
 
     /// <summary>
-    /// 현재 위치에 가시덫이 있으면 피해를 받고, 가시덫 내구도 감소
+    /// 현재 위치의 적 블록과 가시덫이 겹치면 피해를 받고, 가시덫 내구도 감소
     /// </summary>
     private void checkSpikes() {
-        int col = getPosition().getCol();
+        int enemyRow = getPosition().getRow();
+        int enemyCol = getPosition().getCol();
+        String[] block = getSpec().getBlock();
+        int blockHeight = block.length;
+        int blockWidth = block[0].length();
 
         for (Spike spike : getGameWorld().getSpikes()) {
             if (spike.isDestroyed()) {
                 continue;
             }
-            if (spike.getColumn() == col) {
+
+            // 적 블록의 행/열 범위와 가시덫 위치가 겹치는지 확인
+            boolean colOverlap = spike.getColumn() >= enemyCol && spike.getColumn() < enemyCol + blockWidth;
+            boolean rowOverlap = spike.getRow() >= enemyRow && spike.getRow() < enemyRow + blockHeight;
+
+            if (colOverlap && rowOverlap) {
                 takeDamage(spike.getDamage());
                 spike.takeDamage(1);
                 break;

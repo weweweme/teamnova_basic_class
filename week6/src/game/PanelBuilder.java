@@ -204,6 +204,33 @@ public class PanelBuilder {
                 panelLines.add(" 2: 저격수 (치명타)");
                 panelLines.add(" 3: 돌격수 (넉백)");
                 panelLines.add(" q: 취소");
+            } else if (inputHandler.isPlacementMode()) {
+                // 배치 모드
+                int type = inputHandler.getPlacementType();
+
+                final int TYPE_SPIKE = 1;
+                final int TYPE_LANDMINE = 2;
+                final int TYPE_AMMOBOX = 3;
+
+                String structureName = "";
+                switch (type) {
+                    case TYPE_SPIKE:
+                        structureName = "가시덫";
+                        break;
+                    case TYPE_LANDMINE:
+                        structureName = "지뢰";
+                        break;
+                    case TYPE_AMMOBOX:
+                        structureName = "탄약상자";
+                        break;
+                }
+
+                panelLines.add(" [배치] " + structureName);
+                panelLines.add(" 위치: (" + inputHandler.getCursorRow() + "," + inputHandler.getCursorCol() + ")");
+                panelLines.add("");
+                panelLines.add(" 방향키: 이동");
+                panelLines.add(" Enter: 설치");
+                panelLines.add(" q: 취소");
             } else if (inputHandler.isBuildMode()) {
                 // 건설 모드
                 panelLines.add(" [건설]");

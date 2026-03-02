@@ -12,10 +12,10 @@ public abstract class Buildable extends Structure {
     private final int cost;
 
     /// <summary>
-    /// 지정한 열에 건설 가능 구조물 생성, 내구도와 비용 설정
+    /// 지정한 위치에 건설 가능 구조물 생성, 내구도와 비용 설정
     /// </summary>
-    protected Buildable(int column, int maxHp, int cost) {
-        super(column, maxHp);
+    protected Buildable(int row, int column, int maxHp, int cost) {
+        super(row, column, maxHp);
         this.cost = cost;
     }
 

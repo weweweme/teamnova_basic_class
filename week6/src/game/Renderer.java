@@ -90,6 +90,12 @@ public class Renderer {
     private InputHandler inputHandler;
 
     /// <summary>
+    /// 적 정렬용 재사용 리스트 (매 프레임 재생성 방지)
+    /// 이동속도가 빠른 적이 위에 보이도록 tickDelay 내림차순 정렬
+    /// </summary>
+    private final ArrayList<Enemy> sortedEnemies = new ArrayList<>();
+
+    /// <summary>
     /// 지정한 맵으로 렌더러 생성
     /// </summary>
     public Renderer(GameWorld gameWorld) {
@@ -390,6 +396,7 @@ public class Renderer {
 
     /// <summary>
     /// 맵의 모든 적을 버퍼에 그림
+    /// 이동속도가 빠른 적(tickDelay 낮음)이 위에 보이도록 느린 적부터 먼저 그림
     /// 살아있는 적: HP 손실 비율만큼 위쪽 행부터 빨간색으로 채움
     ///   예) HP 60% → 블록 상단 40%가 빨강, 하단 60%는 기본색
     /// 죽은 적: 정착민과 동일한 3단계 사망 애니메이션
@@ -397,7 +404,12 @@ public class Renderer {
     private void drawEnemies() {
         long now = System.currentTimeMillis();
 
-        for (Enemy enemy : gameWorld.getEnemies()) {
+        // 느린 적(tickDelay 큼)을 먼저 그리고, 빠른 적(tickDelay 작음)을 나중에 그림
+        sortedEnemies.clear();
+        sortedEnemies.addAll(gameWorld.getEnemies());
+        sortedEnemies.sort((a, b) -> b.getSpec().getTickDelay() - a.getSpec().getTickDelay());
+
+        for (Enemy enemy : sortedEnemies) {
             int row = enemy.getPosition().getRow();
             int col = enemy.getPosition().getCol();
             String[] block = enemy.getSpec().getBlock();

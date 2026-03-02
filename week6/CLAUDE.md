@@ -78,15 +78,16 @@ Bullet (데이터 클래스 — 시작/목표 좌표, 데미지, 관통, 넉백,
 
 **structure 패키지 (구조물)**
 
-Structure가 위치/내구도, Buildable이 비용, Trap이 피해량 계층.
+Structure가 위치(행+열)/내구도, Buildable이 비용, Trap이 피해량 계층.
+구조물은 단일 셀(1칸)로 배치되며, 배치 모드에서 커서로 위치를 선택한다.
 
 ```
-Structure (column, maxHp — 내구도 관리)
-├── Barricade (레벨업, 무적 모드, 피격/수리 깜빡임)
-└── Buildable (cost — 건설 가능 구조물)
-    ├── AmmoBox (발사속도 30% 증가)
-    └── Trap (damage — 피해를 주는 구조물)
-        ├── Spike (내구도 10, 적이 지나가면 3 데미지)
+Structure (row, column, maxHp — 위치 + 내구도 관리)
+├── Barricade (전체 높이, 레벨업, 무적 모드, 피격/수리 깜빡임)
+└── Buildable (cost — 건설 가능 구조물, 단일 셀)
+    ├── AmmoBox (발사속도 30% 증가, 안전지대에 배치)
+    └── Trap (damage — 피해를 주는 구조물, 전장에 배치)
+        ├── Spike (내구도 10, 적 블록과 겹치면 3 데미지)
         └── Landmine (일회용, 반경 3칸 15 데미지 폭발)
 ```
 
@@ -320,6 +321,7 @@ classDiagram
     Trap <|-- Landmine
 
     class Structure {
+        int row
         int column
         int maxHp
         int hp
@@ -489,13 +491,14 @@ sequenceDiagram
         R->>Buf: drawGameOverScreen() — GAME OVER 아스키 아트
     else 정상 플레이
         R->>Buf: drawBarricade() — ## 세로벽, 피격/수리 색상
-        R->>Buf: drawSpikes() — ^ 노란색 세로
-        R->>Buf: drawLandmines() — @ 빨간색 세로
-        R->>Buf: drawAmmoBoxes() — = 초록색 세로
+        R->>Buf: drawSpikes() — ^ 노란색 단일 셀
+        R->>Buf: drawLandmines() — @ 빨간색 단일 셀
+        R->>Buf: drawAmmoBoxes() — = 초록색 단일 셀
         R->>Buf: drawColonists() — 블록 + 사망 3단계 애니메이션
         R->>Buf: drawEnemies() — 블록 + HP 빨강 그라데이션
         R->>Buf: drawBullets() — 무기별 문자/색상
         R->>Buf: drawEffects() — 명중/치명타/폭발 이펙트
+        R->>Buf: drawPlacementCursor() — 배치 모드 커서 (500ms 깜빡임)
     end
 
     R->>R: flush() — 최종 화면 조립
@@ -584,12 +587,12 @@ graph TB
 
 **구조물**
 
-| 구조물 | 비용 | 효과 |
-|--------|------|------|
-| 가시덫 | 20 | 내구도 10, 적 통과 시 3 데미지 |
-| 지뢰 | 25 | 일회용, 반경 3칸 15 데미지 |
-| 탄약 상자 | 20 | 전체 발사속도 30% 증가 |
-| 바리케이드 강화 | 15/25 | Lv1→2→3, HP 100→150→200 |
+| 구조물 | 비용 | 배치 영역 | 효과 |
+|--------|------|----------|------|
+| 가시덫 | 20 | 전장 (커서) | 단일 셀, 내구도 10, 적 블록 겹침 시 3 데미지 |
+| 지뢰 | 25 | 전장 (커서) | 단일 셀, 일회용, 적 블록 겹침 시 반경 3칸 15 데미지 |
+| 탄약 상자 | 20 | 안전지대 (커서) | 단일 셀, 전체 발사속도 30% 증가 |
+| 바리케이드 강화 | 15/25 | 즉시 | Lv1→2→3, HP 100→150→200 |
 
 **난이도**
 
@@ -618,6 +621,7 @@ graph TB
 - n: 밤으로 건너뛰기
 - 0: 치트 모드
 - q: 종료/취소
+- 배치 모드 (건설→구조물 선택 후): ↑↓←→ 커서 이동, Enter 설치, q 취소
 
 **로그 포맷**: `[라벨: 이름] 메시지` (예: `[A: 민수] 충격파!`, `[B: 수진] 늑대 처치!`)
 

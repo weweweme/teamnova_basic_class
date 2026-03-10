@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Android Layout 학습"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="각 버튼을 눌러 레이아웃 데모를 확인하세요"
+        android:textSize="14sp"
+        android:layout_marginBottom="32dp" />
+
+    <Button
+        android:id="@+id/btnLinearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="1. LinearLayout - 로그인 화면"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/btnConstraintLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="2. ConstraintLayout - 프로필 화면"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/btnScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="3. ScrollView - 설정 화면"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/btnGridLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="4. GridLayout - 계산기 화면"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/btnFrameLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="5. FrameLayout - 카드 겹침 화면"
+        android:layout_marginBottom="12dp" />
+
+</LinearLayout>

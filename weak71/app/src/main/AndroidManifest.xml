@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Weak71">
         <activity
-            android:name=".MainActivity2"
+            android:name=".LoginActivity"
             android:exported="false" />
         <activity
             android:name=".HomeActivity"

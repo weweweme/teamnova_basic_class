@@ -12,6 +12,11 @@
     이 화면에서는 각 설정 항목의 너비를 화면 비율(%)로 설정한다.
     예: layout_constraintWidth_percent="0.9" → 화면 너비의 90%
     Guideline 없이도 비율 기반 크기를 적용할 수 있는 방식.
+
+    [selectableItemBackground - 리플(물결) 효과]
+    android:background="?attr/selectableItemBackground" 를 설정하면
+    터치했을 때 물결 애니메이션이 나타난다. 설정 화면 등에서 클릭 가능한 항목에 사용.
+    android:clickable="true" 와 함께 써야 동작한다.
 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -40,8 +45,7 @@
             android:textStyle="bold"
             android:layout_marginBottom="24dp" />
 
-        <!-- 설정 항목들: 스크롤을 확인하기 위해 여러 개 배치 -->
-
+        <!-- 카테고리 헤더: 클릭 불가, 그룹 제목 역할 -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -51,26 +55,39 @@
             android:textColor="#666666"
             android:layout_marginBottom="8dp" />
 
+        <!-- 설정 항목: clickable + selectableItemBackground로 클릭 가능하게 -->
         <TextView
+            android:id="@+id/settingEditProfile"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="프로필 편집"
             android:textSize="18sp"
-            android:gravity="center_vertical" />
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true" />
 
         <TextView
+            android:id="@+id/settingChangePassword"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="비밀번호 변경"
             android:textSize="18sp"
-            android:gravity="center_vertical" />
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true" />
 
         <TextView
+            android:id="@+id/settingChangeEmail"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="이메일 변경"
             android:textSize="18sp"
-            android:gravity="center_vertical" />
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true" />
 
         <View
             android:layout_width="match_parent"
@@ -88,25 +105,37 @@
             android:layout_marginBottom="8dp" />
 
         <TextView
+            android:id="@+id/settingPushNotification"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="푸시 알림"
             android:textSize="18sp"
-            android:gravity="center_vertical" />
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true" />
 
         <TextView
+            android:id="@+id/settingEmailNotification"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="이메일 알림"
             android:textSize="18sp"
-            android:gravity="center_vertical" />
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true" />
 
         <TextView
+            android:id="@+id/settingMarketing"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="마케팅 수신 동의"
             android:textSize="18sp"
-            android:gravity="center_vertical" />
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true" />
 
         <View
             android:layout_width="match_parent"
@@ -124,32 +153,48 @@
             android:layout_marginBottom="8dp" />
 
         <TextView
+            android:id="@+id/settingLanguage"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="언어 설정"
             android:textSize="18sp"
-            android:gravity="center_vertical" />
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true" />
 
         <TextView
+            android:id="@+id/settingDarkMode"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="다크 모드"
             android:textSize="18sp"
-            android:gravity="center_vertical" />
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true" />
 
         <TextView
+            android:id="@+id/settingFontSize"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="글꼴 크기"
             android:textSize="18sp"
-            android:gravity="center_vertical" />
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true" />
 
         <TextView
+            android:id="@+id/settingClearCache"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="캐시 삭제"
             android:textSize="18sp"
-            android:gravity="center_vertical" />
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true" />
 
         <View
             android:layout_width="match_parent"
@@ -167,27 +212,40 @@
             android:layout_marginBottom="8dp" />
 
         <TextView
+            android:id="@+id/settingTerms"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="이용약관"
             android:textSize="18sp"
-            android:gravity="center_vertical" />
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true" />
 
         <TextView
+            android:id="@+id/settingPrivacy"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="개인정보 처리방침"
             android:textSize="18sp"
-            android:gravity="center_vertical" />
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true" />
 
         <TextView
+            android:id="@+id/settingAppVersion"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="앱 버전"
             android:textSize="18sp"
-            android:gravity="center_vertical" />
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true" />
 
         <Button
+            android:id="@+id/btnLogout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="로그아웃"

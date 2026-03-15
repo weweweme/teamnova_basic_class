@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- 배경 원 -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M12,12m-12,0a12,12 0,1 1,24 0a12,12 0,1 1,-24 0" />
+
+    <!-- 사람 머리 -->
+    <path
+        android:fillColor="#9E9E9E"
+        android:pathData="M12,6a3.5,3.5 0,0 1,0 7a3.5,3.5 0,0 1,0 -7z" />
+
+    <!-- 사람 몸통 -->
+    <path
+        android:fillColor="#9E9E9E"
+        android:pathData="M12,14.5c-4,0 -7,2 -7,4.5v1h14v-1c0,-2.5 -3,-4.5 -7,-4.5z" />
+</vector>

@@ -7,52 +7,110 @@
     android:layout_height="match_parent"
     tools:context=".ProfileActivity">
 
+    <!--
+        [Guideline - 비율 기반 배치]
+
+        기존 문제: marginTop="108dp" 같은 고정 dp 값은
+        화면 크기에 따라 비율이 달라져서 Design 뷰와 실제 기기가 다르게 보였다.
+
+        해결: Guideline을 사용하면 화면의 퍼센트(%) 기준으로 위치를 잡을 수 있다.
+        어떤 화면 크기든 비율이 유지된다.
+
+        Unity 비유: Canvas Scaler의 "Scale With Screen Size"와 같은 개념.
+        고정 pixel 대신 화면 비율 기준으로 배치하는 것.
+
+        orientation="horizontal" → 가로 선 (세로 위치를 결정)
+        layout_constraintGuide_percent="0.15" → 화면 높이의 15% 지점
+    -->
+
+    <!-- 화면 높이의 15% 지점 (프로필 이미지 시작) -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineTop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.15" />
+
+    <!-- 화면 높이의 50% 지점 (이미지 아래, 텍스트 영역) -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineMiddle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.50" />
+
+    <!-- 화면 높이의 75% 지점 (버튼 영역) -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineBottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.75" />
+
+    <!--
+        [layout_width / layout_height 크기 설정 방식]
+
+        1. 고정 dp (예: "200dp")
+           → 크기가 항상 동일. 제약은 "위치"만 결정함.
+           → Unity 비유: RectTransform 앵커를 Center로 두고 Width/Height 고정.
+
+        2. "0dp" (= match_constraint)
+           → 자신의 크기를 정하지 않고, 양쪽 제약 사이를 꽉 채움.
+           → 상하좌우 제약에 따라 크기가 결정됨 (화면 크기에 따라 늘어남).
+           → Unity 비유: RectTransform 앵커를 Stretch로 설정 (부모에 맞춰 늘어남).
+
+        3. "wrap_content"
+           → 내용물(텍스트, 이미지 등)에 맞게 크기가 자동 결정됨.
+
+        프로필 이미지: 고정 크기(200dp) + Guideline으로 세로 위치만 비율 기반으로 결정.
+        이미지 자체는 화면 크기에 따라 늘어나지 않음 (프로필 사진은 고정 크기가 자연스러움).
+        큰 화면(태블릿) 대응이 필요하면 res/layout-sw600dp/ 에 별도 레이아웃을 만드는 게 실무 방식.
+    -->
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="224dp"
-        android:layout_height="238dp"
-        android:layout_marginTop="108dp"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@tools:sample/avatars" />
+        app:layout_constraintTop_toTopOf="@id/guidelineTop"
+        app:srcCompat="@drawable/ic_profile_placeholder" />
 
+    <!-- 이름: 50% 지점 아래에 배치 -->
     <TextView
         android:id="@+id/textView"
-        android:layout_width="272dp"
-        android:layout_height="51dp"
-        android:layout_marginTop="28dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:gravity="center"
         android:text="이름"
         android:textAlignment="center"
-        app:layout_constraintBottom_toTopOf="@+id/textView4"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView"
-        app:layout_constraintVertical_bias="0.095" />
+        app:layout_constraintTop_toTopOf="@id/guidelineMiddle" />
 
+    <!-- 소개: 이름 바로 아래 -->
     <TextView
         android:id="@+id/textView4"
-        android:layout_width="114dp"
-        android:layout_height="39dp"
-        android:layout_marginBottom="28dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
         android:gravity="center"
         android:text="소개"
         android:textAlignment="center"
-        app:layout_constraintBottom_toTopOf="@+id/button2"
+        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textView" />
 
+    <!-- 버튼: 75% 지점에 배치 -->
     <Button
         android:id="@+id/button2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="156dp"
-        android:text="Button"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:layout_editor_absoluteX="160dp" />
+        android:text="프로필 편집"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/guidelineBottom" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -52,15 +52,17 @@ public class HomeActivity extends AppCompatActivity {
         btnLinear.setOnClickListener(v -> {
             // Intent는 안드로이드 시스템에게 보내는 요청서 (어디서 → 어디로)
             // LoginActivity.class를 넘겨서 "이 액티비티를 만들어달라"고 요청
-            Intent intent = new Intent(this, LoginActivity.class);
+            Intent loginActivity = new Intent(this, LoginActivity.class);
             // 요청서를 시스템에 제출 → 시스템이 LoginActivity를 생성하고 화면에 띄움
-            startActivity(intent);
+            startActivity(loginActivity);
+        });
+
+        btnConstraint.setOnClickListener(v -> {
+            Intent profileActivity = new Intent(this, ProfileActivity.class);
+            startActivity(profileActivity);
         });
 
         // 아직 만들지 않은 액티비티는 Toast로 안내
-        btnConstraint.setOnClickListener(v ->
-                Toast.makeText(this, "ConstraintLayout 데모 준비 중", Toast.LENGTH_SHORT).show()
-        );
         btnScroll.setOnClickListener(v ->
                 Toast.makeText(this, "ScrollView 데모 준비 중", Toast.LENGTH_SHORT).show()
         );

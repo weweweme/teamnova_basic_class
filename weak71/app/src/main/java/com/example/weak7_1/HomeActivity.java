@@ -14,11 +14,11 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        Button btnLinear = findViewById(R.id.btnLinearLayout);
-        Button btnConstraint = findViewById(R.id.btnConstraintLayout);
-        Button btnScroll = findViewById(R.id.btnScrollView);
-        Button btnGrid = findViewById(R.id.btnGridLayout);
-        Button btnFrame = findViewById(R.id.btnFrameLayout);
+        Button btnLogin = findViewById(R.id.btnLogin);
+        Button btnProfile = findViewById(R.id.btnProfile);
+        Button btnSettings = findViewById(R.id.btnSettings);
+        Button btnCalculator = findViewById(R.id.btnCalculator);
+        Button btnCard = findViewById(R.id.btnCard);
 
         /*
          * [Android 4대 구성요소와 Intent]
@@ -48,8 +48,8 @@ public class HomeActivity extends AppCompatActivity {
          * - 앱 구성요소: https://developer.android.com/guide/components/fundamentals
          */
 
-        // btnLinear 버튼의 클릭 이벤트 등록
-        btnLinear.setOnClickListener(v -> {
+        // 로그인 화면 버튼의 클릭 이벤트 등록
+        btnLogin.setOnClickListener(v -> {
             // Intent는 안드로이드 시스템에게 보내는 요청서 (어디서 → 어디로)
             // LoginActivity.class를 넘겨서 "이 액티비티를 만들어달라"고 요청
             Intent loginActivity = new Intent(this, LoginActivity.class);
@@ -57,19 +57,19 @@ public class HomeActivity extends AppCompatActivity {
             startActivity(loginActivity);
         });
 
-        btnConstraint.setOnClickListener(v -> {
+        btnProfile.setOnClickListener(v -> {
             Intent profileActivity = new Intent(this, ProfileActivity.class);
             startActivity(profileActivity);
         });
 
         // 아직 만들지 않은 액티비티는 Toast로 안내
-        btnScroll.setOnClickListener(v ->
+        btnSettings.setOnClickListener(v ->
                 Toast.makeText(this, "ScrollView 데모 준비 중", Toast.LENGTH_SHORT).show()
         );
-        btnGrid.setOnClickListener(v ->
+        btnCalculator.setOnClickListener(v ->
                 Toast.makeText(this, "GridLayout 데모 준비 중", Toast.LENGTH_SHORT).show()
         );
-        btnFrame.setOnClickListener(v ->
+        btnCard.setOnClickListener(v ->
                 Toast.makeText(this, "FrameLayout 데모 준비 중", Toast.LENGTH_SHORT).show()
         );
     }

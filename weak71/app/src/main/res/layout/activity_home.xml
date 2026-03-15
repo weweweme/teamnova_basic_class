@@ -25,35 +25,35 @@
         android:layout_marginBottom="32dp" />
 
     <Button
-        android:id="@+id/btnLinearLayout"
+        android:id="@+id/btnLogin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="1. LinearLayout - 로그인 화면"
         android:layout_marginBottom="12dp" />
 
     <Button
-        android:id="@+id/btnConstraintLayout"
+        android:id="@+id/btnProfile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="2. ConstraintLayout - 프로필 화면"
         android:layout_marginBottom="12dp" />
 
     <Button
-        android:id="@+id/btnScrollView"
+        android:id="@+id/btnSettings"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="3. ScrollView - 설정 화면"
         android:layout_marginBottom="12dp" />
 
     <Button
-        android:id="@+id/btnGridLayout"
+        android:id="@+id/btnCalculator"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="4. GridLayout - 계산기 화면"
         android:layout_marginBottom="12dp" />
 
     <Button
-        android:id="@+id/btnFrameLayout"
+        android:id="@+id/btnCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="5. FrameLayout - 카드 겹침 화면"

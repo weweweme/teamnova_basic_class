@@ -63,9 +63,11 @@ public class HomeActivity extends AppCompatActivity {
         });
 
         // 아직 만들지 않은 액티비티는 Toast로 안내
-        btnSettings.setOnClickListener(v ->
-                Toast.makeText(this, "ScrollView 데모 준비 중", Toast.LENGTH_SHORT).show()
-        );
+        btnSettings.setOnClickListener(v ->{
+            Intent settingActivity = new Intent(this, SettingActivity.class);
+            startActivity(settingActivity);
+        });
+
         btnCalculator.setOnClickListener(v ->
                 Toast.makeText(this, "GridLayout 데모 준비 중", Toast.LENGTH_SHORT).show()
         );

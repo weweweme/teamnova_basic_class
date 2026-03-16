@@ -67,10 +67,12 @@ public class HomeActivity extends AppCompatActivity {
             startActivity(settingActivity);
         });
 
+        btnCalculator.setOnClickListener(v ->{
+            Intent calculatorActivity = new Intent(this, CalculatorActivity.class);
+            startActivity(calculatorActivity);
+        });
+
         // 아직 만들지 않은 액티비티는 Toast로 안내
-        btnCalculator.setOnClickListener(v ->
-                Toast.makeText(this, "GridLayout 데모 준비 중", Toast.LENGTH_SHORT).show()
-        );
         btnCard.setOnClickListener(v ->
                 Toast.makeText(this, "FrameLayout 데모 준비 중", Toast.LENGTH_SHORT).show()
         );

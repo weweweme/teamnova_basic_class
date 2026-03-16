@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    [GridLayout - 격자 형태 배치]
+
+    행(row)과 열(column)로 이루어진 격자에 뷰를 배치한다.
+    계산기처럼 버튼이 규칙적으로 나열되는 UI에 적합.
+    Unity 비유: Grid Layout Group 컴포넌트와 동일한 개념.
+
+    columnCount="4" → 4열 격자 (한 줄에 4개씩)
+    자식 뷰는 순서대로 왼쪽→오른쪽, 위→아래로 채워진다.
+
+    [좌우 가이드라인 - 버튼 영역 제한]
+    이 화면에서는 좌우 Guideline(10%, 90%)을 사용하여
+    버튼 영역을 화면의 80% 너비로 제한한다.
+    화면이 넓어져도 버튼이 너무 퍼지지 않게 하기 위함.
+-->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".CalculatorActivity">
+
+    <!-- 좌측 가이드라인: 화면 너비의 5% 지점 -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineLeft"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.05" />
+
+    <!-- 우측 가이드라인: 화면 너비의 95% 지점 -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.95" />
+
+    <!-- 결과 표시 영역 -->
+    <TextView
+        android:id="@+id/tvResult"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
+        android:layout_marginBottom="24dp"
+        android:gravity="end"
+        android:padding="16dp"
+        android:text="0"
+        android:textSize="48sp"
+        app:layout_constraintEnd_toStartOf="@id/guidelineRight"
+        app:layout_constraintStart_toEndOf="@id/guidelineLeft"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!--
+        [GridLayout 영역]
+
+        좌우 가이드라인(5%~95%) 사이에 배치하여 화면 너비의 90%만 사용.
+        orientation="horizontal" → vertical 가이드라인과 혼동 주의.
+          - vertical Guideline: 세로 선 (좌우 위치를 결정)
+          - horizontal GridLayout orientation: 자식을 가로 방향으로 채워나감
+
+        layout_width="0dp" → 좌우 가이드라인 사이를 꽉 채움 (match_constraint)
+    -->
+    <GridLayout
+        android:id="@+id/gridButtons"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:columnCount="4"
+        app:layout_constraintEnd_toStartOf="@id/guidelineRight"
+        app:layout_constraintStart_toEndOf="@id/guidelineLeft"
+        app:layout_constraintTop_toBottomOf="@id/tvResult">
+
+        <!-- 1행: C, ±, %, ÷ -->
+        <Button android:id="@+id/btnClear" android:text="C" style="@style/Widget.Material3.Button.TonalButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <Button android:id="@+id/btnSign" android:text="±" style="@style/Widget.Material3.Button.TonalButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <Button android:id="@+id/btnPercent" android:text="%" style="@style/Widget.Material3.Button.TonalButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <Button android:id="@+id/btnDivide" android:text="÷" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+
+        <!-- 2행: 7, 8, 9, × -->
+        <Button android:id="@+id/btn7" android:text="7" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <Button android:id="@+id/btn8" android:text="8" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <Button android:id="@+id/btn9" android:text="9" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <Button android:id="@+id/btnMultiply" android:text="×" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+
+        <!-- 3행: 4, 5, 6, - -->
+        <Button android:id="@+id/btn4" android:text="4" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <Button android:id="@+id/btn5" android:text="5" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <Button android:id="@+id/btn6" android:text="6" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <Button android:id="@+id/btnMinus" android:text="-" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+
+        <!-- 4행: 1, 2, 3, + -->
+        <Button android:id="@+id/btn1" android:text="1" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <Button android:id="@+id/btn2" android:text="2" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <Button android:id="@+id/btn3" android:text="3" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <Button android:id="@+id/btnPlus" android:text="+" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+
+        <!-- 5행: 0(2칸), ., = -->
+        <Button android:id="@+id/btn0" android:text="0" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="2" android:layout_columnSpan="2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <Button android:id="@+id/btnDot" android:text="." style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <Button android:id="@+id/btnEquals" android:text="=" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+
+    </GridLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -3,7 +3,6 @@ package com.example.weak7_1;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -62,19 +61,19 @@ public class HomeActivity extends AppCompatActivity {
             startActivity(profileActivity);
         });
 
-        btnSettings.setOnClickListener(v ->{
+        btnSettings.setOnClickListener(v -> {
             Intent settingActivity = new Intent(this, SettingActivity.class);
             startActivity(settingActivity);
         });
 
-        btnCalculator.setOnClickListener(v ->{
+        btnCalculator.setOnClickListener(v -> {
             Intent calculatorActivity = new Intent(this, CalculatorActivity.class);
             startActivity(calculatorActivity);
         });
 
-        // 아직 만들지 않은 액티비티는 Toast로 안내
-        btnCard.setOnClickListener(v ->
-                Toast.makeText(this, "FrameLayout 데모 준비 중", Toast.LENGTH_SHORT).show()
-        );
+        btnCard.setOnClickListener(v -> {
+            Intent cardActivity = new Intent(this, CardActivity.class);
+            startActivity(cardActivity);
+        });
     }
 }

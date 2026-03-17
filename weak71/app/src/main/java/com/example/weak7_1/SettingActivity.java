@@ -10,6 +10,15 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+/**
+ * 설정 화면
+ * 레이아웃: ScrollView + LinearLayout (vertical)
+ * 크기 조절: match_parent 기반 (화면 너비에 맞춤)
+ * 학습 포인트: ScrollView는 화면에 다 담을 수 없는 콘텐츠를 스크롤 가능하게 해준다.
+ *            자식 뷰를 하나만 가질 수 있으므로, LinearLayout으로 감싸서 사용.
+ *            Unity의 Scroll Rect + Content(Vertical Layout Group) 구조와 동일.
+ *            selectableItemBackground로 리플(터치 피드백) 효과 적용.
+ */
 public class SettingActivity extends AppCompatActivity {
 
     // 현재 표시 중인 Toast를 저장. 새 Toast를 띄우기 전에 이전 것을 cancel()로 즉시 취소한다.

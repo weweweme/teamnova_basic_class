@@ -8,6 +8,15 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+/**
+ * 프로필 화면
+ * 레이아웃: ConstraintLayout
+ * 크기 조절: 고정 크기(dp) + Guideline(비율 기반 위치) 조합 (실무 방식)
+ * 학습 포인트: ConstraintLayout은 각 뷰에 상하좌우 제약(Constraint)을 걸어 위치를 결정.
+ *            Unity의 RectTransform 앵커 설정과 유사.
+ *            Guideline을 사용하면 화면의 퍼센트(%) 기준으로 위치를 잡을 수 있어
+ *            다양한 화면 크기에서도 비율이 유지된다.
+ */
 public class ProfileActivity extends AppCompatActivity {
 
     @Override

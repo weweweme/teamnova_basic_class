@@ -6,6 +6,12 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+/**
+ * 홈 화면 (앱 실행 시 가장 먼저 보이는 화면)
+ * 레이아웃: LinearLayout (vertical)
+ * 역할: 5개 데모 화면으로 이동하는 허브(메뉴) 역할
+ * 학습 포인트: Intent를 통한 Activity 전환, 4대 구성요소 간 소통 방식
+ */
 public class HomeActivity extends AppCompatActivity {
 
     @Override

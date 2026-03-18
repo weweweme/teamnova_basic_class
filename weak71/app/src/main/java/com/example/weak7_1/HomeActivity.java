@@ -153,15 +153,7 @@ public class HomeActivity extends AppCompatActivity {
         findViewById(R.id.btnCamera).setOnClickListener(v ->
                 startActivity(new Intent(this, CameraActivity.class)));
 
-        // 7. 공유 수신 - <intent-filter> ACTION_SEND, <data> mimeType 체험
-        findViewById(R.id.btnShare).setOnClickListener(v ->
-                startActivity(new Intent(this, ShareActivity.class)));
-
-        // 8. 딥링크 - <data> scheme/host/pathPrefix, BROWSABLE 체험
-        findViewById(R.id.btnDeepLink).setOnClickListener(v ->
-                startActivity(new Intent(this, DeepLinkActivity.class)));
-
-        // 9. 화면 속성 - screenOrientation, configChanges, windowSoftInputMode 체험
+        // 7. 화면 속성 - screenOrientation, configChanges, windowSoftInputMode 체험
         findViewById(R.id.btnPortrait).setOnClickListener(v ->
                 startActivity(new Intent(this, PortraitActivity.class)));
 
@@ -173,12 +165,9 @@ public class HomeActivity extends AppCompatActivity {
         findViewById(R.id.btnLaunchMode).setOnClickListener(v ->
                 startActivity(new Intent(this, LaunchModeActivity.class)));
 
-        // 12. 메타데이터 - <meta-data>, <service>, <receiver> 체험
+        // 12. 서비스/리시버 - <service>, <receiver> 체험
         findViewById(R.id.btnMetaData).setOnClickListener(v ->
                 startActivity(new Intent(this, MetaDataActivity.class)));
 
-        // 13. 패키지 가시성 - <queries> (Android 11+) 체험
-        findViewById(R.id.btnQuery).setOnClickListener(v ->
-                startActivity(new Intent(this, QueryActivity.class)));
     }
 }

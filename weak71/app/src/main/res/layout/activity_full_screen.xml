@@ -31,6 +31,14 @@
     android:background="?attr/colorPrimary"
     tools:context=".FullScreenActivity">
 
+    <!-- ===== 툴바 (뒤로가기 버튼) ===== -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:title="전체화면"
+        app:navigationIcon="?attr/homeAsUpIndicator" />
+
     <!-- 타이틀: 현재 화면 이름 -->
     <TextView
         android:layout_width="wrap_content"
@@ -117,55 +125,5 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!--
-        하단 설명 카드: android:theme 속성의 동작 원리를 설명한다.
-        AndroidManifest.xml에서 <activity android:theme="@style/Theme.Weak71.FullScreen">
-        으로 지정하면 해당 액티비티만 다른 테마가 적용된다.
-    -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="#1AFFFFFF">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <!-- 설명 제목 -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="액티비티별 테마 오버라이드란?"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/white"
-                android:layout_marginBottom="8dp" />
-
-            <!--
-                핵심 설명:
-                AndroidManifest.xml에서 <application android:theme="...">은 앱 전체 기본 테마이고,
-                개별 <activity android:theme="...">은 해당 액티비티만의 테마이다.
-                액티비티 테마가 앱 테마를 오버라이드(덮어쓰기)한다.
-
-                Unity 비유:
-                - application theme = Project Settings의 전역 설정
-                - activity theme = 특정 Scene의 Volume Override
-                - Scene에 Volume을 놓으면 그 Scene에서만 적용되듯이,
-                  activity에 theme을 지정하면 그 화면에서만 적용된다.
-            -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="AndroidManifest.xml에서\n\n• &lt;application android:theme&gt; → 앱 전체 기본 테마\n• &lt;activity android:theme&gt; → 해당 액티비티만의 테마\n\n액티비티 테마가 앱 테마를 오버라이드합니다.\n\nUnity 비유: 특정 Scene에만 다른\nPost-Processing Volume을 적용하는 것과 같습니다."
-                android:textSize="13sp"
-                android:textColor="#FFFFFFAA"
-                android:lineSpacingExtra="4dp" />
-
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
 
 </LinearLayout>

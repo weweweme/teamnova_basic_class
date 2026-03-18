@@ -3,6 +3,7 @@ package com.example.weak7_1;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
+import com.google.android.material.appbar.MaterialToolbar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -30,5 +31,18 @@ public class CalculatorActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // ── 툴바 (뒤로가기 버튼) 설정 ──
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
     }
 }

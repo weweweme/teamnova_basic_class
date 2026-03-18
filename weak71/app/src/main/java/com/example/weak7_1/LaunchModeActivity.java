@@ -11,6 +11,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.appbar.MaterialToolbar;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -148,6 +150,13 @@ public class LaunchModeActivity extends AppCompatActivity {
             return insets;
         });
 
+        // ── 툴바 (뒤로가기 버튼) 설정 ──
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
         // ===== UI 요소 바인딩 =====
         tvHashCode = findViewById(R.id.tvHashCode);
         tvTaskId = findViewById(R.id.tvTaskId);
@@ -282,5 +291,15 @@ public class LaunchModeActivity extends AppCompatActivity {
     private void addLog(String message) {
         String timestamp = timeFormat.format(new Date());
         eventLog.add("[" + timestamp + "] " + message);
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        // standard 모드로 여러 인스턴스가 스택에 쌓여 있을 수 있으므로,
+        // FLAG_ACTIVITY_CLEAR_TOP으로 HomeActivity 위의 모든 Activity를 제거하고 홈으로 돌아간다.
+        Intent homeIntent = new Intent(this, HomeActivity.class);
+        homeIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(homeIntent);
+        return true;
     }
 }

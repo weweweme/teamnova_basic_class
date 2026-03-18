@@ -5,6 +5,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import com.google.android.material.appbar.MaterialToolbar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -34,6 +35,13 @@ public class SettingActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // ── 툴바 (뒤로가기 버튼) 설정 ──
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         /*
          * [R.id - 리소스 ID 시스템]
@@ -105,5 +113,11 @@ public class SettingActivity extends AppCompatActivity {
             currentToast = Toast.makeText(this, "로그아웃 되었습니다", Toast.LENGTH_SHORT);
             currentToast.show();
         });
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
     }
 }

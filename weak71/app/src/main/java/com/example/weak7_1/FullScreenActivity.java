@@ -12,6 +12,8 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
+import com.google.android.material.appbar.MaterialToolbar;
+
 /**
  * 전체 화면 모드 액티비티 - 액티비티별 테마 오버라이드 데모
  *
@@ -84,6 +86,13 @@ public class FullScreenActivity extends AppCompatActivity {
             return insets;
         });
 
+        // ── 툴바 (뒤로가기 버튼) 설정 ──
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
         // 시스템 바 토글 버튼 설정
         setupToggleButton();
 
@@ -103,6 +112,12 @@ public class FullScreenActivity extends AppCompatActivity {
      * - BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE = 숨긴 후 화면 가장자리를 스와이프하면
      *   잠깐 보였다가 다시 사라지는 동작. 게임에서 숨긴 UI를 특정 제스처로 잠깐 보는 것과 유사.
      */
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
+    }
+
     private void setupToggleButton() {
         Button btnToggle = findViewById(R.id.btnToggleSystemBars);
 

@@ -7,6 +7,17 @@
     android:layout_height="match_parent"
     tools:context=".ProfileActivity">
 
+    <!-- ── 툴바 (뒤로가기 버튼) ── -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:title="프로필"
+        app:navigationIcon="?attr/homeAsUpIndicator" />
+
     <!--
         [Guideline - 비율 기반 배치]
 

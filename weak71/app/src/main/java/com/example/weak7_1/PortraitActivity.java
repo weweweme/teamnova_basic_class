@@ -1,7 +1,9 @@
 package com.example.weak7_1;
 
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -10,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import com.google.android.material.appbar.MaterialToolbar;
 
 /**
  * Activity 속성 데모 화면
@@ -97,10 +101,17 @@ public class PortraitActivity extends AppCompatActivity {
      */
     private int configChangeCount = 0;
 
+    /**
+     * 현재 회전 잠금 상태. true면 세로 고정, false면 자유 회전.
+     * Manifest에서 portrait으로 시작하므로 초기값은 true.
+     */
+    private boolean isOrientationLocked = true;
+
     // UI 요소 참조 변수들 (Unity의 [SerializeField] private Text 와 유사)
     private TextView tvOrientationInfo;
     private TextView tvOnCreateCount;
     private TextView tvConfigChangeCount;
+    private Button btnToggleOrientation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,6 +134,13 @@ public class PortraitActivity extends AppCompatActivity {
             return insets;
         });
 
+        // ── 툴바 (뒤로가기 버튼) 설정 ──
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
         // onCreate 호출 횟수 증가
         onCreateCount++;
 
@@ -132,6 +150,22 @@ public class PortraitActivity extends AppCompatActivity {
         tvOrientationInfo = findViewById(R.id.tvOrientationInfo);
         tvOnCreateCount = findViewById(R.id.tvOnCreateCount);
         tvConfigChangeCount = findViewById(R.id.tvConfigChangeCount);
+        btnToggleOrientation = findViewById(R.id.btnToggleOrientation);
+
+        // ── 회전 잠금 토글 버튼 ──
+        // setRequestedOrientation()으로 런타임에 화면 방향을 변경할 수 있다.
+        // SCREEN_ORIENTATION_PORTRAIT = 세로 고정 (Manifest 초기값과 동일)
+        // SCREEN_ORIENTATION_SENSOR = 센서 기반 자유 회전 (기기 방향에 따라 자동 전환)
+        btnToggleOrientation.setOnClickListener(v -> {
+            isOrientationLocked = !isOrientationLocked;
+            if (isOrientationLocked) {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                btnToggleOrientation.setText("회전 잠금 해제하기 (현재: 세로 고정)");
+            } else {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+                btnToggleOrientation.setText("회전 잠금하기 (현재: 자유 회전)");
+            }
+        });
 
         // 화면에 현재 상태를 표시한다.
         updateUI();
@@ -169,6 +203,12 @@ public class PortraitActivity extends AppCompatActivity {
      * Unity에서도 UpdateUI() 같은 메서드를 만들어 Start()와 이벤트 콜백에서
      * 공통으로 호출하는 패턴과 동일하다.
      */
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
+    }
+
     private void updateUI() {
         // 현재 화면 방향을 가져온다.
         // Configuration.ORIENTATION_PORTRAIT = 1 (세로)

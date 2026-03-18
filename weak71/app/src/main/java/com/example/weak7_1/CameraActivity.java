@@ -19,6 +19,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.appbar.MaterialToolbar;
+
 /**
  * 카메라 권한 데모 화면
  * Manifest 학습 포인트: uses-permission, uses-feature, 런타임 권한 요청
@@ -111,6 +113,13 @@ public class CameraActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // ── 툴바 (뒤로가기 버튼) 설정 ──
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         // ===== UI 요소 바인딩 =====
         ivPhoto = findViewById(R.id.ivPhoto);
@@ -278,6 +287,12 @@ public class CameraActivity extends AppCompatActivity {
      *       ShowARNotSupportedMessage();
      *   처럼 AR 지원 여부를 런타임에 체크하는 것과 같다.
      */
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
+    }
+
     private void checkCameraFeature() {
         boolean hasCamera = getPackageManager()
                 .hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);

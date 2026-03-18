@@ -106,53 +106,32 @@
             android:layout_marginBottom="8dp" />
 
         <Button
-            android:id="@+id/btnShare"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="7. 공유 수신 - intent-filter (ACTION_SEND)"
-            android:layout_marginBottom="8dp" />
-
-        <Button
-            android:id="@+id/btnDeepLink"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="8. 딥링크 - data (scheme/host/path)"
-            android:layout_marginBottom="8dp" />
-
-        <Button
             android:id="@+id/btnPortrait"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="9. 화면 속성 - 회전잠금 / configChanges"
+            android:text="7. 화면 속성 - 회전잠금 / configChanges"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/btnFullScreen"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="10. 전체화면 - Activity 테마 오버라이드"
+            android:text="8. 전체화면 - Activity 테마 오버라이드"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/btnLaunchMode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="11. 실행 모드 - launchMode (singleTop)"
+            android:text="9. 실행 모드 - launchMode (singleTop)"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/btnMetaData"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="12. 메타데이터 - meta-data / Service / Receiver"
+            android:text="10. 서비스 / 리시버 - Service / Receiver"
             android:layout_marginBottom="8dp" />
-
-        <Button
-            android:id="@+id/btnQuery"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="13. 패키지 가시성 - queries (Android 11+)"
-            android:layout_marginBottom="24dp" />
 
     </LinearLayout>
 </ScrollView>

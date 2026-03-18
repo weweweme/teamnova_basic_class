@@ -38,6 +38,13 @@
     android:padding="24dp"
     tools:context=".LaunchModeActivity">
 
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:title="실행 모드"
+        app:navigationIcon="?attr/homeAsUpIndicator" />
+
     <!-- ===== 화면 타이틀 ===== -->
     <TextView
         android:layout_width="match_parent"

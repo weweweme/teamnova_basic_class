@@ -96,8 +96,17 @@ public class MyForegroundService extends Service {
     /**
      * 카운터 - 서비스가 시작된 후 5초마다 증가하는 값.
      * 알림에 표시하여 서비스가 실행 중임을 사용자에게 보여준다.
+     *
+     * static으로 선언하여 Activity에서 MyForegroundService.counter로 읽을 수 있다.
+     * Unity 비유: static int counter처럼 외부에서 직접 참조 가능한 값.
      */
-    private int counter = 0;
+    static int counter = 0;
+
+    /**
+     * 서비스 실행 여부 플래그.
+     * Activity에서 MyForegroundService.isRunning으로 확인한다.
+     */
+    static boolean isRunning = false;
 
     /**
      * NotificationManager - 알림을 시스템에 표시/업데이트/취소하는 관리자.
@@ -179,6 +188,9 @@ public class MyForegroundService extends Service {
         }
         Log.d(TAG, "startForeground() 호출 완료 - 포그라운드 상태로 전환됨");
 
+        // 실행 중 플래그 설정
+        isRunning = true;
+
         // ── Step 4: 주기적 카운터 업데이트 시작 ──
         startCounter();
 
@@ -236,8 +248,9 @@ public class MyForegroundService extends Service {
             Log.d(TAG, "Handler 콜백 제거 완료");
         }
 
-        // 카운터 초기화
+        // 카운터 초기화 + 실행 플래그 해제
         counter = 0;
+        isRunning = false;
     }
 
     // ============================================================

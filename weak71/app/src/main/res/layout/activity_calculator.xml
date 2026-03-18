@@ -22,6 +22,17 @@
     android:layout_height="match_parent"
     tools:context=".CalculatorActivity">
 
+    <!-- ── 툴바 (뒤로가기 버튼) ── -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:title="계산기"
+        app:navigationIcon="?attr/homeAsUpIndicator" />
+
     <!-- 좌측 가이드라인: 화면 너비의 5% 지점 -->
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineLeft"
@@ -51,7 +62,7 @@
         android:textSize="48sp"
         app:layout_constraintEnd_toStartOf="@id/guidelineRight"
         app:layout_constraintStart_toEndOf="@id/guidelineLeft"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
     <!--
         [GridLayout 영역]

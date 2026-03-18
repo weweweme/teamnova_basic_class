@@ -151,30 +151,27 @@ public class TimeTickReceiver extends BroadcastReceiver {
         // intent.getAction()으로 수신된 브로드캐스트의 종류를 확인한다.
         // ACTION_TIME_TICK이 아닌 다른 브로드캐스트가 올 수도 있으므로 확인이 필요.
         // Unity 비유: OnTriggerEnter(Collider other)에서 other.tag를 확인하는 것.
-        if (Intent.ACTION_TIME_TICK.equals(intent.getAction())) {
+        String action = intent.getAction();
+
+        // 커스텀 브로드캐스트(ACTION_CUSTOM_TICK) 또는 시스템 TIME_TICK 모두 처리
+        if (MetaDataActivity.ACTION_CUSTOM_TICK.equals(action)
+                || Intent.ACTION_TIME_TICK.equals(action)) {
 
             // 현재 시각을 포맷팅한다
-            // SimpleDateFormat: 날짜/시간을 원하는 형식의 문자열로 변환하는 도구
             // Unity 비유: DateTime.Now.ToString("HH:mm:ss")와 동일
             String currentTime = new SimpleDateFormat(
                     "HH:mm:ss", Locale.getDefault()
             ).format(new Date());
 
-            // 로그 출력 - Logcat에서 확인 가능
-            // Unity 비유: Debug.Log($"[TimeTickReceiver] 시스템 시간 수신: {currentTime}");
-            Log.d(TAG, "ACTION_TIME_TICK 수신! 현재 시각: " + currentTime);
+            Log.d(TAG, "브로드캐스트 수신! action=" + action + " 시각: " + currentTime);
 
-            // Toast = 화면 하단에 잠시 나타났다 사라지는 메시지
-            // LENGTH_SHORT: 약 2초간 표시
-            // LENGTH_LONG: 약 3.5초간 표시
-            // Unity 비유: 화면에 잠시 떴다 사라지는 팝업 텍스트 (DOTween 페이드 애니메이션)
+            // Toast로 수신 피드백 표시
             Toast.makeText(context,
-                    "TIME_TICK 수신: " + currentTime,
+                    "브로드캐스트 수신: " + currentTime,
                     Toast.LENGTH_SHORT).show();
 
             // 콜백으로 Activity에 현재 시각을 전달한다
-            // null 체크: 리스너가 설정되지 않았을 수도 있으므로
-            // Unity 비유: OnTick?.Invoke(currentTime);  (null-conditional 호출)
+            // Unity 비유: OnTick?.Invoke(currentTime);
             if (onTickListener != null) {
                 onTickListener.onTick(currentTime);
             }

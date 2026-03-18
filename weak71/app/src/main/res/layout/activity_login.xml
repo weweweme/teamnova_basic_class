@@ -8,6 +8,14 @@
     android:orientation="vertical"
     tools:context=".LoginActivity">
 
+    <!-- ── 툴바 (뒤로가기 버튼) ── -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:title="로그인"
+        app:navigationIcon="?attr/homeAsUpIndicator" />
+
     <TextView
         android:id="@+id/textView2"
         android:layout_width="match_parent"

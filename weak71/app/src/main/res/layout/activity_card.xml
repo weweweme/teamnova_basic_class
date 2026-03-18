@@ -20,172 +20,188 @@
     높을수록 그림자가 진해지고, 화면에서 더 위에 떠있는 것처럼 보인다.
     뒤쪽 카드는 낮게(4dp), 앞쪽 카드는 높게(12dp) 설정하여 입체감 표현.
 -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".CardActivity">
 
-    <!-- 상단 타이틀 -->
-    <TextView
+    <!-- ── 툴바 (뒤로가기 버튼) ── -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
-        android:text="카드 겹침 데모"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textAlignment="center" />
+        android:layout_height="?attr/actionBarSize"
+        app:title="카드 겹침"
+        app:navigationIcon="?attr/homeAsUpIndicator" />
 
-    <!-- 1번째 카드 (맨 아래) - 가장 먼저 선언 = 가장 뒤에 그려짐 -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="300dp"
-        android:layout_height="220dp"
-        android:layout_gravity="center"
-        android:layout_marginBottom="60dp"
-        app:cardBackgroundColor="#FF7043"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="4dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="20dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="LinearLayout"
-                android:textColor="#FFFFFF"
-                android:textSize="22sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="순서대로 한 방향으로 쌓기"
-                android:textColor="#FFFFFFCC"
-                android:textSize="14sp" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="카드 1 (맨 뒤)"
-                android:textColor="#FFFFFF99"
-                android:textSize="12sp" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <!-- 2번째 카드 (중간) -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="300dp"
-        android:layout_height="220dp"
-        android:layout_gravity="center"
-        android:layout_marginStart="20dp"
-        app:cardBackgroundColor="#42A5F5"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="8dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="20dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="ConstraintLayout"
-                android:textColor="#FFFFFF"
-                android:textSize="22sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="제약 기반 자유 배치"
-                android:textColor="#FFFFFFCC"
-                android:textSize="14sp" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="카드 2 (중간)"
-                android:textColor="#FFFFFF99"
-                android:textSize="12sp" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <!-- 3번째 카드 (맨 위) - 가장 나중에 선언 = 가장 앞에 그려짐 -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="300dp"
-        android:layout_height="220dp"
-        android:layout_gravity="center"
-        android:layout_marginTop="60dp"
-        android:layout_marginStart="40dp"
-        app:cardBackgroundColor="#66BB6A"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="12dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="20dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="FrameLayout"
-                android:textColor="#FFFFFF"
-                android:textSize="22sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="뷰를 겹쳐서 배치"
-                android:textColor="#FFFFFFCC"
-                android:textSize="14sp" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="카드 3 (맨 앞)"
-                android:textColor="#FFFFFF99"
-                android:textSize="12sp" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <!-- 하단 설명 텍스트 -->
-    <TextView
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:layout_marginBottom="32dp"
-        android:text="FrameLayout: XML에서 나중에 선언한 뷰가 위에 표시됩니다"
-        android:textAlignment="center"
-        android:textColor="#888888"
-        android:textSize="13sp" />
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-</FrameLayout>
+        <!-- 상단 타이틀 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="48dp"
+            android:text="카드 겹침 데모"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textAlignment="center" />
+
+        <!-- 1번째 카드 (맨 아래) - 가장 먼저 선언 = 가장 뒤에 그려짐 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="300dp"
+            android:layout_height="220dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="60dp"
+            app:cardBackgroundColor="#FF7043"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="LinearLayout"
+                    android:textColor="#FFFFFF"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="순서대로 한 방향으로 쌓기"
+                    android:textColor="#FFFFFFCC"
+                    android:textSize="14sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="카드 1 (맨 뒤)"
+                    android:textColor="#FFFFFF99"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 2번째 카드 (중간) -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="300dp"
+            android:layout_height="220dp"
+            android:layout_gravity="center"
+            android:layout_marginStart="20dp"
+            app:cardBackgroundColor="#42A5F5"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ConstraintLayout"
+                    android:textColor="#FFFFFF"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="제약 기반 자유 배치"
+                    android:textColor="#FFFFFFCC"
+                    android:textSize="14sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="카드 2 (중간)"
+                    android:textColor="#FFFFFF99"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 3번째 카드 (맨 위) - 가장 나중에 선언 = 가장 앞에 그려짐 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="300dp"
+            android:layout_height="220dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="60dp"
+            android:layout_marginStart="40dp"
+            app:cardBackgroundColor="#66BB6A"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="FrameLayout"
+                    android:textColor="#FFFFFF"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="뷰를 겹쳐서 배치"
+                    android:textColor="#FFFFFFCC"
+                    android:textSize="14sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="카드 3 (맨 앞)"
+                    android:textColor="#FFFFFF99"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 하단 설명 텍스트 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginBottom="32dp"
+            android:text="FrameLayout: XML에서 나중에 선언한 뷰가 위에 표시됩니다"
+            android:textAlignment="center"
+            android:textColor="#888888"
+            android:textSize="13sp" />
+
+    </FrameLayout>
+
+</LinearLayout>

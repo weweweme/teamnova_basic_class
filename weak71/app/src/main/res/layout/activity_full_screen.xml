@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    [전체 화면 모드 - 액티비티별 테마 오버라이드 데모]
+
+    이 화면은 앱 전체 테마(Theme.Weak71)가 아닌,
+    이 액티비티 전용 테마(Theme.Weak71.FullScreen)를 사용한다.
+
+    Unity 비유:
+    - 앱 전체 테마 = Project Settings > Quality 의 기본 설정
+    - 액티비티별 테마 = 특정 Scene에만 적용하는 Post-Processing Profile
+    - AndroidManifest.xml에서 <activity android:theme="..."> 로 지정하면
+      해당 액티비티만 다른 테마가 적용된다.
+    - Unity에서 특정 Scene에 Volume(Post-Processing)을 배치하면
+      그 Scene에서만 다른 시각효과가 적용되는 것과 같다.
+
+    [배경색 = ?attr/colorPrimary]
+    하드코딩 색상(#FF0000 등) 대신 테마 속성(?attr/)을 참조하면,
+    테마가 바뀌면 자동으로 색상도 바뀐다.
+    Unity 비유: Material의 색상을 직접 지정하지 않고,
+    Scriptable Object에서 참조해서 쓰는 것과 같다.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center"
+    android:background="?attr/colorPrimary"
+    tools:context=".FullScreenActivity">
+
+    <!-- 타이틀: 현재 화면 이름 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="전체 화면 모드"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:layout_marginBottom="12dp" />
+
+    <!--
+        설명 텍스트: 이 액티비티가 사용하는 테마에 대한 안내.
+        다른 액티비티들은 Theme.Weak71(앱 기본 테마)을 사용하지만,
+        이 액티비티만 Theme.Weak71.FullScreen을 사용한다.
+    -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="이 액티비티는 앱 기본 테마(Theme.Weak71) 대신\nTheme.Weak71.FullScreen 테마를 사용합니다."
+        android:textSize="14sp"
+        android:textColor="#FFFFFFCC"
+        android:textAlignment="center"
+        android:lineSpacingExtra="4dp"
+        android:layout_marginBottom="32dp" />
+
+    <!--
+        상태바/네비게이션바 토글 버튼
+        Unity 비유: Player Settings > Resolution and Presentation > Fullscreen Mode 를
+        런타임에 토글하는 것과 유사하다.
+        Android에서는 WindowInsetsControllerCompat로 시스템 바를 숨기거나 보여줄 수 있다.
+    -->
+    <Button
+        android:id="@+id/btnToggleSystemBars"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="상태바/네비게이션바 토글"
+        android:textSize="16sp"
+        android:layout_marginBottom="32dp" />
+
+    <!--
+        현재 테마 정보를 표시하는 카드
+        코드에서 TypedArray로 현재 테마의 colorPrimary 등을 읽어서 여기에 표시한다.
+        Unity 비유: 런타임에 현재 적용된 Material의 속성값을 Debug.Log로 출력하는 것과 같다.
+    -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="#FFFFFF"
+        android:layout_marginBottom="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- 섹션 제목 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="현재 테마 정보"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#333333"
+                android:layout_marginBottom="12dp" />
+
+            <!--
+                테마 정보 텍스트: 코드에서 동적으로 내용을 채운다.
+                TypedArray를 사용해 현재 테마에서 colorPrimary,
+                colorOnPrimary 등의 실제 값을 읽어와 표시한다.
+            -->
+            <TextView
+                android:id="@+id/tvThemeInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="테마 정보를 불러오는 중..."
+                android:textSize="14sp"
+                android:textColor="#666666"
+                android:lineSpacingExtra="6dp"
+                android:fontFamily="monospace" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!--
+        하단 설명 카드: android:theme 속성의 동작 원리를 설명한다.
+        AndroidManifest.xml에서 <activity android:theme="@style/Theme.Weak71.FullScreen">
+        으로 지정하면 해당 액티비티만 다른 테마가 적용된다.
+    -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#1AFFFFFF">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- 설명 제목 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="액티비티별 테마 오버라이드란?"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="8dp" />
+
+            <!--
+                핵심 설명:
+                AndroidManifest.xml에서 <application android:theme="...">은 앱 전체 기본 테마이고,
+                개별 <activity android:theme="...">은 해당 액티비티만의 테마이다.
+                액티비티 테마가 앱 테마를 오버라이드(덮어쓰기)한다.
+
+                Unity 비유:
+                - application theme = Project Settings의 전역 설정
+                - activity theme = 특정 Scene의 Volume Override
+                - Scene에 Volume을 놓으면 그 Scene에서만 적용되듯이,
+                  activity에 theme을 지정하면 그 화면에서만 적용된다.
+            -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="AndroidManifest.xml에서\n\n• &lt;application android:theme&gt; → 앱 전체 기본 테마\n• &lt;activity android:theme&gt; → 해당 액티비티만의 테마\n\n액티비티 테마가 앱 테마를 오버라이드합니다.\n\nUnity 비유: 특정 Scene에만 다른\nPost-Processing Volume을 적용하는 것과 같습니다."
+                android:textSize="13sp"
+                android:textColor="#FFFFFFAA"
+                android:lineSpacingExtra="4dp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>

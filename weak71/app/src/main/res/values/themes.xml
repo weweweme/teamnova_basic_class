@@ -6,4 +6,24 @@
     </style>
 
     <style name="Theme.Weak71" parent="Base.Theme.Weak71" />
+
+    <!--
+        [FullScreenActivity 전용 테마]
+
+        앱 전체 테마(Theme.Weak71)와 다른 외형을 이 Activity에만 적용하기 위한 커스텀 테마.
+        AndroidManifest.xml에서 android:theme="@style/Theme.Weak71.FullScreen" 으로 지정한다.
+
+        Unity 비유: 특정 씬에만 다른 Post-Processing Profile을 적용하는 것.
+        프로젝트 전체 렌더링 설정은 그대로 두고, 이 씬만 색감/효과가 다른 것과 같다.
+
+        windowFullscreen=true → 상태바를 숨겨서 전체 화면 사용
+        windowContentOverlay=@null → 타이틀바 아래 그림자 제거
+        colorPrimary → 이 테마의 주요 색상 (버튼, 앱바 등에 적용)
+    -->
+    <style name="Theme.Weak71.FullScreen" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="colorPrimary">#FF5722</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+    </style>
 </resources>

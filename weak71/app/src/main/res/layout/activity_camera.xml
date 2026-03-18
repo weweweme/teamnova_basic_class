@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ============================================================
+    [카메라 권한 데모 레이아웃]
+    ============================================================
+
+    이 화면은 AndroidManifest.xml의 두 가지 핵심 선언을 체험한다:
+
+    1) uses-permission = 앱이 사용할 권한을 선언
+       Unity 비유: Player Settings > Other Settings > Android 탭에서
+                   "Camera", "Microphone" 등의 권한을 체크하는 것과 같다.
+                   Unity도 빌드 시 AndroidManifest에 해당 권한을 자동으로 추가한다.
+
+    2) uses-feature = 앱이 필요로 하는 하드웨어/소프트웨어 기능을 선언
+       Unity 비유: AR Foundation을 사용할 때 ARCore/ARKit 지원 기기에서만
+                   앱이 설치되도록 요구하는 것과 같다.
+                   required="true"면 해당 기능이 없는 기기에서는
+                   Google Play에서 앱이 검색/설치 자체가 안 된다.
+
+    핵심 차이:
+    - uses-permission: "이 기능을 쓸 권한을 주세요" (사용자에게 허락 요청)
+    - uses-feature: "이 하드웨어가 반드시 있어야 합니다" (Play Store 필터링)
+
+    레이아웃 구조: LinearLayout(vertical)
+    각 정보를 CardView로 감싸서 시각적으로 구분한다.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    tools:context=".CameraActivity">
+
+    <!-- ===== 화면 타이틀 ===== -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="카메라 권한 데모"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textAlignment="center"
+        android:layout_marginBottom="16dp" />
+
+    <!-- ===== 촬영된 사진을 표시할 영역 ===== -->
+    <!--
+        ImageView: 이미지를 표시하는 뷰.
+        Unity 비유: RawImage 컴포넌트와 같다. Texture를 할당하면 화면에 표시된다.
+        촬영 전에는 배경색만 보이고, 촬영 후 썸네일 Bitmap이 표시된다.
+    -->
+    <ImageView
+        android:id="@+id/ivPhoto"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="16dp"
+        android:background="#E0E0E0"
+        android:contentDescription="촬영된 사진" />
+
+    <!-- ===== 카메라 열기 버튼 ===== -->
+    <!--
+        이 버튼을 누르면:
+        1. 카메라 권한이 있는지 확인
+        2. 없으면 권한 요청 다이얼로그 표시
+        3. 있으면 카메라 앱 실행 (ACTION_IMAGE_CAPTURE)
+    -->
+    <Button
+        android:id="@+id/btnOpenCamera"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="카메라 열기" />
+
+    <!-- ===== 권한 상태 확인 버튼 ===== -->
+    <!--
+        현재 카메라 권한이 허용(GRANTED)인지 거부(DENIED)인지만 확인한다.
+        권한을 요청하지는 않고, 현재 상태만 표시.
+    -->
+    <Button
+        android:id="@+id/btnCheckPermission"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="권한 상태 확인" />
+
+    <!-- ===== 권한 상태 표시 ===== -->
+    <TextView
+        android:id="@+id/tvPermissionStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="권한 상태: 확인 전"
+        android:textSize="15sp" />
+
+    <!-- ===== 하드웨어 기능 존재 여부 표시 ===== -->
+    <!--
+        hasSystemFeature(FEATURE_CAMERA_ANY)의 결과를 표시한다.
+        이것은 uses-feature가 아닌 런타임 체크이다.
+        uses-feature: Play Store에서 설치 전에 필터링 (빌드 타임 선언)
+        hasSystemFeature: 런타임에 기기 기능 확인 (코드에서 체크)
+    -->
+    <TextView
+        android:id="@+id/tvFeatureStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="카메라 하드웨어: 확인 전"
+        android:textSize="15sp" />
+
+    <!-- ===== 설명 카드: uses-permission vs uses-feature ===== -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#FFF3E0">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="uses-permission vs uses-feature"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="uses-permission (권한 선언)\n→ '이 앱은 카메라를 사용합니다' 라고 시스템에 알림\n→ 사용자에게 허락을 요청하는 근거가 됨\n→ Unity: Player Settings에서 권한 체크\n\nuses-feature (기능 요구)\n→ '이 앱은 카메라가 있는 기기에서만 동작합니다'\n→ required=true면 Play Store에서 미지원 기기 필터링\n→ Unity: AR Foundation 필수 체크와 같음\n\n런타임 권한 (Android 6.0+)\n→ Manifest에 선언만으로는 부족. 실행 중에 사용자에게 직접 물어야 함\n→ Unity에서는 Permission.RequestUserPermission() 사용"
+                android:textSize="13sp"
+                android:lineSpacingExtra="3dp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>

@@ -25,6 +25,193 @@
 
     <!--
         ============================================================
+        [uses-permission - 앱이 사용할 권한 선언]
+        ============================================================
+
+        앱이 민감한 기능(카메라, 인터넷, 알림 등)을 사용하려면
+        여기에 "나는 이 권한이 필요하다"고 미리 선언해야 한다.
+        선언하지 않으면 해당 기능을 아예 사용할 수 없다.
+
+        Unity 비유: Player Settings > Android > Permissions 체크박스와 유사.
+                    "카메라 사용" 체크 안 하면 카메라 기능 자체가 비활성화되는 것.
+
+        권한의 2단계:
+        1단계 - Manifest 선언 (여기서 함): "이 앱은 이 권한을 사용할 수 있다" (설치 시 확인)
+        2단계 - 런타임 요청 (Java 코드에서): "지금 당장 이 권한을 허용해달라" (실행 중 팝업)
+
+        ★ Manifest에 선언 안 하면 런타임 요청 자체가 불가능하다!
+          Java에서 requestPermissions()를 호출해도 항상 DENIED가 반환된다.
+          반대로, Manifest에만 선언하고 런타임 요청 안 하면?
+          → Android 5 이하: 설치 시 자동 허용 (런타임 요청 불필요)
+          → Android 6 이상: "dangerous" 권한은 런타임 요청 필수, 안 하면 DENIED
+
+        공식 문서: https://developer.android.com/guide/topics/permissions/overview
+    -->
+
+    <!--
+        CAMERA 권한 (dangerous - 런타임 요청 필수)
+        → 카메라 하드웨어에 직접 접근할 수 있는 권한.
+          CameraActivity에서 카메라 앱을 호출하거나 카메라 프리뷰를 띄울 때 필요.
+          ★ 이 줄을 주석 처리하면? → CameraActivity에서 권한 요청 팝업이 뜨지 않고 항상 거부됨.
+    -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!--
+        INTERNET 권한 (normal - 런타임 요청 불필요)
+        → 네트워크(인터넷) 접근 권한.
+          "normal" 등급이라 Manifest 선언만으로 자동 허용된다 (런타임 팝업 없음).
+          대부분의 앱이 필요로 하는 기본 권한.
+          ★ 이 줄을 주석 처리하면? → 앱에서 HTTP 요청, API 호출 등이 모두 실패.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+        FOREGROUND_SERVICE 권한 (normal)
+        → 포그라운드 서비스(상태바에 알림을 띄우면서 백그라운드 작업을 하는 서비스)를
+          실행할 수 있는 권한. Android 9(API 28)부터 필수.
+          MyForegroundService에서 사용.
+          ★ 이 줄을 주석 처리하면? → startForegroundService() 호출 시 SecurityException 크래시.
+    -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <!--
+        FOREGROUND_SERVICE_SPECIAL_USE 권한 (normal)
+        → 포그라운드 서비스의 "특수 용도(specialUse)" 타입 사용 권한.
+          Android 14(API 34)부터 서비스 타입별로 별도 권한이 필요하다.
+          우리 데모 서비스(카운터)는 표준 타입(음악, 위치 등)에 해당하지 않으므로
+          "specialUse"를 사용하고, 이 권한을 선언한다.
+          다른 타입 예시: FOREGROUND_SERVICE_MEDIA_PLAYBACK, FOREGROUND_SERVICE_LOCATION 등.
+    -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <!--
+        POST_NOTIFICATIONS 권한 (dangerous - Android 13+ 런타임 요청 필수)
+        → 알림(Notification)을 게시할 수 있는 권한.
+          Android 13(API 33)부터 추가된 새 권한.
+          이전 버전에서는 알림이 기본 허용이었지만, 13부터는 사용자 동의가 필요.
+          MyForegroundService가 알림을 띄우므로 필요.
+          ★ 이 줄을 주석 처리하면? → Android 13+ 기기에서 알림이 표시되지 않음.
+    -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!--
+        RECEIVE_BOOT_COMPLETED 권한 (normal)
+        → 기기 부팅 완료 시 브로드캐스트(ACTION_BOOT_COMPLETED)를 수신할 수 있는 권한.
+          TimeTickReceiver의 Manifest 등록 예시에서 사용.
+          ★ 이 줄을 주석 처리하면? → 부팅 완료 이벤트를 수신할 수 없음.
+    -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!--
+        ============================================================
+        [uses-feature - 앱이 사용하는 하드웨어/소프트웨어 기능 선언]
+        ============================================================
+
+        앱이 특정 하드웨어(카메라, GPS, NFC 등)를 사용한다고 선언.
+        Google Play Store가 이 정보를 보고 해당 하드웨어가 없는 기기에서
+        앱을 숨길지 말지 결정한다.
+
+        Unity 비유: Player Settings에서 "Requires ARCore" 등을 체크하면,
+                    ARCore 미지원 기기에서 Play Store에 앱이 안 뜨는 것과 동일.
+
+        ── required 속성 ──
+        required="true"  (기본값): 이 기능이 없는 기기에서 Play Store에 앱이 안 보임.
+        required="false": 이 기능이 없어도 설치 가능. 코드에서 hasSystemFeature()로 확인 후 분기.
+
+        공식 문서: https://developer.android.com/guide/topics/manifest/uses-feature-element
+    -->
+
+    <!--
+        camera.any → 전면/후면 카메라 중 하나라도 있으면 됨.
+        "android.hardware.camera" 로 쓰면 후면 카메라만 요구한다 (태블릿 등에서 문제).
+        required="false" → 카메라 없는 기기에서도 설치 가능. 코드에서 기능 유무를 분기 처리.
+        ★ required="true"로 바꾸면? → 카메라 없는 기기(일부 태블릿)에서 Play Store에 앱이 안 뜸.
+    -->
+    <uses-feature
+        android:name="android.hardware.camera.any"
+        android:required="false" />
+
+    <!--
+        ============================================================
+        [permission - 커스텀 권한 정의]
+        ============================================================
+
+        시스템이 기본 제공하는 권한(CAMERA, INTERNET 등) 외에,
+        앱 개발자가 직접 새로운 권한을 만들 수 있다.
+        이 권한을 다른 앱이 사용하려면 <uses-permission>으로 선언해야 한다.
+
+        Unity 비유: 유니티 에셋에서 "이 에셋을 사용하려면 라이센스 키가 필요합니다" 같은 접근 제어.
+
+        ── protectionLevel (보호 수준) ──
+        "normal"      → 설치 시 자동 허용. 런타임 팝업 없음.
+        "dangerous"   → 런타임에 사용자에게 팝업으로 허용/거부를 물어봄.
+        "signature"   → 같은 서명(같은 개발자)의 앱만 허용. 다른 개발자 앱은 불가.
+        "signatureOrSystem" → 같은 서명이거나 시스템 앱만 허용.
+
+        아래 커스텀 권한은 "signature" 레벨이므로,
+        우리와 같은 서명 키로 빌드된 앱만 이 권한을 사용할 수 있다.
+
+        공식 문서: https://developer.android.com/guide/topics/manifest/permission-element
+    -->
+    <permission
+        android:name="com.example.weak7_1.permission.ACCESS_SPECIAL_DATA"
+        android:label="특별 데이터 접근"
+        android:description="@string/permission_special_data_desc"
+        android:protectionLevel="signature" />
+
+    <!--
+        ============================================================
+        [queries - 패키지 가시성 선언 (Android 11+)]
+        ============================================================
+
+        Android 11(API 30)부터 보안 강화로, 다른 앱의 존재 여부를 기본적으로 알 수 없다.
+        "크롬이 설치되어 있나?" 같은 질문에 대답을 받으려면 여기에 미리 선언해야 한다.
+
+        Unity 비유: 에셋번들 로드 시 manifest에 등록된 번들만 조회 가능한 것과 유사.
+                    등록 안 된 번들은 "없다"고 나오는 것처럼, 선언 안 하면 앱이 "없다"고 판단.
+
+        선언 안 하면?
+        → PackageManager.getPackageInfo() 호출 시 NameNotFoundException 발생.
+        → queryIntentActivities() 호출 시 빈 리스트 반환.
+        → 해당 앱이 실제로 설치되어 있어도 "없다"는 결과가 나옴!
+
+        ── 3가지 선언 방식 ──
+        1) <package>  : 특정 앱의 패키지명으로 직접 지정 (가장 정확)
+        2) <intent>   : 특정 기능을 처리할 수 있는 앱을 찾겠다고 선언 (유연)
+        3) QUERY_ALL_PACKAGES 권한: 모든 앱 조회 가능 (Play Store 심사 필요, 비추천)
+
+        QueryActivity에서 이 선언들을 활용하여 앱 설치 여부를 확인한다.
+
+        공식 문서: https://developer.android.com/training/package-visibility
+    -->
+    <queries>
+        <!-- 특정 패키지명으로 조회: Chrome 브라우저 -->
+        <package android:name="com.android.chrome" />
+
+        <!-- 특정 패키지명으로 조회: Google Maps -->
+        <package android:name="com.google.android.apps.maps" />
+
+        <!--
+            Intent 기반 조회: https:// URL을 열 수 있는 앱 검색.
+            Chrome뿐 아니라 Firefox, Samsung Internet 등 모든 브라우저를 찾을 수 있다.
+        -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+
+        <!--
+            Intent 기반 조회: 텍스트를 공유(SEND)할 수 있는 앱 검색.
+            카카오톡, 메시지, 이메일 등 공유 기능이 있는 앱을 찾을 수 있다.
+        -->
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="text/plain" />
+        </intent>
+    </queries>
+
+    <!--
+        ============================================================
         [application 태그 - 앱 전체에 대한 설정]
         ============================================================
 
@@ -110,6 +297,47 @@
 
         <!--
             ============================================================
+            [meta-data - 앱 전체에 대한 메타데이터 (Application 레벨)]
+            ============================================================
+
+            key-value 형태로 앱에 추가 정보를 저장하는 태그.
+            코드에서 PackageManager를 통해 값을 읽을 수 있다.
+
+            실무에서 가장 흔한 사용처:
+            - Google Maps API Key (com.google.android.geo.API_KEY)
+            - Firebase 설정 (com.google.firebase.messaging.default_notification_icon)
+            - 광고 SDK 앱 ID (com.google.android.gms.ads.APPLICATION_ID)
+
+            Unity 비유: ScriptableObject에 설정값을 저장해두고, 런타임에 읽어쓰는 패턴.
+                        또는 PlayerSettings.SetAdditionalIl2CppArgs() 같은 빌드 타임 설정.
+
+            ── Application 레벨 vs Activity 레벨 ──
+            여기(<application> 바로 안에): 앱 전체에서 공유하는 설정.
+            <activity> 안에 넣으면: 해당 Activity에서만 사용하는 설정.
+            읽는 방법도 다르다:
+            - Application 레벨: getPackageManager().getApplicationInfo(패키지명, GET_META_DATA)
+            - Activity 레벨: getPackageManager().getActivityInfo(컴포넌트명, GET_META_DATA)
+
+            MetaDataActivity에서 아래 두 값을 코드로 읽어서 화면에 표시한다.
+
+            공식 문서: https://developer.android.com/guide/topics/manifest/meta-data-element
+        -->
+        <meta-data
+            android:name="com.example.weak7_1.API_KEY"
+            android:value="DEMO_API_KEY_12345" />
+
+        <meta-data
+            android:name="com.example.weak7_1.VERSION_NOTE"
+            android:value="Manifest 학습용 데모 앱 v1.0" />
+
+        <!--
+            ════════════════════════════════════════════════════════════
+            ══ 섹션 1: 레이아웃 학습 Activity (1~5번) ══════════════════
+            ════════════════════════════════════════════════════════════
+        -->
+
+        <!--
+            ============================================================
             [exported 속성 - 외부 접근 제어]
             ============================================================
 
@@ -131,43 +359,327 @@
             ★ 테스트: name을 ".CardActivity2"로 바꾸면?
               → 해당 클래스가 없으므로 바로 컴파일 에러 발생
         -->
+        <!-- ───── 5. 카드 겹침 화면 (FrameLayout) ───── -->
         <activity
             android:name=".CardActivity"
             android:exported="false" />
 
-        <!-- ───── 계산기 화면 (GridLayout) ───── -->
+        <!-- ───── 4. 계산기 화면 (GridLayout) ───── -->
         <activity
             android:name=".CalculatorActivity"
             android:exported="false" />
 
-        <!-- ───── 설정 화면 (ScrollView) ───── -->
+        <!-- ───── 3. 설정 화면 (ScrollView) ───── -->
         <activity
             android:name=".SettingActivity"
             android:exported="false" />
 
-        <!-- ───── 프로필 화면 (ConstraintLayout) ───── -->
+        <!-- ───── 2. 프로필 화면 (ConstraintLayout) ───── -->
         <activity
             android:name=".ProfileActivity"
             android:exported="false" />
 
-        <!-- ───── 로그인 화면 (LinearLayout) ───── -->
+        <!-- ───── 1. 로그인 화면 (LinearLayout) ───── -->
         <activity
             android:name=".LoginActivity"
             android:exported="false" />
 
         <!--
-            ============================================================
-            [HomeActivity - 앱의 시작 화면 (LAUNCHER)]
-            ============================================================
+            ════════════════════════════════════════════════════════════
+            ══ 섹션 2: Manifest 학습 Activity (6~13번) ═════════════════
+            ════════════════════════════════════════════════════════════
 
-            이 프로젝트에서 intent-filter를 가진 Activity는 HomeActivity 하나뿐이다.
-            intent-filter(MAIN + LAUNCHER)가 있어야 홈 화면 아이콘으로 직접 실행되는 시작 화면이 된다.
+            아래 8개 Activity는 각각 AndroidManifest.xml의 서로 다른 요소를 체험하기 위한 데모.
+            실제 비즈니스 로직이 아니라, Manifest 선언이 앱 동작에 어떤 영향을 주는지 보여준다.
+            Unity 비유: 각 씬이 서로 다른 Project Settings 옵션을 테스트하는 데모 씬인 것.
+        -->
 
-            나머지 5개(Login, Profile, Setting, Calculator, Card)는 intent-filter가 없으므로
+        <!--
+            ────────────────────────────────────────────────────
+            [6. CameraActivity - 카메라 권한 / 하드웨어 기능 체험]
+            ────────────────────────────────────────────────────
+
+            체험 요소: <uses-permission> CAMERA, <uses-feature> camera.any
+            exported="false" → 우리 앱 내부(HomeActivity 버튼)에서만 열 수 있음.
+        -->
+        <activity
+            android:name=".CameraActivity"
+            android:exported="false" />
+
+        <!--
+            ────────────────────────────────────────────────────
+            [7. ShareActivity - 공유 수신 (intent-filter ACTION_SEND)]
+            ────────────────────────────────────────────────────
+
+            체험 요소: <intent-filter>, <action>, <category>, <data> mimeType
+
+            다른 앱(크롬, 갤러리 등)에서 "공유" 버튼을 누르면
+            공유 대상 목록에 우리 앱이 나타나게 하는 선언.
+            exported="true" 필수! → 다른 앱에서 열어야 하므로.
+
+            Unity 비유: 유니티 에디터에서 [MenuItem] 어트리뷰트로 메뉴를 등록하면
+                        메뉴바에 새 항목이 나타나는 것과 유사.
+                        intent-filter가 "나는 이런 데이터를 처리할 수 있다"고 등록하는 것.
+
+            ★ 테스트: 크롬에서 웹페이지 공유 버튼 → 공유 대상에 우리 앱(weak7-1) 등장!
+            ★ 테스트: intent-filter를 주석 처리하면? → 공유 대상 목록에서 사라짐.
+        -->
+        <activity
+            android:name=".ShareActivity"
+            android:exported="true">
+            <!--
+                [intent-filter 구성요소]
+
+                <action> : "어떤 동작"에 반응할 것인가?
+                  ACTION_SEND = "데이터를 보내는(공유하는) 동작"
+
+                <category> : "어떤 종류의 요청"에 반응할 것인가?
+                  DEFAULT = 암시적 Intent(대상을 지정하지 않은 Intent)에 반응.
+                            이게 없으면 시스템이 이 Activity를 후보로 고려하지 않음.
+
+                <data> : "어떤 데이터 타입"을 받을 것인가?
+                  mimeType="text/*" = 텍스트 계열 데이터 (text/plain, text/html 등)
+                  mimeType="image/*" = 이미지 계열 데이터 (image/png, image/jpeg 등)
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/*" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            ────────────────────────────────────────────────────
+            [8. DeepLinkActivity - 딥링크 (커스텀 URL 스킴)]
+            ────────────────────────────────────────────────────
+
+            체험 요소: <data> scheme/host/pathPrefix, category BROWSABLE
+
+            "weak71://open/demo?id=123" 같은 커스텀 URL을 입력하면
+            브라우저나 다른 앱에서 바로 이 Activity가 열리게 하는 선언.
+            exported="true" 필수! → 외부(브라우저, 다른 앱)에서 열어야 하므로.
+
+            Unity 비유: 유니티 딥링크와 동일한 개념.
+                        Application.deepLinkActivated 이벤트로 URL 데이터를 받는 것처럼,
+                        Android에서는 intent의 getData()로 URL을 파싱한다.
+
+            ── URL 구조 분해 ──
+            weak71://open/demo?id=123&name=test
+            ├── scheme = "weak71" (프로토콜. http, https처럼 커스텀으로 만든 것)
+            ├── host   = "open"   (도메인에 해당하는 부분)
+            ├── path   = "/demo"  (경로)
+            └── query  = "id=123&name=test" (파라미터)
+
+            ★ 테스트: adb shell am start -d "weak71://open/demo?id=123" → 이 Activity가 열림!
+            ★ 테스트: scheme을 "myapp"으로 바꾸면? → "myapp://open/demo"로만 열림.
+        -->
+        <activity
+            android:name=".DeepLinkActivity"
+            android:exported="true">
+            <intent-filter>
+                <!--
+                    ACTION_VIEW = "데이터를 보여달라"는 동작.
+                    URL을 열 때 시스템이 사용하는 표준 액션.
+                -->
+                <action android:name="android.intent.action.VIEW" />
+
+                <!--
+                    DEFAULT = 암시적 Intent 처리 가능 (필수).
+                    BROWSABLE = 웹 브라우저에서 이 Activity를 열 수 있음.
+                                이게 없으면 브라우저 링크 클릭으로 앱을 열 수 없다.
+                -->
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!--
+                    <data> = URL 패턴 매칭 규칙.
+                    scheme + host + pathPrefix 조합이 맞는 URL만 이 Activity로 전달.
+                    pathPrefix="/demo" → "/demo"로 시작하는 모든 경로 매칭.
+                                         "/demo", "/demo/sub", "/demo/a/b" 모두 매칭됨.
+                    ★ pathPrefix 대신 path="/demo" 쓰면? → 정확히 "/demo"만 매칭 (하위 경로 불가).
+                -->
+                <data
+                    android:scheme="weak71"
+                    android:host="open"
+                    android:pathPrefix="/demo" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            ────────────────────────────────────────────────────
+            [9. PortraitActivity - 화면 속성 (회전잠금, 키보드)]
+            ────────────────────────────────────────────────────
+
+            체험 요소: screenOrientation, configChanges, windowSoftInputMode
+
+            Activity 태그에 속성을 추가하면 화면의 동작 방식을 제어할 수 있다.
+            이 속성들은 코드가 아니라 Manifest에서만 설정 가능한 것들이다.
+            Unity 비유: Player Settings > Resolution and Presentation 에서
+                        Auto Rotation 옵션을 끄고 Portrait만 체크하는 것.
+
+            ── screenOrientation="portrait" ──
+            화면을 세로 방향으로 고정한다. 기기를 돌려도 가로로 전환되지 않음.
+            다른 값들:
+            - "landscape"     : 가로 고정
+            - "sensor"        : 센서에 따라 자유 회전 (기본값)
+            - "reverseLandscape": 가로 반전 고정 (카메라 앱 등에서 사용)
+            - "userLandscape" : 사용자 설정에 따른 가로
+            ★ "portrait"을 "landscape"로 바꾸면? → 이 화면만 가로로 고정됨.
+
+            ── configChanges="orientation|screenSize" ──
+            화면 회전이나 크기 변경 시 Activity를 파괴하고 다시 만들지 않겠다는 선언.
+            기본 동작: 화면 회전 → Activity 파괴(onDestroy) → 재생성(onCreate) → 데이터 손실 가능.
+            이 속성을 쓰면: 화면 회전 → onConfigurationChanged() 콜백만 호출 → Activity 유지.
+            Unity 비유: Screen.orientation 변경 시 씬을 다시 로드하지 않고
+                        OnRectTransformDimensionsChange()만 호출되는 것과 유사.
+
+            ── windowSoftInputMode="adjustResize" ──
+            소프트 키보드(가상 키보드)가 올라올 때 화면을 어떻게 조정할지 결정.
+            - "adjustResize" : 키보드가 올라오면 레이아웃 크기를 줄여서 키보드와 겹치지 않게.
+            - "adjustPan"    : 포커스된 입력란이 보이도록 화면 전체를 위로 밀어올림.
+            - "adjustNothing": 아무것도 안 함 (키보드가 레이아웃을 가림).
+            - "stateHidden"  : Activity 시작 시 키보드를 숨김 (기본은 포커스에 따라 자동).
+            ★ "adjustResize"를 "adjustPan"으로 바꾸면? → 키보드가 올라올 때 화면이 위로 밀림.
+        -->
+        <activity
+            android:name=".PortraitActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!--
+            ────────────────────────────────────────────────────
+            [10. FullScreenActivity - Activity 단위 테마 오버라이드]
+            ────────────────────────────────────────────────────
+
+            체험 요소: android:theme (Activity 레벨)
+
+            <application>에서 앱 전체 테마를 Theme.Weak71로 설정했지만,
+            이 Activity만 Theme.Weak71.FullScreen 이라는 다른 테마를 적용한다.
+            → 상태바를 숨기고, 다른 색상(#FF5722 주황)을 사용하는 전체화면 테마.
+
+            Unity 비유: 프로젝트 전체 Post-Processing Volume이 있지만,
+                        특정 씬에만 다른 Volume Profile을 오버라이드하는 것.
+
+            테마 정의 위치: res/values/themes.xml의 Theme.Weak71.FullScreen
+
+            ★ 테스트: 여기 테마를 "@style/Theme.Weak71"로 바꾸면?
+              → 다른 Activity와 동일한 테마 적용 (전체화면 효과 사라짐).
+        -->
+        <activity
+            android:name=".FullScreenActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Weak71.FullScreen" />
+
+        <!--
+            ────────────────────────────────────────────────────
+            [11. LaunchModeActivity - 실행 모드 (launchMode)]
+            ────────────────────────────────────────────────────
+
+            체험 요소: android:launchMode
+
+            "같은 Activity를 다시 열 때 어떻게 처리할지" 결정하는 속성.
+
+            Unity 비유: LoadScene()을 호출할 때
+                        기존 씬을 유지할지(Additive) 새로 교체할지(Single) 결정하는 것.
+
+            ── 4가지 launchMode ──
+
+            "standard" (기본값, 현재 이 Activity):
+              매번 새 인스턴스를 생성한다.
+              같은 Activity를 5번 열면 스택에 5개가 쌓인다.
+              뒤로가기 5번 누르면 하나씩 꺼진다.
+              Unity 비유: Instantiate()로 매번 새 오브젝트를 만드는 것.
+
+            "singleTop":
+              이미 스택 맨 위에 있으면 새로 만들지 않고 재사용한다.
+              이때 onCreate() 대신 onNewIntent()가 호출된다.
+              맨 위에 없으면(다른 Activity가 위에 있으면) 새로 생성.
+              Unity 비유: if (topScene == targetScene) Reuse(); else LoadNew();
+
+            "singleTask":
+              앱 전체에서 인스턴스가 1개만 존재. 항상 태스크(스택)의 루트에 위치.
+              이미 존재하면 그 위의 모든 Activity를 제거하고 onNewIntent() 호출.
+              Unity 비유: 싱글톤 패턴 + 기존 씬 위의 모든 씬을 Unload.
+
+            "singleInstance":
+              독립된 태스크(스택)에 혼자 존재. 다른 Activity가 같은 스택에 못 들어옴.
+              Unity 비유: 별도 프로세스에서 실행되는 독립 씬.
+
+            이 Activity는 "standard"로 설정하고,
+            코드에서 FLAG_ACTIVITY_SINGLE_TOP 플래그를 통해 singleTop 방식과 비교 체험한다.
+
+            ★ 테스트: "standard"를 "singleTop"으로 바꾸면?
+              → "일반 모드로 열기" 버튼도 singleTop처럼 동작 (맨 위에 있으면 재사용).
+        -->
+        <activity
+            android:name=".LaunchModeActivity"
+            android:exported="false"
+            android:launchMode="standard" />
+
+        <!--
+            ────────────────────────────────────────────────────
+            [12. MetaDataActivity - meta-data / Service / Receiver 체험]
+            ────────────────────────────────────────────────────
+
+            체험 요소: <meta-data> (Activity 레벨), <service>, <receiver>
+
+            위에서 Application 레벨 meta-data를 선언했고,
+            여기서는 Activity 레벨 meta-data를 선언한다.
+            MetaDataActivity.java에서 두 레벨 모두 코드로 읽어서 화면에 표시.
+
+            Activity 레벨 meta-data는 이 Activity에 대한 부가 정보.
+            ACTIVITY_DESCRIPTION: 이 화면의 설명 텍스트.
+            DIFFICULTY_LEVEL: 이 화면의 난이도 (정수).
+        -->
+        <activity
+            android:name=".MetaDataActivity"
+            android:exported="false">
+
+            <!-- Activity 레벨 meta-data: 이 Activity만의 설명 -->
+            <meta-data
+                android:name="com.example.weak7_1.ACTIVITY_DESCRIPTION"
+                android:value="Meta-data 데모 화면 + Service/Receiver 연동" />
+
+            <!-- Activity 레벨 meta-data: 난이도 (int로 읽힘) -->
+            <meta-data
+                android:name="com.example.weak7_1.DIFFICULTY_LEVEL"
+                android:value="4" />
+        </activity>
+
+        <!--
+            ────────────────────────────────────────────────────
+            [13. QueryActivity - 패키지 가시성 (queries)]
+            ────────────────────────────────────────────────────
+
+            체험 요소: <queries> (위에서 선언)
+
+            위의 <queries> 블록에서 조회할 앱/Intent를 선언했고,
+            이 Activity에서 실제로 PackageManager를 사용해 확인한다.
+
+            ★ 테스트: <queries>의 Chrome 패키지를 주석 처리하면?
+              → Chrome이 설치되어 있어도 "미설치"로 나옴!
+        -->
+        <activity
+            android:name=".QueryActivity"
+            android:exported="false" />
+
+        <!--
+            ════════════════════════════════════════════════════════════
+            ══ HomeActivity - 앱의 시작 화면 (LAUNCHER) ════════════════
+            ════════════════════════════════════════════════════════════
+
+            이 프로젝트에서 intent-filter(MAIN + LAUNCHER)를 가진 Activity는 이것 하나뿐이다.
+            이 조합이 있어야 홈 화면 아이콘으로 직접 실행되는 시작 화면이 된다.
+
+            나머지 12개 Activity는 intent-filter가 없거나 다른 종류의 filter만 있으므로
             홈 화면에서 직접 열 수 없고, HomeActivity에서 버튼 → Intent로만 이동할 수 있다.
+            (ShareActivity, DeepLinkActivity는 다른 앱에서 공유/딥링크로 열 수 있음)
 
             Unity 비유: HomeActivity = Build Settings index 0 씬 (Play 누르면 자동 로드).
-                       나머지 5개 = 빌드 목록에는 있지만 SceneManager.LoadScene()으로만 갈 수 있는 씬.
+                       나머지 12개 = 빌드 목록에는 있지만 SceneManager.LoadScene()으로만 갈 수 있는 씬.
         -->
         <!--
             android:theme="@style/Theme.Weak71"
@@ -213,6 +725,113 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+            ════════════════════════════════════════════════════════════
+            ══ 비-Activity 컴포넌트: Service, BroadcastReceiver ════════
+            ════════════════════════════════════════════════════════════
+
+            Android 4대 구성요소: Activity, Service, BroadcastReceiver, ContentProvider
+            Activity 외의 구성요소도 Manifest에 등록해야 시스템이 인식한다.
+        -->
+
+        <!--
+            ────────────────────────────────────────────────────
+            [Service - 백그라운드 작업 수행자]
+            ────────────────────────────────────────────────────
+
+            Service = 화면(UI) 없이 백그라운드에서 실행되는 구성요소.
+            음악 재생, 파일 다운로드, 위치 추적 등 화면이 꺼져도 계속 실행해야 하는 작업에 사용.
+
+            Unity 비유: MonoBehaviour 없이 별도 스레드에서 작업을 수행하는 것.
+                        또는 DontDestroyOnLoad된 빈 오브젝트가 코루틴을 돌리는 것.
+
+            ── Foreground Service vs Background Service ──
+            Background Service: 사용자 모르게 조용히 실행. 시스템이 메모리 부족 시 언제든 종료 가능.
+            Foreground Service: 상태바에 알림을 띄우면서 실행. 사용자가 인지하므로 쉽게 종료 안 됨.
+                               Android 8(API 26)부터 백그라운드 서비스에 제한이 강해져서
+                               장시간 실행해야 하는 작업은 대부분 Foreground Service를 사용.
+
+            ── foregroundServiceType ──
+            Android 14(API 34)부터 Foreground Service는 반드시 타입을 명시해야 한다.
+            타입에 따라 필요한 권한과 제한이 다르다:
+            - "mediaPlayback"   : 음악/오디오 재생 → FOREGROUND_SERVICE_MEDIA_PLAYBACK 권한 필요
+            - "location"        : 위치 추적      → FOREGROUND_SERVICE_LOCATION + ACCESS_FINE_LOCATION
+            - "camera"          : 카메라 사용     → FOREGROUND_SERVICE_CAMERA + CAMERA
+            - "dataSync"        : 데이터 동기화   → FOREGROUND_SERVICE_DATA_SYNC
+            - "shortService"    : 3분 이내 작업   → FOREGROUND_SERVICE_SHORT_SERVICE (시간 제한)
+            - "specialUse"      : 위 카테고리에 해당 안 되는 경우 → FOREGROUND_SERVICE_SPECIAL_USE
+                                  Play Store 심사 시 사용 사유를 설명해야 한다.
+
+            우리 데모 서비스(5초마다 카운터 증가)는 표준 타입에 안 맞으므로 "specialUse"를 사용.
+
+            exported="false" → 외부 앱에서 이 서비스를 시작할 수 없음. 내부에서만 사용.
+
+            공식 문서: https://developer.android.com/guide/components/foreground-services
+        -->
+        <service
+            android:name=".MyForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+
+            <!--
+                [property - 서비스 속성 메타데이터]
+                specialUse 타입은 Play Store 제출 시 사용 사유를 제공해야 한다.
+                이 property가 그 역할을 한다 (학습용 데모이므로 간단한 설명).
+            -->
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="학습용 카운터 데모 서비스" />
+        </service>
+
+        <!--
+            ────────────────────────────────────────────────────
+            [BroadcastReceiver - 시스템/앱 이벤트 수신자]
+            ────────────────────────────────────────────────────
+
+            BroadcastReceiver = 시스템이나 다른 앱이 보내는 이벤트(Broadcast)를 수신하는 구성요소.
+            예: 부팅 완료, 배터리 부족, 네트워크 변경, 화면 켜짐/꺼짐 등.
+
+            Unity 비유: EventSystem의 전역 이벤트와 유사.
+                        게임 내 어디서든 "이벤트 발생" → 등록된 모든 리스너가 받는 것.
+                        C#의 event/delegate 패턴과 같은 개념.
+
+            ── Manifest 등록 vs 코드 등록 ──
+            Manifest 등록 (<receiver> 태그):
+              → 앱이 실행 중이 아니어도 이벤트를 수신할 수 있다.
+              → 부팅 완료(BOOT_COMPLETED) 같은 이벤트를 받을 수 있다.
+              → Android 8(API 26)부터 대부분의 암시적 브로드캐스트는 Manifest 등록 불가.
+                (BOOT_COMPLETED 등 일부 예외만 가능)
+
+            코드 등록 (registerReceiver()):
+              → Activity/Service가 살아있는 동안만 이벤트를 수신.
+              → Activity가 파괴되면 자동으로 수신 중지 (unregisterReceiver 필요).
+              → ACTION_TIME_TICK(1분마다 시간 변경) 같은 이벤트는 코드 등록만 가능.
+
+            아래 TimeTickReceiver는:
+            - Manifest에 BOOT_COMPLETED로 등록 (앱 미실행 시에도 부팅 이벤트 수신 가능)
+            - MetaDataActivity에서 코드로 ACTION_TIME_TICK 등록 (Activity 살아있을 때만)
+            → 두 가지 등록 방법을 모두 체험한다.
+
+            exported="false" → 외부 앱이 이 Receiver에 직접 브로드캐스트를 보낼 수 없음.
+                               BOOT_COMPLETED는 시스템이 보내는 것이므로 false여도 수신 가능.
+
+            공식 문서: https://developer.android.com/guide/components/broadcasts
+        -->
+        <receiver
+            android:name=".TimeTickReceiver"
+            android:exported="false">
+            <intent-filter>
+                <!--
+                    BOOT_COMPLETED = 기기 부팅이 완료되었을 때 시스템이 보내는 브로드캐스트.
+                    이 이벤트를 받으면 앱이 자동으로 특정 작업을 시작할 수 있다.
+                    예: 알람 앱이 부팅 후 알람을 다시 등록하는 용도.
+                    RECEIVE_BOOT_COMPLETED 권한도 함께 선언해야 수신 가능 (위에서 선언함).
+                -->
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

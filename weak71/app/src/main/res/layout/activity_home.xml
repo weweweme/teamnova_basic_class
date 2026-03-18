@@ -1,63 +1,158 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+    [HomeActivity 레이아웃 - 앱의 메인 허브 화면]
+
+    ScrollView로 감싸서 버튼이 많아져도 스크롤 가능하게 함.
+    ScrollView 안에는 자식 뷰가 1개만 들어갈 수 있으므로 LinearLayout으로 감쌈.
+
+    Unity 비유: ScrollRect 안에 Content 오브젝트를 넣고, 그 안에 버튼들을 배치하는 것과 동일.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center_horizontal"
+    android:fillViewport="true"
     tools:context=".HomeActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Android Layout 학습"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginTop="32dp"
-        android:layout_marginBottom="8dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="각 버튼을 눌러 레이아웃 데모를 확인하세요"
-        android:textSize="14sp"
-        android:layout_marginBottom="32dp" />
-
-    <Button
-        android:id="@+id/btnLogin"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="1. LinearLayout - 로그인 화면"
-        android:layout_marginBottom="12dp" />
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
 
-    <Button
-        android:id="@+id/btnProfile"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="2. ConstraintLayout - 프로필 화면"
-        android:layout_marginBottom="12dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Android Layout 학습"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="8dp" />
 
-    <Button
-        android:id="@+id/btnSettings"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="3. ScrollView - 설정 화면"
-        android:layout_marginBottom="12dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="각 버튼을 눌러 레이아웃 데모를 확인하세요"
+            android:textSize="14sp"
+            android:layout_marginBottom="24dp" />
 
-    <Button
-        android:id="@+id/btnCalculator"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="4. GridLayout - 계산기 화면"
-        android:layout_marginBottom="12dp" />
+        <!-- ═══════════ 레이아웃 학습 섹션 ═══════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="레이아웃 학습"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
 
-    <Button
-        android:id="@+id/btnCard"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="5. FrameLayout - 카드 겹침 화면"
-        android:layout_marginBottom="12dp" />
+        <Button
+            android:id="@+id/btnLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="1. LinearLayout - 로그인 화면"
+            android:layout_marginBottom="8dp" />
 
-</LinearLayout>
+        <Button
+            android:id="@+id/btnProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="2. ConstraintLayout - 프로필 화면"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="3. ScrollView - 설정 화면"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnCalculator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="4. GridLayout - 계산기 화면"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="5. FrameLayout - 카드 겹침 화면"
+            android:layout_marginBottom="16dp" />
+
+        <!-- ═══════════ 구분선 ═══════════ -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"
+            android:layout_marginBottom="16dp" />
+
+        <!-- ═══════════ Manifest 학습 섹션 ═══════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manifest 학습"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnCamera"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="6. 카메라 - 권한(Permission) / 하드웨어(Feature)"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnShare"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="7. 공유 수신 - intent-filter (ACTION_SEND)"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnDeepLink"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="8. 딥링크 - data (scheme/host/path)"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnPortrait"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="9. 화면 속성 - 회전잠금 / configChanges"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnFullScreen"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="10. 전체화면 - Activity 테마 오버라이드"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnLaunchMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="11. 실행 모드 - launchMode (singleTop)"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnMetaData"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="12. 메타데이터 - meta-data / Service / Receiver"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnQuery"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="13. 패키지 가시성 - queries (Android 11+)"
+            android:layout_marginBottom="24dp" />
+
+    </LinearLayout>
+</ScrollView>

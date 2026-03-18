@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    [LinearLayout - 공유 수신 화면]
+
+    다른 앱에서 공유(ACTION_SEND)한 데이터를 수신하는 화면.
+
+    [Intent-Filter 개념]
+    AndroidManifest.xml에 intent-filter를 등록하면,
+    다른 앱에서 "공유" 버튼을 눌렀을 때 이 액티비티가 목록에 나타난다.
+    Unity 비유: EventSystem에 특정 이벤트 타입에 대한 콜백을 등록하는 것.
+                예를 들어 OnPointerClick 인터페이스를 구현하면
+                클릭 이벤트를 받을 수 있는 것처럼,
+                intent-filter를 선언하면 해당 액션(공유)을 받을 수 있다.
+
+    [필요한 Manifest 설정]
+    <activity android:name=".ShareActivity"
+              android:exported="true">     ← 다른 앱에서 접근 가능 (public)
+        <intent-filter>
+            <action android:name="android.intent.action.SEND" />  ← 공유 액션
+            <category android:name="android.intent.category.DEFAULT" /> ← 암시적 인텐트 필수
+            <data android:mimeType="text/*" />   ← 텍스트 타입만 수신
+        </intent-filter>
+        <intent-filter>
+            <action android:name="android.intent.action.SEND" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <data android:mimeType="image/*" />  ← 이미지 타입도 수신
+        </intent-filter>
+    </activity>
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    tools:context=".ShareActivity">
+
+    <!-- 화면 타이틀 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="공유 수신 데모"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <!-- 부제목: 이 화면의 목적 설명 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="다른 앱에서 공유한 데이터를 이 화면이 받습니다"
+        android:textColor="#666666"
+        android:textSize="14sp" />
+
+    <!--
+        [수신 데이터 표시 영역]
+        CardView로 감싸서 카드 형태로 표시.
+        Unity 비유: Panel(Image) 위에 Text를 올려놓은 것과 비슷.
+    -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- 수신한 데이터의 MIME 타입 (text/plain, image/jpeg 등) -->
+            <TextView
+                android:id="@+id/tvSharedType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="데이터 타입: -"
+                android:textColor="#333333"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- 구분선 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"
+                android:background="#E0E0E0" />
+
+            <!--
+                수신한 데이터 내용 표시.
+                minHeight를 줘서 데이터가 없을 때도 영역을 확보.
+                Unity 비유: Text 컴포넌트의 minHeight 설정과 동일.
+            -->
+            <TextView
+                android:id="@+id/tvSharedContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="100dp"
+                android:text="수신 데이터: 아직 공유된 데이터 없음"
+                android:textColor="#555555"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!--
+        [테스트 방법 안내 카드]
+        실제로 공유 기능을 테스트하는 3가지 방법을 안내.
+    -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:cardBackgroundColor="#F5F5F5"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="테스트 방법"
+                android:textColor="#333333"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="1. 크롬 브라우저에서 URL 공유 → 이 앱 선택"
+                android:textColor="#555555"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="2. 메모장에서 텍스트 선택 → 공유 → 이 앱 선택"
+                android:textColor="#555555"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="3. adb: adb shell am start -a android.intent.action.SEND -t text/plain --es android.intent.extra.TEXT 'Hello' com.example.weak7_1"
+                android:textColor="#555555"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!--
+        [Manifest 설명 카드]
+        intent-filter의 각 구성 요소가 무엇을 의미하는지 설명.
+        Unity 비유를 곁들여 이해를 돕는다.
+    -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:cardBackgroundColor="#FFF8E1"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Manifest 설명"
+                android:textColor="#F57F17"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- ACTION_SEND 설명 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="• action.SEND: Android의 '공유' 액션. 다른 앱이 데이터를 보낼 때 사용하는 표준 액션이다."
+                android:textColor="#555555"
+                android:textSize="13sp" />
+
+            <!-- category DEFAULT 설명 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="• category.DEFAULT: 암시적 인텐트(Implicit Intent)를 받으려면 반드시 필요. 이것이 없으면 시스템이 이 액티비티를 후보로 인식하지 못한다."
+                android:textColor="#555555"
+                android:textSize="13sp" />
+
+            <!-- mimeType 설명 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="• data mimeType: 수신할 데이터 타입 필터. text/*는 모든 텍스트, image/*는 모든 이미지를 수신한다."
+                android:textColor="#555555"
+                android:textSize="13sp" />
+
+            <!-- exported 설명 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="• exported=true: 다른 앱에서 이 액티비티를 실행할 수 있게 허용. false면 같은 앱 내에서만 접근 가능."
+                android:textColor="#555555"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>

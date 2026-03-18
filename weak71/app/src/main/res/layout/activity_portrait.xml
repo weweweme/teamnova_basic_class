@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    [Activity 속성 데모 - screenOrientation / configChanges / windowSoftInputMode]
+
+    이 레이아웃은 AndroidManifest.xml에서 설정하는 Activity 속성 3가지를 체험하기 위한 화면이다.
+
+    [Unity 비유]
+    Android의 Activity 속성은 Unity의 Player Settings와 비슷한 역할을 한다.
+    - screenOrientation → Player Settings > Default Orientation (Portrait, Landscape 등)
+    - configChanges → Unity는 기본적으로 화면 회전 시 씬을 다시 로드하지 않는다.
+      Android는 기본적으로 Activity를 파괴하고 재생성(onCreate 다시 호출)하는데,
+      configChanges를 지정하면 Unity처럼 재생성 없이 처리할 수 있다.
+    - windowSoftInputMode → Unity의 TouchScreenKeyboard가 올라올 때 화면이 어떻게 반응하는지 결정.
+      adjustResize = 키보드만큼 레이아웃 크기를 줄임.
+      adjustPan = 포커스된 뷰가 보이도록 화면을 위로 밀어올림.
+
+    [레이아웃 구조]
+    LinearLayout(세로) 안에 CardView 3개로 각 속성을 설명하고,
+    아래에 실시간 상태 표시 TextView와 키보드 테스트용 EditText를 배치.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:id="@+id/main"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        tools:context=".PortraitActivity">
+
+        <!-- ===== 상단 타이틀 ===== -->
+        <!-- Unity 비유: Canvas 최상단에 배치하는 타이틀 Text 오브젝트 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Activity 속성 데모"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <!-- ===== 카드 1: screenOrientation ===== -->
+        <!--
+            screenOrientation 속성:
+            AndroidManifest.xml에서 android:screenOrientation="portrait" 으로 설정하면
+            이 Activity는 항상 세로(portrait) 방향으로 고정된다.
+            Unity 비유: Player Settings > Resolution and Presentation > Default Orientation을
+            "Portrait"으로 설정하는 것과 동일.
+        -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#E3F2FD">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="screenOrientation: portrait"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#1565C0" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Activity의 화면 방향을 세로로 고정합니다.\n기기를 옆으로 돌려도 화면이 회전하지 않습니다.\n\n[Unity 비유]\nPlayer Settings > Default Orientation을\nPortrait으로 설정하는 것과 동일합니다."
+                    android:textSize="13sp"
+                    android:textColor="#333333"
+                    android:lineSpacingExtra="3dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ===== 카드 2: configChanges ===== -->
+        <!--
+            configChanges 속성:
+            Android는 기본적으로 화면 회전 시 Activity를 파괴(onDestroy)하고
+            다시 생성(onCreate)한다. 이 과정에서 변수 값이 모두 초기화된다.
+            configChanges="orientation|screenSize"를 지정하면 Activity를 재생성하지 않고
+            onConfigurationChanged() 콜백만 호출한다.
+            Unity 비유: Unity는 기본적으로 화면 회전 시 씬을 다시 로드하지 않는다.
+            Android의 configChanges를 설정하면 Unity와 비슷한 동작이 된다.
+            설정하지 않으면 마치 SceneManager.LoadScene(현재씬)이 호출되는 것과 같다.
+        -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#E8F5E9">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="configChanges: orientation|screenSize"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#2E7D32" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="화면 회전 시 Activity를 재생성하지 않고\nonConfigurationChanged() 콜백만 호출합니다.\n\n[Unity 비유]\nUnity는 기본적으로 회전 시 씬을 다시 로드하지 않습니다.\n이 속성을 설정하면 Android도 Unity처럼 동작합니다.\n설정 안 하면 SceneManager.LoadScene(현재씬)이\n호출되는 것과 같습니다."
+                    android:textSize="13sp"
+                    android:textColor="#333333"
+                    android:lineSpacingExtra="3dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ===== 카드 3: windowSoftInputMode ===== -->
+        <!--
+            windowSoftInputMode 속성:
+            소프트 키보드(가상 키보드)가 올라올 때 Activity 화면이 어떻게 반응할지 결정한다.
+            - adjustResize: 레이아웃 크기를 키보드 영역만큼 줄여서 다시 그린다.
+            - adjustPan: 포커스된 입력 필드가 보이도록 화면 전체를 위로 밀어올린다.
+            Unity 비유: TouchScreenKeyboard.Open() 호출 시 화면 반응과 유사.
+            Unity에서는 키보드가 올라와도 Canvas 크기가 자동으로 줄어들지 않지만,
+            Android의 adjustResize는 레이아웃을 자동으로 축소해준다.
+        -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#FFF3E0">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="windowSoftInputMode: adjustResize"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#E65100" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="키보드가 올라오면 레이아웃 크기를 줄여서\n키보드 위에 내용이 보이도록 합니다.\n\n[Unity 비유]\nTouchScreenKeyboard 동작과 유사합니다.\nUnity에서는 키보드가 올라와도 Canvas가 자동 축소되지 않지만,\nAndroid adjustResize는 레이아웃을 자동 축소해줍니다."
+                    android:textSize="13sp"
+                    android:textColor="#333333"
+                    android:lineSpacingExtra="3dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ===== 실시간 상태 표시 영역 ===== -->
+        <!--
+            아래 TextView들은 Java 코드에서 값을 업데이트한다.
+            Unity 비유: OnGUI()나 TextMeshPro로 디버그 정보를 실시간 표시하는 것과 같다.
+        -->
+
+        <!-- 현재 화면 방향 표시 -->
+        <TextView
+            android:id="@+id/tvOrientationInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="현재 방향: 확인 중..."
+            android:textSize="15sp"
+            android:textColor="#1565C0"
+            android:background="#F5F5F5"
+            android:padding="12dp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- onCreate 호출 횟수 표시 -->
+        <!--
+            configChanges를 설정했으므로 화면 회전 시 onCreate가 다시 호출되지 않는다.
+            따라서 이 카운트는 처음 1회에서 변하지 않아야 정상이다.
+            만약 카운트가 늘어난다면 Activity가 재생성된 것이다.
+        -->
+        <TextView
+            android:id="@+id/tvOnCreateCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="onCreate 호출 횟수: 0"
+            android:textSize="15sp"
+            android:textColor="#333333"
+            android:background="#F5F5F5"
+            android:padding="12dp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- onConfigurationChanged 호출 횟수 표시 -->
+        <!--
+            configChanges를 설정하면 화면 회전 시 이 콜백이 호출된다.
+            portrait으로 고정했으므로 실제로 회전이 감지되지 않아 이 값은 0일 수 있다.
+            portrait 고정을 해제하면 회전할 때마다 카운트가 증가한다.
+        -->
+        <TextView
+            android:id="@+id/tvConfigChangeCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="onConfigurationChanged 호출 횟수: 0"
+            android:textSize="15sp"
+            android:textColor="#333333"
+            android:background="#F5F5F5"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- ===== 키보드 테스트용 EditText ===== -->
+        <!--
+            이 EditText를 터치하면 소프트 키보드가 올라온다.
+            windowSoftInputMode="adjustResize" 설정 때문에
+            키보드 위로 레이아웃이 줄어드는 것을 확인할 수 있다.
+            Unity 비유: InputField를 터치하면 TouchScreenKeyboard가 올라오는 것과 동일.
+        -->
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="키보드가 올라올 때 adjustResize 효과를 확인해보세요"
+            android:padding="14dp"
+            android:textSize="14sp"
+            android:background="@android:drawable/edit_text"
+            android:layout_marginBottom="16dp"
+            android:importantForAutofill="no"
+            android:inputType="text" />
+
+        <!-- ===== 하단 안내 텍스트 ===== -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="기기를 회전시켜보세요. portrait 고정이므로 화면이 바뀌지 않습니다.\n\nconfigChanges 설정으로 Activity가 재생성되지 않아 onCreate 카운트가 유지됩니다."
+            android:textSize="13sp"
+            android:textColor="#888888"
+            android:textAlignment="center"
+            android:lineSpacingExtra="3dp" />
+
+    </LinearLayout>
+</ScrollView>

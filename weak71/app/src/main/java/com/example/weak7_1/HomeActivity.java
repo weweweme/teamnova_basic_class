@@ -12,8 +12,12 @@ import androidx.core.view.WindowInsetsCompat;
 
 /**
  * 홈 화면 (앱 실행 시 가장 먼저 보이는 화면)
- * 레이아웃: LinearLayout (vertical)
- * 역할: 5개 데모 화면으로 이동하는 허브(메뉴) 역할
+ * 레이아웃: ScrollView > LinearLayout (vertical)
+ * 역할: 13개 데모 화면으로 이동하는 허브(메뉴) 역할
+ *
+ * [섹션 1] 레이아웃 학습 (1~5번): 각 레이아웃 종류 체험
+ * [섹션 2] Manifest 학습 (6~13번): AndroidManifest.xml의 다양한 요소 체험
+ *
  * 학습 포인트: Intent를 통한 Activity 전환, 4대 구성요소 간 소통 방식
  */
 public class HomeActivity extends AppCompatActivity {
@@ -89,11 +93,7 @@ public class HomeActivity extends AppCompatActivity {
             return insets;
         });
 
-        Button btnLogin = findViewById(R.id.btnLogin);
-        Button btnProfile = findViewById(R.id.btnProfile);
-        Button btnSettings = findViewById(R.id.btnSettings);
-        Button btnCalculator = findViewById(R.id.btnCalculator);
-        Button btnCard = findViewById(R.id.btnCard);
+        // ═══════════ 섹션 1: 레이아웃 학습 (기존) ═══════════
 
         /*
          * [Android 4대 구성요소와 Intent]
@@ -123,32 +123,62 @@ public class HomeActivity extends AppCompatActivity {
          * - 앱 구성요소: https://developer.android.com/guide/components/fundamentals
          */
 
-        btnLogin.setOnClickListener(v -> {
-            // Intent는 안드로이드 시스템에게 보내는 요청서 (어디서 → 어디로)
-            // LoginActivity.class를 넘겨서 "이 액티비티를 만들어달라"고 요청
-            Intent loginActivity = new Intent(this, LoginActivity.class);
-            // 요청서를 시스템에 제출 → 시스템이 LoginActivity를 생성하고 화면에 띄움
-            startActivity(loginActivity);
-        });
+        findViewById(R.id.btnLogin).setOnClickListener(v ->
+                startActivity(new Intent(this, LoginActivity.class)));
 
-        btnProfile.setOnClickListener(v -> {
-            Intent profileActivity = new Intent(this, ProfileActivity.class);
-            startActivity(profileActivity);
-        });
+        findViewById(R.id.btnProfile).setOnClickListener(v ->
+                startActivity(new Intent(this, ProfileActivity.class)));
 
-        btnSettings.setOnClickListener(v -> {
-            Intent settingActivity = new Intent(this, SettingActivity.class);
-            startActivity(settingActivity);
-        });
+        findViewById(R.id.btnSettings).setOnClickListener(v ->
+                startActivity(new Intent(this, SettingActivity.class)));
 
-        btnCalculator.setOnClickListener(v -> {
-            Intent calculatorActivity = new Intent(this, CalculatorActivity.class);
-            startActivity(calculatorActivity);
-        });
+        findViewById(R.id.btnCalculator).setOnClickListener(v ->
+                startActivity(new Intent(this, CalculatorActivity.class)));
 
-        btnCard.setOnClickListener(v -> {
-            Intent cardActivity = new Intent(this, CardActivity.class);
-            startActivity(cardActivity);
-        });
+        findViewById(R.id.btnCard).setOnClickListener(v ->
+                startActivity(new Intent(this, CardActivity.class)));
+
+        // ═══════════ 섹션 2: Manifest 학습 (신규) ═══════════
+
+        /*
+         * [Manifest 학습 섹션]
+         *
+         * 아래 8개 Activity는 각각 AndroidManifest.xml의 서로 다른 요소를 체험하기 위한 데모.
+         * 실제 비즈니스 로직이 아니라, Manifest 선언이 앱 동작에 어떤 영향을 주는지 보여준다.
+         *
+         * Unity 비유: 각 씬이 서로 다른 Project Settings 옵션을 테스트하는 데모 씬인 것.
+         */
+
+        // 6. 카메라 - <uses-permission>, <uses-feature> 체험
+        findViewById(R.id.btnCamera).setOnClickListener(v ->
+                startActivity(new Intent(this, CameraActivity.class)));
+
+        // 7. 공유 수신 - <intent-filter> ACTION_SEND, <data> mimeType 체험
+        findViewById(R.id.btnShare).setOnClickListener(v ->
+                startActivity(new Intent(this, ShareActivity.class)));
+
+        // 8. 딥링크 - <data> scheme/host/pathPrefix, BROWSABLE 체험
+        findViewById(R.id.btnDeepLink).setOnClickListener(v ->
+                startActivity(new Intent(this, DeepLinkActivity.class)));
+
+        // 9. 화면 속성 - screenOrientation, configChanges, windowSoftInputMode 체험
+        findViewById(R.id.btnPortrait).setOnClickListener(v ->
+                startActivity(new Intent(this, PortraitActivity.class)));
+
+        // 10. 전체화면 - Activity 단위 테마 오버라이드 체험
+        findViewById(R.id.btnFullScreen).setOnClickListener(v ->
+                startActivity(new Intent(this, FullScreenActivity.class)));
+
+        // 11. 실행 모드 - launchMode (singleTop vs standard) 체험
+        findViewById(R.id.btnLaunchMode).setOnClickListener(v ->
+                startActivity(new Intent(this, LaunchModeActivity.class)));
+
+        // 12. 메타데이터 - <meta-data>, <service>, <receiver> 체험
+        findViewById(R.id.btnMetaData).setOnClickListener(v ->
+                startActivity(new Intent(this, MetaDataActivity.class)));
+
+        // 13. 패키지 가시성 - <queries> (Android 11+) 체험
+        findViewById(R.id.btnQuery).setOnClickListener(v ->
+                startActivity(new Intent(this, QueryActivity.class)));
     }
 }

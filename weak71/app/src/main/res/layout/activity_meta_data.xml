@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ============================================================
+    [meta-data / Service / BroadcastReceiver 데모 레이아웃]
+    ============================================================
+
+    이 화면은 AndroidManifest.xml에 선언하는 3가지 핵심 컴포넌트를 체험한다:
+
+    1) meta-data  = 앱/Activity에 붙이는 설정 데이터 (key-value)
+       Unity 비유: ScriptableObject에 설정값을 저장해두고
+                   런타임에 Resources.Load()로 읽어오는 것과 같다.
+
+    2) Service    = 화면 없이 백그라운드에서 실행되는 컴포넌트
+       Unity 비유: 씬에 보이지 않지만 DontDestroyOnLoad()로
+                   계속 살아있는 매니저 오브젝트의 코루틴과 같다.
+
+    3) BroadcastReceiver = 시스템/앱 이벤트를 수신하는 컴포넌트
+       Unity 비유: EventSystem의 EventTrigger/EventListener와 같다.
+                   특정 이벤트가 발생하면 등록된 콜백이 호출된다.
+
+    레이아웃 구조: ScrollView > LinearLayout(vertical)
+    각 섹션을 CardView로 감싸서 시각적으로 구분한다.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    tools:context=".MetaDataActivity">
+
+    <!--
+        fillViewport="true"
+        → 내용이 화면보다 짧을 때도 ScrollView가 화면 전체를 채운다.
+          Unity 비유: ScrollRect의 content가 viewport보다 작아도
+                     viewport 크기만큼 공간을 확보하는 것.
+    -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- ===== 화면 타이틀 ===== -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="meta-data / Service / Receiver 데모"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            android:layout_marginBottom="16dp" />
+
+        <!-- ============================================================ -->
+        <!-- 섹션 1: Application 레벨 meta-data                           -->
+        <!-- ============================================================ -->
+        <!--
+            Application 레벨 meta-data는 <application> 태그 안에 직접 선언한다.
+            앱 전체에서 공통으로 사용하는 설정값(API 키, 버전 메모 등)을 저장.
+            Unity 비유: Project Settings에 저장된 전역 설정값과 같다.
+        -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#FFFFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- 섹션 제목 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1. Application 레벨 meta-data"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF6200EE"
+                    android:layout_marginBottom="12dp" />
+
+                <!--
+                    API_KEY 값을 표시할 TextView
+                    PackageManager.getApplicationInfo()로 읽어온 값을 여기에 세팅한다.
+                -->
+                <TextView
+                    android:id="@+id/tvAppApiKey"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="API Key: (로딩 중...)"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="8dp" />
+
+                <!--
+                    VERSION_NOTE 값을 표시할 TextView
+                -->
+                <TextView
+                    android:id="@+id/tvAppVersionNote"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Version Note: (로딩 중...)"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ============================================================ -->
+        <!-- 섹션 2: Activity 레벨 meta-data                              -->
+        <!-- ============================================================ -->
+        <!--
+            Activity 레벨 meta-data는 특정 <activity> 태그 안에 선언한다.
+            해당 Activity에서만 사용하는 설정값을 저장.
+            Unity 비유: MonoBehaviour의 [SerializeField] 필드처럼
+                       특정 컴포넌트에만 붙어있는 설정값.
+        -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#FFFFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="2. Activity 레벨 meta-data"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF6200EE"
+                    android:layout_marginBottom="12dp" />
+
+                <!--
+                    ACTIVITY_DESCRIPTION 값을 표시할 TextView
+                    PackageManager.getActivityInfo()로 읽어온 값을 여기에 세팅한다.
+                -->
+                <TextView
+                    android:id="@+id/tvActivityDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Activity 설명: (로딩 중...)"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/tvDifficultyLevel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="난이도: (로딩 중...)"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ============================================================ -->
+        <!-- 섹션 3: Service 데모                                          -->
+        <!-- ============================================================ -->
+        <!--
+            Service = 화면(UI) 없이 백그라운드에서 작업을 수행하는 컴포넌트.
+            ForegroundService = 알림을 표시하면서 실행되는 서비스 (음악 재생, 위치 추적 등).
+            Unity 비유: DontDestroyOnLoad()로 살아있는 오브젝트에서
+                       StartCoroutine()으로 백그라운드 작업을 돌리는 것.
+                       ForegroundService는 진행 상황을 UI로 보여주는 코루틴.
+        -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#FFFFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="3. Service 데모"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF6200EE"
+                    android:layout_marginBottom="12dp" />
+
+                <!--
+                    포그라운드 서비스 시작 버튼
+                    클릭 시 MyForegroundService를 startForegroundService()로 시작한다.
+                    Android 8+(API 26) 이상에서는 반드시 startForegroundService()를 써야 한다.
+                -->
+                <Button
+                    android:id="@+id/btnStartService"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="포그라운드 서비스 시작"
+                    android:layout_marginBottom="8dp" />
+
+                <!--
+                    포그라운드 서비스 중지 버튼
+                    클릭 시 stopService()로 서비스를 중지한다.
+                -->
+                <Button
+                    android:id="@+id/btnStopService"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="포그라운드 서비스 중지"
+                    android:layout_marginBottom="8dp" />
+
+                <!--
+                    서비스의 현재 상태를 표시하는 TextView
+                -->
+                <TextView
+                    android:id="@+id/tvServiceStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="서비스 상태: 중지됨"
+                    android:textSize="14sp"
+                    android:textColor="#FF333333" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ============================================================ -->
+        <!-- 섹션 4: BroadcastReceiver 데모                                -->
+        <!-- ============================================================ -->
+        <!--
+            BroadcastReceiver = 시스템 또는 앱에서 보내는 브로드캐스트(방송)를 수신하는 컴포넌트.
+            여기서는 ACTION_TIME_TICK (매 분마다 시스템이 보내는 브로드캐스트)을 수신한다.
+            Unity 비유: EventSystem에서 이벤트를 구독(AddListener)하고,
+                       이벤트가 발생하면 콜백이 호출되는 것과 같다.
+
+            등록 방식 2가지:
+            1) Manifest 등록: AndroidManifest.xml의 <receiver> 태그에 선언
+               → 앱이 꺼져있어도 이벤트를 수신할 수 있다 (일부 제한 있음)
+            2) 코드 등록: registerReceiver()로 런타임에 등록
+               → Activity가 살아있을 때만 이벤트를 수신한다
+            ACTION_TIME_TICK은 코드 등록만 가능하다 (Manifest 등록 불가).
+        -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#FFFFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="4. BroadcastReceiver 데모"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF6200EE"
+                    android:layout_marginBottom="12dp" />
+
+                <!--
+                    TIME_TICK 리시버 등록 버튼
+                    클릭 시 registerReceiver()로 TimeTickReceiver를 등록한다.
+                -->
+                <Button
+                    android:id="@+id/btnRegisterReceiver"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="TIME_TICK 리시버 등록"
+                    android:layout_marginBottom="8dp" />
+
+                <!--
+                    TIME_TICK 리시버 해제 버튼
+                    클릭 시 unregisterReceiver()로 등록을 해제한다.
+                -->
+                <Button
+                    android:id="@+id/btnUnregisterReceiver"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="TIME_TICK 리시버 해제"
+                    android:layout_marginBottom="8dp" />
+
+                <!--
+                    리시버의 현재 상태를 표시하는 TextView
+                -->
+                <TextView
+                    android:id="@+id/tvReceiverStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="리시버 상태: 미등록"
+                    android:textSize="14sp"
+                    android:textColor="#FF333333"
+                    android:layout_marginBottom="8dp" />
+
+                <!--
+                    마지막으로 수신한 TIME_TICK 시각을 표시하는 TextView
+                -->
+                <TextView
+                    android:id="@+id/tvLastTick"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="마지막 수신: -"
+                    android:textSize="14sp"
+                    android:textColor="#FF333333" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+</ScrollView>

@@ -7,6 +7,13 @@
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
+    <!-- 커스텀 Permission 설명 (Manifest에서 참조) -->
+    <string name="permission_special_data_desc">이 앱의 특별 데이터에 접근할 수 있는 권한입니다. 학습용 커스텀 권한 데모.</string>
+
+    <!-- 포그라운드 서비스 알림 -->
+    <string name="notification_channel_name">데모 서비스</string>
+    <string name="notification_channel_desc">Manifest 학습용 포그라운드 서비스 알림 채널</string>
+
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
         volutpat, dolor id interdum ullamcorper, risus dolor egestas lectus, sit amet mattis purus

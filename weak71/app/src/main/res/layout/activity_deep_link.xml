@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    [딥링크(Deep Link) 데모 화면 레이아웃]
+
+    딥링크란? 특정 URL을 통해 앱의 원하는 화면을 직접 여는 기능.
+    예: weak71://open/demo?id=123 → 이 앱의 DeepLinkActivity가 열림.
+
+    Unity 비유: Unity 모바일 빌드에서 커스텀 URL 스킴을 등록하면
+    myGame://invite?code=abc 같은 링크로 앱을 열 수 있는 것과 동일.
+    (Unity에서는 Player Settings > Other Settings > Supported URL schemes에서 설정)
+
+    URL 구조: scheme://host/path?query
+    - scheme = 프로토콜 (weak71)
+    - host   = 도메인 (open)
+    - path   = 경로 (/demo)
+    - query  = 파라미터 (id=123&name=test)
+
+    이 화면은 딥링크로 전달받은 URI를 파싱하여 각 구성요소를 보여준다.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    tools:context=".DeepLinkActivity">
+
+    <!-- 화면 타이틀 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="딥링크 데모"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <!-- ═══════════ 수신한 URI 정보 카드 ═══════════ -->
+    <!--
+        딥링크로 앱이 열리면 Intent에 URI 데이터가 담겨온다.
+        이 카드에서 URI의 각 구성요소를 분리하여 보여준다.
+
+        Unity 비유: Application.absoluteURL로 딥링크 URL을 받아서
+        Uri.parse()로 파싱하는 것과 유사한 흐름.
+    -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- 카드 제목 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="수신한 URI 정보"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+
+            <!-- 전체 URI 표시 -->
+            <TextView
+                android:id="@+id/tvFullUri"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="전체 URI: -"
+                android:textSize="14sp"
+                android:layout_marginBottom="6dp" />
+
+            <!-- scheme 부분 (weak71) -->
+            <TextView
+                android:id="@+id/tvScheme"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="scheme: -"
+                android:textSize="14sp"
+                android:layout_marginBottom="6dp" />
+
+            <!-- host 부분 (open) -->
+            <TextView
+                android:id="@+id/tvHost"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="host: -"
+                android:textSize="14sp"
+                android:layout_marginBottom="6dp" />
+
+            <!-- path 부분 (/demo) -->
+            <TextView
+                android:id="@+id/tvPath"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="path: -"
+                android:textSize="14sp"
+                android:layout_marginBottom="6dp" />
+
+            <!-- query 부분 (id=123&name=test) -->
+            <TextView
+                android:id="@+id/tvQuery"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="query: -"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- ═══════════ 테스트 방법 카드 ═══════════ -->
+    <!--
+        adb(Android Debug Bridge)를 사용하여 터미널에서 딥링크를 테스트할 수 있다.
+        am start = Activity Manager에게 Activity 시작을 요청.
+        -a = action (VIEW = 데이터를 보여달라는 요청)
+        -d = data (URI)
+
+        Unity 비유: Unity Editor에서 테스트할 때
+        EditorApplication.OpenURL("myGame://...")을 호출하는 것과 유사.
+    -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#FFF3E0">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="테스트 방법"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <!-- 테스트 명령어 1: 기본 쿼리 파라미터 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="adb shell am start -a android.intent.action.VIEW -d &quot;weak71://open/demo?id=123&quot; com.example.weak7_1"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
+                android:background="#FFF8E1"
+                android:padding="8dp"
+                android:layout_marginBottom="8dp" />
+
+            <!-- 테스트 명령어 2: 복수 쿼리 파라미터 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="adb shell am start -a android.intent.action.VIEW -d &quot;weak71://open/demo?name=test&amp;value=42&quot; com.example.weak7_1"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
+                android:background="#FFF8E1"
+                android:padding="8dp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- ═══════════ Manifest 설명 카드 ═══════════ -->
+    <!--
+        딥링크가 동작하려면 AndroidManifest.xml에 <intent-filter>를 선언해야 한다.
+        이 카드는 Manifest에서 사용하는 <data> 태그의 각 속성을 설명한다.
+
+        Unity 비유: Unity에서 iOS의 Info.plist에 URL Types를 추가하거나,
+        Android의 AndroidManifest.xml 커스텀 템플릿에 intent-filter를 추가하는 것과 동일.
+    -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#E8F5E9">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Manifest 설명"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <!-- scheme 설명 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="scheme = URL의 프로토콜 (weak71://)"
+                android:textSize="13sp"
+                android:layout_marginBottom="4dp" />
+
+            <!-- host 설명 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="host = 도메인 (open)"
+                android:textSize="13sp"
+                android:layout_marginBottom="4dp" />
+
+            <!-- pathPrefix 설명 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="pathPrefix = 경로 접두사 (/demo)"
+                android:textSize="13sp"
+                android:layout_marginBottom="4dp" />
+
+            <!-- BROWSABLE 설명 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="BROWSABLE = 브라우저에서 열 수 있게 허용"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>

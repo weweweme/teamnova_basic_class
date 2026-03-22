@@ -27,7 +27,7 @@ import com.google.android.material.appbar.MaterialToolbar;
 
 /**
  * ============================================================
- * MetaDataActivity - Service / BroadcastReceiver 데모
+ * ServiceReceiverActivity - Service / BroadcastReceiver 데모
  * ============================================================
  *
  * 이 Activity에서 학습하는 Android 컴포넌트 2가지:
@@ -45,9 +45,9 @@ import com.google.android.material.appbar.MaterialToolbar;
  *    - Unity 비유: UnityEvent.AddListener()로 이벤트를 구독하고,
  *                  RemoveListener()로 구독을 해제하는 것과 같다.
  */
-public class MetaDataActivity extends AppCompatActivity {
+public class ServiceReceiverActivity extends AppCompatActivity {
 
-    private static final String TAG = "MetaDataActivity";
+    private static final String TAG = "ServiceReceiverActivity";
 
     /**
      * 커스텀 브로드캐스트 액션.
@@ -74,7 +74,7 @@ public class MetaDataActivity extends AppCompatActivity {
     private TextView tvTickCount;
     private TextView tvLastTick;
 
-    private TimeTickReceiver timeTickReceiver;
+    private CustomTickReceiver timeTickReceiver;
     private boolean isReceiverRegistered = false;
     private int tickCount = 0;
 
@@ -93,7 +93,7 @@ public class MetaDataActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_meta_data);
+        setContentView(R.layout.activity_service_receiver);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -133,7 +133,7 @@ public class MetaDataActivity extends AppCompatActivity {
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
                     if (isGranted) {
-                        startMyForegroundService();
+                        startDemoForegroundService();
                     } else {
                         Toast.makeText(this,
                                 "알림 권한이 필요합니다. 설정에서 허용해주세요.",
@@ -158,22 +158,22 @@ public class MetaDataActivity extends AppCompatActivity {
                     return;
                 }
             }
-            startMyForegroundService();
+            startDemoForegroundService();
         });
 
-        btnStopService.setOnClickListener(v -> stopMyForegroundService());
+        btnStopService.setOnClickListener(v -> stopDemoForegroundService());
     }
 
-    private void startMyForegroundService() {
-        Intent serviceIntent = new Intent(this, MyForegroundService.class);
+    private void startDemoForegroundService() {
+        Intent serviceIntent = new Intent(this, DemoForegroundService.class);
         ContextCompat.startForegroundService(this, serviceIntent);
 
         tvServiceStatus.setText("서비스 상태: 실행 중");
         Toast.makeText(this, "포그라운드 서비스가 시작되었습니다", Toast.LENGTH_SHORT).show();
     }
 
-    private void stopMyForegroundService() {
-        Intent serviceIntent = new Intent(this, MyForegroundService.class);
+    private void stopDemoForegroundService() {
+        Intent serviceIntent = new Intent(this, DemoForegroundService.class);
         stopService(serviceIntent);
 
         tvServiceStatus.setText("서비스 상태: 중지됨");
@@ -186,7 +186,7 @@ public class MetaDataActivity extends AppCompatActivity {
     // ============================================================
 
     /**
-     * MyForegroundService의 static 변수를 1초마다 읽어와 화면에 표시한다.
+     * DemoForegroundService의 static 변수를 1초마다 읽어와 화면에 표시한다.
      * 서비스가 5초마다 카운터를 증가시키는데, 그 값이 여기에 실시간 반영된다.
      */
     private void startCounterPolling() {
@@ -195,9 +195,9 @@ public class MetaDataActivity extends AppCompatActivity {
             @Override
             public void run() {
                 tvServiceCounter.setText("백그라운드 작업 횟수: "
-                        + MyForegroundService.counter + "회");
+                        + DemoForegroundService.counter + "회");
 
-                if (MyForegroundService.isRunning) {
+                if (DemoForegroundService.isRunning) {
                     tvServiceStatus.setText("서비스 상태: 실행 중");
                 } else {
                     tvServiceStatus.setText("서비스 상태: 중지됨");
@@ -221,7 +221,7 @@ public class MetaDataActivity extends AppCompatActivity {
             }
 
             // 1) 리시버 생성 + 콜백 설정
-            timeTickReceiver = new TimeTickReceiver();
+            timeTickReceiver = new CustomTickReceiver();
             timeTickReceiver.setOnTickListener(currentTime -> {
                 tickCount++;
                 tvTickCount.setText("수신 횟수: " + tickCount);
@@ -249,7 +249,7 @@ public class MetaDataActivity extends AppCompatActivity {
             Log.d(TAG, "커스텀 리시버 등록 + 브로드캐스트 타이머 시작");
         });
 
-        btnUnregisterReceiver.setOnClickListener(v -> unregisterTimeTickReceiver());
+        btnUnregisterReceiver.setOnClickListener(v -> unregisterCustomTickReceiver());
     }
 
     /**
@@ -287,7 +287,7 @@ public class MetaDataActivity extends AppCompatActivity {
         }
     }
 
-    private void unregisterTimeTickReceiver() {
+    private void unregisterCustomTickReceiver() {
         if (isReceiverRegistered && timeTickReceiver != null) {
             stopBroadcastTimer();
             unregisterReceiver(timeTickReceiver);

@@ -12,7 +12,7 @@ import java.util.Locale;
 
 /**
  * ============================================================
- * TimeTickReceiver - BroadcastReceiver 데모
+ * CustomTickReceiver - BroadcastReceiver 데모
  * ============================================================
  *
  * [BroadcastReceiver란?]
@@ -69,9 +69,9 @@ import java.util.Locale;
  *   이유: 매 분마다 모든 앱에게 브로드캐스트를 보내면 배터리가 빨리 닳기 때문.
  *         실제로 화면에 시간을 표시하는 앱(Activity가 활성 상태)만 받을 수 있게 제한.
  */
-public class TimeTickReceiver extends BroadcastReceiver {
+public class CustomTickReceiver extends BroadcastReceiver {
 
-    private static final String TAG = "TimeTickReceiver";
+    private static final String TAG = "CustomTickReceiver";
 
     /**
      * 콜백 인터페이스 - 리시버가 tick 이벤트를 수신했을 때 Activity에 알리기 위한 인터페이스.
@@ -102,7 +102,7 @@ public class TimeTickReceiver extends BroadcastReceiver {
 
     /**
      * 콜백 리스너 참조.
-     * MetaDataActivity에서 setOnTickListener()로 설정한다.
+     * ServiceReceiverActivity에서 setOnTickListener()로 설정한다.
      * Unity 비유: 이벤트 핸들러 참조를 저장하는 멤버 변수.
      *            private UnityAction<string> onTickCallback;
      */
@@ -113,7 +113,7 @@ public class TimeTickReceiver extends BroadcastReceiver {
      * Activity에서 리시버를 생성한 후 이 메서드로 콜백을 등록한다.
      *
      * Unity 비유:
-     *   var receiver = new TimeTickReceiver();
+     *   var receiver = new CustomTickReceiver();
      *   receiver.OnTick += (time) => { tvLastTick.text = time; };
      *
      * @param listener tick 이벤트를 수신할 리스너
@@ -154,7 +154,7 @@ public class TimeTickReceiver extends BroadcastReceiver {
         String action = intent.getAction();
 
         // 커스텀 브로드캐스트(ACTION_CUSTOM_TICK) 또는 시스템 TIME_TICK 모두 처리
-        if (MetaDataActivity.ACTION_CUSTOM_TICK.equals(action)
+        if (ServiceReceiverActivity.ACTION_CUSTOM_TICK.equals(action)
                 || Intent.ACTION_TIME_TICK.equals(action)) {
 
             // 현재 시각을 포맷팅한다

@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(./gradlew assembleDebug:*)"
+      "Bash(./gradlew assembleDebug:*)",
+      "Bash(./gradlew lint:*)",
+      "Bash(./gradlew lintDebug:*)",
+      "WebSearch",
+      "Bash(git mv:*)"
     ]
   }
 }

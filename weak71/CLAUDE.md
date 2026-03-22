@@ -27,14 +27,14 @@
 | 9. 화면 속성 | PortraitActivity | screenOrientation, configChanges, windowSoftInputMode | 완료 |
 | 10. 전체화면 | FullScreenActivity | Activity 단위 theme 오버라이드 | 완료 |
 | 11. 실행 모드 | LaunchModeActivity | launchMode (standard vs singleTop FLAG) | 완료 |
-| 12. 메타데이터 | MetaDataActivity | meta-data (App/Activity), service, receiver | 완료 |
+| 12. 서비스/리시버 | ServiceReceiverActivity | service, receiver, meta-data | 완료 |
 | 13. 패키지 가시성 | QueryActivity | queries (Android 11+) | 완료 |
 
 ### 비-Activity 컴포넌트
 | 컴포넌트 | 타입 | 주요 요소 |
 |----------|------|----------|
-| MyForegroundService | Service | foregroundServiceType, specialUse |
-| TimeTickReceiver | BroadcastReceiver | Manifest 등록 (BOOT_COMPLETED) + 코드 등록 (TIME_TICK) |
+| DemoForegroundService | Service | foregroundServiceType, specialUse |
+| CustomTickReceiver | BroadcastReceiver | 코드 등록 (커스텀 브로드캐스트) |
 
 ## 프로젝트 특징
 - Material3 + Edge-to-Edge 적용

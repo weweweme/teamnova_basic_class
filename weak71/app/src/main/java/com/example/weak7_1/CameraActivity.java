@@ -165,10 +165,6 @@ public class CameraActivity extends AppCompatActivity {
          *
          * 주의: 이 방식은 썸네일(작은 이미지)만 반환한다.
          * 고해상도 원본이 필요하면 FileProvider + URI 방식을 사용해야 한다.
-         *
-         * Unity 비유: NativeCamera.TakePicture()의 콜백에서
-         *            Texture2D를 받는 것과 같다.
-         *            다만 여기서는 저해상도 썸네일이라는 점이 다르다.
          */
         cameraLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),

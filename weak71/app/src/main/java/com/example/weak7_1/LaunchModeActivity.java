@@ -165,6 +165,8 @@ public class LaunchModeActivity extends AppCompatActivity {
         tvEventLog = findViewById(R.id.tvEventLog);
         Button btnRelaunchSelf = findViewById(R.id.btnRelaunchSelf);
         Button btnRelaunchWithFlag = findViewById(R.id.btnRelaunchWithFlag);
+        Button btnSingleTask = findViewById(R.id.btnSingleTask);
+        Button btnSingleInstance = findViewById(R.id.btnSingleInstance);
 
         // ===== onCreate 카운트 증가 및 로그 기록 =====
         /*
@@ -222,6 +224,48 @@ public class LaunchModeActivity extends AppCompatActivity {
         btnRelaunchWithFlag.setOnClickListener(v -> {
             Intent intent = new Intent(this, LaunchModeActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+        });
+
+        /*
+         * [singleTask 방식 - CLEAR_TOP + SINGLE_TOP]
+         *
+         * FLAG_ACTIVITY_CLEAR_TOP: 스택에 이미 이 Activity가 있으면
+         *   그 위에 쌓인 모든 Activity를 제거(pop)한다.
+         * FLAG_ACTIVITY_SINGLE_TOP을 함께 쓰면:
+         *   기존 인스턴스를 재사용하고 onNewIntent()를 호출한다.
+         *   (CLEAR_TOP만 쓰면 기존 것을 파괴 후 새로 생성한다)
+         *
+         * 테스트 방법:
+         *   1) standard 버튼으로 3개 쌓기 (hash: A → B → C)
+         *   2) singleTask 버튼 누르기
+         *   3) B, C가 제거되고 A가 재사용됨 (onNewIntent 호출)
+         *
+         * Unity 비유: SceneManager.UnloadScene()으로 위에 있는 씬들을 모두 제거하고
+         *            남은 씬을 활성화하는 것.
+         */
+        btnSingleTask.setOnClickListener(v -> {
+            Intent intent = new Intent(this, LaunchModeActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+        });
+
+        /*
+         * [singleInstance 방식 - NEW_TASK]
+         *
+         * FLAG_ACTIVITY_NEW_TASK: 새로운 Task(스택)에서 Activity를 실행한다.
+         * 기존 Task와 별도의 독립된 스택이 생긴다.
+         *
+         * 관찰 포인트:
+         *   - Task ID가 바뀌는가? → 바뀌면 별도 Task에서 실행된 것.
+         *   - 최근 앱 목록(멀티태스킹)에 별도 항목이 보이는가?
+         *
+         * Unity 비유: 별도의 Process(또는 AppDomain)에서 씬을 실행하는 것.
+         *            다른 씬들과 같은 스택에 공존할 수 없다.
+         */
+        btnSingleInstance.setOnClickListener(v -> {
+            Intent intent = new Intent(this, LaunchModeActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
             startActivity(intent);
         });
     }

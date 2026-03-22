@@ -17,7 +17,7 @@ import androidx.core.app.NotificationCompat;
 
 /**
  * ============================================================
- * MyForegroundService - 포그라운드 서비스 데모
+ * DemoForegroundService - 포그라운드 서비스 데모
  * ============================================================
  *
  * [Service란?]
@@ -54,9 +54,9 @@ import androidx.core.app.NotificationCompat;
  *   onStartCommand() = Start() 또는 OnEnable() - 작업 시작 명령 수신
  *   onDestroy()      = OnDestroy() - 정리(cleanup) 작업
  */
-public class MyForegroundService extends Service {
+public class DemoForegroundService extends Service {
 
-    private static final String TAG = "MyForegroundService";
+    private static final String TAG = "DemoForegroundService";
 
     /**
      * NotificationChannel ID
@@ -97,14 +97,14 @@ public class MyForegroundService extends Service {
      * 카운터 - 서비스가 시작된 후 5초마다 증가하는 값.
      * 알림에 표시하여 서비스가 실행 중임을 사용자에게 보여준다.
      *
-     * static으로 선언하여 Activity에서 MyForegroundService.counter로 읽을 수 있다.
+     * static으로 선언하여 Activity에서 DemoForegroundService.counter로 읽을 수 있다.
      * Unity 비유: static int counter처럼 외부에서 직접 참조 가능한 값.
      */
     static int counter = 0;
 
     /**
      * 서비스 실행 여부 플래그.
-     * Activity에서 MyForegroundService.isRunning으로 확인한다.
+     * Activity에서 DemoForegroundService.isRunning으로 확인한다.
      */
     static boolean isRunning = false;
 
@@ -322,10 +322,10 @@ public class MyForegroundService extends Service {
      */
     private Notification buildNotification(String contentText) {
         // PendingIntent = "나중에 실행할 Intent"를 감싸는 래퍼.
-        // 알림을 클릭했을 때 MetaDataActivity를 열도록 설정한다.
+        // 알림을 클릭했을 때 ServiceReceiverActivity를 열도록 설정한다.
         // FLAG_IMMUTABLE: Intent의 내용을 변경할 수 없게 잠금 (Android 12+ 필수).
         // Unity 비유: 콜백을 미리 등록해두고, 사용자가 알림을 탭하면 실행되는 것.
-        Intent notificationIntent = new Intent(this, MetaDataActivity.class);
+        Intent notificationIntent = new Intent(this, ServiceReceiverActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 this,
                 0,

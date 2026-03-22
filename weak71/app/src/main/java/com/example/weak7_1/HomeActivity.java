@@ -166,8 +166,8 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(new Intent(this, LaunchModeActivity.class)));
 
         // 12. 서비스/리시버 - <service>, <receiver> 체험
-        findViewById(R.id.btnMetaData).setOnClickListener(v ->
-                startActivity(new Intent(this, MetaDataActivity.class)));
+        findViewById(R.id.btnServiceReceiver).setOnClickListener(v ->
+                startActivity(new Intent(this, ServiceReceiverActivity.class)));
 
     }
 }

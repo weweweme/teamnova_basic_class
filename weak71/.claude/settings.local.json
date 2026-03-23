@@ -6,7 +6,9 @@
       "Bash(./gradlew lintDebug:*)",
       "WebSearch",
       "Bash(git mv:*)",
-      "mcp__coplay-mcp__read_file"
+      "mcp__coplay-mcp__read_file",
+      "Bash(curl:*)",
+      "Bash(echo:*)"
     ]
   }
 }

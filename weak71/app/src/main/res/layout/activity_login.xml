@@ -1,4 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    ============================================================
+    [카카오톡 스타일 로그인 화면 - LinearLayout 실전 활용]
+    ============================================================
+
+    ── 이 화면의 목적 ──
+
+    LinearLayout만으로 실제 앱(카카오톡)의 로그인 화면을 재현한다.
+    로그인 화면처럼 "위→아래로 순서대로 쌓이는" 구조에는
+    LinearLayout이 가장 적합하다.
+    Unity 비유: VerticalLayoutGroup 하나로 로그인 UI를 배치하는 것.
+
+    ── 핵심 학습 포인트 ──
+
+    1) Space + layout_weight 조합
+       - Space는 보이지 않는 빈 공간 뷰다.
+       - weight를 Space에 부여하면 남은 공간을 비율로 분배할 수 있다.
+       - 위쪽 Space(weight=1) + 아래쪽 Space(weight=2) → 콘텐츠가 화면 상단 1/3 지점에 배치
+       - 이 기법으로 콘텐츠를 화면 중앙~상단에 자연스럽게 배치한다.
+
+    2) TextInputLayout (Material Design 입력 필드)
+       - EditText를 감싸서 floating label(힌트가 위로 올라감) 효과를 준다.
+       - style="@style/...OutlinedBox" → 테두리가 있는 입력 필드 스타일
+       - Unity 비유: InputField에 placeholder 텍스트가 위로 슬라이드하는 애니메이션
+
+    3) MaterialButton 커스터마이징
+       - backgroundTint로 배경색 변경 (#FEE500 = 카카오 노란색)
+       - cornerRadius로 둥근 모서리 적용
+       - textColor로 글자색 변경 (#3C1E1E = 카카오 갈색)
+
+    ── 화면 구조 트리 ──
+
+    LinearLayout (vertical, 전체 화면)
+    ├── MaterialToolbar (뒤로가기)
+    ├── Space (weight=1) ← 위쪽 빈 공간 (콘텐츠를 아래로 밀어냄)
+    ├── TextView 💬 (카카오 로고 아이콘 역할)
+    ├── TextView "카카오톡" (앱 이름)
+    ├── TextView "카카오계정으로 로그인" (안내 문구)
+    ├── TextInputLayout (이메일/전화번호 입력)
+    ├── TextInputLayout (비밀번호 입력)
+    ├── MaterialButton "카카오계정 로그인" (노란색 버튼)
+    ├── TextView "카카오계정 만들기 | 계정 찾기" (하단 링크)
+    └── Space (weight=2) ← 아래쪽 빈 공간 (위보다 2배 → 콘텐츠가 상단 쪽에 위치)
+-->
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -6,6 +51,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="#FFFFFF"
     tools:context=".LoginActivity">
 
     <!-- ── 툴바 (뒤로가기 버튼) ── -->
@@ -13,46 +59,184 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        app:title="로그인"
         app:navigationIcon="?attr/homeAsUpIndicator" />
 
+    <!--
+        [Space - 위쪽 여백]
+        layout_weight="1" → 남은 공간의 1/(1+2) = 1/3을 차지.
+        height="0dp" → weight가 높이를 결정하므로 0dp로 설정.
+        이 Space 덕분에 아래 콘텐츠가 화면 중앙~상단에 위치한다.
+
+        ※ weight 복습:
+        weight는 "남은 공간"을 비율로 나누는 속성이다.
+        height(또는 width)를 0dp로 설정해야 weight가 크기를 결정한다.
+        wrap_content나 match_parent로 하면 의도대로 동작하지 않는다.
+    -->
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!--
+        [로고 영역]
+        카카오톡의 말풍선 아이콘을 TextView의 이모지로 대체.
+        실제 앱에서는 ImageView + 벡터/비트맵 이미지를 사용한다.
+    -->
     <TextView
-        android:id="@+id/textView2"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="로그인" />
+        android:layout_gravity="center_horizontal"
+        android:text="💬"
+        android:textSize="48sp"
+        android:layout_marginBottom="8dp" />
 
-    <EditText
-        android:id="@+id/editTextText"
-        android:layout_width="match_parent"
+    <!-- 앱 이름 -->
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="아이디를 입력하세요"
-        android:inputType="text" />
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="24dp"
+        android:text="카카오톡"
+        android:textColor="#3C1E1E"
+        android:textSize="24sp"
+        android:textStyle="bold" />
 
-    <EditText
-        android:id="@+id/editTextTextPassword"
-        android:layout_width="match_parent"
+    <!-- 안내 문구 -->
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="비밀번호를 입력하세요"
-        android:inputType="textPassword" />
+        android:layout_gravity="center_horizontal"
+        android:text="카카오계정으로 로그인"
+        android:textSize="14sp"
+        android:textColor="#999999"
+        android:layout_marginBottom="20dp" />
 
-    <Button
-        android:id="@+id/button"
+    <!--
+        [TextInputLayout - Material Design 입력 필드]
+
+        EditText를 TextInputLayout으로 감싸면:
+        1. 힌트 텍스트가 입력 시 위로 올라가는 floating label 애니메이션
+        2. 테두리(Outlined) 또는 밑줄(Filled) 스타일 자동 적용
+        3. 에러 메시지, 글자 수 카운터 등 부가 기능 사용 가능
+
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        → 네모난 테두리가 있는 스타일. 카카오톡 로그인 필드와 유사.
+
+        Unity 비유: InputField + placeholder가 위로 슬라이드하는 DOTween 애니메이션이
+        TextInputLayout 하나로 자동 처리된다.
+
+        ※ layout_marginHorizontal="32dp"
+        → layout_marginLeft + layout_marginRight을 한 번에 설정하는 축약형.
+    -->
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:alpha="1"
-        android:insetLeft="50dp"
-        android:insetTop="10dp"
-        android:insetRight="50dp"
-        android:rotation="3"
-        android:rotationX="20"
-        android:rotationY="10"
-        android:scaleX="1"
-        android:scaleY="1"
-        android:text="로그인"
-        app:icon="@drawable/ic_launcher_foreground"
-        app:iconPadding="100dp"
-        app:iconTint="#E7B9B9" />
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginBottom="12dp"
+        android:hint="카카오메일 아이디, 이메일, 전화번호">
+
+        <!--
+            TextInputEditText = TextInputLayout 전용 EditText.
+            일반 EditText도 동작하지만, TextInputEditText를 쓰면
+            힌트 표시 등이 더 자연스럽게 동작한다.
+            inputType="text" → 일반 텍스트 키보드 표시.
+        -->
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- 비밀번호 입력 필드 -->
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginBottom="20dp"
+        android:hint="비밀번호"
+        app:endIconMode="password_toggle">
+
+        <!--
+            inputType="textPassword" → 입력 내용이 ●●●로 가려진다.
+            endIconMode="password_toggle" → 눈 아이콘으로 비밀번호 표시/숨김 전환.
+            Unity 비유: InputField의 Content Type = Password와 동일.
+        -->
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!--
+        [MaterialButton - 카카오 스타일 로그인 버튼]
+
+        backgroundTint="#FEE500" → 카카오톡 시그니처 노란색
+        textColor="#3C1E1E"      → 카카오톡 갈색 글자
+        cornerRadius="8dp"       → 둥근 모서리 (카카오 버튼 스타일)
+
+        ※ 일반 Button 대신 MaterialButton을 명시적으로 사용.
+        (사실 Material 테마에서는 Button이 자동으로 MaterialButton이 되지만,
+         backgroundTint, cornerRadius 같은 Material 전용 속성을 쓰려면
+         명시적으로 선언하는 것이 안전하다.)
+
+        Unity 비유: Button + Image(노란색) + TextMeshPro(갈색) 조합.
+    -->
+    <com.google.android.material.button.MaterialButton
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginBottom="16dp"
+        android:text="카카오계정 로그인"
+        android:textColor="#3C1E1E"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:backgroundTint="#FEE500"
+        app:cornerRadius="8dp"
+        app:rippleColor="#E6D200" />
+
+    <!--
+        [하단 링크 텍스트]
+        실제 카카오톡에서는 "카카오계정 만들기"와 "계정 찾기"가 각각 터치 가능한 링크.
+        여기서는 UI 데모이므로 클릭 피드백만 준다 (Toast 메시지).
+
+        clickable="true"   → 이 뷰가 클릭 이벤트를 받을 수 있게 설정
+        focusable="true"   → 키보드/D-pad로도 포커스 가능 (접근성)
+        이 두 속성이 있어야 ?attr/selectableItemBackground 리플 효과가 동작한다.
+
+        background="?attr/selectableItemBackground"
+        → 터치 시 물결(ripple) 효과를 자동으로 보여줌.
+          테마가 정의한 기본 터치 피드백 배경. 직접 리플을 구현할 필요 없음.
+    -->
+    <TextView
+        android:id="@+id/tvSignUpFind"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="카카오계정 만들기 | 계정 찾기"
+        android:textSize="13sp"
+        android:textColor="#999999"
+        android:padding="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackground" />
+
+    <!--
+        [Space - 아래쪽 여백]
+        layout_weight="2" → 남은 공간의 2/(1+2) = 2/3을 차지.
+        위쪽 Space(1) : 아래쪽 Space(2) = 1:2 비율이므로
+        콘텐츠가 화면의 위쪽 1/3 지점에 위치하게 된다.
+
+        만약 1:1로 하면? → 정확히 중앙에 배치
+        만약 1:3으로 하면? → 더 위쪽에 배치
+        이 비율을 조절해서 콘텐츠의 수직 위치를 자유롭게 조정할 수 있다.
+    -->
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2" />
+
 </LinearLayout>

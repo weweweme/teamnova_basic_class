@@ -51,8 +51,10 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         // ── 하단 링크 클릭 (UI 데모: Toast로 피드백만 표시) ──
-        findViewById(R.id.tvSignUpFind).setOnClickListener(v ->
-                Toast.makeText(this, "UI 데모 - 실제 앱에서는 회원가입/계정찾기 화면으로 이동", Toast.LENGTH_SHORT).show());
+        findViewById(R.id.tvSignUp).setOnClickListener(v ->
+                Toast.makeText(this, "UI 데모 - 카카오계정 만들기 화면으로 이동", Toast.LENGTH_SHORT).show());
+        findViewById(R.id.tvFindAccount).setOnClickListener(v ->
+                Toast.makeText(this, "UI 데모 - 계정 찾기 화면으로 이동", Toast.LENGTH_SHORT).show());
     }
 
     @Override

@@ -1,127 +1,501 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    ============================================================
+    [인스타그램 스타일 프로필 화면 - ConstraintLayout 실전 활용]
+    ============================================================
+
+    ── 왜 ConstraintLayout인가? ──
+
+    인스타그램 프로필 화면은 뷰들이 가로/세로로 복잡하게 엮여있다:
+    - 프로필 사진(왼쪽)과 게시물/팔로워/팔로잉 숫자(오른쪽)가 나란히
+    - 숫자 3개가 가로로 균등 분배
+    - 버튼 2개가 가로로 나란히
+    - 게시물 그리드가 3열로 배치
+
+    LinearLayout만으로는 가로+세로가 섞인 이런 배치를 만들기 어렵다.
+    ConstraintLayout은 각 뷰에 "제약(Constraint)"을 걸어서 자유롭게 배치할 수 있다.
+
+    Unity 비유: RectTransform의 앵커를 다른 오브젝트에 연결하는 것.
+    "이 UI를 저 UI의 오른쪽에 붙여라" 같은 상대적 관계를 설정하는 방식.
+
+    ── 핵심 학습 포인트 ──
+
+    1) 제약(Constraint) 기본
+       - 모든 뷰에 가로 제약 1개 + 세로 제약 1개, 최소 2개가 필요하다.
+       - 제약이 없으면 뷰가 (0,0) 위치로 가버린다.
+       - constraintTop_toBottomOf="@id/A" → "A의 아래에 배치"
+       - constraintStart_toEndOf="@id/B" → "B의 오른쪽에 배치"
+
+    2) Chain (체인) - 여러 뷰를 가로/세로로 균등 배치
+       - 뷰 3개를 서로의 Start/End로 연결하면 체인이 형성된다.
+       - chainStyle="spread" → 남은 공간을 균등 분배
+       - Unity 비유: HorizontalLayoutGroup의 Child Force Expand
+
+    3) 0dp (match_constraint) vs wrap_content vs 고정dp
+       - wrap_content → 내용물 크기에 맞춤
+       - 200dp → 항상 200dp (고정)
+       - 0dp → 양쪽 제약 사이를 꽉 채움 (제약이 크기를 결정)
+
+    4) LinearLayout을 ConstraintLayout 안에 섞어 쓰기
+       - 버튼 2개 가로 배치 → LinearLayout(horizontal)을 자식으로 넣기
+       - 스토리 하이라이트 → HorizontalScrollView > LinearLayout
+       - 모든 걸 ConstraintLayout만으로 할 필요 없다. 적재적소에 섞는 게 실무.
+
+    ── 화면 구조 트리 ──
+
+    ConstraintLayout (전체 화면)
+    ├── MaterialToolbar (← 뒤로가기 + "username")
+    ├── ImageView (프로필 사진 96dp, 원형)       ← 툴바 아래, 왼쪽
+    ├── TextView "42"     ← 프로필 사진 오른쪽, 체인 1/3
+    ├── TextView "1.2만"  ← 체인 2/3
+    ├── TextView "500"    ← 체인 3/3
+    ├── TextView "게시물"  ← 숫자 아래
+    ├── TextView "팔로워"  ← 숫자 아래
+    ├── TextView "팔로잉"  ← 숫자 아래
+    ├── TextView "사용자 이름" (볼드)
+    ├── TextView "소개글"
+    ├── LinearLayout (horizontal) → 버튼 2개 (프로필 편집, 프로필 공유)
+    ├── HorizontalScrollView → 스토리 하이라이트 (여행, 맛집, 일상)
+    ├── View (구분선)
+    └── GridLayout (3열) → 게시물 썸네일 placeholder 9개
+-->
+
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#FFFFFF"
     tools:context=".ProfileActivity">
 
-    <!-- ── 툴바 (뒤로가기 버튼) ── -->
+    <!-- ═══════════ 툴바 ═══════════ -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="?attr/actionBarSize"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:title="프로필"
+        app:title="instagram_user"
+        app:titleTextAppearance="@style/TextAppearance.MaterialComponents.Body1"
         app:navigationIcon="?attr/homeAsUpIndicator" />
 
+    <!-- ═══════════ 프로필 사진 (왼쪽) ═══════════ -->
     <!--
-        [Guideline - 비율 기반 배치]
+        [프로필 사진]
+        왼쪽에 배치: constraintStart_toStartOf="parent" + marginStart=16dp
+        툴바 아래: constraintTop_toBottomOf="@id/toolbar" + marginTop=16dp
 
-        기존 문제: marginTop="108dp" 같은 고정 dp 값은
-        화면 크기에 따라 비율이 달라져서 Design 뷰와 실제 기기가 다르게 보였다.
+        ShapeableImageView = Material 라이브러리의 ImageView.
+        shapeAppearanceOverlay로 둥근 모서리/원형 등을 XML만으로 적용할 수 있다.
+        일반 ImageView는 원형 처리를 코드로 해야 하지만,
+        ShapeableImageView는 cornerSize="50%"만 쓰면 원형이 된다.
+    -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivProfile"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:padding="3dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.Circle"
+        app:srcCompat="@drawable/ic_profile_placeholder"
+        app:strokeColor="#DDDDDD"
+        app:strokeWidth="2dp" />
 
-        해결: Guideline을 사용하면 화면의 퍼센트(%) 기준으로 위치를 잡을 수 있다.
-        어떤 화면 크기든 비율이 유지된다.
+    <!-- ═══════════ 게시물 / 팔로워 / 팔로잉 숫자 (오른쪽, 가로 체인) ═══════════ -->
+    <!--
+        [Chain (체인) - 핵심 학습 포인트]
 
-        Unity 비유: Canvas Scaler의 "Scale With Screen Size"와 같은 개념.
-        고정 pixel 대신 화면 비율 기준으로 배치하는 것.
+        3개의 TextView(게시물/팔로워/팔로잉 숫자)를 가로로 균등 배치한다.
 
-        orientation="horizontal" → 가로 선 (세로 위치를 결정)
-        layout_constraintGuide_percent="0.15" → 화면 높이의 15% 지점
+        체인을 만드는 방법:
+        1. 첫 번째 뷰의 Start → 기준점 (프로필 사진의 End)
+        2. 첫 번째 뷰의 End → 두 번째 뷰의 Start
+        3. 두 번째 뷰의 End → 세 번째 뷰의 Start
+        4. 세 번째 뷰의 End → 부모의 End
+        → 이렇게 서로 꼬리를 물면 "체인"이 형성된다.
+
+        chainStyle="spread" (기본값):
+        - 남은 공간을 뷰 사이와 양 끝에 균등 분배
+        - Unity 비유: HorizontalLayoutGroup + Child Force Expand
+
+        다른 chainStyle:
+        - "spread_inside" → 양 끝 뷰는 가장자리에 붙고, 사이만 균등
+        - "packed" → 뷰들이 중앙에 모임
     -->
 
-    <!-- 화면 높이의 15% 지점 (프로필 이미지 시작) -->
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guidelineTop"
+    <!-- 게시물 숫자 (체인의 첫 번째) -->
+    <TextView
+        android:id="@+id/tvPostCount"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:gravity="center"
+        android:text="42"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#FF000000"
+        app:layout_constraintEnd_toStartOf="@id/tvFollowerCount"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toEndOf="@id/ivProfile"
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+    <!-- 팔로워 숫자 (체인의 두 번째) -->
+    <TextView
+        android:id="@+id/tvFollowerCount"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="1.2만"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#FF000000"
+        app:layout_constraintEnd_toStartOf="@id/tvFollowingCount"
+        app:layout_constraintStart_toEndOf="@id/tvPostCount"
+        app:layout_constraintTop_toTopOf="@id/tvPostCount" />
+
+    <!-- 팔로잉 숫자 (체인의 세 번째) -->
+    <TextView
+        android:id="@+id/tvFollowingCount"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:gravity="center"
+        android:text="500"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#FF000000"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/tvFollowerCount"
+        app:layout_constraintTop_toTopOf="@id/tvPostCount" />
+
+    <!-- 게시물 레이블 (숫자 아래) -->
+    <TextView
+        android:id="@+id/tvPostLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="게시물"
+        android:textSize="12sp"
+        android:textColor="#FF666666"
+        app:layout_constraintEnd_toEndOf="@id/tvPostCount"
+        app:layout_constraintStart_toStartOf="@id/tvPostCount"
+        app:layout_constraintTop_toBottomOf="@id/tvPostCount" />
+
+    <!-- 팔로워 레이블 -->
+    <TextView
+        android:id="@+id/tvFollowerLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="팔로워"
+        android:textSize="12sp"
+        android:textColor="#FF666666"
+        app:layout_constraintEnd_toEndOf="@id/tvFollowerCount"
+        app:layout_constraintStart_toStartOf="@id/tvFollowerCount"
+        app:layout_constraintTop_toBottomOf="@id/tvFollowerCount" />
+
+    <!-- 팔로잉 레이블 -->
+    <TextView
+        android:id="@+id/tvFollowingLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="팔로잉"
+        android:textSize="12sp"
+        android:textColor="#FF666666"
+        app:layout_constraintEnd_toEndOf="@id/tvFollowingCount"
+        app:layout_constraintStart_toStartOf="@id/tvFollowingCount"
+        app:layout_constraintTop_toBottomOf="@id/tvFollowingCount" />
+
+    <!-- ═══════════ 사용자 이름 + 소개 ═══════════ -->
+    <TextView
+        android:id="@+id/tvUsername"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.15" />
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:text="사용자 이름"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#FF000000"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ivProfile" />
 
-    <!-- 화면 높이의 50% 지점 (이미지 아래, 텍스트 영역) -->
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guidelineMiddle"
+    <TextView
+        android:id="@+id/tvBio"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.50" />
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="2dp"
+        android:text="소개글을 입력하세요 ✨"
+        android:textSize="14sp"
+        android:textColor="#FF333333"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvUsername" />
 
-    <!-- 화면 높이의 75% 지점 (버튼 영역) -->
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guidelineBottom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.75" />
-
+    <!-- ═══════════ 버튼 영역 (프로필 편집 + 프로필 공유) ═══════════ -->
     <!--
-        [layout_width / layout_height 크기 설정 방식]
+        [LinearLayout을 ConstraintLayout 안에 섞어 쓰기]
 
-        1. 고정 dp (예: "200dp")
-           → 크기가 항상 동일. 제약은 "위치"만 결정함.
-           → Unity 비유: RectTransform 앵커를 Center로 두고 Width/Height 고정.
+        버튼 2개를 가로로 나란히 놓고 균등하게 너비를 나누려면
+        LinearLayout(horizontal) + weight가 가장 간단하다.
+        ConstraintLayout 안에 LinearLayout을 자식으로 넣는 건 자연스러운 패턴.
 
-        2. "0dp" (= match_constraint)
-           → 자신의 크기를 정하지 않고, 양쪽 제약 사이를 꽉 채움.
-           → 상하좌우 제약에 따라 크기가 결정됨 (화면 크기에 따라 늘어남).
-           → Unity 비유: RectTransform 앵커를 Stretch로 설정 (부모에 맞춰 늘어남).
+        모든 걸 ConstraintLayout만으로 하려고 고집할 필요 없다.
+        적재적소에 다른 레이아웃을 섞는 게 실무에서 흔한 방식.
 
-        3. "wrap_content"
-           → 내용물(텍스트, 이미지 등)에 맞게 크기가 자동 결정됨.
-
-        프로필 이미지: 고정 크기(200dp) + Guideline으로 세로 위치만 비율 기반으로 결정.
-        이미지 자체는 화면 크기에 따라 늘어나지 않음 (프로필 사진은 고정 크기가 자연스러움).
-        큰 화면(태블릿) 대응이 필요하면 res/layout-sw600dp/ 에 별도 레이아웃을 만드는 게 실무 방식.
+        layout_width="0dp" → 양쪽 제약(parent Start~End) 사이를 꽉 채움 (match_constraint)
     -->
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+    <LinearLayout
+        android:id="@+id/layoutButtons"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/guidelineTop"
-        app:srcCompat="@drawable/ic_profile_placeholder" />
+        app:layout_constraintTop_toBottomOf="@id/tvBio">
 
-    <!-- 이름: 50% 지점 아래에 배치 -->
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
+        <com.google.android.material.button.MaterialButton
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:text="프로필 편집"
+            android:textColor="#FF000000"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            app:backgroundTint="#EFEFEF"
+            app:cornerRadius="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:text="프로필 공유"
+            android:textColor="#FF000000"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            app:backgroundTint="#EFEFEF"
+            app:cornerRadius="8dp" />
+
+    </LinearLayout>
+
+    <!-- ═══════════ 스토리 하이라이트 ═══════════ -->
+    <!--
+        [HorizontalScrollView]
+        가로로 스크롤 가능한 컨테이너. ScrollView의 가로 버전.
+        자식을 1개만 가질 수 있어서 LinearLayout(horizontal)으로 감싼다.
+        안에 원형 아이콘 + 텍스트를 넣어 인스타 스토리 하이라이트를 표현.
+    -->
+    <HorizontalScrollView
+        android:id="@+id/scrollHighlights"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:text="이름"
-        android:textAlignment="center"
-        android:textSize="24sp"
+        android:scrollbars="none"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/guidelineMiddle" />
+        app:layout_constraintTop_toBottomOf="@id/layoutButtons">
 
-    <!-- 소개: 이름 바로 아래 -->
-    <TextView
-        android:id="@+id/textView4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:gravity="center"
-        android:text="소개"
-        android:textAlignment="center"
-        android:textSize="16sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textView" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp">
 
-    <!-- 버튼: 75% 지점에 배치 -->
-    <Button
-        android:id="@+id/button2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="프로필 편집"
+            <!-- 스토리 하이라이트 아이템 1 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="4dp">
+
+                <View
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:background="@drawable/ic_profile_placeholder" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="여행"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- 스토리 하이라이트 아이템 2 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="4dp">
+
+                <View
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:background="@drawable/ic_profile_placeholder" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="맛집"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- 스토리 하이라이트 아이템 3 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="4dp">
+
+                <View
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:background="@drawable/ic_profile_placeholder" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="일상"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- 스토리 하이라이트 아이템 4 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="4dp">
+
+                <View
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:background="@drawable/ic_profile_placeholder" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="운동"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- ═══════════ 구분선 ═══════════ -->
+    <View
+        android:id="@+id/divider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:background="#E0E0E0"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/guidelineBottom" />
+        app:layout_constraintTop_toBottomOf="@id/scrollHighlights" />
+
+    <!-- ═══════════ 게시물 그리드 (3열) ═══════════ -->
+    <!--
+        [GridLayout - 게시물 썸네일]
+
+        3열 그리드로 게시물 썸네일을 배치한다.
+        실제 인스타그램은 RecyclerView + GridLayoutManager를 사용하지만,
+        여기서는 학습용으로 GridLayout에 고정 아이템을 넣었다.
+
+        columnCount="3" → 3열 그리드
+        layout_columnWeight="1" → 각 열이 균등한 너비를 가짐
+        layout_width="0dp" + columnWeight → 화면 너비를 3등분
+    -->
+    <GridLayout
+        android:id="@+id/gridPosts"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:columnCount="3"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/divider">
+
+        <!-- 게시물 1 -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="130dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="1dp"
+            android:background="#EEEEEE" />
+        <!-- 게시물 2 -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="130dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="1dp"
+            android:background="#E0E0E0" />
+        <!-- 게시물 3 -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="130dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="1dp"
+            android:background="#EEEEEE" />
+        <!-- 게시물 4 -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="130dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="1dp"
+            android:background="#E0E0E0" />
+        <!-- 게시물 5 -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="130dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="1dp"
+            android:background="#EEEEEE" />
+        <!-- 게시물 6 -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="130dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="1dp"
+            android:background="#E0E0E0" />
+        <!-- 게시물 7 -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="130dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="1dp"
+            android:background="#EEEEEE" />
+        <!-- 게시물 8 -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="130dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="1dp"
+            android:background="#E0E0E0" />
+        <!-- 게시물 9 -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="130dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="1dp"
+            android:background="#EEEEEE" />
+
+    </GridLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

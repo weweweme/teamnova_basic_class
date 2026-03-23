@@ -10,13 +10,27 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 /**
- * 프로필 화면
+ * [인스타그램 스타일 프로필 화면]
+ *
  * 레이아웃: ConstraintLayout
- * 크기 조절: 고정 크기(dp) + Guideline(비율 기반 위치) 조합 (실무 방식)
- * 학습 포인트: ConstraintLayout은 각 뷰에 상하좌우 제약(Constraint)을 걸어 위치를 결정.
- *            Unity의 RectTransform 앵커 설정과 유사.
- *            Guideline을 사용하면 화면의 퍼센트(%) 기준으로 위치를 잡을 수 있어
- *            다양한 화면 크기에서도 비율이 유지된다.
+ * 컨셉: 인스타그램 마이페이지를 ConstraintLayout으로 재현
+ *
+ * 학습 포인트:
+ * 1. 제약(Constraint) 기본 - 모든 뷰에 가로/세로 최소 2개 제약 필요
+ *    constraintTop_toBottomOf, constraintStart_toEndOf 등으로 뷰 간 상대 배치
+ *    Unity 비유: RectTransform 앵커를 다른 오브젝트에 연결
+ *
+ * 2. Chain (체인) - 게시물/팔로워/팔로잉 숫자 3개를 가로로 균등 분배
+ *    뷰들이 서로의 Start/End를 물고 있으면 체인이 형성됨
+ *
+ * 3. 0dp (match_constraint) - 양쪽 제약 사이를 꽉 채움
+ *
+ * 4. 다른 레이아웃 섞어 쓰기 - LinearLayout(버튼), HorizontalScrollView(스토리),
+ *    GridLayout(게시물)을 ConstraintLayout 안에 자식으로 넣는 실무 패턴
+ *
+ * ConstraintLayout이 적합한 이유:
+ * 인스타 프로필은 가로/세로가 복잡하게 엮여있다 (사진은 왼쪽, 숫자는 오른쪽 등).
+ * LinearLayout만으로는 이런 2차원 배치를 구현하기 어렵다.
  */
 public class ProfileActivity extends AppCompatActivity {
 

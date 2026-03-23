@@ -20,6 +20,16 @@
         windowContentOverlay=@null → 타이틀바 아래 그림자 제거
         colorPrimary → 이 테마의 주요 색상 (버튼, 앱바 등에 적용)
     -->
+    <!--
+        [ShapeableImageView 원형 스타일]
+        cornerSize="50%" → 모서리를 50%로 깎으면 원형이 된다.
+        ProfileActivity의 인스타그램 프로필 사진에 사용.
+    -->
+    <style name="ShapeAppearanceOverlay.App.Circle" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
     <style name="Theme.Weak71.FullScreen" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>

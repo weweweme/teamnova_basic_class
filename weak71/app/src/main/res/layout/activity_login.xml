@@ -4,44 +4,78 @@
     [카카오톡 스타일 로그인 화면 - LinearLayout 실전 활용]
     ============================================================
 
-    ── 이 화면의 목적 ──
+    ── 왜 LinearLayout인가? ──
 
-    LinearLayout만으로 실제 앱(카카오톡)의 로그인 화면을 재현한다.
-    로그인 화면처럼 "위→아래로 순서대로 쌓이는" 구조에는
-    LinearLayout이 가장 적합하다.
+    로그인 화면은 "로고 → 입력 → 버튼 → 링크"가 위→아래로 순서대로 쌓이기만 하면 된다.
+    뷰끼리 겹칠 일도, 복잡한 상대 배치도 없다.
+    이런 1차원 배치에는 LinearLayout이 가장 직관적이고 간단하다.
     Unity 비유: VerticalLayoutGroup 하나로 로그인 UI를 배치하는 것.
 
-    ── 핵심 학습 포인트 ──
-
-    1) Space + layout_weight 조합
-       - Space는 보이지 않는 빈 공간 뷰다.
-       - weight를 Space에 부여하면 남은 공간을 비율로 분배할 수 있다.
-       - 위쪽 Space(weight=1) + 아래쪽 Space(weight=2) → 콘텐츠가 화면 상단 1/3 지점에 배치
-       - 이 기법으로 콘텐츠를 화면 중앙~상단에 자연스럽게 배치한다.
-
-    2) TextInputLayout (Material Design 입력 필드)
-       - EditText를 감싸서 floating label(힌트가 위로 올라감) 효과를 준다.
-       - style="@style/...OutlinedBox" → 테두리가 있는 입력 필드 스타일
-       - Unity 비유: InputField에 placeholder 텍스트가 위로 슬라이드하는 애니메이션
-
-    3) MaterialButton 커스터마이징
-       - backgroundTint로 배경색 변경 (#FEE500 = 카카오 노란색)
-       - cornerRadius로 둥근 모서리 적용
-       - textColor로 글자색 변경 (#3C1E1E = 카카오 갈색)
+    ※ "TextInputLayout 안에 TextInputEditText가 있으니 겹치는 거 아니야?"
+       → 아니다. 이건 부모가 자식을 "감싸는" 것이지, 형제 뷰끼리 "겹치는" 것이 아니다.
+       LinearLayout 입장에서는 TextInputLayout을 하나의 덩어리로 보고 위→아래로 쌓을 뿐.
+       Unity 비유: LayoutGroup의 자식 Panel 안에 InputField가 있는 것.
+                   LayoutGroup은 Panel 내부까지 신경 쓰지 않는다.
 
     ── 화면 구조 트리 ──
 
     LinearLayout (vertical, 전체 화면)
-    ├── MaterialToolbar (뒤로가기)
+    ├── MaterialToolbar (← 뒤로가기 버튼)
     ├── Space (weight=1) ← 위쪽 빈 공간 (콘텐츠를 아래로 밀어냄)
-    ├── TextView 💬 (카카오 로고 아이콘 역할)
-    ├── TextView "카카오톡" (앱 이름)
-    ├── TextView "카카오계정으로 로그인" (안내 문구)
-    ├── TextInputLayout (이메일/전화번호 입력)
-    ├── TextInputLayout (비밀번호 입력)
-    ├── MaterialButton "카카오계정 로그인" (노란색 버튼)
-    ├── TextView "카카오계정 만들기 | 계정 찾기" (하단 링크)
-    └── Space (weight=2) ← 아래쪽 빈 공간 (위보다 2배 → 콘텐츠가 상단 쪽에 위치)
+    ├── TextView 💬 (카카오 로고)
+    │     ↕ marginBottom=8dp
+    ├── TextView "카카오톡"
+    │     ↕ marginBottom=24dp        ← 요소 간 간격은 전부 marginBottom으로 조절
+    ├── TextView "카카오계정으로 로그인"
+    │     ↕ marginBottom=20dp
+    ├── TextInputLayout > TextInputEditText (이메일 입력)
+    │     ↕ marginBottom=12dp
+    ├── TextInputLayout > TextInputEditText (비밀번호 입력)
+    │     ↕ marginBottom=20dp
+    ├── MaterialButton "카카오계정 로그인" (노란색 #FEE500)
+    │     ↕ marginBottom=16dp
+    ├── TextView "카카오계정 만들기 | 계정 찾기" (클릭 가능 링크)
+    └── Space (weight=2) ← 아래쪽 빈 공간 (위보다 2배 → 콘텐츠가 상단 1/3 지점에 위치)
+
+    ── 핵심 학습 포인트 ──
+
+    1) MaterialToolbar - 왜 쓰는가?
+       - ← 뒤로가기 버튼을 Android 표준 규격에 맞게 자동 배치해준다.
+       - 직접 Button으로 만들면 위치/크기/여백을 전부 수동으로 잡아야 한다.
+       - layout_height="?attr/actionBarSize" → 테마가 정한 표준 바 높이 (보통 56dp)
+       - navigationIcon="?attr/homeAsUpIndicator" → 테마가 정한 ← 뒤로가기 아이콘
+
+       ※ "?attr/" 는 뭔가?
+         → "현재 테마에서 값을 가져오라"는 뜻.
+         → 이 값들은 우리 themes.xml이 아닌 부모 테마(Material3) 안에 정의되어 있다.
+         → 테마 상속 구조:
+            Material3 (Google 제공, actionBarSize=56dp 등 수백 개 기본값 포함)
+            └── Base.Theme.Weak71 (우리 테마, 필요한 것만 오버라이드)
+         → 직접 "56dp"라고 안 쓰는 이유: 태블릿은 64dp, 가로 모드는 48dp 등
+            기기마다 다를 수 있어서 테마에 맡기는 게 안전하다.
+
+    2) Space + layout_weight - 콘텐츠 수직 위치 조절
+       - Space는 보이지 않는 빈 공간 뷰. height="0dp"로 설정해야 weight가 크기를 결정한다.
+       - Space 없이 쌓으면 콘텐츠가 최상단에 붙고 아래가 텅 빈다.
+       - Space 2개로 콘텐츠를 감싸고 weight 비율을 주면 수직 위치를 조절할 수 있다.
+       - 위 1 : 아래 2 = 상단 1/3 지점  |  1:1 = 정중앙  |  1:3 = 더 위쪽
+
+    3) TextInputLayout - EditText를 감싸는 컨테이너
+       - 팔레트의 Plain Text, Password 등은 전부 같은 EditText (inputType만 다름).
+       - 일반 EditText: 터치하면 힌트가 그냥 사라짐.
+       - TextInputLayout으로 감싸면: 힌트가 위로 올라가는 floating label 애니메이션 동작.
+         이 애니메이션은 Google이 TextInputLayout 클래스 내부에 미리 구현해 놓은 것.
+         우리가 코드를 쓸 필요 없이 XML에서 감싸기만 하면 된다.
+       - endIconMode="password_toggle" → 비밀번호 필드에 눈 아이콘 자동 추가
+
+    4) 요소 간 간격 - marginBottom
+       - LinearLayout에서 뷰 사이 간격 = 위 뷰의 marginBottom (또는 아래 뷰의 marginTop)
+       - 중요도에 따라 8dp~24dp로 차등 적용
+
+    5) 클릭 가능한 텍스트 링크 만들기
+       - clickable="true" + focusable="true" → 클릭 이벤트 수신 가능
+       - background="?attr/selectableItemBackground" → 터치 시 리플(물결) 효과
+       - padding="8dp" → 터치 영역을 텍스트보다 넓혀서 누르기 쉽게
 -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -199,30 +233,60 @@
         app:rippleColor="#E6D200" />
 
     <!--
-        [하단 링크 텍스트]
-        실제 카카오톡에서는 "카카오계정 만들기"와 "계정 찾기"가 각각 터치 가능한 링크.
-        여기서는 UI 데모이므로 클릭 피드백만 준다 (Toast 메시지).
+        [하단 링크 텍스트 - 개별 클릭 가능]
 
-        clickable="true"   → 이 뷰가 클릭 이벤트를 받을 수 있게 설정
-        focusable="true"   → 키보드/D-pad로도 포커스 가능 (접근성)
-        이 두 속성이 있어야 ?attr/selectableItemBackground 리플 효과가 동작한다.
+        "카카오계정 만들기"와 "계정 찾기"가 각각 따로 터치 가능해야 하므로
+        TextView 3개를 LinearLayout(horizontal)으로 나란히 배치한다.
+        가운데 " | "는 구분자일 뿐, 클릭 불가.
 
-        background="?attr/selectableItemBackground"
-        → 터치 시 물결(ripple) 효과를 자동으로 보여줌.
-          테마가 정의한 기본 터치 피드백 배경. 직접 리플을 구현할 필요 없음.
+        layout_gravity="center_horizontal" → LinearLayout 자체를 부모의 가로 중앙에 배치.
+
+        clickable / focusable / selectableItemBackground:
+        - clickable="true" → 클릭 이벤트를 받을 수 있게 설정
+        - focusable="true" → 키보드/D-pad 포커스 가능 (접근성)
+        - background="?attr/selectableItemBackground" → 터치 시 리플(물결) 효과
+        - 이 3가지가 세트로 있어야 "누르면 반응하는 텍스트 링크"가 된다.
     -->
-    <TextView
-        android:id="@+id/tvSignUpFind"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="카카오계정 만들기 | 계정 찾기"
-        android:textSize="13sp"
-        android:textColor="#999999"
-        android:padding="8dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:background="?attr/selectableItemBackground" />
+        android:orientation="horizontal">
+
+        <!-- 구분자 (클릭 불가) -->
+        <TextView
+            android:id="@+id/tvSignUp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="8dp"
+            android:text="카카오계정 만들기"
+            android:textColor="#999999"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="|"
+            android:textSize="13sp"
+            android:textColor="#CCCCCC"
+            android:layout_gravity="center_vertical" />
+
+        <TextView
+            android:id="@+id/tvFindAccount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="계정 찾기"
+            android:textSize="13sp"
+            android:textColor="#999999"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground" />
+
+    </LinearLayout>
 
     <!--
         [Space - 아래쪽 여백]

@@ -1,117 +1,423 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    [GridLayout - 격자 형태 배치]
+    ============================================================
+    [iOS 계산기 화면 - GridLayout 실전 활용]
+    ============================================================
 
-    행(row)과 열(column)로 이루어진 격자에 뷰를 배치한다.
-    계산기처럼 버튼이 규칙적으로 나열되는 UI에 적합.
+    ── 왜 GridLayout인가? ──
+
+    계산기는 버튼이 행(row)과 열(column)로 규칙적으로 나열된다.
+    이런 격자 형태 UI에는 GridLayout이 가장 적합하다.
     Unity 비유: Grid Layout Group 컴포넌트와 동일한 개념.
 
-    columnCount="4" → 4열 격자 (한 줄에 4개씩)
-    자식 뷰는 순서대로 왼쪽→오른쪽, 위→아래로 채워진다.
+    ── 화면 구조 트리 ──
 
-    [좌우 가이드라인 - 버튼 영역 제한]
-    이 화면에서는 좌우 Guideline(10%, 90%)을 사용하여
-    버튼 영역을 화면의 80% 너비로 제한한다.
-    화면이 넓어져도 버튼이 너무 퍼지지 않게 하기 위함.
+    LinearLayout (vertical, 검정 배경)
+    ├── MaterialToolbar (검정 배경, 흰 아이콘)
+    ├── TextView tvResult (weight=1, 남은 공간 전부 차지)
+    │   → gravity=bottom|end → 숫자가 오른쪽 아래에 표시 (iOS 스타일)
+    └── GridLayout (4열 × 5행)
+        ├── 1행: [AC]  [±]  [%]  [÷]   ← 기능(밝은 회색) + 연산자(주황)
+        ├── 2행: [7]   [8]  [9]  [×]   ← 숫자(어두운 회색) + 연산자
+        ├── 3행: [4]   [5]  [6]  [-]
+        ├── 4행: [1]   [2]  [3]  [+]
+        └── 5행: [0 (2칸)]   [.]  [=]   ← 0은 columnSpan="2"
+
+    ── 핵심 학습 포인트 ──
+
+    1) columnCount="4"
+       - GridLayout의 열 개수. 자식 뷰가 4개 채워지면 자동으로 다음 행으로 넘어간다.
+       - Unity의 Grid Layout Group에서 constraintCount를 지정하는 것과 같다.
+
+    2) layout_columnWeight="1" + layout_width="0dp"
+       - 각 버튼이 남은 공간을 균등하게 나눠 가진다.
+       - ConstraintLayout의 "0dp + 양쪽 constraint"와 같은 패턴.
+       - weight를 쓸 때는 반드시 width="0dp"여야 한다 (3번 화면 ScrollView와 동일 원리).
+
+    3) layout_columnSpan="2" + layout_columnWeight="2"
+       - 0 버튼처럼 여러 칸을 차지할 때 사용.
+       - columnSpan="2" → 2칸 병합.
+       - columnWeight="2" → 다른 버튼(weight=1)의 2배 너비.
+       - 둘 다 설정해야 정상 동작한다 (span만 하면 너비가 안 맞음).
+
+    4) 결과 표시 영역 (weight=1 + gravity=bottom|end)
+       - height="0dp" + weight="1" → 툴바와 GridLayout을 제외한 나머지 공간 전부 차지.
+       - gravity="bottom|end" → 그 넓은 영역 안에서 텍스트를 오른쪽 아래에 배치.
+       - iOS 계산기처럼 숫자가 버튼 바로 위에 붙어 보이는 효과.
+
+    5) oval shape drawable로 원형 버튼 만들기
+       - bg_calc_num.xml: shape="oval" + solid="#333333" (숫자용)
+       - bg_calc_func.xml: shape="oval" + solid="#A5A5A5" (기능용)
+       - bg_calc_op.xml: shape="oval" + solid="#FF9F0A" (연산자용)
+       - 2번 화면의 뱃지(bg_badge_blue.xml)와 같은 원리.
+         shape만 rectangle→oval로 바꾸면 원이 된다.
+
+    6) iOS 계산기 색상 규칙 (3가지 그룹)
+       - 기능 (AC, ±, %): 밝은 회색 #A5A5A5, 검정 텍스트
+       - 연산자 (÷, ×, -, +, =): 주황 #FF9F0A, 흰 텍스트
+       - 숫자 (0~9, .): 어두운 회색 #333333, 흰 텍스트
+
+    7) Button vs android.widget.Button
+       - Material3 테마에서 <Button>은 자동으로 MaterialButton으로 변환된다.
+       - MaterialButton은 android:background를 무시하고 테마 색상(보라색)을 적용한다.
+       - <android.widget.Button>으로 쓰면 자동 변환을 막고 커스텀 배경이 적용된다.
+       - 1번 화면의 MaterialButton은 테마 색상이 필요해서 <Button>을 쓴 것이고,
+         이 화면은 iOS 스타일 커스텀 색상이 필요해서 <android.widget.Button>을 쓴다.
+
+    8) 뒤로가기 버튼 하나 vs 툴바
+       - ImageButton 하나로도 뒤로가기는 가능하다.
+       - 하지만 툴바는 "상단 바 전체를 관리하는 컨테이너":
+         왼쪽(navigation) / 가운데(title) / 오른쪽(menu) 영역이 미리 약속되어 있다.
+       - 나중에 제목이나 메뉴 아이콘을 추가할 때 속성 한 줄로 끝난다.
+       - 버튼 하나 방식은 위치, 크기, 간격을 전부 직접 지정해야 한다.
+       - Unity 비유: 빈 GameObject에 Button을 직접 배치 vs 상단 바 UI 프리팹을 쓰는 차이.
+
+    9) 툴바 자동 배치 원리 + 활성화 방법
+       - 툴바 내부에 3영역(navigation / title / menu)이 코드로 약속되어 있다.
+       ┌─────────────────────────────────────────┐
+       │  [←]     제목 텍스트          [🔍] [⋮]  │
+       │  navigation    title           menu     │
+       └─────────────────────────────────────────┘
+       - navigationIcon 설정 → 왼쪽에 자동 배치
+         XML: app:navigationIcon="?attr/homeAsUpIndicator"
+         Java: getSupportActionBar().setDisplayHomeAsUpEnabled(true)
+       - title 설정 → 가운데에 자동 배치
+         XML: app:title="계산기"
+         Java: getSupportActionBar().setTitle("계산기")
+       - menu 설정 → 오른쪽에 자동 배치
+         XML: app:menu="@menu/menu_calc"
+       - 이 화면에서는 navigationIcon만 활성화 (title, menu 미사용)
 -->
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#000000"
     tools:context=".CalculatorActivity">
 
-    <!-- ── 툴바 (뒤로가기 버튼) ── -->
+    <!-- ═══════════ 툴바 (검정 배경, 흰 아이콘) ═══════════ -->
+    <!--
+        iOS 계산기에는 툴바가 없지만, 우리는 홈으로 돌아가야 하므로 유지.
+        배경을 검정으로, 아이콘을 흰색으로 설정하여 계산기 분위기에 맞춤.
+    -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:title="계산기"
-        app:navigationIcon="?attr/homeAsUpIndicator" />
+        android:background="#000000"
+        app:navigationIconTint="#FFFFFF" />
 
-    <!-- 좌측 가이드라인: 화면 너비의 5% 지점 -->
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guidelineLeft"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.05" />
+    <!-- ═══════════ 결과 표시 영역 ═══════════ -->
+    <!--
+        [height="0dp" + weight="1" + gravity="bottom|end"]
 
-    <!-- 우측 가이드라인: 화면 너비의 95% 지점 -->
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guidelineRight"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.95" />
+        height="0dp" + weight="1"
+        → 툴바와 GridLayout이 차지한 높이를 제외한 나머지를 전부 가져간다.
+        → 1번 화면의 Space, 3번 화면의 ScrollView와 동일한 패턴.
 
-    <!-- 결과 표시 영역 -->
+        gravity="bottom|end"
+        → 이 넓은 영역에서 텍스트를 "오른쪽 아래"에 배치.
+        → iOS 계산기처럼 숫자가 버튼 바로 위에 붙어 보이는 효과.
+        → Unity 비유: RectTransform의 anchor를 bottom-right로 설정한 것.
+    -->
     <TextView
         android:id="@+id/tvResult"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
-        android:layout_marginBottom="24dp"
-        android:gravity="end"
-        android:padding="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="bottom|end"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="16dp"
         android:text="0"
-        android:textSize="48sp"
-        app:layout_constraintEnd_toStartOf="@id/guidelineRight"
-        app:layout_constraintStart_toEndOf="@id/guidelineLeft"
-        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+        android:textColor="#FFFFFF"
+        android:textSize="72sp"
+        android:maxLines="1"
+        android:autoSizeTextType="uniform"
+        android:autoSizeMinTextSize="24sp"
+        android:autoSizeMaxTextSize="72sp" />
 
+    <!-- ═══════════ GridLayout (버튼 격자) ═══════════ -->
     <!--
-        [GridLayout 영역]
+        [GridLayout 핵심]
+        columnCount="4" → 한 줄에 버튼 4개씩 배치.
+        자식 뷰가 왼쪽→오른쪽으로 채워지다가 4개가 되면 자동 줄바꿈.
 
-        좌우 가이드라인(5%~95%) 사이에 배치하여 화면 너비의 90%만 사용.
-        orientation="horizontal" → vertical 가이드라인과 혼동 주의.
-          - vertical Guideline: 세로 선 (좌우 위치를 결정)
-          - horizontal GridLayout orientation: 자식을 가로 방향으로 채워나감
-
-        layout_width="0dp" → 좌우 가이드라인 사이를 꽉 채움 (match_constraint)
+        각 버튼의 공통 속성:
+        - layout_columnWeight="1" + layout_width="0dp" → 4등분 균등 배치
+        - layout_height="0dp" + layout_rowWeight="1" → 행 높이도 균등 배치
+        - layout_margin="4dp" → 버튼 사이 간격
+        - background: oval shape drawable → 원형 버튼
     -->
     <GridLayout
         android:id="@+id/gridButtons"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:columnCount="4"
-        app:layout_constraintEnd_toStartOf="@id/guidelineRight"
-        app:layout_constraintStart_toEndOf="@id/guidelineLeft"
-        app:layout_constraintTop_toBottomOf="@id/tvResult">
+        android:padding="8dp">
 
-        <!-- 1행: C, ±, %, ÷ -->
-        <Button android:id="@+id/btnClear" android:text="C" style="@style/Widget.Material3.Button.TonalButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
-        <Button android:id="@+id/btnSign" android:text="±" style="@style/Widget.Material3.Button.TonalButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
-        <Button android:id="@+id/btnPercent" android:text="%" style="@style/Widget.Material3.Button.TonalButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
-        <Button android:id="@+id/btnDivide" android:text="÷" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <!-- ── 1행: AC, ±, %, ÷ ── -->
+        <!-- 기능 버튼 3개 (밝은 회색 #A5A5A5, 검정 텍스트) + 연산자 1개 (주황) -->
+        <android.widget.Button
+            android:id="@+id/btnClear"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_func"
+            android:text="AC"
+            android:textColor="#000000"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:stateListAnimator="@null" />
 
-        <!-- 2행: 7, 8, 9, × -->
-        <Button android:id="@+id/btn7" android:text="7" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
-        <Button android:id="@+id/btn8" android:text="8" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
-        <Button android:id="@+id/btn9" android:text="9" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
-        <Button android:id="@+id/btnMultiply" android:text="×" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <android.widget.Button
+            android:id="@+id/btnSign"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_func"
+            android:text="±"
+            android:textColor="#000000"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:stateListAnimator="@null" />
 
-        <!-- 3행: 4, 5, 6, - -->
-        <Button android:id="@+id/btn4" android:text="4" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
-        <Button android:id="@+id/btn5" android:text="5" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
-        <Button android:id="@+id/btn6" android:text="6" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
-        <Button android:id="@+id/btnMinus" android:text="-" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <android.widget.Button
+            android:id="@+id/btnPercent"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_func"
+            android:text="%"
+            android:textColor="#000000"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:stateListAnimator="@null" />
 
-        <!-- 4행: 1, 2, 3, + -->
-        <Button android:id="@+id/btn1" android:text="1" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
-        <Button android:id="@+id/btn2" android:text="2" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
-        <Button android:id="@+id/btn3" android:text="3" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
-        <Button android:id="@+id/btnPlus" android:text="+" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <android.widget.Button
+            android:id="@+id/btnDivide"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_op"
+            android:text="÷"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:stateListAnimator="@null" />
 
-        <!-- 5행: 0(2칸), ., = -->
-        <Button android:id="@+id/btn0" android:text="0" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="2" android:layout_columnSpan="2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
-        <Button android:id="@+id/btnDot" android:text="." style="@style/Widget.Material3.Button.OutlinedButton" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
-        <Button android:id="@+id/btnEquals" android:text="=" android:layout_rowWeight="1" android:layout_columnWeight="1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_margin="4dp" />
+        <!-- ── 2행: 7, 8, 9, × ── -->
+        <!-- 숫자 버튼 (어두운 회색 #333333, 흰 텍스트) -->
+        <android.widget.Button
+            android:id="@+id/btn7"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_num"
+            android:text="7"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:stateListAnimator="@null" />
+
+        <android.widget.Button
+            android:id="@+id/btn8"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_num"
+            android:text="8"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:stateListAnimator="@null" />
+
+        <android.widget.Button
+            android:id="@+id/btn9"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_num"
+            android:text="9"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:stateListAnimator="@null" />
+
+        <android.widget.Button
+            android:id="@+id/btnMultiply"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_op"
+            android:text="×"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:stateListAnimator="@null" />
+
+        <!-- ── 3행: 4, 5, 6, - ── -->
+        <android.widget.Button
+            android:id="@+id/btn4"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_num"
+            android:text="4"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:stateListAnimator="@null" />
+
+        <android.widget.Button
+            android:id="@+id/btn5"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_num"
+            android:text="5"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:stateListAnimator="@null" />
+
+        <android.widget.Button
+            android:id="@+id/btn6"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_num"
+            android:text="6"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:stateListAnimator="@null" />
+
+        <android.widget.Button
+            android:id="@+id/btnMinus"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_op"
+            android:text="-"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:stateListAnimator="@null" />
+
+        <!-- ── 4행: 1, 2, 3, + ── -->
+        <android.widget.Button
+            android:id="@+id/btn1"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_num"
+            android:text="1"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:stateListAnimator="@null" />
+
+        <android.widget.Button
+            android:id="@+id/btn2"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_num"
+            android:text="2"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:stateListAnimator="@null" />
+
+        <android.widget.Button
+            android:id="@+id/btn3"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_num"
+            android:text="3"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:stateListAnimator="@null" />
+
+        <android.widget.Button
+            android:id="@+id/btnPlus"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_op"
+            android:text="+"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:stateListAnimator="@null" />
+
+        <!-- ── 5행: 0 (2칸), ., = ── -->
+        <!--
+            [columnSpan + columnWeight = 넓은 버튼]
+
+            layout_columnSpan="2" → GridLayout에서 2칸을 병합 (HTML의 colspan과 동일).
+            layout_columnWeight="2" → 다른 버튼(weight=1)의 2배 너비.
+
+            ★ 둘 다 설정해야 한다:
+            - columnSpan만 쓰면: 2칸을 차지하지만 너비가 1칸 크기로 남음
+            - columnWeight만 쓰면: 너비는 2배지만 GridLayout이 칸 수를 모름
+            - 둘 다 쓰면: 정확히 2칸 너비로 동작
+
+            iOS 계산기에서 0 버튼이 가로로 긴 타원인 이유도 이것.
+        -->
+        <android.widget.Button
+            android:id="@+id/btn0"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnSpan="2"
+            android:layout_columnWeight="2"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_num"
+            android:text="0"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:gravity="center"
+            android:stateListAnimator="@null" />
+
+        <android.widget.Button
+            android:id="@+id/btnDot"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_num"
+            android:text="."
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:stateListAnimator="@null" />
+
+        <android.widget.Button
+            android:id="@+id/btnEquals"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:background="@drawable/bg_calc_op"
+            android:text="="
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:stateListAnimator="@null" />
 
     </GridLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

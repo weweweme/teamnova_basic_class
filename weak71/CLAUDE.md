@@ -15,7 +15,7 @@
 | 1. 카카오톡 로그인 | LoginActivity | LinearLayout | 카카오톡 로그인 | 완료 |
 | 2. 인스타그램 프로필 | ProfileActivity | ConstraintLayout | 인스타그램 마이페이지 | 완료 |
 | 3. 쿠팡 상품 상세 | SettingActivity | ScrollView + LinearLayout | 쿠팡 상품 상세 페이지 | 완료 |
-| 4. 계산기 | CalculatorActivity | GridLayout | iOS 계산기 | 미구현 |
+| 4. 계산기 | CalculatorActivity | GridLayout | iOS 계산기 | 완료 |
 | 5. 뮤직 플레이어 | CardActivity | FrameLayout | 뮤직 플레이어 (앨범아트 위에 컨트롤 겹침) | 미구현 |
 
 ### 섹션 2: Manifest 학습 (6~13번)

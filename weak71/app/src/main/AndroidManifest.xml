@@ -376,29 +376,29 @@
             ★ 테스트: name을 ".CardActivity2"로 바꾸면?
               → 해당 클래스가 없으므로 바로 컴파일 에러 발생
         -->
-        <!-- ───── 5. 카드 겹침 화면 (FrameLayout) ───── -->
+        <!-- ───── 5. 뮤직 플레이어 화면 (FrameLayout) ───── -->
         <activity
-            android:name=".CardActivity"
+            android:name=".MusicPlayerActivity"
             android:exported="false" />
 
-        <!-- ───── 4. 계산기 화면 (GridLayout) ───── -->
+        <!-- ───── 4. iOS 계산기 화면 (GridLayout) ───── -->
         <activity
-            android:name=".CalculatorActivity"
+            android:name=".IosCalcActivity"
             android:exported="false" />
 
-        <!-- ───── 3. 설정 화면 (ScrollView) ───── -->
+        <!-- ───── 3. 쿠팡 상품 상세 화면 (ScrollView) ───── -->
         <activity
-            android:name=".SettingActivity"
+            android:name=".CoupangDetailActivity"
             android:exported="false" />
 
-        <!-- ───── 2. 프로필 화면 (ConstraintLayout) ───── -->
+        <!-- ───── 2. 인스타그램 프로필 화면 (ConstraintLayout) ───── -->
         <activity
-            android:name=".ProfileActivity"
+            android:name=".InstaProfileActivity"
             android:exported="false" />
 
-        <!-- ───── 1. 로그인 화면 (LinearLayout) ───── -->
+        <!-- ───── 1. 카카오톡 로그인 화면 (LinearLayout) ───── -->
         <activity
-            android:name=".LoginActivity"
+            android:name=".KakaoLoginActivity"
             android:exported="false" />
 
         <!--

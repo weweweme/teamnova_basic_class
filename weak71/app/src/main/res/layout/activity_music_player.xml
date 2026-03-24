@@ -87,7 +87,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".CardActivity">
+    tools:context=".MusicPlayerActivity">
 
     <!-- ── [1층] 앨범 아트 (맨 아래, 배경 역할) ── -->
     <!--

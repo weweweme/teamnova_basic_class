@@ -30,13 +30,13 @@ import androidx.core.view.WindowInsetsCompat;
  * 이런 1차원 배치에는 LinearLayout이 가장 직관적이고 간단하다.
  * Unity 비유: VerticalLayoutGroup 하나로 로그인 UI를 구성하는 것.
  */
-public class LoginActivity extends AppCompatActivity {
+public class KakaoLoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_kakao_login);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);

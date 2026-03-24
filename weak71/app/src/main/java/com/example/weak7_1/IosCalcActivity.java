@@ -34,7 +34,7 @@ import androidx.core.view.WindowInsetsCompat;
  * - ± → 부호 반전
  * - % → 100으로 나누기
  */
-public class CalculatorActivity extends AppCompatActivity {
+public class IosCalcActivity extends AppCompatActivity {
 
     private TextView tvResult;
 
@@ -51,7 +51,7 @@ public class CalculatorActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_calculator);
+        setContentView(R.layout.activity_ios_calc);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);

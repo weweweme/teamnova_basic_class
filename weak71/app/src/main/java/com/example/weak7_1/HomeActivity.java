@@ -124,19 +124,19 @@ public class HomeActivity extends AppCompatActivity {
          */
 
         findViewById(R.id.btnLogin).setOnClickListener(v ->
-                startActivity(new Intent(this, LoginActivity.class)));
+                startActivity(new Intent(this, KakaoLoginActivity.class)));
 
         findViewById(R.id.btnProfile).setOnClickListener(v ->
-                startActivity(new Intent(this, ProfileActivity.class)));
+                startActivity(new Intent(this, InstaProfileActivity.class)));
 
         findViewById(R.id.btnSettings).setOnClickListener(v ->
-                startActivity(new Intent(this, SettingActivity.class)));
+                startActivity(new Intent(this, CoupangDetailActivity.class)));
 
         findViewById(R.id.btnCalculator).setOnClickListener(v ->
-                startActivity(new Intent(this, CalculatorActivity.class)));
+                startActivity(new Intent(this, IosCalcActivity.class)));
 
         findViewById(R.id.btnCard).setOnClickListener(v ->
-                startActivity(new Intent(this, CardActivity.class)));
+                startActivity(new Intent(this, MusicPlayerActivity.class)));
 
         // ═══════════ 섹션 2: Manifest 학습 (신규) ═══════════
 

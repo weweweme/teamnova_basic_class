@@ -12,11 +12,11 @@
 | 화면 | Activity | 레이아웃 | 따라 만드는 앱 | 상태 |
 |------|----------|---------|-------------|------|
 | 홈 (진입점) | HomeActivity | ScrollView + LinearLayout | - | 완료 |
-| 1. 카카오톡 로그인 | LoginActivity | LinearLayout | 카카오톡 로그인 | 완료 |
-| 2. 인스타그램 프로필 | ProfileActivity | ConstraintLayout | 인스타그램 마이페이지 | 완료 |
-| 3. 쿠팡 상품 상세 | SettingActivity | ScrollView + LinearLayout | 쿠팡 상품 상세 페이지 | 완료 |
-| 4. 계산기 | CalculatorActivity | GridLayout | iOS 계산기 | 완료 |
-| 5. 뮤직 플레이어 | CardActivity | FrameLayout | 뮤직 플레이어 (앨범아트 위에 컨트롤 겹침) | 완료 |
+| 1. 카카오톡 로그인 | KakaoLoginActivity | LinearLayout | 카카오톡 로그인 | 완료 |
+| 2. 인스타그램 프로필 | InstaProfileActivity | ConstraintLayout | 인스타그램 마이페이지 | 완료 |
+| 3. 쿠팡 상품 상세 | CoupangDetailActivity | ScrollView + LinearLayout | 쿠팡 상품 상세 페이지 | 완료 |
+| 4. 계산기 | IosCalcActivity | GridLayout | iOS 계산기 | 완료 |
+| 5. 뮤직 플레이어 | MusicPlayerActivity | FrameLayout | 뮤직 플레이어 (앨범아트 위에 컨트롤 겹침) | 완료 |
 
 ### 섹션 2: Manifest 학습 (6~13번)
 | 화면 | Activity | 주요 Manifest 요소 | 상태 |

@@ -86,7 +86,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#FFFFFF"
-    tools:context=".LoginActivity">
+    tools:context=".KakaoLoginActivity">
 
     <!-- ── 툴바 (뒤로가기 버튼) ── -->
     <com.google.android.material.appbar.MaterialToolbar

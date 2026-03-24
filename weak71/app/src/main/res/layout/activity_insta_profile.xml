@@ -94,7 +94,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFFFF"
-    tools:context=".ProfileActivity">
+    tools:context=".InstaProfileActivity">
 
     <!-- ═══════════ 툴바 ═══════════ -->
     <com.google.android.material.appbar.MaterialToolbar

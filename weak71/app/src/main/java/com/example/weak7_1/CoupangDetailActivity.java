@@ -33,13 +33,13 @@ import androidx.core.view.WindowInsetsCompat;
  * 상품 상세는 이미지 + 가격 + 배송 + 설명이 위→아래로 길게 이어지는 구조.
  * 스크롤 없이는 화면에 다 표시할 수 없다.
  */
-public class SettingActivity extends AppCompatActivity {
+public class CoupangDetailActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_setting);
+        setContentView(R.layout.activity_coupang_detail);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);

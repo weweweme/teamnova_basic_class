@@ -97,7 +97,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#000000"
-    tools:context=".CalculatorActivity">
+    tools:context=".IosCalcActivity">
 
     <!-- ═══════════ 툴바 (검정 배경, 흰 아이콘) ═══════════ -->
     <!--

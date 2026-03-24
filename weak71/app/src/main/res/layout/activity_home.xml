@@ -100,36 +100,34 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:insetTop="4dp"
-            android:insetRight="9dp"
-            android:text="1. 카카오톡 로그인 (LinearLayout)" />
+            android:text="1. 카카오톡 로그인" />
 
         <Button
             android:id="@+id/btnProfile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="2. 인스타그램 프로필 (ConstraintLayout)"
+            android:text="2. 인스타그램 프로필"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/btnSettings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="3. 쿠팡 상품 상세 (ScrollView)"
+            android:text="3. 쿠팡 상품 상세"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/btnCalculator"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="4. 계산기 (GridLayout)"
+            android:text="4. 계산기"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/btnCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="5. 뮤직 플레이어 (FrameLayout)"
+            android:text="5. 뮤직 플레이어"
             android:layout_marginBottom="16dp" />
 
         <!-- ═══════════ 구분선 ═══════════ -->
@@ -152,35 +150,35 @@
             android:id="@+id/btnCamera"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="6. 카메라 - 권한(Permission) / 하드웨어(Feature)"
+            android:text="6. 카메라"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/btnPortrait"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="7. 화면 속성 - 회전잠금 / configChanges"
+            android:text="7. 화면 속성"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/btnFullScreen"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="8. 전체화면 - Activity 테마 오버라이드"
+            android:text="8. 전체화면"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/btnLaunchMode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="9. 실행 모드 - launchMode (singleTop)"
+            android:text="9. 실행 모드"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/btnServiceReceiver"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="10. 서비스 / 리시버 - Service / Receiver"
+            android:text="10. 서비스 / 리시버"
             android:layout_marginBottom="8dp" />
 
     </LinearLayout>

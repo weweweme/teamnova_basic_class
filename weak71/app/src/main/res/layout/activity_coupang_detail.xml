@@ -79,7 +79,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#FFFFFF"
-    tools:context=".SettingActivity">
+    tools:context=".CoupangDetailActivity">
 
     <!-- ── 툴바 (ScrollView 바깥 → 스크롤해도 고정) ── -->
     <com.google.android.material.appbar.MaterialToolbar

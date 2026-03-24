@@ -1,207 +1,260 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    [FrameLayout - 뷰 겹침 배치]
+    ============================================================
+    [뮤직 플레이어 화면 - FrameLayout 실전 활용]
+    ============================================================
 
-    자식 뷰들을 같은 위치에 겹쳐서 배치한다.
-    XML에서 나중에 선언한 뷰가 위에(앞에) 표시된다.
+    ── 왜 FrameLayout인가? ──
+
+    뮤직 플레이어는 앨범 아트(배경 이미지) 위에 재생 컨트롤을 겹쳐 올려야 한다.
+    이렇게 뷰를 "겹치는" 배치에는 FrameLayout이 가장 적합하다.
     Unity 비유: Layout Group 없이 같은 위치에 여러 UI를 쌓는 것.
-    Hierarchy에서 아래에 있는 오브젝트가 위에 그려지는 것과 동일.
+    Canvas에서 Image 위에 Button을 올리는 것과 동일.
 
-    사용 예: 카드 겹침 UI, 이미지 위에 텍스트 오버레이, 로딩 화면 등.
+    ── 화면 구조 트리 ──
 
-    [layout_gravity vs gravity]
-    - layout_gravity: 부모(FrameLayout) 안에서 자신의 위치를 결정 (바깥 정렬)
-    - gravity: 자기 안에서 내용물의 위치를 결정 (안쪽 정렬)
-    Unity 비유:
-    - layout_gravity = RectTransform의 앵커/피봇 위치
-    - gravity = Text의 Alignment
+    FrameLayout (루트, 전체 화면)
+    ├── [1층] ImageView - 앨범 아트 (match_parent, 꽉 채움)
+    ├── [2층] View - 하단 그라데이션 (투명→검정, 가독성 확보)
+    ├── [3층] LinearLayout - 곡 정보 + 컨트롤 (layout_gravity=bottom)
+    │   ├── 곡 제목 / 아티스트
+    │   ├── SeekBar (재생 위치)
+    │   ├── 시간 표시 (1:23 / 3:45)
+    │   └── 재생 컨트롤 (⏮ ▶ ⏭)
+    └── [4층] MaterialToolbar (투명 배경, layout_gravity=top)
 
-    [cardElevation - 그림자 깊이]
-    높을수록 그림자가 진해지고, 화면에서 더 위에 떠있는 것처럼 보인다.
-    뒤쪽 카드는 낮게(4dp), 앞쪽 카드는 높게(12dp) 설정하여 입체감 표현.
+    ── 핵심 학습 포인트 ──
+
+    1) FrameLayout = 뷰 겹침 전용 레이아웃
+       - 자식 뷰들이 모두 같은 위치(왼쪽 상단)에 겹쳐 배치된다.
+       - XML에서 나중에 선언한 뷰가 위(앞)에 그려진다.
+       - Unity 비유: Hierarchy에서 아래에 있는 오브젝트가 위에 렌더링되는 것.
+
+    2) XML 선언 순서 = Z-order (겹치는 순서)
+       - 1번째 선언: ImageView (맨 아래 = 배경)
+       - 2번째 선언: View 그라데이션 (중간)
+       - 3번째 선언: LinearLayout 컨트롤
+       - 4번째 선언: MaterialToolbar (맨 위)
+       - Unity 비유: Sorting Order 또는 Hierarchy 순서.
+
+    3) layout_gravity (FrameLayout 안에서 위치 결정)
+       - layout_gravity="bottom" → 자식 뷰를 FrameLayout의 아래쪽에 배치.
+       - layout_gravity="center" → 가운데에 배치.
+       - ★ gravity와 다르다:
+         - layout_gravity: 부모 안에서 "나의 위치" (바깥 정렬)
+         - gravity: 내 안에서 "내용물의 위치" (안쪽 정렬)
+       - Unity 비유: layout_gravity = anchor/pivot 위치, gravity = Text Alignment.
+
+    4) 그라데이션 오버레이 패턴
+       - 이미지 위에 반투명 그라데이션을 깔면 흰 텍스트가 잘 보인다.
+       - bg_gradient_bottom.xml: 위쪽 투명(#00000000) → 아래쪽 반투명 검정(#CC000000).
+       - 뮤직 플레이어, YouTube 썸네일, 인스타 스토리 등에서 자주 쓰는 패턴.
+
+    5) FrameLayout 실전 사용 사례
+       - 뮤직 플레이어: 앨범 아트 위에 컨트롤
+       - 지도 앱: 지도 위에 검색창, 현재위치 버튼
+       - 카메라: 뷰파인더 위에 촬영 버튼
+       - 로딩 화면: 콘텐츠 위에 ProgressBar 오버레이
+
+    6) 투명 툴바 패턴
+       - 기존 화면들은 LinearLayout에서 툴바가 별도 영역을 차지했다.
+       - 이 화면에서는 FrameLayout 루트에 툴바를 겹쳐서 투명하게 만들었다.
+       - background="#00000000" (투명) + navigationIconTint="#FFFFFF" (흰 아이콘)
+       - 앨범 아트가 툴바 뒤에서 화면 전체를 꽉 채우는 효과.
+       - 이전에는 툴바가 FrameLayout "바깥"에 있어서 겹칠 수 없었다.
+         FrameLayout "안"으로 넣으면 다른 뷰들과 겹칠 수 있다.
+
+    7) 그라데이션 오버레이와 컨트롤을 분리한 이유
+       - gradientOverlay: 높이 300dp (넓은 영역을 서서히 어둡게)
+       - LinearLayout(컨트롤): wrap_content (버튼 높이만큼만)
+       - 하나로 합치면 그라데이션이 컨트롤 높이에 맞춰져서
+         곡 제목 바로 위부터 갑자기 어두워진다.
+       - 분리해야 컨트롤보다 훨씬 위에서부터 자연스럽게 어두워지는 효과.
+
+    8) 그라데이션 적용 원리 (bg_gradient_bottom.xml)
+       - shape drawable의 <gradient> 태그로 만든다.
+         startColor="#00000000" (투명) → endColor="#CC000000" (반투명 검정)
+         angle="270" → 위에서 아래 방향
+       - View는 원래 "빈 사각형" (3번 화면의 구분선에서 배운 것).
+         거기에 이 drawable을 background로 설정하면 그라데이션 사각형이 된다.
+       - 3번 화면의 뱃지(bg_badge_blue.xml)와 같은 shape drawable인데,
+         뱃지는 solid(단색), 여기는 gradient(그라데이션)를 쓴 차이.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context=".CardActivity">
 
-    <!-- ── 툴바 (뒤로가기 버튼) ── -->
+    <!-- ── [1층] 앨범 아트 (맨 아래, 배경 역할) ── -->
+    <!--
+        match_parent × match_parent → 화면 전체를 꽉 채움.
+        scaleType="centerCrop" → 이미지 비율 유지하면서 빈 공간 없이 채움.
+        이 위에 그라데이션, 컨트롤, 툴바가 겹쳐 올라온다.
+    -->
+    <ImageView
+        android:id="@+id/ivAlbumArt"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/sample_album" />
+
+    <!-- ── [2층] 하단 그라데이션 오버레이 ── -->
+    <!--
+        [layout_gravity="bottom"]
+        → FrameLayout 안에서 이 View를 아래쪽에 배치.
+        → 높이 300dp만큼 아래에서부터 투명→검정 그라데이션.
+        → 이게 없으면 앨범 아트가 밝을 때 흰 텍스트가 안 보인다.
+    -->
+    <View
+        android:id="@+id/gradientOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bg_gradient_bottom" />
+
+    <!-- ── [3층] 곡 정보 + 재생 컨트롤 ── -->
+    <!--
+        [layout_gravity="bottom"]
+        → 컨트롤을 화면 하단에 배치.
+        → 그라데이션과 같은 위치(bottom)지만, XML에서 더 나중에 선언했으므로
+          그라데이션 위에 그려진다.
+    -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- 곡 제목 -->
+        <TextView
+            android:id="@+id/tvSongTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Blinding Lights"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <!-- 아티스트 -->
+        <TextView
+            android:id="@+id/tvArtist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="The Weeknd"
+            android:textColor="#CCCCCC"
+            android:textSize="16sp" />
+
+        <!-- 재생 위치 바 (SeekBar) -->
+        <SeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:max="100"
+            android:progress="35"
+            android:progressBackgroundTint="#666666"
+            android:progressTint="#FFFFFF"
+            android:thumbTint="#FFFFFF" />
+
+        <!-- 시간 표시 (현재 / 전체) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvCurrentTime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="1:23"
+                android:textColor="#CCCCCC"
+                android:textSize="12sp" />
+
+            <!--
+                gravity="end" → 텍스트를 오른쪽 정렬.
+                이것은 자기 안의 내용물(텍스트) 정렬이므로 gravity.
+                layout_gravity가 아님 (layout_gravity는 부모 안에서 내 위치).
+            -->
+            <TextView
+                android:id="@+id/tvTotalTime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:text="3:45"
+                android:textColor="#CCCCCC"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+        <!-- 재생 컨트롤 (이전 / 재생 / 다음) -->
+        <!--
+            gravity="center" → LinearLayout 안에서 자식들을 가운데 정렬.
+            여기서도 gravity(안쪽 정렬)를 사용.
+        -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <!-- 이전 곡 -->
+            <ImageButton
+                android:id="@+id/btnPrev"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:scaleType="centerInside"
+                android:src="@android:drawable/ic_media_previous"
+                android:tint="#FFFFFF" />
+
+            <!-- 재생/일시정지 (크게) -->
+            <ImageButton
+                android:id="@+id/btnPlayPause"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_marginStart="32dp"
+                android:layout_marginEnd="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:scaleType="centerInside"
+                android:src="@android:drawable/ic_media_play"
+                android:tint="#FFFFFF" />
+
+            <!-- 다음 곡 -->
+            <ImageButton
+                android:id="@+id/btnNext"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:scaleType="centerInside"
+                android:src="@android:drawable/ic_media_next"
+                android:tint="#FFFFFF" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- ═══════════ [4층] 툴바 (투명, 앨범 아트 위에 겹침) ═══════════ -->
+    <!--
+        [투명 툴바]
+        기존 화면들은 LinearLayout에서 툴바가 별도 영역을 차지했다.
+        여기서는 FrameLayout 안에 넣어서 앨범 아트 위에 겹친다.
+        background="#00000000" → 완전 투명 (앨범 아트가 비쳐 보임).
+        navigationIconTint="#FFFFFF" → 흰 뒤로가기 화살표.
+    -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        app:title="카드 겹침"
-        app:navigationIcon="?attr/homeAsUpIndicator" />
+        android:background="#00000000"
+        app:navigationIconTint="#FFFFFF" />
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <!-- 상단 타이틀 -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="48dp"
-            android:text="카드 겹침 데모"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textAlignment="center" />
-
-        <!-- 1번째 카드 (맨 아래) - 가장 먼저 선언 = 가장 뒤에 그려짐 -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="300dp"
-            android:layout_height="220dp"
-            android:layout_gravity="center"
-            android:layout_marginBottom="60dp"
-            app:cardBackgroundColor="#FF7043"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="LinearLayout"
-                    android:textColor="#FFFFFF"
-                    android:textSize="22sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="순서대로 한 방향으로 쌓기"
-                    android:textColor="#FFFFFFCC"
-                    android:textSize="14sp" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="카드 1 (맨 뒤)"
-                    android:textColor="#FFFFFF99"
-                    android:textSize="12sp" />
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- 2번째 카드 (중간) -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="300dp"
-            android:layout_height="220dp"
-            android:layout_gravity="center"
-            android:layout_marginStart="20dp"
-            app:cardBackgroundColor="#42A5F5"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="8dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="ConstraintLayout"
-                    android:textColor="#FFFFFF"
-                    android:textSize="22sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="제약 기반 자유 배치"
-                    android:textColor="#FFFFFFCC"
-                    android:textSize="14sp" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="카드 2 (중간)"
-                    android:textColor="#FFFFFF99"
-                    android:textSize="12sp" />
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- 3번째 카드 (맨 위) - 가장 나중에 선언 = 가장 앞에 그려짐 -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="300dp"
-            android:layout_height="220dp"
-            android:layout_gravity="center"
-            android:layout_marginTop="60dp"
-            android:layout_marginStart="40dp"
-            app:cardBackgroundColor="#66BB6A"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="12dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="FrameLayout"
-                    android:textColor="#FFFFFF"
-                    android:textSize="22sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="뷰를 겹쳐서 배치"
-                    android:textColor="#FFFFFFCC"
-                    android:textSize="14sp" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="카드 3 (맨 앞)"
-                    android:textColor="#FFFFFF99"
-                    android:textSize="12sp" />
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- 하단 설명 텍스트 -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:layout_marginBottom="32dp"
-            android:text="FrameLayout: XML에서 나중에 선언한 뷰가 위에 표시됩니다"
-            android:textAlignment="center"
-            android:textColor="#888888"
-            android:textSize="13sp" />
-
-    </FrameLayout>
-
-</LinearLayout>
+</FrameLayout>

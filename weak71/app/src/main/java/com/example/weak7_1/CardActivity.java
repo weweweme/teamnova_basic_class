@@ -10,14 +10,23 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 /**
- * 카드 겹침 화면
- * 레이아웃: FrameLayout
- * 크기 조절: 고정 dp
- * 학습 포인트: FrameLayout은 자식 뷰들을 같은 위치에 겹쳐서 배치한다.
- *            XML에서 나중에 선언한 뷰가 위에(앞에) 그려진다.
- *            Unity에서 Layout Group 없이 같은 위치에 여러 UI를 쌓는 것과 동일.
- *            Hierarchy에서 아래에 있는 오브젝트가 위에 렌더링되는 것과 같은 원리.
- *            카드 겹침, 이미지 위 텍스트 오버레이, 로딩 화면 등에 사용.
+ * 5번 화면 - 뮤직 플레이어 (FrameLayout 학습)
+ *
+ * [레이아웃 구조]
+ * LinearLayout (vertical)
+ * ├── MaterialToolbar (뒤로가기)
+ * └── FrameLayout (뷰 겹침 영역)
+ *     ├── [1층] ImageView - 앨범 아트 (배경)
+ *     ├── [2층] View - 하단 그라데이션 (가독성 확보)
+ *     └── [3층] LinearLayout - 곡 정보 + 재생 컨트롤
+ *
+ * [FrameLayout 핵심 학습 포인트]
+ * - 자식 뷰들이 같은 위치에 겹쳐 배치된다 (Unity: Layout Group 없이 UI 쌓기)
+ * - XML 선언 순서 = Z-order (나중에 선언 = 위에 그려짐)
+ * - layout_gravity: 부모 안에서 자식의 위치 결정 (바깥 정렬)
+ * - gravity: 자기 안에서 내용물 정렬 (안쪽 정렬)
+ *
+ * [UI 데모 전용 - 실제 음악 재생 없음]
  */
 public class CardActivity extends AppCompatActivity {
 

@@ -36,8 +36,9 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        app:title="전체화면"
-        app:navigationIcon="?attr/homeAsUpIndicator" />
+        android:layout_weight="0"
+        app:navigationIcon="?attr/homeAsUpIndicator"
+        app:title="전체화면" />
 
     <!-- 타이틀: 현재 화면 이름 -->
     <TextView

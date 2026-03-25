@@ -123,6 +123,22 @@
         → 그라데이션과 같은 위치(bottom)지만, XML에서 더 나중에 선언했으므로
           그라데이션 위에 그려진다.
     -->
+
+    <!-- ═══════════ [4층] 툴바 (투명, 앨범 아트 위에 겹침) ═══════════ -->
+    <!--
+        [투명 툴바]
+        기존 화면들은 LinearLayout에서 툴바가 별도 영역을 차지했다.
+        여기서는 FrameLayout 안에 넣어서 앨범 아트 위에 겹친다.
+        background="#00000000" → 완전 투명 (앨범 아트가 비쳐 보임).
+        navigationIconTint="#FFFFFF" → 흰 뒤로가기 화살표.
+    -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#00000000"
+        app:navigationIconTint="#FFFFFF" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -241,20 +257,5 @@
         </LinearLayout>
 
     </LinearLayout>
-
-    <!-- ═══════════ [4층] 툴바 (투명, 앨범 아트 위에 겹침) ═══════════ -->
-    <!--
-        [투명 툴바]
-        기존 화면들은 LinearLayout에서 툴바가 별도 영역을 차지했다.
-        여기서는 FrameLayout 안에 넣어서 앨범 아트 위에 겹친다.
-        background="#00000000" → 완전 투명 (앨범 아트가 비쳐 보임).
-        navigationIconTint="#FFFFFF" → 흰 뒤로가기 화살표.
-    -->
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="#00000000"
-        app:navigationIconTint="#FFFFFF" />
 
 </FrameLayout>

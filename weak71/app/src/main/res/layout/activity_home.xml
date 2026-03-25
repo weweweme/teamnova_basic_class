@@ -65,14 +65,13 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center_horizontal">
+        android:padding="24dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
             android:layout_marginBottom="8dp"
             android:text="Android Layout 학습"
             android:textSize="24sp"
@@ -90,10 +89,10 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
             android:text="레이아웃 학습"
             android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/btnLogin"
@@ -106,80 +105,80 @@
             android:id="@+id/btnProfile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="2. 인스타그램 프로필"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="8dp"
+            android:text="2. 인스타그램 프로필" />
 
         <Button
             android:id="@+id/btnSettings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="3. 쿠팡 상품 상세"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="8dp"
+            android:text="3. 쿠팡 상품 상세" />
 
         <Button
             android:id="@+id/btnCalculator"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="4. 계산기"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="8dp"
+            android:text="4. 계산기" />
 
         <Button
             android:id="@+id/btnCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="5. 뮤직 플레이어"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp"
+            android:text="5. 뮤직 플레이어" />
 
         <!-- ═══════════ 구분선 ═══════════ -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="#E0E0E0"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp"
+            android:background="#E0E0E0" />
 
         <!-- ═══════════ Manifest 학습 섹션 ═══════════ -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
             android:text="Manifest 학습"
             android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/btnCamera"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="6. 카메라"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="8dp"
+            android:text="6. 카메라" />
 
         <Button
             android:id="@+id/btnPortrait"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="7. 화면 속성"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="8dp"
+            android:text="7. 화면 속성" />
 
         <Button
             android:id="@+id/btnFullScreen"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="8. 전체화면"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="8dp"
+            android:text="8. 전체화면" />
 
         <Button
             android:id="@+id/btnLaunchMode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="9. 실행 모드"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="8dp"
+            android:text="9. 실행 모드" />
 
         <Button
             android:id="@+id/btnServiceReceiver"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="10. 서비스 / 리시버"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="8dp"
+            android:text="10. 서비스 / 리시버" />
 
     </LinearLayout>
 </ScrollView>

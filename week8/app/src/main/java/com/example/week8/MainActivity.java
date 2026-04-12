@@ -54,8 +54,24 @@ public class MainActivity extends AppCompatActivity {
 
         // GameRepository 초기화
         gameRepository = new GameRepository();
+    }
 
-        // 게임 카드 리스트 생성
+    /// <summary>
+    /// Activity가 포그라운드로 돌아올 때마다 호출
+    /// 다른 화면(GameDetail, ReviewWrite)에서 별점/리뷰를 변경하고 돌아오면
+    /// 카드 리스트를 다시 그려서 변경사항을 반영
+    /// Unity로 비유하면 OnEnable()에서 UI를 갱신하는 것과 동일
+    ///
+    /// ★ 호출 시점:
+    /// - 앱 최초 실행 시 (onCreate → onStart → onResume)
+    /// - 다른 Activity에서 백키로 돌아올 때
+    /// - 홈키로 나갔다가 다시 들어올 때
+    /// </summary>
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // 카드 리스트 갱신 (변경된 별점/리뷰 반영)
         populateGameCards();
     }
 

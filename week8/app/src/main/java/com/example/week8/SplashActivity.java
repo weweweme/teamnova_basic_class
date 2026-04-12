@@ -1,7 +1,7 @@
 package com.example.week8;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,11 +12,11 @@ import com.example.week8.databinding.ActivitySplashBinding;
 
 /// <summary>
 /// 스플래시 화면 (앱 진입점)
-/// 1.5초간 로고를 보여준 뒤 온보딩 완료 여부에 따라 분기
+/// 1.5초간 로고를 보여준 뒤 OnboardingActivity로 이동
 /// Unity로 비유하면 게임 시작 시 로고 Scene → Invoke("GoToNext", 1.5f)
 ///
 /// ──── Lifecycle 학습 ────
-/// onCreate: ViewBinding + Handler로 1.5초 후 분기 예약
+/// onCreate: ViewBinding + Handler로 1.5초 후 이동 예약
 /// onDestroy: Handler 콜백 제거 (메모리 누수 방지)
 ///   → 1.5초 안에 뒤로가기로 나가면, Activity는 파괴되는데
 ///     Handler는 살아있어서 존재하지 않는 Activity를 호출하려 함 → 크래시
@@ -24,10 +24,12 @@ import com.example.week8.databinding.ActivitySplashBinding;
 ///
 /// ──── Intent 학습 ────
 /// Intent Filter: Manifest에 MAIN + LAUNCHER 등록 (앱 아이콘으로 실행되는 진입점)
-/// 명시적 Intent: 조건 분기 후 Onboarding 또는 Main으로 이동
+/// 명시적 Intent: OnboardingActivity로 이동
 /// Flags: FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK
 ///   → Splash를 백스택에서 아예 제거 (뒤로가기로 돌아올 수 없게)
 ///   → Unity에서 로고 Scene을 LoadSceneMode.Single로 날려버리는 것과 동일
+///
+/// TODO: 10주차에서 SharedPreferences 학습 후 온보딩 완료 여부 분기 추가
 /// </summary>
 public class SplashActivity extends AppCompatActivity {
 
@@ -36,17 +38,6 @@ public class SplashActivity extends AppCompatActivity {
     /// Unity의 Invoke 지연 시간에 해당
     /// </summary>
     private static final int SPLASH_DELAY_MS = 1500;
-
-    /// <summary>
-    /// SharedPreferences 파일 이름
-    /// Unity의 PlayerPrefs와 같은 역할
-    /// </summary>
-    private static final String PREFS_NAME = "game_diary_prefs";
-
-    /// <summary>
-    /// 온보딩 완료 여부를 저장하는 키
-    /// </summary>
-    private static final String KEY_ONBOARDING_DONE = "onboarding_done";
 
     /// <summary>
     /// 지연 실행을 담당하는 핸들러
@@ -100,31 +91,16 @@ public class SplashActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    // ========== 화면 분기 ==========
+    // ========== 화면 이동 ==========
 
     /// <summary>
-    /// 온보딩 완료 여부에 따라 다음 화면 결정
-    /// - 최초 실행 (온보딩 미완료): OnboardingActivity로 이동
-    /// - 이후 실행 (온보딩 완료): MainActivity로 이동
+    /// OnboardingActivity로 이동
+    /// TODO: 10주차에서 SharedPreferences 학습 후
+    ///       온보딩 완료 여부에 따라 Main/Onboarding 분기 추가
     /// </summary>
     private void navigateToNextScreen() {
-        // SharedPreferences에서 온보딩 완료 여부 확인
-        // Unity의 PlayerPrefs.GetInt("onboarding_done", 0)과 동일
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        boolean onboardingDone = prefs.getBoolean(KEY_ONBOARDING_DONE, false);
-
-        // 분기에 따라 이동할 Activity 클래스 결정
-        Class<?> destination;
-        if (onboardingDone) {
-            destination = MainActivity.class;
-        } else {
-            // 아직 OnboardingActivity가 없으므로 임시로 MainActivity로 이동
-            // 4단계에서 OnboardingActivity 생성 후 교체 예정
-            destination = MainActivity.class;
-        }
-
-        // 명시적 Intent로 다음 화면 이동
-        Intent intent = new Intent(this, destination);
+        // 명시적 Intent로 OnboardingActivity 이동
+        Intent intent = new Intent(this, OnboardingActivity.class);
 
         // FLAG_ACTIVITY_NEW_TASK: 새 태스크에서 시작
         // FLAG_ACTIVITY_CLEAR_TASK: 기존 태스크(Splash 포함) 전부 제거

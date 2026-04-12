@@ -1,4 +1,14 @@
 <resources>
     <string name="app_name">Game Diary</string>
     <string name="app_logo_description">앱 로고</string>
+
+    <!-- 온보딩 -->
+    <string name="onboarding_title_1">Game Diary</string>
+    <string name="onboarding_desc_1">나만의 게임 다이어리에 오신 것을 환영합니다</string>
+    <string name="onboarding_title_2">게임 기록</string>
+    <string name="onboarding_desc_2">플레이한 게임에 별점과 한줄평을 남겨보세요</string>
+    <string name="onboarding_title_3">시작할 준비 완료!</string>
+    <string name="onboarding_desc_3">지금 바로 게임 라이브러리를 만들어보세요</string>
+    <string name="onboarding_next">다음</string>
+    <string name="onboarding_start">시작하기</string>
 </resources>

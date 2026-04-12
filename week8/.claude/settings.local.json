@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:partner.steamgames.com)",
+      "WebFetch(domain:steambase.io)",
+      "WebFetch(domain:truesteamachievements.com)",
+      "WebFetch(domain:steamdb.info)",
+      "WebFetch(domain:store.steampowered.com)"
+    ]
+  }
+}

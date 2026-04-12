@@ -47,14 +47,14 @@ public class Game implements Parcelable {
     private final String coverAssetName;
 
     /// <summary>
-    /// 장르 (예: "액션 어드벤처", "RPG")
+    /// 장르 (Genre 열거형으로 고정 분류)
     /// </summary>
-    private final String genre;
+    private final Genre genre;
 
     /// <summary>
-    /// 플랫폼 (예: "Steam", "Nintendo Switch")
+    /// 플랫폼 (Platform 열거형으로 고정 분류)
     /// </summary>
-    private final String platform;
+    private final Platform platform;
 
     /// <summary>
     /// 스토어 URL (GameDetail에서 암시적 VIEW Intent로 브라우저를 여는 데 사용)
@@ -81,8 +81,8 @@ public class Game implements Parcelable {
     /// GameRepository에서 더미 데이터를 만들 때 사용
     /// Unity로 비유하면 new GameData(id, title, ...) 호출과 동일
     /// </summary>
-    public Game(int id, String title, String coverAssetName, String genre,
-                String platform, String storeUrl, float rating, String review) {
+    public Game(int id, String title, String coverAssetName, Genre genre,
+                Platform platform, String storeUrl, float rating, String review) {
         this.id = id;
         this.title = title;
         this.coverAssetName = coverAssetName;
@@ -105,8 +105,9 @@ public class Game implements Parcelable {
         this.id = in.readInt();
         this.title = in.readString();
         this.coverAssetName = in.readString();
-        this.genre = in.readString();
-        this.platform = in.readString();
+        // enum은 이름(String)으로 저장했으므로 valueOf()로 복원
+        this.genre = Genre.valueOf(in.readString());
+        this.platform = Platform.valueOf(in.readString());
         this.storeUrl = in.readString();
         this.rating = in.readFloat();
         this.review = in.readString();
@@ -124,8 +125,9 @@ public class Game implements Parcelable {
         dest.writeInt(id);
         dest.writeString(title);
         dest.writeString(coverAssetName);
-        dest.writeString(genre);
-        dest.writeString(platform);
+        // enum은 name()으로 문자열 변환하여 저장 (읽을 때 valueOf()로 복원)
+        dest.writeString(genre.name());
+        dest.writeString(platform.name());
         dest.writeString(storeUrl);
         dest.writeFloat(rating);
         dest.writeString(review);
@@ -189,14 +191,14 @@ public class Game implements Parcelable {
     /// <summary>
     /// 장르 반환
     /// </summary>
-    public String getGenre() {
+    public Genre getGenre() {
         return genre;
     }
 
     /// <summary>
     /// 플랫폼 반환
     /// </summary>
-    public String getPlatform() {
+    public Platform getPlatform() {
         return platform;
     }
 

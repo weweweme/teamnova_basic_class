@@ -23,9 +23,6 @@ import com.example.week8.databinding.ActivityOnboardingBinding;
 /// ──── Intent 학습 ────
 /// 명시적 Intent: 완료 시 MainActivity로 이동
 /// FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK: 백스택 정리
-///
-/// TODO: 10주차에서 SharedPreferences 학습 후
-///       온보딩 완료 플래그 저장/분기 추가
 /// </summary>
 public class OnboardingActivity extends AppCompatActivity {
 

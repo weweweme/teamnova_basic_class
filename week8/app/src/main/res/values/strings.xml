@@ -11,4 +11,8 @@
     <string name="onboarding_desc_3">지금 바로 게임 라이브러리를 만들어보세요</string>
     <string name="onboarding_next">다음</string>
     <string name="onboarding_start">시작하기</string>
+
+    <!-- 메인 -->
+    <string name="main_title">내 게임 라이브러리</string>
+    <string name="game_cover_description">게임 표지</string>
 </resources>

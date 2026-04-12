@@ -32,6 +32,11 @@
         <activity
             android:name=".MainActivity"
             android:exported="false" />
+
+        <!-- 게임 상세: 암시적 Intent 4종 집결지 -->
+        <activity
+            android:name=".GameDetailActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

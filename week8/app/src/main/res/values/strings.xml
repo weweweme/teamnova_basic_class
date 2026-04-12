@@ -15,4 +15,10 @@
     <!-- 메인 -->
     <string name="main_title">내 게임 라이브러리</string>
     <string name="game_cover_description">게임 표지</string>
+
+    <!-- 게임 상세 -->
+    <string name="detail_write_review">리뷰 작성</string>
+    <string name="detail_share">공유</string>
+    <string name="detail_open_store">스토어 열기</string>
+    <string name="detail_screenshot">스크린샷</string>
 </resources>

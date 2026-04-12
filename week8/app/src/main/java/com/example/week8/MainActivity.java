@@ -1,10 +1,10 @@
 package com.example.week8;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -131,6 +131,16 @@ public class MainActivity extends AppCompatActivity {
                 // 이미지가 없으면 기본 아이콘 표시
                 imageCover.setImageResource(R.mipmap.ic_launcher);
             }
+
+            // 카드 클릭 시 GameDetailActivity로 이동
+            // Unity로 비유하면 Button.onClick에 Scene 전환 + 데이터 전달 등록
+            cardView.setOnClickListener(v -> {
+                Intent intent = new Intent(this, GameDetailActivity.class);
+                // Parcelable Game 객체를 Intent에 실어서 전달
+                // 1단계에서 구현한 writeToParcel이 여기서 호출됨
+                intent.putExtra(GameDetailActivity.EXTRA_GAME, game);
+                startActivity(intent);
+            });
 
             // 카드를 LinearLayout에 추가
             // Unity로 비유하면 card.transform.SetParent(content)

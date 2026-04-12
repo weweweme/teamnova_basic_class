@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 게임 상세 화면 레이아웃 -->
+<!-- 게임 정보 표시 + 리뷰 작성 / 공유 / 스토어 열기 / 스크린샷 버튼 -->
+<!-- 암시적 Intent 4종이 집결하는 화면 -->
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".GameDetailActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- 게임 표지 이미지 -->
+        <ImageView
+            android:id="@+id/imageViewCover"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/game_cover_description" />
+
+        <!-- 게임 제목 -->
+        <TextView
+            android:id="@+id/textViewTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <!-- 장르 · 플랫폼 -->
+        <TextView
+            android:id="@+id/textViewGenrePlatform"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="16sp" />
+
+        <!-- 별점 + 한줄평 -->
+        <TextView
+            android:id="@+id/textViewRatingReview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="16sp" />
+
+        <!-- 버튼 영역 -->
+        <!-- 각 버튼이 이후 단계에서 Intent 학습 포인트가 됨 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="vertical">
+
+            <!-- 리뷰 작성 (forResult) -->
+            <Button
+                android:id="@+id/buttonReview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/detail_write_review" />
+
+            <!-- 공유 (ACTION_SEND chooser) -->
+            <Button
+                android:id="@+id/buttonShare"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/detail_share" />
+
+            <!-- 스토어 열기 (ACTION_VIEW) -->
+            <Button
+                android:id="@+id/buttonStore"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/detail_open_store" />
+
+            <!-- 스크린샷 (forResult + IMAGE_CAPTURE) -->
+            <Button
+                android:id="@+id/buttonScreenshot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/detail_screenshot" />
+        </LinearLayout>
+    </LinearLayout>
+
+</ScrollView>

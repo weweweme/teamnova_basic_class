@@ -1,8 +1,10 @@
 package com.example.week8;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
@@ -150,7 +152,10 @@ public class GameDetailActivity extends AppCompatActivity {
         // 공유 버튼 → 게임 정보를 다른 앱으로 공유
         binding.buttonShare.setOnClickListener(v -> shareGame());
 
-        // 스토어, 스크린샷 버튼은 이후 단계에서 구현
+        // 스토어 열기 버튼 → 브라우저에서 Steam 페이지 열기
+        binding.buttonStore.setOnClickListener(v -> openStoreUrl());
+
+        // 스크린샷 버튼은 이후 단계에서 구현
     }
 
     /// <summary>
@@ -211,6 +216,54 @@ public class GameDetailActivity extends AppCompatActivity {
         // 두 번째 파라미터는 다이얼로그 상단에 표시되는 제목
         Intent chooser = Intent.createChooser(sendIntent, getString(R.string.detail_share));
         startActivity(chooser);
+    }
+
+    // ========== 암시적 Intent: 스토어 열기 ==========
+
+    /// <summary>
+    /// 브라우저에서 게임의 Steam 스토어 페이지를 열기
+    ///
+    /// ──── ACTION_VIEW 학습 ────
+    /// ACTION_SEND는 "이 데이터를 보낼 수 있는 앱"을 찾지만,
+    /// ACTION_VIEW는 "이 URI를 열 수 있는 앱"을 찾음
+    /// URI의 종류에 따라 Android가 적절한 앱을 자동으로 선택:
+    ///   https://... → 웹 브라우저(Chrome 등)가 열림
+    ///   tel:010... → 전화 앱이 열림
+    ///   geo:37.5,127.0 → 지도 앱이 열림
+    ///
+    /// Unity로 비유하면 Application.OpenURL()과 동일
+    /// Chooser를 쓰지 않는 이유: URL을 여는 앱은 보통 브라우저 하나이므로
+    /// 앱 선택 다이얼로그 없이 바로 열어도 자연스러움
+    /// </summary>
+    private void openStoreUrl() {
+        // 스토어 URL이 없으면 사용자에게 알림 (커스텀 게임 등 URL이 없는 경우)
+        String url = game.getStoreUrl();
+        if (url == null || url.isEmpty()) {
+            Toast.makeText(this, R.string.detail_no_store_url, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // ── Uri란? ──
+        // 공식 문서: https://developer.android.com/reference/android/net/Uri
+        // Intent 가이드: https://developer.android.com/guide/components/intents-common
+        // 주소를 표현하는 Android 클래스 (Unity의 AssetReference처럼 경로를 구조화해서 들고 있음)
+        // String 그대로면 그냥 글자 덩어리지만, Uri 객체로 만들면 주소의 각 부분을 메서드로 꺼낼 수 있음
+        //
+        // 예) Uri.parse("https://store.steampowered.com/app/1245620/ELDEN_RING/")
+        //   uri.getScheme() → "https"                     (Scheme: 통신 규약. 어떤 방식으로 연결할지)
+        //   uri.getHost()   → "store.steampowered.com"    (Host: 서버 주소. 인터넷에서 어떤 컴퓨터에 접속할지)
+        //   uri.getPath()   → "/app/1245620/ELDEN_RING/"  (Path: 경로. 그 서버 안에서 어떤 페이지를 볼지)
+        //
+        // Android가 Uri를 요구하는 이유:
+        // scheme(https, tel, geo 등)을 보고 어떤 앱을 열지 판단하기 때문
+        // → "https" → 브라우저, "tel" → 전화 앱, "geo" → 지도 앱
+        //
+        // ── Intent 생성자가 String이 아닌 Uri를 받는 이유 ──
+        // new Intent(ACTION_VIEW, url) → 컴파일 에러 (String은 못 받음)
+        // new Intent(ACTION_VIEW, Uri.parse(url)) → Uri 타입이라 OK
+        // → Android가 이걸 보고 "https 주소를 VIEW 할 수 있는 앱 = 브라우저"를 찾아서 실행
+        Intent viewIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        startActivity(viewIntent);
     }
 
     // ========== 데이터 바인딩 ==========

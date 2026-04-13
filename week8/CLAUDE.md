@@ -152,7 +152,7 @@
   private int money;
   public void startBusiness() { ... }
   ```
-- **주석은 누구나 이해할 수 있게**: 프로그래밍 전문 용어(0-based, 1-based, nullable 등) 대신 누구나 알 수 있는 한국어로 작성
+- **주석은 중학생도 이해할 수 있게**: 프로그래밍 전문 용어(0-based, 1-based, nullable 등) 대신 누구나 알 수 있는 한국어로 작성. API나 개념을 설명할 때 "~로 변환"처럼 추상적으로 쓰지 말고, 왜 변환이 필요한지 비유나 예시로 풀어서 설명
   ```java
   // 나쁜 예: 전문 용어 사용
   /// 번호(1-based)로 상품 찾기
@@ -470,8 +470,8 @@ Game (Parcelable)
 11. ✅ ReviewWrite onSaveInstanceState
 12. ~~ReviewWrite onPause draft 저장/복원~~ (10주차로 이동 — SharedPreferences 필요)
 13. ✅ ReviewWrite setResult 반환 → 갱신 확인
-14. GameDetail ACTION_SEND chooser
-15. GameDetail ACTION_VIEW (Steam)
+14. ✅ GameDetail ACTION_SEND chooser
+15. ✅ GameDetail ACTION_VIEW (Steam)
 16. ScreenshotActivity + IMAGE_CAPTURE
 17. Screenshot lifecycle 화면 표시
 18. AboutActivity + VIEW/SENDTO chooser

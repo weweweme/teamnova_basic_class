@@ -27,5 +27,6 @@
     <string name="detail_write_review">리뷰 작성</string>
     <string name="detail_share">공유</string>
     <string name="detail_open_store">스토어 열기</string>
+    <string name="detail_no_store_url">스토어 링크가 없는 게임입니다</string>
     <string name="detail_screenshot">스크린샷</string>
 </resources>

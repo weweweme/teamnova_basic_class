@@ -399,11 +399,11 @@ UserConfig (설정)
 ### 학습 목표
 - Activity Lifecycle 9개 콜백 전부를 "단순 로그가 아닌 실제 기능"에 사용
 - Intent 6가지 카테고리(송신/수신/결과반환/암시적VIEW/Chooser/Filter) 전부 실사용
-- 특히 **onPause(영구 임시저장) vs onSaveInstanceState(회전 대응 휘발 저장)** 차이를 한 화면에서 직접 체험
+- 특히 **onSaveInstanceState(회전 대응 휘발 저장)**를 직접 체험
 
 ### 8주차 제약 (다음 주차로 미룸)
 - ❌ RecyclerView (9주차) → ScrollView + LinearLayout으로 카드 동적 추가
-- ❌ Room DB (10주차) → SharedPreferences로 임시저장만
+- ❌ Room DB / SharedPreferences (10주차) → 영속 저장 없음
 - ❌ API 호출 (12주차) → 게임 더미 데이터
 - ❌ Fragment → 전부 Activity
 
@@ -412,9 +412,9 @@ UserConfig (설정)
 |---|---|---|---|
 | 1 | SplashActivity | 1.5초 로고 후 분기 | launcher Intent Filter, FLAG_ACTIVITY_CLEAR_TASK/NO_HISTORY |
 | 2 | OnboardingActivity | 앱 소개 3페이지 | onSaveInstanceState로 페이지 인덱스 보존 |
-| 3 | MainActivity | 게임 카드 리스트 (ScrollView) | onResume에서 SharedPrefs 재로드, onRestart 관찰, SEND 수신 필터 |
+| 3 | MainActivity | 게임 카드 리스트 (ScrollView) | onResume에서 리스트 갱신, onRestart 관찰, SEND 수신 필터 |
 | 4 | GameDetailActivity | 게임 상세, 암시적 Intent 4종 집결지 | SEND chooser, VIEW 브라우저, forResult 2건 |
-| 5 | ReviewWriteActivity ★ | 별점+한줄평 | onPause(draft 영구) + onSaveInstanceState(회전) 동시 사용 |
+| 5 | ReviewWriteActivity ★ | 별점+한줄평 | onSaveInstanceState(회전) 사용 |
 | 6 | ScreenshotActivity | 카메라 호출 + 미리보기 | IMAGE_CAPTURE, 외부앱 호출 시 lifecycle 흐름 화면 표시 |
 | 7 | AboutActivity | 앱 정보 | VIEW(브라우저) / SENDTO(메일) chooser |
 
@@ -423,8 +423,8 @@ UserConfig (설정)
 |---|---|---|
 | onCreate | 전부 | ViewBinding, Intent extras 파싱 |
 | onStart | Main | 포그라운드 진입 표시 |
-| onResume | Main | SharedPrefs 재로드 → 리스트 갱신 |
-| onPause | ReviewWrite, GameDetail | draft/마지막 본 게임 영구 저장 |
+| onResume | Main | GameRepository 재로드 → 리스트 갱신 |
+| onPause | GameDetail | 마지막 본 게임 로그 (Log 출력으로 학습) |
 | onStop | Screenshot | 카메라 호출 흐름 관찰 |
 | onRestart | Main | 백키 복귀 분기 |
 | onDestroy | Splash | Handler 콜백 제거 |
@@ -454,8 +454,7 @@ Game (Parcelable)
 ├─ float rating (0~5)
 └─ String review
 ```
-- GameRepository: 더미 5~6개 하드코딩, rating/review만 SharedPrefs로 영속화
-- SharedPrefs 키: `review_draft_{gameId}`, `last_seen_game_id`, `onboarding_done`
+- GameRepository: 더미 5~6개 하드코딩, rating/review는 메모리에서만 관리 (영속 저장은 10주차)
 
 ### 단계별 구현 순서 (최소 커밋 단위)
 1. ✅ Game Parcelable 모델
@@ -468,8 +467,8 @@ Game (Parcelable)
 8. ✅ Main → GameDetail 명시적 Intent (Parcelable)
 9. ✅ GameDetailActivity 화면 구성
 10. ✅ GameDetail → ReviewWrite forResult
-11. ReviewWrite onSaveInstanceState
-12. ReviewWrite onPause draft 저장/복원
+11. ✅ ReviewWrite onSaveInstanceState
+12. ~~ReviewWrite onPause draft 저장/복원~~ (10주차로 이동 — SharedPreferences 필요)
 13. ✅ ReviewWrite setResult 반환 → 갱신 확인
 14. GameDetail ACTION_SEND chooser
 15. GameDetail ACTION_VIEW (Steam)

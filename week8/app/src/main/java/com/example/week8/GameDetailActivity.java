@@ -147,7 +147,10 @@ public class GameDetailActivity extends AppCompatActivity {
         // 리뷰 작성 버튼 → ReviewWriteActivity를 forResult로 실행
         binding.buttonReview.setOnClickListener(v -> openReviewWrite());
 
-        // 공유, 스토어, 스크린샷 버튼은 이후 단계에서 구현
+        // 공유 버튼 → 게임 정보를 다른 앱으로 공유
+        binding.buttonShare.setOnClickListener(v -> shareGame());
+
+        // 스토어, 스크린샷 버튼은 이후 단계에서 구현
     }
 
     /// <summary>
@@ -166,6 +169,48 @@ public class GameDetailActivity extends AppCompatActivity {
         // forResult로 실행: 결과를 onActivityResult에서 받음
         // REQUEST_CODE_REVIEW로 "이건 리뷰 작성 요청이다"라고 태그를 붙임
         startActivityForResult(intent, REQUEST_CODE_REVIEW);
+    }
+
+    // ========== 암시적 Intent: 공유 ==========
+
+    /// <summary>
+    /// 게임 정보를 다른 앱(카톡, 메시지 등)으로 공유
+    ///
+    /// ──── 암시적 Intent + Chooser 학습 ────
+    /// 명시적 Intent: 목적지 Activity를 직접 지정 (new Intent(this, ReviewWriteActivity.class))
+    /// 암시적 Intent: "이런 작업을 할 수 있는 앱 아무나" 요청 (ACTION_SEND)
+    ///
+    /// Unity로 비유하면:
+    /// 명시적 = 특정 오브젝트의 메서드를 직접 호출 (GetComponent<T>().DoSomething())
+    /// 암시적 = SendMessage("DoSomething")로 "이걸 할 수 있는 누구든" 호출
+    ///
+    /// Chooser를 쓰는 이유:
+    /// 그냥 startActivity(intent)하면 기본 앱이 설정된 경우 바로 그 앱으로 감
+    /// createChooser()를 쓰면 항상 앱 선택 다이얼로그가 뜸
+    /// </summary>
+    private void shareGame() {
+        // 공유할 텍스트 조합
+        String shareText = game.getTitle();
+
+        // 리뷰가 있으면 별점 + 한줄평도 포함
+        boolean hasReview = game.getReview() != null && !game.getReview().isEmpty();
+        if (hasReview) {
+            shareText += "\n★ " + game.getRating() + " - " + game.getReview();
+        }
+
+        // ACTION_SEND: "이 데이터를 보낼 수 있는 앱 목록 보여줘"
+        // setType("text/plain"): 보내는 데이터가 텍스트임을 알려줌 (MIME 타입)
+        // EXTRA_TEXT: 공유할 텍스트 본문
+        // EXTRA_SUBJECT: 제목 (이메일 앱 등에서 사용)
+        Intent sendIntent = new Intent(Intent.ACTION_SEND);
+        sendIntent.setType("text/plain");
+        sendIntent.putExtra(Intent.EXTRA_SUBJECT, game.getTitle());
+        sendIntent.putExtra(Intent.EXTRA_TEXT, shareText);
+
+        // createChooser: 항상 앱 선택 다이얼로그를 표시
+        // 두 번째 파라미터는 다이얼로그 상단에 표시되는 제목
+        Intent chooser = Intent.createChooser(sendIntent, getString(R.string.detail_share));
+        startActivity(chooser);
     }
 
     // ========== 데이터 바인딩 ==========

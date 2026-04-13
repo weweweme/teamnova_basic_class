@@ -31,16 +31,23 @@
         <!-- exported=false: 앱 내부에서만 접근 (나중에 SEND 필터 추가 시 true로 변경) -->
         <activity
             android:name=".MainActivity"
+            android:label="@string/main_title"
             android:exported="false" />
 
         <!-- 게임 상세: 암시적 Intent 4종 집결지 -->
+        <!-- parentActivityName: ← 버튼 누르면 MainActivity로 돌아감 -->
         <activity
             android:name=".GameDetailActivity"
+            android:label="@string/detail_title"
+            android:parentActivityName=".MainActivity"
             android:exported="false" />
 
         <!-- 리뷰 작성: forResult로 별점+한줄평 반환 -->
+        <!-- parentActivityName: ← 버튼 누르면 GameDetailActivity로 돌아감 -->
         <activity
             android:name=".ReviewWriteActivity"
+            android:label="@string/review_title"
+            android:parentActivityName=".GameDetailActivity"
             android:exported="false" />
     </application>
 

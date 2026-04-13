@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 
 import com.example.week8.databinding.ActivityOnboardingBinding;
 
@@ -52,6 +53,9 @@ public class OnboardingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // edge-to-edge 비활성화
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
 
         // ViewBinding으로 레이아웃 연결
         binding = ActivityOnboardingBinding.inflate(getLayoutInflater());

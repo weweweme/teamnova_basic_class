@@ -2,9 +2,11 @@ package com.example.week8;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.widget.SeekBar;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 
 import com.example.week8.databinding.ActivityReviewWriteBinding;
 
@@ -79,9 +81,17 @@ public class ReviewWriteActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // edge-to-edge 비활성화
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+
         // ViewBinding 연결
         binding = ActivityReviewWriteBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // ActionBar에 ← 뒤로가기 버튼 표시
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         // Intent에서 게임 정보 받기
         String gameTitle = getIntent().getStringExtra(EXTRA_GAME_TITLE);
@@ -124,6 +134,18 @@ public class ReviewWriteActivity extends AppCompatActivity {
 
         // 저장 버튼 클릭 → 결과 반환 후 화면 닫기
         binding.buttonSave.setOnClickListener(v -> saveAndFinish());
+    }
+
+    /// <summary>
+    /// ActionBar의 ← 버튼 클릭 처리
+    /// </summary>
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     // ========== UI 갱신 ==========

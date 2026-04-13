@@ -458,23 +458,23 @@ Game (Parcelable)
 - SharedPrefs 키: `review_draft_{gameId}`, `last_seen_game_id`, `onboarding_done`
 
 ### 단계별 구현 순서 (최소 커밋 단위)
-1. Game Parcelable 모델
-2. GameRepository 더미 데이터
-3. SplashActivity 뼈대 + Handler 분기
-4. OnboardingActivity 뼈대 (3페이지)
-5. Onboarding onSaveInstanceState 페이지 보존
-6. MainActivity 뼈대 (ScrollView + 카드 동적 생성)
-7. Main onResume 재로드
-8. Main → GameDetail 명시적 Intent (Parcelable)
-9. GameDetailActivity 화면 구성
-10. GameDetail → ReviewWrite forResult
+1. ✅ Game Parcelable 모델
+2. ✅ GameRepository 더미 데이터
+3. ✅ SplashActivity 뼈대 + Handler 분기
+4. ✅ OnboardingActivity 뼈대 (3페이지)
+5. ✅ Onboarding onSaveInstanceState 페이지 보존
+6. ✅ MainActivity 뼈대 (ScrollView + 카드 동적 생성)
+7. ✅ Main onResume 재로드
+8. ✅ Main → GameDetail 명시적 Intent (Parcelable)
+9. ✅ GameDetailActivity 화면 구성
+10. ✅ GameDetail → ReviewWrite forResult
 11. ReviewWrite onSaveInstanceState
 12. ReviewWrite onPause draft 저장/복원
-13. ReviewWrite setResult 반환 → 갱신 확인
+13. ✅ ReviewWrite setResult 반환 → 갱신 확인
 14. GameDetail ACTION_SEND chooser
 15. GameDetail ACTION_VIEW (Steam)
 16. ScreenshotActivity + IMAGE_CAPTURE
 17. Screenshot lifecycle 화면 표시
 18. AboutActivity + VIEW/SENDTO chooser
 19. Main SEND Intent Filter 수신
-20. Splash FLAG 적용 + 정리
+20. ✅ Splash FLAG 적용 + 정리

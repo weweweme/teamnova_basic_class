@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 
 import com.example.week8.data.GameRepository;
 import com.example.week8.databinding.ActivityMainBinding;
@@ -47,6 +48,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // edge-to-edge 비활성화
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
 
         // ViewBinding 연결
         binding = ActivityMainBinding.inflate(getLayoutInflater());

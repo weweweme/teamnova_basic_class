@@ -2,8 +2,10 @@ package com.example.week8;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 
 import com.example.week8.databinding.ActivityGameDetailBinding;
 import com.example.week8.model.Game;
@@ -55,6 +57,9 @@ public class GameDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // edge-to-edge 비활성화
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+
         // ViewBinding 연결
         binding = ActivityGameDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -71,11 +76,29 @@ public class GameDetailActivity extends AppCompatActivity {
             return;
         }
 
+        // ActionBar에 ← 뒤로가기 버튼 표시
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
         // 게임 정보를 화면에 표시
         bindGameData();
 
         // 버튼 리스너 등록
         setupButtons();
+    }
+
+    /// <summary>
+    /// ActionBar의 ← 버튼 클릭 처리
+    /// home(android.R.id.home)이 ← 버튼의 ID
+    /// </summary>
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     /// <summary>

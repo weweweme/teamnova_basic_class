@@ -16,6 +16,11 @@
     <string name="main_title">내 게임 라이브러리</string>
     <string name="game_cover_description">게임 표지</string>
 
+    <!-- 리뷰 작성 -->
+    <string name="review_hint">한줄평을 입력하세요</string>
+    <string name="review_save">저장</string>
+    <string name="review_rating_label">별점: ★ %s</string>
+
     <!-- 게임 상세 -->
     <string name="detail_write_review">리뷰 작성</string>
     <string name="detail_share">공유</string>

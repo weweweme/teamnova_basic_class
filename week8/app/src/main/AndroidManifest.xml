@@ -37,6 +37,11 @@
         <activity
             android:name=".GameDetailActivity"
             android:exported="false" />
+
+        <!-- 리뷰 작성: forResult로 별점+한줄평 반환 -->
+        <activity
+            android:name=".ReviewWriteActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

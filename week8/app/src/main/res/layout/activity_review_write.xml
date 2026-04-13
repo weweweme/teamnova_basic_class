@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 리뷰 작성 화면 레이아웃 -->
+<!-- 별점(SeekBar) + 한줄평(EditText) 입력 후 저장 -->
+<!-- onPause vs onSaveInstanceState 차이를 체험하는 핵심 화면 -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".ReviewWriteActivity">
+
+    <!-- 게임 제목 (어떤 게임의 리뷰인지 표시) -->
+    <TextView
+        android:id="@+id/textViewGameTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <!-- 별점 표시 (현재 값) -->
+    <TextView
+        android:id="@+id/textViewRatingLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:textSize="16sp"
+        tools:text="별점: ★ 3.0" />
+
+    <!-- 별점 입력 (SeekBar: 0~10 → 0.0~5.0으로 변환) -->
+    <!-- 0.5 단위를 위해 max=10으로 설정, 값을 2로 나눠서 사용 -->
+    <SeekBar
+        android:id="@+id/seekBarRating"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:max="10"
+        android:progress="0" />
+
+    <!-- 한줄평 입력 -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:hint="@string/review_hint">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextReview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLines="3" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- 저장 버튼 -->
+    <Button
+        android:id="@+id/buttonSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/review_save" />
+
+</LinearLayout>

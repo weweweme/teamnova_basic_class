@@ -50,9 +50,11 @@ public class GameDetailActivity extends AppCompatActivity {
         binding = ActivityGameDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Intent에서 Parcelable Game 객체 꺼내기
-        // Unity로 비유하면 이전 Scene에서 직렬화해서 넘긴 데이터를 역직렬화하는 것
-        game = getIntent().getParcelableExtra(EXTRA_GAME);
+        // MainActivity에서 intent.putExtra("extra_game", game)으로 보낸 Game 객체를 꺼냄
+        // 흐름: MainActivity가 Game을 Parcel에 포장(writeToParcel)해서 Intent에 실음
+        //       → 이 Activity가 Intent에서 Parcel을 꺼내고 CREATOR로 Game 복원
+        //       → 결과적으로 MainActivity의 Game과 동일한 데이터를 가진 새 Game 객체가 됨
+        game = getIntent().getParcelableExtra(EXTRA_GAME, Game.class);
 
         // 게임 데이터가 없으면 화면을 닫음 (비정상 진입 방지)
         if (game == null) {

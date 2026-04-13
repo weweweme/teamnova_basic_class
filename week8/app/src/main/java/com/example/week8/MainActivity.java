@@ -135,10 +135,16 @@ public class MainActivity extends AppCompatActivity {
             // 카드 클릭 시 GameDetailActivity로 이동
             // Unity로 비유하면 Button.onClick에 Scene 전환 + 데이터 전달 등록
             cardView.setOnClickListener(v -> {
+                // 명시적 Intent 생성: "이 Activity에서 GameDetailActivity로 이동하겠다"
                 Intent intent = new Intent(this, GameDetailActivity.class);
-                // Parcelable Game 객체를 Intent에 실어서 전달
-                // 1단계에서 구현한 writeToParcel이 여기서 호출됨
+
+                // putExtra(키, 값)으로 Intent 봉투 안에 데이터를 넣음
+                // 키: 받는 쪽과 동일한 문자열 상수 (키가 다르면 꺼낼 수 없음)
+                // 값: Parcelable Game 객체 (내부적으로 writeToParcel 호출되어 직렬화됨)
+                // Unity로 비유하면 PlayerPrefs.Set("키", 값) 후 Scene 전환하는 것
                 intent.putExtra(GameDetailActivity.EXTRA_GAME, game);
+
+                // Intent를 시스템에 전달하여 GameDetailActivity 실행
                 startActivity(intent);
             });
 

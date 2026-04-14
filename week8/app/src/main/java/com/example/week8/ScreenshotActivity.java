@@ -12,7 +12,6 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.WindowCompat;
 
 import com.example.week8.databinding.ActivityScreenshotBinding;
 
@@ -82,9 +81,6 @@ public class ScreenshotActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
-
-        // edge-to-edge 비활성화
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
 
         // ViewBinding 연결
         binding = ActivityScreenshotBinding.inflate(getLayoutInflater());

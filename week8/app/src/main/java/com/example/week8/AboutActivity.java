@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.MenuItem;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.WindowCompat;
 
 import com.example.week8.databinding.ActivityAboutBinding;
 
@@ -35,9 +34,6 @@ public class AboutActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // edge-to-edge 비활성화
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
 
         // ViewBinding 연결
         binding = ActivityAboutBinding.inflate(getLayoutInflater());

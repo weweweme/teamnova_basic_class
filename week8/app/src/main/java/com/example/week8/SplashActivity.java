@@ -7,7 +7,6 @@ import android.os.Handler;
 import android.os.Looper;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.WindowCompat;
 
 import com.example.week8.databinding.ActivitySplashBinding;
 
@@ -69,9 +68,6 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // edge-to-edge 비활성화 (상태바가 콘텐츠를 덮지 않도록)
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
 
         // ViewBinding으로 레이아웃 연결
         // Unity로 비유하면 Prefab을 Instantiate하고 참조를 잡는 것

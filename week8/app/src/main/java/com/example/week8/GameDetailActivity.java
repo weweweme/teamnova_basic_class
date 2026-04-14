@@ -7,7 +7,6 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.WindowCompat;
 
 import com.example.week8.databinding.ActivityGameDetailBinding;
 import com.example.week8.model.Game;
@@ -58,9 +57,6 @@ public class GameDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // edge-to-edge 비활성화
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
 
         // ViewBinding 연결
         binding = ActivityGameDetailBinding.inflate(getLayoutInflater());

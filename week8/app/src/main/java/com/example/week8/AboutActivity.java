@@ -1,7 +1,11 @@
 package com.example.week8;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -25,6 +29,12 @@ import com.example.week8.databinding.ActivityAboutBinding;
 public class AboutActivity extends AppCompatActivity {
 
     /// <summary>
+    /// 개발자의 GitHub 프로필 주소
+    /// ACTION_VIEW Intent로 브라우저를 열 때 사용
+    /// </summary>
+    private static final String DEVELOPER_GITHUB_URL = "https://github.com/weweweme";
+
+    /// <summary>
     /// ViewBinding 객체
     /// </summary>
     private ActivityAboutBinding binding;
@@ -44,13 +54,42 @@ public class AboutActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        // 버튼 리스너 (다음 커밋에서 ACTION_VIEW / ACTION_SENDTO 구현)
-        binding.buttonVisitRawg.setOnClickListener(v -> {
-            // TODO: ACTION_VIEW
-        });
+        // 개발자 GitHub 버튼 → 브라우저로 이동
+        binding.buttonDeveloperGithub.setOnClickListener(v -> openDeveloperGithub());
+
+        // 개발자에게 피드백 버튼 (다음 커밋에서 ACTION_SENDTO 구현)
         binding.buttonSendFeedback.setOnClickListener(v -> {
             // TODO: ACTION_SENDTO
         });
+    }
+
+    // ========== 암시적 Intent: 브라우저 열기 ==========
+
+    /// <summary>
+    /// 개발자의 GitHub 프로필을 브라우저로 열기
+    ///
+    /// ──── ACTION_VIEW 복습 ────
+    /// 공식 문서: https://developer.android.com/guide/components/intents-common#Browser
+    ///
+    /// GameDetailActivity의 "스토어 열기"와 동일한 패턴:
+    ///   Intent(ACTION_VIEW, Uri.parse("https://...")) → startActivity
+    /// → Android가 scheme="https"를 보고 브라우저 앱을 찾아 실행
+    ///
+    /// 실제 Intent 내부 모습:
+    ///   action = "android.intent.action.VIEW"
+    ///   data   = "https://github.com/weweweme"
+    ///
+    /// try-catch 사용 이유:
+    /// Android 11+ 패키지 가시성 제한으로 resolveActivity()가 null 나올 수 있음
+    /// → ActivityNotFoundException으로 안전 처리
+    /// </summary>
+    private void openDeveloperGithub() {
+        Intent viewIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(DEVELOPER_GITHUB_URL));
+        try {
+            startActivity(viewIntent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, R.string.about_no_browser, Toast.LENGTH_SHORT).show();
+        }
     }
 
     /// <summary>

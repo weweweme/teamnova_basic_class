@@ -39,38 +39,13 @@
             android:text="@string/about_description"
             android:textSize="16sp" />
 
-        <!-- 사용 API 섹션 제목 -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="@string/about_api_header"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <!-- RAWG -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/about_api_rawg"
-            android:textSize="14sp" />
-
-        <!-- Steam Web API -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/about_api_steam"
-            android:textSize="14sp" />
-
-        <!-- RAWG 사이트 방문 버튼 (ACTION_VIEW) -->
+        <!-- 개발자 GitHub 버튼 (ACTION_VIEW) -->
         <Button
-            android:id="@+id/buttonVisitRawg"
+            android:id="@+id/buttonDeveloperGithub"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
-            android:text="@string/about_visit_rawg" />
+            android:text="@string/about_developer_github" />
 
         <!-- 개발자에게 피드백 버튼 (ACTION_SENDTO) -->
         <Button

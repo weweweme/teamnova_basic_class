@@ -2,6 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Android 11(API 30)+ 패키지 가시성 선언 -->
+    <!-- 우리 앱이 "이런 Intent를 처리할 수 있는 앱이 있는지"를 조회하려면 -->
+    <!-- 어떤 Intent를 조회할지 미리 선언해야 함 -->
+    <!-- (보안 강화: 앱이 맘대로 다른 앱 목록을 훔쳐볼 수 없게 제한됨) -->
+    <queries>
+        <!-- 메일 앱 조회용 (ACTION_SENDTO + mailto:) -->
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -28,11 +40,23 @@
             android:exported="false" />
 
         <!-- 메인: 게임 리스트 화면 -->
-        <!-- exported=false: 앱 내부에서만 접근 (나중에 SEND 필터 추가 시 true로 변경) -->
+        <!-- exported=true: 다른 앱(Chrome, 메모 등)의 "공유" 대상으로 우리 앱이 나타나게 함 -->
+        <!-- intent-filter: "나는 이 요청을 처리할 수 있어요"라는 자격 선언 -->
+        <!-- Unity로 비유하면 "이런 SendMessage 이름을 받을 수 있는 오브젝트"로 등록하는 것 -->
         <activity
             android:name=".MainActivity"
             android:label="@string/main_title"
-            android:exported="false" />
+            android:exported="true">
+            <!-- ACTION_SEND + text/plain 수신 필터 -->
+            <!-- 다른 앱에서 텍스트를 공유할 때 "Game Diary"가 후보 목록에 나타남 -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <!-- DEFAULT: "암시적 Intent로도 받을 수 있게" 하는 필수 카테고리 -->
+                <category android:name="android.intent.category.DEFAULT" />
+                <!-- text/plain: 평문 텍스트만 받겠다 (이미지, URL도 받으려면 추가 선언 필요) -->
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
 
         <!-- 게임 상세: 암시적 Intent 4종 집결지 -->
         <!-- parentActivityName: ← 버튼 누르면 MainActivity로 돌아감 -->

@@ -15,6 +15,8 @@
     <!-- 메인 -->
     <string name="main_title">내 게임 라이브러리</string>
     <string name="game_cover_description">게임 표지</string>
+    <!-- 다른 앱에서 공유받았을 때 Toast에 표시 (%s 자리에 실제 공유된 텍스트 들어감) -->
+    <string name="main_shared_text">공유받은 텍스트: %s</string>
 
     <!-- 리뷰 작성 -->
     <string name="review_title">리뷰 작성</string>
@@ -47,4 +49,7 @@
     <string name="about_menu_label">앱 정보</string>
     <string name="about_no_browser">브라우저 앱을 찾을 수 없습니다</string>
     <string name="about_no_mail">메일 앱을 찾을 수 없습니다</string>
+    <string name="about_feedback_subject">[Game Diary] 피드백</string>
+    <string name="about_feedback_body">앱을 사용하시며 느낀 점을 자유롭게 적어주세요.\n\n</string>
+    <string name="about_feedback_chooser_title">메일 앱 선택</string>
 </resources>

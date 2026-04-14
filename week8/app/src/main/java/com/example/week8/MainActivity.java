@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -56,6 +57,65 @@ public class MainActivity extends AppCompatActivity {
 
         // GameRepository 초기화
         gameRepository = new GameRepository();
+
+        // 다른 앱에서 "공유하기"로 이 앱을 실행했다면 받은 텍스트를 처리
+        // (앱이 죽어있던 상태에서 공유로 실행되면 onCreate로 Intent가 들어옴)
+        handleIncomingShareIntent(getIntent());
+    }
+
+    /// <summary>
+    /// 앱이 이미 살아있는 상태에서 다른 앱이 "공유하기"로 우리 앱을 다시 부르면 호출됨
+    /// (singleTop/singleTask launchMode에서 주로 사용되지만, 표준 launchMode에서도 안전망)
+    ///
+    /// onCreate는 "앱이 처음 생성될 때"만 Intent를 받고,
+    /// onNewIntent는 "이미 떠있는 Activity가 Intent를 다시 받을 때" 호출됨
+    /// → 두 곳 모두에서 처리해야 모든 케이스 커버
+    /// </summary>
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        // 새 Intent로 setIntent()를 해줘야 getIntent()가 최신 값을 반환
+        setIntent(intent);
+        handleIncomingShareIntent(intent);
+    }
+
+    // ========== Intent 수신: 다른 앱의 "공유하기" 결과 처리 ==========
+
+    /// <summary>
+    /// 다른 앱에서 "ACTION_SEND + text/plain"으로 우리 앱을 실행했을 때 받은 텍스트 처리
+    ///
+    /// ──── Intent Filter 수신 학습 ────
+    /// AndroidManifest에 intent-filter를 등록해두면 Android가 우리 앱을 "공유 대상" 후보로 띄움
+    ///   액션(SEND) + 카테고리(DEFAULT) + 데이터(text/plain) 세 조건이 모두 맞아야 매칭됨
+    ///
+    /// 실제 들어오는 Intent 모습 (Chrome에서 글자 공유했을 때):
+    ///   action = "android.intent.action.SEND"
+    ///   type   = "text/plain"
+    ///   extras = EXTRA_TEXT: "사용자가 선택해서 공유한 텍스트"
+    ///
+    /// 지금은 학습용으로 Toast만 띄우지만,
+    /// 실제 프로덕트에선 "이 텍스트로 RAWG 게임 검색"으로 이어지는 흐름이 자연스러움
+    /// </summary>
+    private void handleIncomingShareIntent(Intent intent) {
+        if (intent == null) {
+            return;
+        }
+        // 이 Intent가 "공유(SEND) + 텍스트(text/plain)"인지 확인
+        boolean isSendAction = Intent.ACTION_SEND.equals(intent.getAction());
+        boolean isTextType = "text/plain".equals(intent.getType());
+        if (!isSendAction || !isTextType) {
+            return;
+        }
+
+        // 공유받은 텍스트 꺼내기
+        String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+        if (sharedText == null || sharedText.isEmpty()) {
+            return;
+        }
+
+        // Toast로 받은 텍스트 표시 (학습 목적)
+        String message = getString(R.string.main_shared_text, sharedText);
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
     /// <summary>

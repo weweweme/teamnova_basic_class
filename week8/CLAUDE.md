@@ -474,6 +474,6 @@ Game (Parcelable)
 15. ✅ GameDetail ACTION_VIEW (Steam)
 16. ✅ ScreenshotActivity + ACTION_PICK (갤러리에서 이미지 선택)
 17. ✅ Screenshot lifecycle Logcat 로깅 (외부앱 호출 시 흐름 관찰)
-18. AboutActivity + VIEW/SENDTO chooser
-19. Main SEND Intent Filter 수신
+18. ✅ AboutActivity + VIEW/SENDTO chooser
+19. ✅ Main SEND Intent Filter 수신
 20. ✅ Splash FLAG 적용 + 정리

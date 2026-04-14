@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -35,6 +36,13 @@ import com.example.week8.databinding.ActivityScreenshotBinding;
 /// 송신 (다음 커밋): ACTION_OPEN_DOCUMENT로 Documents UI 호출
 /// </summary>
 public class ScreenshotActivity extends AppCompatActivity {
+
+    /// <summary>
+    /// Logcat 필터용 태그
+    /// Android Studio 하단 Logcat 패널에서 이 문자열로 필터링하면
+    /// 이 Activity의 Lifecycle 흐름만 모아서 볼 수 있음
+    /// </summary>
+    private static final String TAG = "ScreenshotActivity";
 
     /// <summary>
     /// Intent extras에서 게임 제목을 꺼낼 때 사용하는 키
@@ -73,6 +81,7 @@ public class ScreenshotActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
 
         // edge-to-edge 비활성화
         WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
@@ -180,6 +189,52 @@ public class ScreenshotActivity extends AppCompatActivity {
         binding.imageViewPreview.setImageURI(imageUri);
         // 사진이 생겼으니 "아직 추가한 사진이 없습니다" 문구는 숨김
         binding.textViewEmpty.setVisibility(View.GONE);
+    }
+
+    // ========== Lifecycle 관찰용 로그 ==========
+    // Logcat에서 "ScreenshotActivity" 태그로 필터링하면
+    // 갤러리 앱 호출 시 이 Activity가 어떤 순서로 콜백을 거치는지 확인 가능
+    //
+    // 예상 흐름 (갤러리 열었다가 사진 선택 후 복귀):
+    //   1. 처음 진입:     onCreate → onStart → onResume
+    //   2. 갤러리 열림:   onPause → onStop
+    //   3. 갤러리 복귀:   onRestart → onStart → onResume
+    //   4. ← 뒤로가기:   onPause → onStop → onDestroy
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.d(TAG, "onRestart");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy");
     }
 
     /// <summary>

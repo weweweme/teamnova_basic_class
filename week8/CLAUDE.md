@@ -415,7 +415,7 @@ UserConfig (설정)
 | 3 | MainActivity | 게임 카드 리스트 (ScrollView) | onResume에서 리스트 갱신, onRestart 관찰, SEND 수신 필터 |
 | 4 | GameDetailActivity | 게임 상세, 암시적 Intent 4종 집결지 | SEND chooser, VIEW 브라우저, forResult 2건 |
 | 5 | ReviewWriteActivity ★ | 별점+한줄평 | onSaveInstanceState(회전) 사용 |
-| 6 | ScreenshotActivity | 갤러리에서 이미지 선택 + 미리보기 | ACTION_PICK, 외부앱 호출 시 lifecycle 흐름 화면 표시 |
+| 6 | ScreenshotActivity | 갤러리에서 이미지 선택 + 미리보기 | ACTION_OPEN_DOCUMENT, 외부앱 호출 시 lifecycle 흐름 Logcat 관찰 |
 | 7 | AboutActivity | 앱 정보 | VIEW(브라우저) / SENDTO(메일) chooser |
 
 ### Lifecycle 콜백 9개 매핑
@@ -473,7 +473,7 @@ Game (Parcelable)
 14. ✅ GameDetail ACTION_SEND chooser
 15. ✅ GameDetail ACTION_VIEW (Steam)
 16. ✅ ScreenshotActivity + ACTION_PICK (갤러리에서 이미지 선택)
-17. Screenshot lifecycle 화면 표시
+17. ✅ Screenshot lifecycle Logcat 로깅 (외부앱 호출 시 흐름 관찰)
 18. AboutActivity + VIEW/SENDTO chooser
 19. Main SEND Intent Filter 수신
 20. ✅ Splash FLAG 적용 + 정리

@@ -3,6 +3,8 @@ package com.example.week8;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -77,6 +79,34 @@ public class MainActivity extends AppCompatActivity {
 
         // 카드 리스트 갱신 (변경된 별점/리뷰 반영)
         populateGameCards();
+    }
+
+    // ========== ActionBar 오버플로우 메뉴 (⋮) ==========
+
+    /// <summary>
+    /// ActionBar에 메뉴를 표시할 때 호출 (Activity 최초 생성 시 1번 호출됨)
+    /// menu_main.xml에 정의된 항목들을 실제 메뉴로 부풀림(inflate)
+    /// Unity로 비유하면 MenuPrefab을 MenuContainer에 Instantiate
+    /// </summary>
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    /// <summary>
+    /// 메뉴 항목이 선택되면 호출
+    /// item.getItemId()로 어떤 항목이 눌렸는지 판별
+    /// </summary>
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_about) {
+            // "앱 정보" 메뉴 → AboutActivity로 이동
+            Intent intent = new Intent(this, AboutActivity.class);
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     // ========== 카드 생성 ==========

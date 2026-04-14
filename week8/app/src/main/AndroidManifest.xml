@@ -57,6 +57,14 @@
             android:label="@string/screenshot_title"
             android:parentActivityName=".GameDetailActivity"
             android:exported="false" />
+
+        <!-- 앱 정보: ACTION_VIEW / ACTION_SENDTO 학습 화면 -->
+        <!-- parentActivityName: ← 버튼 누르면 MainActivity로 돌아감 -->
+        <activity
+            android:name=".AboutActivity"
+            android:label="@string/about_title"
+            android:parentActivityName=".MainActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

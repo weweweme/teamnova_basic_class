@@ -36,4 +36,18 @@
     <string name="screenshot_empty">아직 추가한 사진이 없습니다</string>
     <string name="screenshot_preview_description">선택한 스크린샷 미리보기</string>
     <string name="screenshot_no_gallery">갤러리 앱을 찾을 수 없습니다</string>
+
+    <!-- 앱 정보 (About) -->
+    <string name="about_title">앱 정보</string>
+    <string name="about_app_name">Game Diary</string>
+    <string name="about_version">버전 1.0.0</string>
+    <string name="about_description">나만의 게임 다이어리 — 별점과 한줄평으로 기록하는 개인 게임 일지</string>
+    <string name="about_api_header">사용 예정 API</string>
+    <string name="about_api_rawg">• RAWG: 50만개+ 게임 메타데이터 (12주차 적용 예정)</string>
+    <string name="about_api_steam">• Steam Web API: 소유 게임 자동 임포트 (12주차 적용 예정)</string>
+    <string name="about_visit_rawg">RAWG 사이트 방문</string>
+    <string name="about_send_feedback">개발자에게 피드백 보내기</string>
+    <string name="about_menu_label">앱 정보</string>
+    <string name="about_no_browser">브라우저 앱을 찾을 수 없습니다</string>
+    <string name="about_no_mail">메일 앱을 찾을 수 없습니다</string>
 </resources>

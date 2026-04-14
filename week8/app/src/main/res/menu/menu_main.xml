@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MainActivity의 ActionBar 오버플로우 메뉴 (⋮ 세 점 메뉴) -->
+<!-- showAsAction="never": ActionBar에 직접 표시하지 않고 오버플로우로만 표시 -->
+<!-- Unity로 비유하면 우클릭 컨텍스트 메뉴를 미리 리소스로 정의하는 것 -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- 앱 정보 메뉴 -->
+    <item
+        android:id="@+id/action_about"
+        android:title="@string/about_menu_label"
+        app:showAsAction="never" />
+
+</menu>

@@ -388,7 +388,7 @@ UserConfig (설정)
 ### 커리큘럼 매핑 (6주 과정 전체 활용)
 | 주차 | 배우는 것 | 앱에 적용 |
 |------|----------|----------|
-| 2주차 | Activity, Intent | Splash→Onboarding→Main 흐름, GameDetail→ReviewWrite, 공유/카메라 Intent |
+| 2주차 | Activity, Intent | Splash→Onboarding→Main 흐름, GameDetail→ReviewWrite, 공유/갤러리 Intent |
 | 3주차 | RecyclerView | 홈 타임라인, 게임 목록(필터 탭), 검색 결과, 플레이 로그, 설정 항목 |
 | 4주차 | 로컬 DB | Game, PlayLog, Wishlist, Screenshot, UserConfig 테이블 |
 | 5주차 | 백그라운드 처리 | API 비동기 호출, 이미지 로딩, Steam 대량 임포트, 위시리스트 출시일 알림 |
@@ -415,7 +415,7 @@ UserConfig (설정)
 | 3 | MainActivity | 게임 카드 리스트 (ScrollView) | onResume에서 리스트 갱신, onRestart 관찰, SEND 수신 필터 |
 | 4 | GameDetailActivity | 게임 상세, 암시적 Intent 4종 집결지 | SEND chooser, VIEW 브라우저, forResult 2건 |
 | 5 | ReviewWriteActivity ★ | 별점+한줄평 | onSaveInstanceState(회전) 사용 |
-| 6 | ScreenshotActivity | 카메라 호출 + 미리보기 | IMAGE_CAPTURE, 외부앱 호출 시 lifecycle 흐름 화면 표시 |
+| 6 | ScreenshotActivity | 갤러리에서 이미지 선택 + 미리보기 | ACTION_PICK, 외부앱 호출 시 lifecycle 흐름 화면 표시 |
 | 7 | AboutActivity | 앱 정보 | VIEW(브라우저) / SENDTO(메일) chooser |
 
 ### Lifecycle 콜백 9개 매핑
@@ -425,7 +425,7 @@ UserConfig (설정)
 | onStart | Main | 포그라운드 진입 표시 |
 | onResume | Main | GameRepository 재로드 → 리스트 갱신 |
 | onPause | GameDetail | 마지막 본 게임 로그 (Log 출력으로 학습) |
-| onStop | Screenshot | 카메라 호출 흐름 관찰 |
+| onStop | Screenshot | 갤러리 호출 흐름 관찰 |
 | onRestart | Main | 백키 복귀 분기 |
 | onDestroy | Splash | Handler 콜백 제거 |
 | onSaveInstanceState | Onboarding(페이지), ReviewWrite(입력중), Main(스크롤) | 회전 대응 |
@@ -439,7 +439,7 @@ UserConfig (설정)
 | 결과 반환 | GameDetail↔ReviewWrite, GameDetail↔Screenshot |
 | 암시적 VIEW | GameDetail→Steam URL, About→RAWG 사이트 |
 | Chooser | GameDetail SEND, About SENDTO 메일 |
-| 외부 액션 | Screenshot의 IMAGE_CAPTURE |
+| 외부 액션 | Screenshot의 ACTION_PICK (갤러리 선택) |
 | Flags | Splash→Main의 CLEAR_TASK/NO_HISTORY |
 
 ### 데이터 모델 (더미)
@@ -472,7 +472,7 @@ Game (Parcelable)
 13. ✅ ReviewWrite setResult 반환 → 갱신 확인
 14. ✅ GameDetail ACTION_SEND chooser
 15. ✅ GameDetail ACTION_VIEW (Steam)
-16. ScreenshotActivity + IMAGE_CAPTURE
+16. ✅ ScreenshotActivity + ACTION_PICK (갤러리에서 이미지 선택)
 17. Screenshot lifecycle 화면 표시
 18. AboutActivity + VIEW/SENDTO chooser
 19. Main SEND Intent Filter 수신

@@ -155,7 +155,8 @@ public class GameDetailActivity extends AppCompatActivity {
         // 스토어 열기 버튼 → 브라우저에서 Steam 페이지 열기
         binding.buttonStore.setOnClickListener(v -> openStoreUrl());
 
-        // 스크린샷 버튼은 이후 단계에서 구현
+        // 스크린샷 버튼 → ScreenshotActivity로 이동
+        binding.buttonScreenshot.setOnClickListener(v -> openScreenshot());
     }
 
     /// <summary>
@@ -216,6 +217,19 @@ public class GameDetailActivity extends AppCompatActivity {
         // 두 번째 파라미터는 다이얼로그 상단에 표시되는 제목
         Intent chooser = Intent.createChooser(sendIntent, getString(R.string.detail_share));
         startActivity(chooser);
+    }
+
+    // ========== 스크린샷 화면 이동 ==========
+
+    /// <summary>
+    /// ScreenshotActivity로 이동
+    /// 현재 게임의 제목을 Intent extras로 전달 (어떤 게임의 스크린샷인지 표시용)
+    /// 카메라 호출은 ScreenshotActivity 내부에서 처리 (다음 커밋에서 구현)
+    /// </summary>
+    private void openScreenshot() {
+        Intent intent = new Intent(this, ScreenshotActivity.class);
+        intent.putExtra(ScreenshotActivity.EXTRA_GAME_TITLE, game.getTitle());
+        startActivity(intent);
     }
 
     // ========== 암시적 Intent: 스토어 열기 ==========

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 스크린샷 화면 레이아웃 -->
+<!-- 갤러리 앱을 호출해서 이미지를 선택하고, 선택한 사진을 미리보기로 표시 -->
+<!-- 외부 앱(갤러리)을 호출할 때 Activity Lifecycle 흐름을 관찰하는 용도 -->
+<!-- 실제 프로덕트에서는 PC/콘솔에서 찍은 스크린샷을 폰 갤러리로 옮겨 업로드하는 흐름 -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".ScreenshotActivity">
+
+    <!-- 게임 제목 (상단) -->
+    <!-- GameDetail에서 Intent extras로 받은 게임 이름을 표시 -->
+    <TextView
+        android:id="@+id/textViewGameTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <!-- 사진 미리보기 영역 -->
+    <!-- 카메라에서 찍은 사진을 여기에 표시 -->
+    <!-- 아직 사진이 없으면 textViewEmpty 문구가 보이도록 기본 비어있게 둠 -->
+    <!-- layout_weight=1: 남는 공간을 전부 차지하도록 -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:layout_weight="1"
+        android:background="#22000000">
+
+        <!-- 안내 문구: 아직 사진이 없을 때만 보임 -->
+        <TextView
+            android:id="@+id/textViewEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/screenshot_empty"
+            android:textSize="16sp" />
+
+        <!-- 촬영한 사진이 표시될 ImageView -->
+        <!-- fitCenter: 비율 유지하면서 프레임 안에 맞춤 -->
+        <ImageView
+            android:id="@+id/imageViewPreview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/screenshot_preview_description" />
+    </FrameLayout>
+
+    <!-- 갤러리에서 선택 버튼 -->
+    <Button
+        android:id="@+id/buttonPickImage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/screenshot_pick_image" />
+
+</LinearLayout>

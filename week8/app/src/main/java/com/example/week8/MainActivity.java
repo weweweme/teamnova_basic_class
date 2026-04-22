@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.week8.data.GameRepository;
@@ -72,8 +73,9 @@ public class MainActivity extends AppCompatActivity {
     /// → 두 곳 모두에서 처리해야 모든 케이스 커버
     /// </summary>
     @Override
-    protected void onNewIntent(Intent intent) {
+    protected void onNewIntent(@NonNull Intent intent) {
         super.onNewIntent(intent);
+
         // 새 Intent로 setIntent()를 해줘야 getIntent()가 최신 값을 반환
         setIntent(intent);
         handleIncomingShareIntent(intent);
@@ -93,8 +95,6 @@ public class MainActivity extends AppCompatActivity {
     ///   type   = "text/plain"
     ///   extras = EXTRA_TEXT: "사용자가 선택해서 공유한 텍스트"
     ///
-    /// 지금은 학습용으로 Toast만 띄우지만,
-    /// 실제 프로덕트에선 "이 텍스트로 RAWG 게임 검색"으로 이어지는 흐름이 자연스러움
     /// </summary>
     private void handleIncomingShareIntent(Intent intent) {
         if (intent == null) {
@@ -113,7 +113,9 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Toast로 받은 텍스트 표시 (학습 목적)
+        // Toast로 받은 텍스트 표시
+        // 지금은 학습용으로 Toast만 띄우지만,
+        // 실제 프로덕트에선 "이 텍스트로 RAWG 게임 검색"으로 이어지는 흐름이 자연스러움
         String message = getString(R.string.main_shared_text, sharedText);
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }

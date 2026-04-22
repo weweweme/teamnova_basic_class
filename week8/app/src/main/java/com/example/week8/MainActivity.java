@@ -169,7 +169,6 @@ public class MainActivity extends AppCompatActivity {
 
     /// <summary>
     /// GameRepository의 전체 게임 목록을 읽어 카드를 동적으로 생성
-    /// Unity로 비유하면 foreach(var data in list) Instantiate(prefab, content)
     /// </summary>
     private void populateGameCards() {
         // 기존 카드 전부 제거 (새로고침 시 중복 방지)

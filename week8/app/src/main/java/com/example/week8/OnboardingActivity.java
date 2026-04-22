@@ -27,19 +27,49 @@ import com.example.week8.databinding.ActivityOnboardingBinding;
 public class OnboardingActivity extends AppCompatActivity {
 
     /// <summary>
-    /// 온보딩 총 페이지 수
+    /// 온보딩 전체 페이지 개수 (3페이지 고정)
+    /// "마지막 페이지인지" 판별, "N / 3" 표시에 사용
     /// </summary>
     private static final int TOTAL_PAGES = 3;
 
     /// <summary>
-    /// Bundle에 페이지 인덱스를 저장할 때 사용하는 키
-    /// onSaveInstanceState/onRestoreInstanceState에서 사용
+    /// onSaveInstanceState에서 Bundle에 "현재 페이지 번호"를 저장할 때 사용하는 키
+    ///
+    /// Bundle은 키-값 저장소 (HashMap처럼 동작)라서,
+    /// 값을 넣을 때와 꺼낼 때 같은 문자열을 써야 함
+    ///   outState.putInt("current_page", 2);                   // 저장
+    ///   savedInstanceState.getInt("current_page", 0);          // 복원 (같은 키!)
+    ///
+    /// 키 오타로 인한 버그를 막기 위해 상수로 뽑아둠
     /// </summary>
     private static final String KEY_CURRENT_PAGE = "current_page";
 
     /// <summary>
     /// ViewBinding 객체
-    /// Unity로 비유하면 Inspector에서 드래그로 연결한 UI 참조 모음
+    /// activity_onboarding.xml 레이아웃 안의 id가 붙은 View들을 모아놓은 묶음
+    ///
+    /// ──── ViewBinding 이란? ────
+    /// 공식 문서: https://developer.android.com/topic/libraries/view-binding
+    ///
+    /// XML 레이아웃 파일 이름이 activity_onboarding.xml 이면,
+    /// Android 빌드 시스템이 자동으로 ActivityOnboardingBinding 클래스를 생성해줌
+    ///   (파일명 첫 글자 대문자화 + 언더스코어 제거 + "Binding" 붙임)
+    ///
+    /// 이 binding 객체 하나에 XML의 모든 View가 필드로 들어있음
+    ///   XML에 android:id="@+id/buttonNext" 있으면 → binding.buttonNext
+    ///   XML에 android:id="@+id/viewFlipper" 있으면 → binding.viewFlipper
+    ///   XML에 android:id="@+id/textViewPageIndicator" 있으면 → binding.textViewPageIndicator
+    ///
+    /// 구식 방법(findViewById):
+    ///   Button btn = findViewById(R.id.buttonNext);
+    ///   → 매번 View 하나씩 찾아와야 하고, 타입 캐스팅 오류/null 가능성 있음
+    /// ViewBinding:
+    ///   binding.buttonNext
+    ///   → 타입 안전 + null 안전 + 자동완성 지원
+    ///
+    /// Unity 비유:
+    /// Inspector에서 SerializeField로 수동 연결해놓은 UI 참조들을
+    /// "자동으로 한 번에 모아준 객체"라고 생각하면 됨
     /// </summary>
     private ActivityOnboardingBinding binding;
 

@@ -31,6 +31,37 @@ import com.example.week8.databinding.ActivitySplashBinding;
 ///
 /// TODO: 10주차에서 SharedPreferences 학습 후 온보딩 완료 여부 분기 추가
 /// </summary>
+///
+/// ──── @SuppressLint("CustomSplashScreen") 이 왜 필요한가 ────
+/// 공식 문서: https://developer.android.com/develop/ui/views/launch/splash-screen
+/// 마이그레이션 가이드: https://developer.android.com/develop/ui/views/launch/splash-screen/migrate
+/// 테마/아트(로고) 설정 가이드: https://developer.android.com/develop/ui/views/launch/splash-screen#elements
+///
+/// Android 12(API 31)부터는 시스템이 앱 아이콘 기반의 SplashScreen을 자동으로 띄워줌
+///   → androidx.core.splashscreen.SplashScreen API + Theme.SplashScreen 사용이 표준
+///   → 별도의 SplashActivity를 만들 필요가 없어짐
+/// 그런데 우리는 예전 방식(SplashActivity 직접 구현)으로 만들었기 때문에
+/// Lint가 "CustomSplashScreen" 이라는 경고를 띄움
+///   → "요즘은 이렇게 안 만들어도 되는데?" 라는 뜻
+///
+/// 구식 방식을 사용한 이유 (학습 목적):
+///   이 화면 하나에서 다음 개념들을 한꺼번에 체험할 수 있기 때문
+///     - Intent Filter (Manifest에 MAIN + LAUNCHER)
+///     - Handler + Runnable (지연 실행)
+///     - Lifecycle onDestroy (예약된 콜백 정리)
+///     - 명시적 Intent + Flags (CLEAR_TASK)
+///
+/// SuppressLint 어노테이션 의미:
+///   "이 Lint 경고(CustomSplashScreen)는 의도적으로 무시하겠다"
+///   괄호 안 문자열이 Lint 경고 ID
+///   경고를 그냥 끄는 게 아니라, "이유를 알고 끈다"는 표시
+///
+/// ──── 로고/스플래시 아트 관련 ────
+/// 공식 리소스 가이드: https://developer.android.com/develop/ui/views/launch/splash-screen#splash_screen_dimensions
+///   - windowSplashScreenAnimatedIcon: 중앙 아이콘 (adaptive icon 권장)
+///   - windowSplashScreenBackground: 배경색
+/// Material Design 가이드: https://m3.material.io/styles/motion/transitions/splash-screen
+@SuppressLint("CustomSplashScreen")
 public class SplashActivity extends AppCompatActivity {
 
     /// <summary>

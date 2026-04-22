@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.week8.databinding.ActivityGameDetailBinding;
@@ -32,13 +34,6 @@ public class GameDetailActivity extends AppCompatActivity {
     public static final String EXTRA_GAME = "extra_game";
 
     /// <summary>
-    /// ReviewWriteActivity에 forResult 요청할 때 사용하는 요청 코드
-    /// onActivityResult에서 "이 결과가 리뷰 작성에서 온 건지" 구분하는 데 사용
-    /// Unity로 비유하면 콜백을 구분하는 ID 태그
-    /// </summary>
-    private static final int REQUEST_CODE_REVIEW = 1001;
-
-    /// <summary>
     /// ViewBinding 객체
     /// </summary>
     private ActivityGameDetailBinding binding;
@@ -47,6 +42,52 @@ public class GameDetailActivity extends AppCompatActivity {
     /// Intent로 전달받은 게임 데이터
     /// </summary>
     private Game game;
+
+    /// <summary>
+    /// ReviewWriteActivity를 실행하고 결과(별점/한줄평)를 받는 런처
+    ///
+    /// ──── Launcher(런처)란? ────
+    /// 공식 레퍼런스: https://developer.android.com/reference/androidx/activity/result/ActivityResultLauncher
+    ///
+    /// Launcher = "발사기/실행기"라는 뜻
+    /// registerForActivityResult(...)를 호출하면 Launcher 객체가 반환됨
+    /// 이 Launcher가 들고 있는 정보:
+    ///   - 어떤 Contract(계약)를 사용하는지 (입력/출력 타입)
+    ///   - 결과가 도착하면 실행할 콜백 람다
+    ///   - Lifecycle 연동 정보 (내부 Registry 참조)
+    ///
+    /// 주요 메서드:
+    ///   launch(input)         → Contract에 맞는 입력을 넣어 실제로 Activity 실행
+    ///   launch(input, options) → ActivityOptions(화면 전환 애니메이션 등)와 함께 실행
+    ///   unregister()          → 수동 해제 (보통 필요 없음. Lifecycle이 자동 처리)
+    ///
+    /// 제네릭 타입 ActivityResultLauncher<Intent>:
+    ///   꺾쇠 안의 Intent는 Contract의 "입력 타입"
+    ///   StartActivityForResult Contract는 Intent를 입력으로 받으므로 <Intent>
+    ///   만약 RequestPermission Contract라면 <String>이 됨
+    ///
+    /// 등록과 실행의 분리:
+    ///   등록(register): onCreate에서 1회 — Lifecycle 연동 위해 반드시 초기에
+    ///   실행(launch):   사용자 조작 시점 — 버튼 클릭 등에서 원하는 만큼 반복 호출
+    ///
+    /// ──── 현대 방식 (ActivityResultLauncher) ────
+    /// 공식 문서: https://developer.android.com/training/basics/intents/result
+    ///
+    /// 예전에는 startActivityForResult + onActivityResult + requestCode 조합을 썼지만,
+    /// Android 공식이 "더 이상 권장하지 않음(deprecated)"이라고 선언함
+    /// 이유:
+    ///   1. requestCode를 전역 int 상수로 관리해야 해서 실수 유발
+    ///   2. onActivityResult 하나에 여러 결과가 몰려서 if-else 분기 지저분
+    ///   3. Activity 생명주기와 무관하게 결과가 오면 크래시 가능
+    ///
+    /// 현대 방식의 장점:
+    ///   1. 요청마다 별도 Launcher → requestCode 불필요
+    ///   2. 결과 처리 콜백이 Launcher 생성 시 바로 묶여 있음 → 코드 가까이 배치
+    ///   3. 내부적으로 Lifecycle 연동 → 안전
+    ///
+    /// Screenshot의 galleryLauncher와 동일한 패턴
+    /// </summary>
+    private ActivityResultLauncher<Intent> reviewLauncher;
 
     // ========== Lifecycle ==========
 
@@ -79,6 +120,72 @@ public class GameDetailActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
+        // ──────── 리뷰 작성 결과를 받을 런처 등록 ────────
+        //
+        // 왜 onCreate 안에서 등록해야 하는가 (Lifecycle 연동):
+        //   registerForActivityResult는 Activity 내부의 ActivityResultRegistry에 콜백을 등록함
+        //   이 Registry는 Activity의 Lifecycle을 감지해서
+        //     - STARTED 상태일 때만 결과 전달
+        //     - 회전으로 Activity가 재생성되면 같은 키로 자동 재등록
+        //     - destroy 시 자동 해제 (메모리 누수 방지)
+        //
+        //   공식 규칙: Activity가 STARTED 상태가 되기 전에 등록해야 함
+        //     → STARTED 이후 등록 시 IllegalStateException 발생
+        //     → 실무적으론 onCreate가 표준 위치 (또는 필드 선언 시 초기화도 가능)
+        //   공식 문서:
+        //     - Activity Result API 가이드:
+        //       https://developer.android.com/training/basics/intents/result
+        //     - registerForActivityResult 레퍼런스:
+        //       https://developer.android.com/reference/androidx/activity/result/ActivityResultCaller
+        //     - Lifecycle 상태 설명:
+        //       https://developer.android.com/reference/androidx/lifecycle/Lifecycle.State
+        //
+        //   버튼 클릭 시점에 등록하면 회전 후 결과가 도착했을 때 콜백이 없어 결과가 누락될 수 있음
+        //
+        // 첫 번째 인자: Contract (계약서 — 입력/출력 타입 정의)
+        //   new ActivityResultContracts.StartActivityForResult()
+        //     = "입력은 Intent, 출력은 ActivityResult(resultCode + data Intent)"라는 범용 계약
+        //   다른 Contract 예시:
+        //     RequestPermission          → 입력 String(권한 이름),  출력 Boolean
+        //     TakePicture                → 입력 Uri(저장 경로),     출력 Boolean
+        //     PickVisualMedia            → 입력 요청,              출력 Uri
+        //     GetContent                 → 입력 MIME String,      출력 Uri
+        //   우리는 범용 Intent 실행 + Intent 결과 받기 패턴이라 StartActivityForResult 사용
+        //
+        // 두 번째 인자: 결과가 도착했을 때 실행될 람다 콜백
+        //   result 파라미터의 타입은 Contract가 정한 출력 타입(ActivityResult)
+        //   람다 안에서 바깥 필드(game, binding 등)에 접근 가능 (클로저)
+        reviewLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    // [1단계] 성공/취소 구분
+                    // ReviewWriteActivity가 setResult(RESULT_OK, data) + finish() 하면
+                    //   → resultCode = RESULT_OK, data = 결과 Intent
+                    // 사용자가 뒤로가기로 취소하면
+                    //   → resultCode = RESULT_CANCELED, data = null
+                    boolean isOk = result.getResultCode() == RESULT_OK;
+                    boolean hasData = result.getData() != null;
+                    if (!isOk || !hasData) {
+                        // 취소 또는 데이터 없음 → 아무것도 하지 않고 조기 종료
+                        return;
+                    }
+
+                    // [2단계] 결과 Intent에서 Extras 꺼내기
+                    // ReviewWriteActivity가 putExtra로 넣은 값을 같은 키로 꺼냄
+                    // getFloatExtra의 두 번째 인자 0f: 키가 없을 때 반환할 기본값 (방어)
+                    Intent data = result.getData();
+                    float rating = data.getFloatExtra(ReviewWriteActivity.EXTRA_RATING, 0f);
+                    String review = data.getStringExtra(ReviewWriteActivity.EXTRA_REVIEW);
+
+                    // [3단계] 클래스 필드 game에 반영
+                    game.setRating(rating);
+                    game.setReview(review);
+
+                    // [4단계] 화면 재바인딩 → 변경된 별점/한줄평이 TextView에 표시됨
+                    bindGameData();
+                }
+        );
+
         // 게임 정보를 화면에 표시
         bindGameData();
 
@@ -97,43 +204,6 @@ public class GameDetailActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    /// <summary>
-    /// ReviewWriteActivity에서 돌아왔을 때 결과를 받는 콜백
-    ///
-    /// forResult 흐름 정리:
-    /// 1. 이 화면에서 startActivityForResult(intent, REQUEST_CODE_REVIEW) 호출
-    /// 2. ReviewWrite에서 setResult(RESULT_OK, data) + finish()
-    /// 3. 이 메서드가 자동 호출됨
-    /// 4. requestCode로 "어디서 온 결과인지" 구분
-    /// 5. resultCode로 "성공/취소" 확인
-    /// 6. data Intent에서 별점/한줄평 꺼내서 Game에 반영
-    ///
-    /// Unity로 비유하면 팝업 Panel의 onClose 콜백이 호출되는 것
-    /// </summary>
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        // 리뷰 작성 결과인지 확인
-        boolean isReviewResult = requestCode == REQUEST_CODE_REVIEW;
-        // 사용자가 저장 버튼을 눌렀는지 확인 (뒤로가기면 RESULT_CANCELED)
-        boolean isSuccess = resultCode == RESULT_OK;
-        boolean hasData = data != null;
-
-        if (isReviewResult && isSuccess && hasData) {
-            // 결과에서 별점/한줄평 꺼내기
-            float rating = data.getFloatExtra(ReviewWriteActivity.EXTRA_RATING, 0f);
-            String review = data.getStringExtra(ReviewWriteActivity.EXTRA_REVIEW);
-
-            // Game 객체에 반영
-            game.setRating(rating);
-            game.setReview(review);
-
-            // 화면 갱신
-            bindGameData();
-        }
     }
 
     // ========== 버튼 설정 ==========
@@ -156,8 +226,12 @@ public class GameDetailActivity extends AppCompatActivity {
     }
 
     /// <summary>
-    /// ReviewWriteActivity를 startActivityForResult로 실행
+    /// ReviewWriteActivity를 실행하고 결과(별점/한줄평)를 받아옴
     /// 현재 게임의 ID, 제목, 기존 별점/한줄평을 Intent에 담아서 보냄
+    ///
+    /// ──── 결과 처리 위치 ────
+    /// 결과가 돌아오면 onCreate에서 등록해둔 reviewLauncher의 람다가 실행됨
+    /// → 별점/한줄평을 Game에 반영하고 bindGameData()로 화면 갱신
     /// </summary>
     private void openReviewWrite() {
         Intent intent = new Intent(this, ReviewWriteActivity.class);
@@ -168,9 +242,27 @@ public class GameDetailActivity extends AppCompatActivity {
         intent.putExtra(ReviewWriteActivity.EXTRA_CURRENT_RATING, game.getRating());
         intent.putExtra(ReviewWriteActivity.EXTRA_CURRENT_REVIEW, game.getReview());
 
-        // forResult로 실행: 결과를 onActivityResult에서 받음
-        // REQUEST_CODE_REVIEW로 "이건 리뷰 작성 요청이다"라고 태그를 붙임
-        startActivityForResult(intent, REQUEST_CODE_REVIEW);
+        // ──────── launch(intent) 내부 동작 ────────
+        // 이 한 줄이 트리거하는 6단계:
+        //   1. Contract.createIntent(intent) — Contract가 input을 실행용 Intent로 변환
+        //      StartActivityForResult는 입력 Intent를 그대로 통과시킴
+        //      (RequestPermission이라면 String → 권한요청 Intent로 변환 등)
+        //   2. Registry가 내부 requestCode 자동 할당 — 옛 requestCode 상수를 대체
+        //   3. 시스템에 startActivityForResult(실행Intent, 내부코드) 호출
+        //   4. Android가 ReviewWriteActivity 실행 → 사용자 조작 → setResult + finish
+        //   5. 결과가 돌아오면 ComponentActivity가 가로채서 Registry로 라우팅
+        //   6. Contract.parseResult로 결과 변환 → onCreate에서 등록한 람다 호출
+        //
+        // Lifecycle에 따른 콜백 타이밍:
+        //   - 결과 도착 시 STARTED 상태면 → 즉시 람다 실행
+        //   - STOPPED 상태면 → Registry가 결과를 저장해뒀다가 STARTED 될 때 람다 실행
+        //   - 회전으로 재생성 중이면 → 새 인스턴스가 같은 키로 재등록되고 그때 람다 실행
+        //
+        // 결과적으로 우리 코드는:
+        //   - launch 호출 후 바로 다음 줄이 실행됨 (비동기)
+        //   - 결과는 onCreate에서 등록한 reviewLauncher 람다로 자동 도착 (requestCode 불필요)
+        //   - 같은 Launcher를 여러 번 launch해도 OK (매번 새로 등록할 필요 없음)
+        reviewLauncher.launch(intent);
     }
 
     // ========== 암시적 Intent: 공유 ==========

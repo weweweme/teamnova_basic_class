@@ -83,7 +83,21 @@ public class OnboardingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // ViewBinding으로 레이아웃 연결
+        // ──────── ViewBinding 연결 (XML 레이아웃 → 실제 화면) ────────
+        //
+        // ① inflate(getLayoutInflater())
+        //    "부풀리다"는 뜻. XML(설계도)을 읽어 실제 View 객체들로 만들어냄
+        //    activity_onboarding.xml 안의 모든 View(ViewFlipper, Button, TextView...)가
+        //    메모리에 Java 객체로 생성되고, 그걸 ActivityOnboardingBinding 객체에 담아 반환
+        //    → 이때까지는 메모리에만 있고 화면엔 아직 안 보임
+        //    Unity 비유: Instantiate(prefab) 로 씬에 GameObject를 생성
+        //
+        // ② setContentView(binding.getRoot())
+        //    inflate로 만든 View 덩어리의 최상위(root)를 Activity의 메인 화면으로 등록
+        //    이 시점에 비로소 사용자 눈에 보임
+        //    Unity 비유: 생성한 GameObject를 Canvas/Scene에 SetParent로 붙이는 것
+        //
+        // 두 줄이 합쳐져야 "XML → 메모리 객체 → 실제 화면" 과정이 완성됨
         binding = ActivityOnboardingBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 

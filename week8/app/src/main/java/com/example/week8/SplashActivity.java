@@ -116,6 +116,7 @@ public class SplashActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
+    // TODO: 게임 디테일 눌렀을 때 삭제옵션 구현해보기
     // ========== 화면 이동 ==========
 
     /// <summary>

@@ -154,7 +154,7 @@ public class GameDetailActivity extends AppCompatActivity {
         //
         // 두 번째 인자: 결과가 도착했을 때 실행될 람다 콜백
         //   result 파라미터의 타입은 Contract가 정한 출력 타입(ActivityResult)
-        //   람다 안에서 바깥 필드(game, binding 등)에 접근 가능 (클로저)
+        //   람다 안에서 바깥 필드(game, binding 등)에 접근 가능
         reviewLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {

@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Toast로 받은 텍스트 표시
         // 지금은 학습용으로 Toast만 띄우지만,
-        // 실제 프로덕트에선 "이 텍스트로 RAWG 게임 검색"으로 이어지는 흐름이 자연스러움
+        // 실제 프로덕트에선 이 텍스트를 이용해서 게임을 추가하는 흐름이 자연스러울 것 같다
         String message = getString(R.string.main_shared_text, sharedText);
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
@@ -182,9 +182,22 @@ public class MainActivity extends AppCompatActivity {
     // ========== ActionBar 오버플로우 메뉴 (⋮) ==========
 
     /// <summary>
-    /// ActionBar에 메뉴를 표시할 때 호출 (Activity 최초 생성 시 1번 호출됨)
-    /// menu_main.xml에 정의된 항목들을 실제 메뉴로 부풀림(inflate)
-    /// Unity로 비유하면 MenuPrefab을 MenuContainer에 Instantiate
+    /// 메뉴를 처음 화면에 표시할 준비 단계에서 호출되는 콜백
+    ///
+    /// 호출 타이밍:
+    ///   - Activity가 ActionBar를 처음 그릴 때 1회 자동 호출 (onCreate 직후)
+    ///   - invalidateOptionsMenu() 를 호출하면 다시 불림 (메뉴 동적 변경 시)
+    ///   - 이후에는 보통 다시 호출되지 않음 → "한 번만 세팅하는" 메서드
+    ///
+    /// 하는 일:
+    ///   menu_main.xml에 정의된 <item> 태그들을 실제 MenuItem 객체로 부풀림(inflate)
+    ///   → ActionBar에 + 아이콘과 ⋮ 오버플로우 메뉴 표시됨
+    ///
+    /// 반환값:
+    ///   true  → 메뉴를 표시하겠다
+    ///   false → 메뉴를 표시하지 않겠다 (거의 사용 안 함)
+    ///
+    /// Unity 비유: MenuPrefab을 MenuContainer에 Instantiate
     /// </summary>
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -193,8 +206,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /// <summary>
-    /// 메뉴 항목이 선택되면 호출
-    /// item.getItemId()로 어떤 항목이 눌렸는지 판별
+    /// 사용자가 메뉴 항목을 탭했을 때 호출되는 콜백
+    ///
+    /// 호출 타이밍 (사용자 탭이 트리거):
+    ///   - ActionBar에 노출된 + 아이콘 탭 → item.getItemId() == R.id.action_add_game
+    ///   - ⋮ 오버플로우 메뉴 안의 항목 탭 → item.getItemId() == R.id.action_about
+    ///   - ActionBar ← (Up) 버튼 탭 → item.getItemId() == android.R.id.home
+    ///     (우리는 setDisplayHomeAsUpEnabled(true)를 안 썼으므로 이 경로는 없음)
+    ///
+    /// 반환값:
+    ///   true  → "내가 이 항목을 처리했으니 더 전파하지 마"
+    ///   super 호출 → "모르는 항목이니 부모가 처리하도록 위임"
+    ///
+    /// ──── startActivity vs launcher.launch 구분 ────
+    /// 결과를 돌려받을 필요가 있는가로 결정:
+    ///   - action_add_game: AddGameActivity가 "입력받은 게임 정보"를 돌려줘야 함
+    ///                      → launcher.launch (결과 수신용)
+    ///   - action_about:    AboutActivity는 정보 표시만 할 뿐, 돌려줄 값 없음
+    ///                      → startActivity (결과 불필요)
     /// </summary>
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -202,7 +231,8 @@ public class MainActivity extends AppCompatActivity {
 
         if (itemId == R.id.action_add_game) {
             // + 아이콘 → AddGameActivity를 런처로 실행
-            // 결과(새 게임 정보)는 onCreate에서 등록한 addGameLauncher 람다로 도착
+            // "사용자가 입력한 게임 정보"를 결과로 받아야 하므로 launcher 사용
+            // 결과는 onCreate에서 등록한 addGameLauncher 람다로 도착
             Intent intent = new Intent(this, AddGameActivity.class);
             addGameLauncher.launch(intent);
             return true;
@@ -210,6 +240,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (itemId == R.id.action_about) {
             // "앱 정보" 메뉴 → AboutActivity로 이동
+            // About은 정보 표시만, 돌려줄 값이 없으므로 단순 startActivity
             Intent intent = new Intent(this, AboutActivity.class);
             startActivity(intent);
             return true;

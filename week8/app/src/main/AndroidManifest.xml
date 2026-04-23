@@ -74,7 +74,7 @@
             android:parentActivityName=".GameDetailActivity"
             android:exported="false" />
 
-        <!-- 스크린샷: 카메라 호출 + 미리보기 -->
+        <!-- 스크린샷: 갤러리에서 이미지 선택 + 미리보기 -->
         <!-- parentActivityName: ← 버튼 누르면 GameDetailActivity로 돌아감 -->
         <activity
             android:name=".ScreenshotActivity"

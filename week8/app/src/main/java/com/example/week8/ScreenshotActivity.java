@@ -32,7 +32,7 @@ import com.example.week8.databinding.ActivityScreenshotBinding;
 ///
 /// ──── Intent 학습 ────
 /// 수신: GameDetail에서 게임 제목을 Intent extras로 받음
-/// 송신 (다음 커밋): ACTION_OPEN_DOCUMENT로 Documents UI 호출
+/// 송신: ACTION_OPEN_DOCUMENT로 Documents UI 호출 → 선택 결과(Uri)를 갤러리 런처로 수신
 /// </summary>
 public class ScreenshotActivity extends AppCompatActivity {
 
@@ -61,13 +61,6 @@ public class ScreenshotActivity extends AppCompatActivity {
     /// 예전에는 startActivityForResult + onActivityResult 콜백으로 결과를 받았는데,
     /// 지금은 이 방식이 deprecated(더 이상 권장하지 않음)됨
     /// → 새 방식: 런처를 미리 등록해두고, launch()로 실행 + 결과는 등록할 때 준 람다로 받음
-    ///
-    /// Unity 비유:
-    /// 예전 방식 = SendMessage로 "이거 해줘" 하고 특정 메서드 이름으로 콜백 받기
-    /// 새 방식 = 람다/이벤트를 미리 등록해두고 필요할 때 Invoke
-    ///
-    /// StartActivityForResult: "Intent로 실행하고 Intent로 결과 받는" 가장 기본 계약
-    /// (나중에 더 간단한 전용 계약도 있음: PickVisualMedia 등)
     /// </summary>
     private ActivityResultLauncher<Intent> galleryLauncher;
 
@@ -75,7 +68,8 @@ public class ScreenshotActivity extends AppCompatActivity {
 
     /// <summary>
     /// 화면 생성
-    /// Intent에서 게임 제목을 받아 상단에 표시하고, 카메라 버튼 리스너 등록
+    /// Intent에서 게임 제목을 받아 상단에 표시하고,
+    /// 갤러리 런처 등록 + "갤러리에서 선택" 버튼 리스너 등록
     /// </summary>
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,18 +91,31 @@ public class ScreenshotActivity extends AppCompatActivity {
             binding.textViewGameTitle.setText(gameTitle);
         }
 
-        // 갤러리 런처 등록 (onCreate에서 미리 등록해둬야 함)
-        // registerForActivityResult는 Activity가 만들어지기 전에 호출돼야 해서
-        // onCreate 안, 그 중에서도 버튼 리스너 등록 전에 해두는 것이 안전
+        // ──────── 갤러리 런처 등록 ────────
+        // 상세 개념 설명은 GameDetailActivity.onCreate의 reviewLauncher 등록 부분 참고
+        // (Launcher란 / Contract / Lifecycle 연동 / 람다 콜백 / launch 내부 6단계)
+        //
+        // 핵심 규칙 (공식 문서): https://developer.android.com/training/basics/intents/result
+        //   Activity가 STARTED 상태가 되기 전에 등록해야 함 (STARTED 이후 호출 시 IllegalStateException)
+        //   → onCreate가 표준 위치 (onCreate 완료 시 CREATED 상태, onStart 호출 시 STARTED 상태)
+        //   → 버튼 클릭 시점에 등록하면 회전 후 결과 누락 가능
+        //
+        // 첫 번째 인자: Contract (계약서)
+        //   StartActivityForResult = "입력은 Intent, 출력은 ActivityResult" 범용 계약
+        //
+        // 두 번째 인자: 결과 도착 시 실행될 람다 콜백
         galleryLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
-                    // 사용자가 갤러리에서 이미지를 선택하고 돌아왔을 때 이 람다가 실행됨
-                    // 뒤로가기로 취소하면 resultCode가 RESULT_CANCELED
+                    // Documents UI가 닫히면서 결과가 돌아왔을 때 실행됨
+                    //   - 사용자가 이미지 선택 → resultCode = RESULT_OK, data = 선택한 Uri 담긴 Intent
+                    //   - 사용자가 ← 뒤로가기로 취소 → resultCode = RESULT_CANCELED, data = null
                     boolean isOk = result.getResultCode() == RESULT_OK;
                     boolean hasData = result.getData() != null;
                     if (isOk && hasData) {
-                        // 선택한 이미지의 Uri를 꺼냄 (예: content://media/external/images/.../123)
+                        // 선택한 이미지의 Uri 꺼내기
+                        // 형태 예: content://com.android.providers.media.documents/document/image%3A123
+                        // → content:// 스키마이므로 ImageView.setImageURI로 바로 로드 가능
                         Uri imageUri = result.getData().getData();
                         showPickedImage(imageUri);
                     }
@@ -235,6 +242,20 @@ public class ScreenshotActivity extends AppCompatActivity {
 
     /// <summary>
     /// ActionBar의 ← 버튼 클릭 처리
+    ///
+    /// finish() 동작:
+    ///   - 이 Activity를 "종료해달라"고 Android에 요청 (즉시 죽는 게 아니라 종료 예약)
+    ///   - 호출 직후 onPause → onStop → onDestroy 순서로 콜백 자동 실행
+    ///   - 백스택에서 제거되고 호출자(GameDetail)로 돌아감
+    ///   - 별도의 setResult를 호출하지 않으므로 호출자는 "취소"로 간주 (이 화면은 결과 반환 없음)
+    ///
+    /// finish()가 호출되는 경로:
+    ///   ① 사용자가 ActionBar ← 버튼 클릭 (이 메서드)
+    ///   ② 사용자가 뒤로가기 버튼 클릭 (Android가 내부적으로 finish() 호출)
+    ///
+    /// 반환값 의미:
+    ///   true  → "내가 이 항목을 처리했으니 다른 곳에 전달 마"
+    ///   super 호출 → "모르는 항목이니 부모가 처리하도록 위임" (기본값 false 효과)
     /// </summary>
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

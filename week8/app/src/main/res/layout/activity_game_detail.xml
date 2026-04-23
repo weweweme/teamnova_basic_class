@@ -79,7 +79,7 @@
                 android:layout_marginTop="8dp"
                 android:text="@string/detail_open_store" />
 
-            <!-- 스크린샷 (forResult + IMAGE_CAPTURE) -->
+            <!-- 스크린샷 (ScreenshotActivity로 이동, 갤러리에서 이미지 선택) -->
             <Button
                 android:id="@+id/buttonScreenshot"
                 android:layout_width="match_parent"

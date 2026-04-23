@@ -22,7 +22,7 @@
         android:textStyle="bold" />
 
     <!-- 사진 미리보기 영역 -->
-    <!-- 카메라에서 찍은 사진을 여기에 표시 -->
+    <!-- 갤러리에서 선택한 사진을 여기에 표시 -->
     <!-- 아직 사진이 없으면 textViewEmpty 문구가 보이도록 기본 비어있게 둠 -->
     <!-- layout_weight=1: 남는 공간을 전부 차지하도록 -->
     <FrameLayout
@@ -41,7 +41,7 @@
             android:text="@string/screenshot_empty"
             android:textSize="16sp" />
 
-        <!-- 촬영한 사진이 표시될 ImageView -->
+        <!-- 선택한 사진이 표시될 ImageView -->
         <!-- fitCenter: 비율 유지하면서 프레임 안에 맞춤 -->
         <ImageView
             android:id="@+id/imageViewPreview"

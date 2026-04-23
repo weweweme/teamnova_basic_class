@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 게임 추가 화면 레이아웃 -->
+<!-- 사용자가 제목, 장르, 플랫폼, 스토어 URL을 입력해서 라이브러리에 새 게임 등록 -->
+<!-- 12주차에 RAWG API 연동 전까지의 임시 수동 입력 폼 -->
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".AddGameActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- 게임 제목 입력 -->
+        <EditText
+            android:id="@+id/editTextTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/add_game_hint_title"
+            android:inputType="text"
+            android:autofillHints="" />
+
+        <!-- 장르 섹션 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/add_game_label_genre"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- 장르 선택 Spinner (Genre enum 값들이 들어감) -->
+        <Spinner
+            android:id="@+id/spinnerGenre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" />
+
+        <!-- 플랫폼 섹션 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/add_game_label_platform"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- 플랫폼 선택 Spinner (Platform enum 값들이 들어감) -->
+        <Spinner
+            android:id="@+id/spinnerPlatform"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" />
+
+        <!-- 스토어 URL 입력 (선택 사항) -->
+        <EditText
+            android:id="@+id/editTextStoreUrl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:hint="@string/add_game_hint_store_url"
+            android:inputType="textUri"
+            android:autofillHints="" />
+
+        <!-- 추가하기 버튼 -->
+        <Button
+            android:id="@+id/buttonAdd"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/add_game_button" />
+
+    </LinearLayout>
+</ScrollView>

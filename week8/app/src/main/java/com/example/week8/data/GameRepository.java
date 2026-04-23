@@ -21,72 +21,61 @@ public class GameRepository {
     /// </summary>
     private final ArrayList<Game> games;
 
+    /// <summary>
+    /// 새로 추가될 게임에 부여할 ID
+    /// 초기 더미 4개가 1~4를 쓰므로 5부터 시작
+    /// 게임 추가 시마다 1씩 증가 (간단한 자동 증가 방식)
+    /// 10주차에 Room DB 도입하면 DB의 AUTO_INCREMENT로 대체될 예정
+    /// </summary>
+    private int nextId;
+
     // ========== 생성자 ==========
 
     /// <summary>
     /// 저장소 생성 및 더미 데이터 초기화
-    /// rating과 review는 아직 사용자가 입력하지 않은 상태 (0점, 빈 문자열)
+    /// 모두 Steam 게임으로 통일 (Steam CDN에서 표지 이미지 직접 가져오기 용이)
+    /// 발표 데모용으로 리뷰가 있는 것(완료)과 없는 것(백로그)을 섞어둠
     /// </summary>
     public GameRepository() {
         this.games = new ArrayList<>();
+        this.nextId = 5;  // 더미 4개가 1~4 사용하므로 5부터 시작
 
         this.games.add(new Game(
                 1,
-                "젤다의 전설: 왕국의 눈물",
-                "cover_zelda",
-                Genre.ACTION,
-                Platform.NINTENDO_SWITCH,
-                "https://www.nintendo.co.kr/software/switch/ayn7a",
-                0f,
-                ""
-        ));
-
-        this.games.add(new Game(
-                2,
                 "엘든 링",
                 "cover_eldenring",
                 Genre.RPG,
                 Platform.STEAM,
                 "https://store.steampowered.com/app/1245620/ELDEN_RING/",
-                0f,
-                ""
+                5.0f,
+                "프롬소프트의 정점. 죽고 배우는 쾌감이 끝내준다"
         ));
 
         this.games.add(new Game(
-                3,
+                2,
                 "발더스 게이트 3",
                 "cover_baldursgate3",
                 Genre.RPG,
                 Platform.STEAM,
                 "https://store.steampowered.com/app/1086940/Baldurs_Gate_3/",
-                0f,
-                ""
+                4.5f,
+                "선택 하나하나가 결과로 이어지는 진짜 TRPG 경험"
         ));
 
         this.games.add(new Game(
-                4,
-                "갓 오브 워 라그나로크",
-                "cover_godofwar",
-                Genre.ACTION,
-                Platform.PLAYSTATION,
-                "https://store.playstation.com/ko-kr/concept/10002456",
-                0f,
-                ""
-        ));
-
-        this.games.add(new Game(
-                5,
+                3,
                 "할로우 나이트",
                 "cover_hollowknight",
                 Genre.PLATFORMER,
                 Platform.STEAM,
                 "https://store.steampowered.com/app/367520/Hollow_Knight/",
-                0f,
-                ""
+                5.0f,
+                "인디 메트로배니아의 정점. 아트와 음악이 압도적"
         ));
 
+        // 아직 리뷰 안 쓴 게임 — 백로그 상태 시연용
         this.games.add(new Game(
-                6,
+                4,
                 "셀레스테",
                 "cover_celeste",
                 Genre.PLATFORMER,
@@ -118,5 +107,34 @@ public class GameRepository {
             }
         }
         return null;
+    }
+
+    // ========== 추가 ==========
+
+    /// <summary>
+    /// 새 게임을 라이브러리에 추가
+    /// AddGameActivity에서 사용자가 입력한 정보로 호출됨
+    ///
+    /// ID는 내부적으로 nextId 값이 자동 부여되고 1 증가
+    /// 표지 이미지는 아직 API 연동 전이라 빈 문자열 (기본 아이콘 표시됨)
+    /// 별점과 한줄평은 초기값 (0, 빈 문자열) — 사용자가 추후 ReviewWrite에서 입력
+    ///
+    /// 현재(8주차)는 메모리에만 저장되므로 앱 재시작 시 사라짐
+    /// → 10주차에 Room DB 도입하면 영속 저장으로 교체 예정
+    /// </summary>
+    public Game addGame(String title, Genre genre, Platform platform, String storeUrl) {
+        Game newGame = new Game(
+                this.nextId,
+                title,
+                "",                 // coverAssetName — 아직 없음, 기본 아이콘 사용
+                genre,
+                platform,
+                storeUrl == null ? "" : storeUrl,
+                0f,                 // 초기 별점
+                ""                  // 초기 한줄평
+        );
+        this.games.add(newGame);
+        this.nextId++;
+        return newGame;
     }
 }

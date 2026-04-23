@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- MainActivity의 ActionBar 오버플로우 메뉴 (⋮ 세 점 메뉴) -->
-<!-- showAsAction="never": ActionBar에 직접 표시하지 않고 오버플로우로만 표시 -->
+<!-- MainActivity의 ActionBar 메뉴 -->
+<!-- "게임 추가": + 아이콘으로 ActionBar에 바로 표시 (showAsAction="always") -->
+<!-- "앱 정보": 오버플로우 메뉴(⋮)에 숨김 표시 (showAsAction="never") -->
 <!-- Unity로 비유하면 우클릭 컨텍스트 메뉴를 미리 리소스로 정의하는 것 -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!-- 앱 정보 메뉴 -->
+    <!-- 게임 추가: + 아이콘이 ActionBar 우측에 바로 보임 -->
+    <item
+        android:id="@+id/action_add_game"
+        android:icon="@android:drawable/ic_input_add"
+        android:title="@string/main_add_game"
+        app:showAsAction="always" />
+
+    <!-- 앱 정보: ⋮ 오버플로우 메뉴 안에 숨김 -->
     <item
         android:id="@+id/action_about"
         android:title="@string/about_menu_label"

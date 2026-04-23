@@ -89,6 +89,14 @@
             android:label="@string/about_title"
             android:parentActivityName=".MainActivity"
             android:exported="false" />
+
+        <!-- 게임 추가: 사용자가 수동으로 새 게임을 라이브러리에 등록 -->
+        <!-- 결과 Intent로 입력값을 MainActivity에 돌려줌 -->
+        <activity
+            android:name=".AddGameActivity"
+            android:label="@string/add_game_title"
+            android:parentActivityName=".MainActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

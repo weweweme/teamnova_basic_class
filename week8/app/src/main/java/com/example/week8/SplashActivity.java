@@ -65,12 +65,6 @@ import com.example.week8.databinding.ActivitySplashBinding;
 public class SplashActivity extends AppCompatActivity {
 
     /// <summary>
-    /// 스플래시 화면 유지 시간 (밀리초)
-    /// Unity의 Invoke 지연 시간에 해당
-    /// </summary>
-    private static final int SPLASH_DELAY_MS = 1500;
-
-    /// <summary>
     /// 지연 실행을 담당하는 핸들러
     /// Unity의 Invoke/CancelInvoke 시스템에 해당
     /// Looper.getMainLooper()는 "메인(UI) 스레드에서 실행하라"는 뜻
@@ -106,7 +100,7 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         // 1.5초 후 다음 화면으로 이동 예약
-        // Unity의 Invoke("NavigateToNextScreen", 1.5f)와 동일
+        final int SPLASH_DELAY_MS = 1500;
         handler.postDelayed(navigateRunnable, SPLASH_DELAY_MS);
     }
 

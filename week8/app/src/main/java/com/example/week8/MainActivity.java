@@ -10,24 +10,28 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.week8.data.GameRepository;
 import com.example.week8.databinding.ActivityMainBinding;
 import com.example.week8.model.Game;
+import com.example.week8.model.Genre;
+import com.example.week8.model.Platform;
 
 import java.util.ArrayList;
 
 /// <summary>
-/// 메인 화면 (게임 라이브러리)
+/// 메인 화면 (내 게임 다이어리)
 /// GameRepository에서 게임 목록을 읽어 ScrollView에 카드 형태로 표시
+/// ActionBar의 + 아이콘으로 게임 추가, ⋮ 메뉴로 앱 정보 이동
 /// Unity로 비유하면 Prefab을 Instantiate하여 ScrollView Content에 붙이는 것
 ///
-/// ──── Lifecycle 학습 (이후 단계에서 추가) ────
+/// ──── Lifecycle 학습 ────
 /// onResume: GameDetail/ReviewWrite 다녀온 뒤 변경된 데이터 반영
-/// onRestart: 백키로 돌아왔을 때 관찰
-/// onSaveInstanceState: ScrollView 스크롤 위치 보존
+/// onNewIntent: 앱이 살아있을 때 다른 앱의 공유로 다시 호출될 때 처리
 /// </summary>
 public class MainActivity extends AppCompatActivity {
 
@@ -41,6 +45,12 @@ public class MainActivity extends AppCompatActivity {
     /// Unity로 비유하면 GameData 목록을 들고 있는 매니저
     /// </summary>
     private GameRepository gameRepository;
+
+    /// <summary>
+    /// AddGameActivity를 실행하고 "새로 추가된 게임 정보"를 결과로 받는 런처
+    /// GameDetail의 reviewLauncher, Screenshot의 galleryLauncher와 동일한 패턴
+    /// </summary>
+    private ActivityResultLauncher<Intent> addGameLauncher;
 
     // ========== Lifecycle ==========
 
@@ -58,6 +68,36 @@ public class MainActivity extends AppCompatActivity {
 
         // GameRepository 초기화
         gameRepository = new GameRepository();
+
+        // 게임 추가 화면에서 결과를 받을 런처 등록 (Lifecycle 연동 위해 onCreate에서)
+        addGameLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    // 사용자가 "추가하기" 버튼으로 저장 → RESULT_OK + 입력값 Intent 도착
+                    // 사용자가 ← 뒤로가기로 취소 → RESULT_CANCELED, data null
+                    boolean isOk = result.getResultCode() == RESULT_OK;
+                    boolean hasData = result.getData() != null;
+                    if (!isOk || !hasData) {
+                        return;
+                    }
+
+                    Intent data = result.getData();
+                    String title = data.getStringExtra(AddGameActivity.EXTRA_TITLE);
+                    String genreName = data.getStringExtra(AddGameActivity.EXTRA_GENRE);
+                    String platformName = data.getStringExtra(AddGameActivity.EXTRA_PLATFORM);
+                    String storeUrl = data.getStringExtra(AddGameActivity.EXTRA_STORE_URL);
+
+                    // enum은 Parcelable이 아니라 name() 문자열로 건너왔으므로 valueOf로 복원
+                    Genre genre = Genre.valueOf(genreName);
+                    Platform platform = Platform.valueOf(platformName);
+
+                    // 저장소에 실제로 추가 (ID 자동 부여)
+                    gameRepository.addGame(title, genre, platform, storeUrl);
+
+                    // 카드 리스트 다시 그리기
+                    populateGameCards();
+                }
+        );
 
         // 다른 앱에서 "공유하기"로 이 앱을 실행했다면 받은 텍스트를 처리
         // (앱이 죽어있던 상태에서 공유로 실행되면 onCreate로 Intent가 들어옴)
@@ -158,12 +198,23 @@ public class MainActivity extends AppCompatActivity {
     /// </summary>
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_about) {
+        int itemId = item.getItemId();
+
+        if (itemId == R.id.action_add_game) {
+            // + 아이콘 → AddGameActivity를 런처로 실행
+            // 결과(새 게임 정보)는 onCreate에서 등록한 addGameLauncher 람다로 도착
+            Intent intent = new Intent(this, AddGameActivity.class);
+            addGameLauncher.launch(intent);
+            return true;
+        }
+
+        if (itemId == R.id.action_about) {
             // "앱 정보" 메뉴 → AboutActivity로 이동
             Intent intent = new Intent(this, AboutActivity.class);
             startActivity(intent);
             return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 

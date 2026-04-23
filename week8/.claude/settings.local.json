@@ -7,7 +7,11 @@
       "WebFetch(domain:truesteamachievements.com)",
       "WebFetch(domain:steamdb.info)",
       "WebFetch(domain:store.steampowered.com)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(curl -sSL -o cover_eldenring.jpg \"https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/header.jpg\")",
+      "Bash(curl -sSL -o cover_baldursgate3.jpg \"https://cdn.cloudflare.steamstatic.com/steam/apps/1086940/header.jpg\")",
+      "Bash(curl -sSL -o cover_hollowknight.jpg \"https://cdn.cloudflare.steamstatic.com/steam/apps/367520/header.jpg\")",
+      "Bash(curl -sSL -o cover_celeste.jpg \"https://cdn.cloudflare.steamstatic.com/steam/apps/504230/header.jpg\")"
     ]
   }
 }

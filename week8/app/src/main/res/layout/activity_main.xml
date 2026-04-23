@@ -11,15 +11,7 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <!-- 상단 타이틀 -->
-    <TextView
-        android:id="@+id/textViewTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:text="@string/main_title"
-        android:textSize="24sp"
-        android:textStyle="bold" />
+    <!-- 화면 상단 타이틀은 ActionBar의 "내 게임 다이어리"로 대체됨 (중복 제거) -->
 
     <!-- 게임 카드 리스트 영역 -->
     <!-- ScrollView는 자식을 하나만 가질 수 있으므로 LinearLayout으로 감쌈 -->

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Android 11(API 30)+ 패키지 가시성 선언 -->
+    <!-- 우리 앱이 "이런 Intent를 처리할 수 있는 앱이 있는지"를 조회하려면 -->
+    <!-- 어떤 Intent를 조회할지 미리 선언해야 함 -->
+    <!-- (보안 강화: 앱이 맘대로 다른 앱 목록을 훔쳐볼 수 없게 제한됨) -->
+    <queries>
+        <!-- 메일 앱 조회용 (ACTION_SENDTO + mailto:) -->
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+    </queries>
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Week8">
+        <!-- 스플래시: 앱 진입점 (MAIN + LAUNCHER) -->
+        <!-- exported=true: 외부(런처)에서 실행 가능해야 하므로 필수 -->
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 온보딩: 최초 실행 시 앱 소개 3페이지 -->
+        <activity
+            android:name=".OnboardingActivity"
+            android:exported="false" />
+
+        <!-- 메인: 게임 리스트 화면 -->
+        <!-- exported=true: 다른 앱(Chrome, 메모 등)의 "공유" 대상으로 우리 앱이 나타나게 함 -->
+        <!-- intent-filter: "나는 이 요청을 처리할 수 있어요"라는 자격 선언 -->
+        <!-- Unity로 비유하면 "이런 SendMessage 이름을 받을 수 있는 오브젝트"로 등록하는 것 -->
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/main_title"
+            android:exported="true">
+            <!-- ACTION_SEND + text/plain 수신 필터 -->
+            <!-- 다른 앱에서 텍스트를 공유할 때 "Game Diary"가 후보 목록에 나타남 -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <!-- DEFAULT: "암시적 Intent로도 받을 수 있게" 하는 필수 카테고리 -->
+                <category android:name="android.intent.category.DEFAULT" />
+                <!-- text/plain: 평문 텍스트만 받겠다 (이미지, URL도 받으려면 추가 선언 필요) -->
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
+        <!-- 게임 상세: 암시적 Intent 4종 집결지 -->
+        <!-- parentActivityName: ← 버튼 누르면 MainActivity로 돌아감 -->
+        <activity
+            android:name=".GameDetailActivity"
+            android:label="@string/detail_title"
+            android:parentActivityName=".MainActivity"
+            android:exported="false" />
+
+        <!-- 리뷰 작성: forResult로 별점+한줄평 반환 -->
+        <!-- parentActivityName: ← 버튼 누르면 GameDetailActivity로 돌아감 -->
+        <activity
+            android:name=".ReviewWriteActivity"
+            android:label="@string/review_title"
+            android:parentActivityName=".GameDetailActivity"
+            android:exported="false" />
+
+        <!-- 스크린샷: 갤러리에서 이미지 선택 + 미리보기 -->
+        <!-- parentActivityName: ← 버튼 누르면 GameDetailActivity로 돌아감 -->
+        <activity
+            android:name=".ScreenshotActivity"
+            android:label="@string/screenshot_title"
+            android:parentActivityName=".GameDetailActivity"
+            android:exported="false" />
+
+        <!-- 앱 정보: ACTION_VIEW / ACTION_SENDTO 학습 화면 -->
+        <!-- parentActivityName: ← 버튼 누르면 MainActivity로 돌아감 -->
+        <activity
+            android:name=".AboutActivity"
+            android:label="@string/about_title"
+            android:parentActivityName=".MainActivity"
+            android:exported="false" />
+
+        <!-- 게임 추가: 사용자가 수동으로 새 게임을 라이브러리에 등록 -->
+        <!-- 결과 Intent로 입력값을 MainActivity에 돌려줌 -->
+        <activity
+            android:name=".AddGameActivity"
+            android:label="@string/add_game_title"
+            android:parentActivityName=".MainActivity"
+            android:exported="false" />
+    </application>
+
+</manifest>

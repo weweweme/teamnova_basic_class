@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 게임 카드 아이템 레이아웃 -->
+<!-- MainActivity에서 LayoutInflater로 동적 생성하여 LinearLayout에 추가 -->
+<!-- Unity로 비유하면 Instantiate할 Prefab -->
+<!-- TODO: 9주차에서 RecyclerView의 ViewHolder 레이아웃으로 교체 예정 -->
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <!-- 게임 표지 이미지 -->
+        <ImageView
+            android:id="@+id/imageViewCover"
+            android:layout_width="72dp"
+            android:layout_height="96dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/game_cover_description" />
+
+        <!-- 게임 정보 (제목, 장르·플랫폼, 별점·한줄평) -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+
+            <!-- 게임 제목 -->
+            <TextView
+                android:id="@+id/textViewTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:maxLines="2"
+                android:ellipsize="end" />
+
+            <!-- 장르 · 플랫폼 -->
+            <TextView
+                android:id="@+id/textViewGenrePlatform"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="13sp" />
+
+            <!-- 별점 + 한줄평 -->
+            <TextView
+                android:id="@+id/textViewRatingReview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

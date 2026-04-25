@@ -1,0 +1,12 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Material Components Bridge 테마 -->
+    <!-- AppCompat 기반이라 edge-to-edge 강제 없음 + Material 위젯 호환 -->
+    <style name="Base.Theme.Week8" parent="Theme.MaterialComponents.Light.DarkActionBar.Bridge">
+        <!-- Android 15(API 35)+ 에서 강제되는 edge-to-edge를 앱 전체에서 끔 -->
+        <!-- 각 Activity에서 WindowCompat.setDecorFitsSystemWindows(true) 호출하지 않아도 됨 -->
+        <!-- 낮은 API에서는 이 속성이 무시되므로 안전 -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement" tools:targetApi="35">true</item>
+    </style>
+
+    <style name="Theme.Week8" parent="Base.Theme.Week8" />
+</resources>

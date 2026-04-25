@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 앱 정보 화면 레이아웃 -->
+<!-- 앱 이름/버전/설명 + 사용 API 안내 + RAWG 사이트 방문 / 피드백 버튼 -->
+<!-- ACTION_VIEW, ACTION_SENDTO 학습 화면 -->
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".AboutActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- 앱 이름 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/about_app_name"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <!-- 버전 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/about_version"
+            android:textSize="14sp" />
+
+        <!-- 앱 소개 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/about_description"
+            android:textSize="16sp" />
+
+        <!-- 개발자 GitHub 버튼 (ACTION_VIEW) -->
+        <Button
+            android:id="@+id/buttonDeveloperGithub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/about_developer_github" />
+
+        <!-- 개발자에게 피드백 버튼 (ACTION_SENDTO) -->
+        <Button
+            android:id="@+id/buttonSendFeedback"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/about_send_feedback" />
+
+    </LinearLayout>
+</ScrollView>

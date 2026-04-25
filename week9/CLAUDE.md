@@ -394,86 +394,94 @@ UserConfig (설정)
 | 5주차 | 백그라운드 처리 | API 비동기 호출, 이미지 로딩, Steam 대량 임포트, 위시리스트 출시일 알림 |
 | 6주차 | API | Steam Web API (라이브러리 임포트) + RAWG API (검색, 메타데이터) |
 
-## 8주차 과제 설계 (Lifecycle + Intent 집중)
-
-### 학습 목표
-- Activity Lifecycle 9개 콜백 전부를 "단순 로그가 아닌 실제 기능"에 사용
-- Intent 6가지 카테고리(송신/수신/결과반환/암시적VIEW/Chooser/Filter) 전부 실사용
-- 특히 **onSaveInstanceState(회전 대응 휘발 저장)**를 직접 체험
-
-### 8주차 제약 (다음 주차로 미룸)
-- ❌ RecyclerView (9주차) → ScrollView + LinearLayout으로 카드 동적 추가
+### 현재 진행 중 제약 (다음 주차로 미룸)
 - ❌ Room DB / SharedPreferences (10주차) → 영속 저장 없음
 - ❌ API 호출 (12주차) → 게임 더미 데이터
-- ❌ Fragment → 전부 Activity
 
-### 구현 화면 (7개)
-| # | Activity | 역할 | 핵심 학습 포인트 |
+## 9주차 과제 설계 (RecyclerView + 홈 화면 도입)
+
+### 학습 목표
+- RecyclerView의 핵심 구성요소(Adapter / ViewHolder / LayoutManager) 이해
+- 서로 다른 LayoutManager 비교 체험 (Linear / Grid / 멀티 뷰타입)
+- BottomSheetDialog로 카드 액션 메뉴 구현
+- ItemTouchHelper로 드래그 정렬 구현
+
+### 화면 구조 변경
+8주차에서는 Splash → Onboarding → Main(게임 리스트) 였으나, 9주차에서 **HomeActivity를 신규 도입**하여 허브 역할을 맡기고, 기존 MainActivity는 **DiaryActivity**로 이름 변경(역할은 동일 — 게임 카드 리스트).
+
+```
+SplashActivity → OnboardingActivity → HomeActivity (신규)
+                                         ├─ DiaryActivity    (구 MainActivity, 리스트 뷰)
+                                         ├─ LibraryActivity  (신규, 그리드 뷰)
+                                         └─ TimelineActivity (신규, 활동 피드)
+```
+
+### 화면별 RecyclerView 학습 매핑
+| 화면 | 상태 | LayoutManager | 학습 포인트 |
 |---|---|---|---|
-| 1 | SplashActivity | 1.5초 로고 후 분기 | launcher Intent Filter, FLAG_ACTIVITY_CLEAR_TASK/NO_HISTORY |
-| 2 | OnboardingActivity | 앱 소개 3페이지 | onSaveInstanceState로 페이지 인덱스 보존 |
-| 3 | MainActivity | 게임 카드 리스트 (ScrollView) | onResume에서 리스트 갱신, onRestart 관찰, SEND 수신 필터 |
-| 4 | GameDetailActivity | 게임 상세, 암시적 Intent 4종 집결지 | SEND chooser, VIEW 브라우저, forResult 2건 |
-| 5 | ReviewWriteActivity ★ | 별점+한줄평 | onSaveInstanceState(회전) 사용 |
-| 6 | ScreenshotActivity | 갤러리에서 이미지 선택 + 미리보기 | ACTION_OPEN_DOCUMENT, 외부앱 호출 시 lifecycle 흐름 Logcat 관찰 |
-| 7 | AboutActivity | 앱 정보 | VIEW(브라우저) / SENDTO(메일) chooser |
+| HomeActivity | 신규 | LinearLayout(세로) + 자식 RecyclerView(가로) | **중첩 RecyclerView**(허브에 섹션별 미리보기) |
+| DiaryActivity | 이름 변경 + 전환 | LinearLayoutManager | 기본기 (Adapter/ViewHolder), 길게 누르기, 드래그 정렬 |
+| LibraryActivity | 신규 | GridLayoutManager (2~3열) | 그리드 레이아웃, 커버 이미지 위주 |
+| TimelineActivity | 신규 | LinearLayoutManager | **멀티 뷰타입** (`getItemViewType()` 4종 분기) |
 
-### Lifecycle 콜백 9개 매핑
-| 콜백 | 화면 | 동작 |
-|---|---|---|
-| onCreate | 전부 | ViewBinding, Intent extras 파싱 |
-| onStart | Main | 포그라운드 진입 표시 |
-| onResume | Main | GameRepository 재로드 → 리스트 갱신 |
-| onPause | GameDetail | 마지막 본 게임 로그 (Log 출력으로 학습) |
-| onStop | Screenshot | 갤러리 호출 흐름 관찰 |
-| onRestart | Main | 백키 복귀 분기 |
-| onDestroy | Splash | Handler 콜백 제거 |
-| onSaveInstanceState | Onboarding(페이지), ReviewWrite(입력중), Main(스크롤) | 회전 대응 |
-| onRestoreInstanceState | 동일 | Bundle 복원 |
+### 벤치마킹 출처
+- **HomeActivity 미리보기 허브**: Letterboxd, Spotify, Backloggd
+- **LibraryActivity 그리드**: Steam 라이브러리, Backloggd
+- **TimelineActivity 활동 피드**: Letterboxd 다이어리, Day One
+- **카드 길게 누르기 → BottomSheet**: Spotify, YouTube, Letterboxd
 
-### Intent 카테고리 매핑
-| 카테고리 | 사용처 |
-|---|---|
-| 송신(명시적) | Splash→Onboarding/Main, Main→GameDetail (Parcelable Game) |
-| 수신(필터) | Main의 SEND text/plain 필터, Splash의 LAUNCHER |
-| 결과 반환 | GameDetail↔ReviewWrite, GameDetail↔Screenshot |
-| 암시적 VIEW | GameDetail→Steam URL, About→RAWG 사이트 |
-| Chooser | GameDetail SEND, About SENDTO 메일 |
-| 외부 액션 | Screenshot의 ACTION_PICK (갤러리 선택) |
-| Flags | Splash→Main의 CLEAR_TASK/NO_HISTORY |
+### DiaryActivity 추가 기능
+- **카드 길게 누르기 → BottomSheetDialog**
+  - 메뉴 구성: 삭제 / 공유 / 상세 보기
+  - 삭제: 더미 Repository에서 제거 + `notifyItemRemoved`
+  - 공유: 기존 GameDetail의 ACTION_SEND chooser 재사용
+- **카드 드래그 정렬**: `ItemTouchHelper.SimpleCallback` (UP|DOWN)
+  - 드래그 핸들 아이콘을 카드 우측에 두고 거기서만 시작 (오작동 방지)
+  - `notifyItemMoved` + Repository 순서 반영 (메모리상)
 
-### 데이터 모델 (더미)
+### TimelineActivity 데이터 모델 (더미)
 ```
-Game (Parcelable)
-├─ int id
-├─ String title
-├─ String coverAssetName
-├─ String genre
-├─ String platform
-├─ String storeUrl
-├─ float rating (0~5)
-└─ String review
+ActivityLog
+├─ enum Type { ADDED, COMPLETED, REVIEWED, PLAYED }
+├─ Type type
+├─ int gameId       (어떤 게임에 대한 로그인지)
+├─ long timestamp
+└─ String payload   (예: 리뷰 본문, 플레이 시간 등)
 ```
-- GameRepository: 더미 5~6개 하드코딩, rating/review는 메모리에서만 관리 (영속 저장은 10주차)
+- ActivityLogRepository: 더미 8~12개 하드코딩, 4종 타입 섞어서
 
 ### 단계별 구현 순서 (최소 커밋 단위)
-1. ✅ Game Parcelable 모델
-2. ✅ GameRepository 더미 데이터
-3. ✅ SplashActivity 뼈대 + Handler 분기
-4. ✅ OnboardingActivity 뼈대 (3페이지)
-5. ✅ Onboarding onSaveInstanceState 페이지 보존
-6. ✅ MainActivity 뼈대 (ScrollView + 카드 동적 생성)
-7. ✅ Main onResume 재로드
-8. ✅ Main → GameDetail 명시적 Intent (Parcelable)
-9. ✅ GameDetailActivity 화면 구성
-10. ✅ GameDetail → ReviewWrite forResult
-11. ✅ ReviewWrite onSaveInstanceState
-12. ~~ReviewWrite onPause draft 저장/복원~~ (10주차로 이동 — SharedPreferences 필요)
-13. ✅ ReviewWrite setResult 반환 → 갱신 확인
-14. ✅ GameDetail ACTION_SEND chooser
-15. ✅ GameDetail ACTION_VIEW (Steam)
-16. ✅ ScreenshotActivity + ACTION_PICK (갤러리에서 이미지 선택)
-17. ✅ Screenshot lifecycle Logcat 로깅 (외부앱 호출 시 흐름 관찰)
-18. ✅ AboutActivity + VIEW/SENDTO chooser
-19. ✅ Main SEND Intent Filter 수신
-20. ✅ Splash FLAG 적용 + 정리
+
+**Phase 1 — DiaryActivity 전환 (기본 RecyclerView)**
+1. `item_game_card.xml` 레이아웃 분리
+2. `GameCardAdapter` + `GameCardViewHolder` 작성
+3. MainActivity → DiaryActivity 이름 변경
+4. ScrollView/LinearLayout → RecyclerView 교체 (LinearLayoutManager)
+
+**Phase 2 — DiaryActivity 컨텍스트 액션 (BottomSheet)**
+5. 길게 누르기 리스너 + BottomSheetDialog 표시
+6. 메뉴 구성 (삭제 / 공유 / 상세)
+7. 삭제 액션 구현
+8. 공유 액션 구현 (ACTION_SEND chooser 재사용)
+
+**Phase 3 — DiaryActivity 드래그 정렬**
+9. 드래그 핸들 아이콘 + UI 추가
+10. `ItemTouchHelper.SimpleCallback` 작성
+11. `onItemMove` 구현 + Repository 순서 반영
+
+**Phase 4 — LibraryActivity (그리드 뷰)**
+12. `LibraryActivity` 뼈대
+13. `item_library_grid.xml` (커버 위주)
+14. `LibraryAdapter` + `GridLayoutManager`
+15. 그리드 아이템 클릭 → GameDetail 진입
+
+**Phase 5 — TimelineActivity (멀티 뷰타입)**
+16. `ActivityLog` 모델 + `ActivityLogRepository`
+17. `TimelineActivity` 뼈대
+18. 4종 뷰타입별 `item_log_*.xml` 레이아웃
+19. `TimelineAdapter` 멀티 뷰타입 구현 (`getItemViewType` 4종)
+
+**Phase 6 — HomeActivity 도입**
+20. `HomeActivity` 뼈대 + Splash/Onboarding 진입 경로 변경 (FLAG_ACTIVITY_CLEAR_TASK)
+21. 섹션별 미리보기용 가로 RecyclerView (Diary/Library/Timeline 일부)
+22. "더 보기"로 각 자식 Activity 진입

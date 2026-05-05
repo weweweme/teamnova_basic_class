@@ -137,4 +137,40 @@ public class GameRepository {
         this.nextId++;
         return newGame;
     }
+
+    // ========== 갱신 ==========
+
+    /// <summary>
+    /// 외부에서 수정된 Game 사본의 변경사항을 원본에 반영
+    /// id로 원본을 찾아 가변 필드(rating/review/screenshots)를 갱신
+    ///
+    /// ──── 왜 필요한가 ────
+    /// Activity끼리는 Game을 Parcelable로 주고받는데, Parcelable은 매번 새 객체로 복원되므로
+    /// 받는 Activity의 Game은 Repository 원본과 별개의 사본임
+    /// → 사본을 수정해도 Repository는 그대로
+    /// → MainActivity의 onResume에서 Repository를 다시 읽으면 변경사항이 보이지 않는 문제 발생
+    ///
+    /// 그래서 Game을 수정한 Activity가 finish 직전(또는 결과를 받은 호출자가 결과 처리 시점)에
+    /// 이 메서드를 호출해서 원본에 명시적으로 변경사항을 적어야 함
+    ///
+    /// ──── 무엇을 갱신하는가 ────
+    /// 가변 필드: rating, review, screenshots
+    /// 불변 필드(id/title/coverAsset/genre/platform/storeUrl)는 final이라 변경 불가 → 무시
+    ///
+    /// id 매칭이 안 되면(있을 수 없는 상황) 조용히 무시 — 호출자 측 버그를 의미
+    /// </summary>
+    public void updateGame(Game updated) {
+        if (updated == null) {
+            return;
+        }
+
+        Game original = findById(updated.getId());
+        if (original == null) {
+            return;
+        }
+
+        original.setRating(updated.getRating());
+        original.setReview(updated.getReview());
+        original.replaceScreenshots(updated.getScreenshots());
+    }
 }

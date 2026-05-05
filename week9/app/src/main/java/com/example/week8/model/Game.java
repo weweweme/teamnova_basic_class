@@ -5,6 +5,9 @@ import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /// <summary>
 /// 게임 데이터 모델
 /// 게임 다이어리에 기록할 게임 한 건의 정보를 담는 클래스
@@ -74,6 +77,21 @@ public class Game implements Parcelable {
     /// </summary>
     private String review;
 
+    /// <summary>
+    /// 사용자가 ScreenshotActivity에서 추가한 스크린샷 Uri 문자열 목록
+    /// 갤러리에서 고른 이미지의 content:// Uri를 toString()으로 보관
+    /// 표시할 때는 Uri.parse(...)로 다시 Uri 객체로 만들어 ImageView에 로드
+    ///
+    /// final로 두는 이유:
+    ///   리스트 객체 자체는 인스턴스마다 한 번만 만들어지면 충분 (재할당 금지)
+    ///   내용물(추가/삭제)은 add/clear로 변경 가능
+    ///
+    /// String으로 보관하는 이유:
+    ///   Uri 클래스는 Parcelable이지만, 단순 문자열로 보관해도 같은 정보가 유지됨
+    ///   writeStringList로 한 번에 직렬화 가능 → Parcel 순서가 단순해짐
+    /// </summary>
+    private final List<String> screenshots;
+
     // ========== 일반 생성자 ==========
 
     /// <summary>
@@ -91,6 +109,9 @@ public class Game implements Parcelable {
         this.storeUrl = storeUrl;
         this.rating = rating;
         this.review = review;
+        // 스크린샷은 처음에는 비어 있고, 사용자가 ScreenshotActivity에서 갤러리로 추가하면 채워짐
+        // 빈 ArrayList로 시작하여 기존 호출자(GameRepository)는 영향받지 않음
+        this.screenshots = new ArrayList<>();
     }
 
     // ========== Parcel 생성자 ==========
@@ -111,6 +132,10 @@ public class Game implements Parcelable {
         this.storeUrl = in.readString();
         this.rating = in.readFloat();
         this.review = in.readString();
+        // 스크린샷 Uri 문자열 목록 복원
+        // createStringArrayList: writeStringList로 쓴 데이터를 통째로 ArrayList<String>으로 복원
+        // 비어있게 저장됐다면 빈 ArrayList가 돌아옴 (null 아님)
+        this.screenshots = in.createStringArrayList();
     }
 
     // ========== Parcelable 구현 ==========
@@ -131,6 +156,9 @@ public class Game implements Parcelable {
         dest.writeString(storeUrl);
         dest.writeFloat(rating);
         dest.writeString(review);
+        // 스크린샷 Uri 문자열 목록을 Parcel에 그대로 직렬화
+        // writeStringList: List<String>을 한 번에 기록 (createStringArrayList로 복원)
+        dest.writeStringList(screenshots);
     }
 
     /// <summary>
@@ -223,6 +251,15 @@ public class Game implements Parcelable {
         return review;
     }
 
+    /// <summary>
+    /// 스크린샷 Uri 문자열 목록 반환
+    /// 호출자가 add/remove 등으로 직접 수정 가능 (방어 복사 안 함 — 의도된 공유)
+    /// 표시할 때는 Uri.parse(...)로 다시 Uri 객체로 변환해서 ImageView에 로드
+    /// </summary>
+    public List<String> getScreenshots() {
+        return screenshots;
+    }
+
     // ========== Setter (변경 가능한 필드만) ==========
 
     /// <summary>
@@ -237,5 +274,25 @@ public class Game implements Parcelable {
     /// </summary>
     public void setReview(String review) {
         this.review = review;
+    }
+
+    /// <summary>
+    /// 스크린샷 Uri 문자열 하나를 추가
+    /// ScreenshotActivity에서 갤러리로 이미지 한 장을 고를 때마다 호출
+    /// </summary>
+    public void addScreenshot(String uriString) {
+        this.screenshots.add(uriString);
+    }
+
+    /// <summary>
+    /// 스크린샷 목록 전체를 다른 목록으로 교체
+    /// GameRepository.updateGame이 외부에서 받은 Game의 스크린샷을 원본 Game에 반영할 때 사용
+    /// 리스트 객체 자체는 final이므로 재할당하지 않고 clear + addAll로 내용만 갱신
+    /// </summary>
+    public void replaceScreenshots(List<String> newList) {
+        this.screenshots.clear();
+        if (newList != null) {
+            this.screenshots.addAll(newList);
+        }
     }
 }

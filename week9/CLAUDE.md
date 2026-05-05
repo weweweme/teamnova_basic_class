@@ -452,6 +452,26 @@ ActivityLog
 
 ### 단계별 구현 순서 (최소 커밋 단위)
 
+**Phase 0 — 사전 패치 (스크린샷 영속 + 데이터 writeback)**
+
+문제 진단:
+- Activity 간 Game 전달은 Parcelable 복사본(참조 아님) → 어떤 화면에서 Game을 수정해도 GameRepository 원본은 그대로
+- 결과: 별점/리뷰/스크린샷 모두 Main으로 돌아오면 변경 사항이 사라져 보임 (현재 잠재 버그)
+
+해결 방향:
+- GameRepository를 Application 클래스에서 보유 → 전 Activity가 동일 인스턴스 공유
+- 수정 결과를 받은 Activity가 명시적으로 `repository.updateGame()` 호출
+- ScreenshotActivity가 변경된 Game을 setResult로 반환
+
+구현 순서:
+0-1. `Game` 모델에 `List<String> screenshots` 필드 추가 (Parcelable R/W 포함)
+0-2. `GameRepository.updateGame(Game updated)` 추가 (id 매칭, rating/review/screenshots 반영)
+0-3. `App` Application 서브클래스 도입 + Manifest 등록 (GameRepository 보유)
+0-4. `MainActivity`가 App을 거쳐 GameRepository 접근하도록 전환
+0-5. `GameDetailActivity` reviewLauncher 결과 처리에 `repository.updateGame()` 추가 (별점/리뷰 영속화)
+0-6. `ScreenshotActivity` Game 통째로 받기 + finish 시 setResult로 반환
+0-7. `GameDetailActivity` screenshotLauncher 등록 + 결과 처리 + repo 갱신
+
 **Phase 1 — DiaryActivity 전환 (기본 RecyclerView)**
 1. `item_game_card.xml` 레이아웃 분리
 2. `GameCardAdapter` + `GameCardViewHolder` 작성

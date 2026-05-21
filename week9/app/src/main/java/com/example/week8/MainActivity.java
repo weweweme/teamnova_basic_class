@@ -2,26 +2,22 @@ package com.example.week8;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.week8.data.GameRepository;
 import com.example.week8.databinding.ActivityMainBinding;
 import com.example.week8.model.Game;
 import com.example.week8.model.Genre;
 import com.example.week8.model.Platform;
-
-import java.util.ArrayList;
+import com.example.week8.ui.GameCardAdapter;
 
 /// <summary>
 /// 메인 화면 (내 게임 다이어리)
@@ -47,6 +43,12 @@ public class MainActivity extends AppCompatActivity {
     private GameRepository gameRepository;
 
     /// <summary>
+    /// 게임 카드 리스트를 화면에 그리는 어댑터
+    /// gameRepository.getAllGames()를 그대로 참조하므로 Repository 변경 시 notify만 하면 반영됨
+    /// </summary>
+    private GameCardAdapter adapter;
+
+    /// <summary>
     /// AddGameActivity를 실행하고 "새로 추가된 게임 정보"를 결과로 받는 런처
     /// GameDetail의 reviewLauncher, Screenshot의 galleryLauncher와 동일한 패턴
     /// </summary>
@@ -69,6 +71,14 @@ public class MainActivity extends AppCompatActivity {
         // App에서 공용 GameRepository 가져오기
         // (모든 Activity가 같은 인스턴스를 공유하므로 다른 화면에서 수정한 결과가 그대로 반영됨)
         gameRepository = ((App) getApplication()).getGameRepository();
+
+        // RecyclerView 설정
+        // LayoutManager: 카드를 어떻게 배치할지 결정 (세로 선형 = LinearLayoutManager)
+        // Adapter: Repository의 게임 목록을 카드에 채워주는 통역사
+        // 카드 클릭 시 onGameClick(game)이 호출되도록 메서드 참조를 콜백으로 전달
+        binding.recyclerViewGames.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new GameCardAdapter(gameRepository.getAllGames(), this::onGameClick);
+        binding.recyclerViewGames.setAdapter(adapter);
 
         // 게임 추가 화면에서 결과를 받을 런처 등록 (Lifecycle 연동 위해 onCreate에서)
         addGameLauncher = registerForActivityResult(
@@ -95,8 +105,11 @@ public class MainActivity extends AppCompatActivity {
                     // 저장소에 실제로 추가 (ID 자동 부여)
                     gameRepository.addGame(title, genre, platform, storeUrl);
 
-                    // 카드 리스트 다시 그리기
-                    populateGameCards();
+                    // 어댑터에 "마지막 위치에 새 항목이 추가됐다"고 알림
+                    // notifyDataSetChanged()는 전체 리스트를 다시 그려서 비효율적
+                    // notifyItemInserted(position)은 그 위치만 추가 애니메이션과 함께 갱신
+                    int newPosition = gameRepository.getAllGames().size() - 1;
+                    adapter.notifyItemInserted(newPosition);
                 }
         );
 
@@ -176,8 +189,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        // 카드 리스트 갱신 (변경된 별점/리뷰 반영)
-        populateGameCards();
+        // 다른 화면(GameDetail, ReviewWrite, Screenshot)에서 별점/리뷰/스크린샷이 변경됐을 수 있음
+        // 어떤 항목이 어떻게 변했는지 구체적으로 알지 못하므로 전체 리스트를 다시 바인딩
+        // (notifyItemChanged로 정밀 갱신하려면 변경 위치를 추적해야 함 — 이후 단계에서 개선 여지)
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
     }
 
     // ========== ActionBar 오버플로우 메뉴 (⋮) ==========
@@ -250,81 +267,18 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    // ========== 카드 생성 ==========
+    // ========== 어댑터 콜백 ==========
 
     /// <summary>
-    /// GameRepository의 전체 게임 목록을 읽어 카드를 동적으로 생성
+    /// GameCardAdapter의 카드 클릭 콜백
+    /// onCreate에서 어댑터 생성 시 this::onGameClick으로 메서드 참조를 콜백으로 넘겼기 때문에
+    /// 사용자가 카드를 탭할 때마다 이 메서드가 호출됨
+    ///
+    /// 동작: 클릭된 Game을 Parcelable로 Intent에 담아 GameDetailActivity로 이동
     /// </summary>
-    private void populateGameCards() {
-        // 기존 카드 전부 제거 (새로고침 시 중복 방지)
-        binding.layoutGameList.removeAllViews();
-
-        ArrayList<Game> games = gameRepository.getAllGames();
-
-        for (Game game : games) {
-            // 카드 View 생성 (item_game_card.xml을 inflate)
-            // Unity로 비유하면 Instantiate(cardPrefab)
-            View cardView = LayoutInflater.from(this)
-                    .inflate(R.layout.item_game_card, binding.layoutGameList, false);
-
-            // 카드 내부 View 참조
-            TextView textTitle = cardView.findViewById(R.id.textViewTitle);
-            TextView textGenrePlatform = cardView.findViewById(R.id.textViewGenrePlatform);
-            TextView textRatingReview = cardView.findViewById(R.id.textViewRatingReview);
-            ImageView imageCover = cardView.findViewById(R.id.imageViewCover);
-
-            // 게임 정보 바인딩
-            textTitle.setText(game.getTitle());
-
-            // 장르(한국어) · 플랫폼(표시명)
-            String genrePlatform = game.getGenre().getDisplayName()
-                    + " · " + game.getPlatform().getDisplayName();
-            textGenrePlatform.setText(genrePlatform);
-
-            // 별점 + 한줄평 (아직 리뷰가 없으면 "리뷰 없음")
-            boolean hasReview = game.getReview() != null && !game.getReview().isEmpty();
-            String ratingReview;
-            if (hasReview) {
-                ratingReview = "★ " + game.getRating() + "  " + game.getReview();
-            } else {
-                ratingReview = "리뷰 없음";
-            }
-            textRatingReview.setText(ratingReview);
-
-            // 표지 이미지 설정
-            // coverAssetName으로 drawable 리소스 ID를 찾아서 설정
-            // Unity로 비유하면 Resources.Load<Sprite>(coverAssetName)
-            // 주의: getIdentifier()는 이름(문자열)으로 이미지를 찾아서 느림 (비권장 표시됨)
-            // R.drawable.cover_zelda 처럼 직접 지정하면 빠르지만,
-            // 게임마다 이미지 이름이 다르므로 문자열 검색이 불가피
-            int coverResId = getResources().getIdentifier(
-                    game.getCoverAssetName(), "drawable", getPackageName());
-            if (coverResId != 0) {
-                imageCover.setImageResource(coverResId);
-            } else {
-                // 이미지가 없으면 기본 아이콘 표시
-                imageCover.setImageResource(R.mipmap.ic_launcher);
-            }
-
-            // 카드 클릭 시 GameDetailActivity로 이동
-            // Unity로 비유하면 Button.onClick에 Scene 전환 + 데이터 전달 등록
-            cardView.setOnClickListener(v -> {
-                // 명시적 Intent 생성: "이 Activity에서 GameDetailActivity로 이동하겠다"
-                Intent intent = new Intent(this, GameDetailActivity.class);
-
-                // putExtra(키, 값)으로 Intent 봉투 안에 데이터를 넣음
-                // 키: 받는 쪽과 동일한 문자열 상수 (키가 다르면 꺼낼 수 없음)
-                // 값: Parcelable Game 객체 (내부적으로 writeToParcel 호출되어 직렬화됨)
-                // Unity로 비유하면 PlayerPrefs.Set("키", 값) 후 Scene 전환하는 것
-                intent.putExtra(GameDetailActivity.EXTRA_GAME, game);
-
-                // Intent를 시스템에 전달하여 GameDetailActivity 실행
-                startActivity(intent);
-            });
-
-            // 카드를 LinearLayout에 추가
-            // Unity로 비유하면 card.transform.SetParent(content)
-            binding.layoutGameList.addView(cardView);
-        }
+    private void onGameClick(Game game) {
+        Intent intent = new Intent(this, GameDetailActivity.class);
+        intent.putExtra(GameDetailActivity.EXTRA_GAME, game);
+        startActivity(intent);
     }
 }

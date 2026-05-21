@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.week8.databinding.ActivityScreenshotBinding;
+import com.example.week8.model.Game;
 
 /// <summary>
 /// 스크린샷 화면
@@ -44,15 +45,22 @@ public class ScreenshotActivity extends AppCompatActivity {
     private static final String TAG = "ScreenshotActivity";
 
     /// <summary>
-    /// Intent extras에서 게임 제목을 꺼낼 때 사용하는 키
+    /// Intent extras에서 Game 객체를 꺼낼 때 사용하는 키
     /// GameDetailActivity(보내는 쪽)와 같은 키를 써야 함
     /// </summary>
-    public static final String EXTRA_GAME_TITLE = "extra_game_title";
+    public static final String EXTRA_GAME = "extra_game";
 
     /// <summary>
     /// ViewBinding 객체
     /// </summary>
     private ActivityScreenshotBinding binding;
+
+    /// <summary>
+    /// GameDetailActivity에서 Parcelable로 전달받은 게임 데이터
+    /// 갤러리에서 스크린샷을 선택할 때마다 이 객체의 screenshots 리스트에 추가하고,
+    /// setResult로 호출자에게 돌려보냄
+    /// </summary>
+    private Game game;
 
     /// <summary>
     /// 갤러리에서 이미지를 선택하고 그 결과를 받는 "런처"
@@ -85,11 +93,18 @@ public class ScreenshotActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        // GameDetail에서 전달받은 게임 제목을 상단에 표시
-        String gameTitle = getIntent().getStringExtra(EXTRA_GAME_TITLE);
-        if (gameTitle != null) {
-            binding.textViewGameTitle.setText(gameTitle);
+        // GameDetail에서 전달받은 Game 객체 꺼내기
+        // 이 화면에서 추가한 스크린샷은 game.addScreenshot으로 이 객체에 누적되고,
+        // setResult로 호출자에게 그대로 돌려주어 Repository 원본에 반영되게 함
+        game = getIntent().getParcelableExtra(EXTRA_GAME, Game.class);
+        if (game == null) {
+            // 비정상 진입 (extras 누락) 방어 — 즉시 화면 닫음
+            finish();
+            return;
         }
+
+        // 상단에 게임 제목 표시
+        binding.textViewGameTitle.setText(game.getTitle());
 
         // ──────── 갤러리 런처 등록 ────────
         // 상세 개념 설명은 GameDetailActivity.onCreate의 reviewLauncher 등록 부분 참고
@@ -183,6 +198,13 @@ public class ScreenshotActivity extends AppCompatActivity {
 
     /// <summary>
     /// 선택한 이미지의 Uri를 ImageView에 표시하고, 안내 문구(textViewEmpty)를 숨김
+    /// 동시에 game 객체의 스크린샷 목록에 추가하고, 변경된 game을 setResult로 미리 등록
+    ///
+    /// ──── setResult를 finish가 아닌 여기서 호출하는 이유 ────
+    /// 사용자가 ← 버튼을 누를 때 finish가 호출되는데, 그 시점에 setResult 호출은 늦음
+    /// setResult는 finish 이전에 호출돼야 함
+    /// → 스크린샷을 추가할 때마다 미리 setResult로 결과를 등록해두면,
+    ///    이후 어떤 경로로 finish 되어도 호출자가 변경된 Game을 받게 됨
     /// </summary>
     private void showPickedImage(Uri imageUri) {
         if (imageUri == null) {
@@ -192,6 +214,15 @@ public class ScreenshotActivity extends AppCompatActivity {
         binding.imageViewPreview.setImageURI(imageUri);
         // 사진이 생겼으니 "아직 추가한 사진이 없습니다" 문구는 숨김
         binding.textViewEmpty.setVisibility(View.GONE);
+
+        // 게임에 스크린샷 추가 (Uri를 문자열로 보관)
+        game.addScreenshot(imageUri.toString());
+
+        // 변경된 game을 결과 Intent에 담아 setResult로 미리 등록
+        // 호출자(GameDetailActivity)가 launcher 콜백에서 이 game을 꺼내 Repository에 반영
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra(EXTRA_GAME, game);
+        setResult(RESULT_OK, resultIntent);
     }
 
     // ========== Lifecycle 관찰용 로그 ==========

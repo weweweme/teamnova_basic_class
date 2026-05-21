@@ -89,6 +89,13 @@ public class GameDetailActivity extends AppCompatActivity {
     /// </summary>
     private ActivityResultLauncher<Intent> reviewLauncher;
 
+    /// <summary>
+    /// ScreenshotActivity를 실행하고 결과(스크린샷이 추가된 Game)를 받는 런처
+    /// ScreenshotActivity가 갤러리에서 이미지를 고를 때마다 game.addScreenshot한 결과를
+    /// setResult로 돌려보내므로, 이 람다에서 Repository 원본에 반영해야 함
+    /// </summary>
+    private ActivityResultLauncher<Intent> screenshotLauncher;
+
     // ========== Lifecycle ==========
 
     /// <summary>
@@ -188,6 +195,34 @@ public class GameDetailActivity extends AppCompatActivity {
 
                     // [5단계] 화면 재바인딩 → 변경된 별점/한줄평이 TextView에 표시됨
                     bindGameData();
+                }
+        );
+
+        // ──────── 스크린샷 결과를 받을 런처 등록 ────────
+        // ScreenshotActivity가 갤러리에서 이미지를 고를 때마다 game을 setResult로 돌려줌
+        // 여기서는 그 변경된 game을 받아 클래스 필드와 Repository 원본에 모두 반영
+        screenshotLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    boolean isOk = result.getResultCode() == RESULT_OK;
+                    boolean hasData = result.getData() != null;
+                    if (!isOk || !hasData) {
+                        return;
+                    }
+
+                    // 변경된 Game을 결과 Intent에서 꺼냄
+                    Game updated = result.getData().getParcelableExtra(
+                            ScreenshotActivity.EXTRA_GAME, Game.class);
+                    if (updated == null) {
+                        return;
+                    }
+
+                    // 클래스 필드 game도 최신 사본으로 교체
+                    // (이후 다른 작업에서 game.getScreenshots()로 최신 목록을 보게 됨)
+                    game = updated;
+
+                    // Repository 원본에도 반영 → MainActivity로 돌아갔을 때 일관성 유지
+                    ((App) getApplication()).getGameRepository().updateGame(game);
                 }
         );
 
@@ -316,13 +351,13 @@ public class GameDetailActivity extends AppCompatActivity {
 
     /// <summary>
     /// ScreenshotActivity로 이동
-    /// 현재 게임의 제목을 Intent extras로 전달 (어떤 게임의 스크린샷인지 표시용)
-    /// 카메라 호출은 ScreenshotActivity 내부에서 처리 (다음 커밋에서 구현)
+    /// 현재 Game 객체를 통째로 전달하여 ScreenshotActivity가 스크린샷을 추가할 수 있게 함
+    /// 결과는 screenshotLauncher 람다로 돌아와 Repository에 반영됨
     /// </summary>
     private void openScreenshot() {
         Intent intent = new Intent(this, ScreenshotActivity.class);
-        intent.putExtra(ScreenshotActivity.EXTRA_GAME_TITLE, game.getTitle());
-        startActivity(intent);
+        intent.putExtra(ScreenshotActivity.EXTRA_GAME, game);
+        screenshotLauncher.launch(intent);
     }
 
     // ========== 암시적 Intent: 스토어 열기 ==========

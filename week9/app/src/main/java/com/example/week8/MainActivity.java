@@ -66,8 +66,9 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // GameRepository 초기화
-        gameRepository = new GameRepository();
+        // App에서 공용 GameRepository 가져오기
+        // (모든 Activity가 같은 인스턴스를 공유하므로 다른 화면에서 수정한 결과가 그대로 반영됨)
+        gameRepository = ((App) getApplication()).getGameRepository();
 
         // 게임 추가 화면에서 결과를 받을 런처 등록 (Lifecycle 연동 위해 onCreate에서)
         addGameLauncher = registerForActivityResult(

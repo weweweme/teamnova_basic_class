@@ -22,6 +22,19 @@
 ## 개발 규칙
 
 - **점진적 커밋**: 모든 커밋은 사용자 컨펌 후 진행 (커밋은 사용자가 직접, 메시지만 제공)
+- **클래스/인터페이스는 별도 파일로 분리**: 한 파일에 하나의 public 클래스/인터페이스만 둔다. inner class, static nested class, 보조 인터페이스도 가능한 한 별도 파일로 빼는 것을 우선. 파일 단위 탐색·재사용·리뷰가 쉬워짐. (예: Adapter / ViewHolder / 클릭 콜백 인터페이스는 셋 다 별도 파일)
+  ```java
+  // 나쁜 예: 한 파일에 어댑터·뷰홀더·콜백 인터페이스가 다 들어감
+  public class GameCardAdapter ... {
+      public static class GameCardViewHolder ... { }
+      public interface OnGameClickListener { ... }
+  }
+
+  // 좋은 예: 파일 단위로 분리
+  // GameCardAdapter.java
+  // GameCardViewHolder.java
+  // OnGameClickListener.java
+  ```
 - **상수는 해당 클래스에**: 상수 전용 클래스(Config 등)를 만들지 않고, 각 상수를 해당 개념을 소유하는 클래스에 둔다
   ```java
   // 나쁜 예: 중앙 집중 상수 클래스

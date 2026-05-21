@@ -181,7 +181,12 @@ public class GameDetailActivity extends AppCompatActivity {
                     game.setRating(rating);
                     game.setReview(review);
 
-                    // [4단계] 화면 재바인딩 → 변경된 별점/한줄평이 TextView에 표시됨
+                    // [4단계] Repository 원본에도 반영
+                    // game은 Parcelable로 복사된 사본이라 setRating/setReview는 이 사본만 갱신됨
+                    // → MainActivity로 돌아갔을 때 리스트에 변경이 보이려면 원본을 명시적으로 갱신해야 함
+                    ((App) getApplication()).getGameRepository().updateGame(game);
+
+                    // [5단계] 화면 재바인딩 → 변경된 별점/한줄평이 TextView에 표시됨
                     bindGameData();
                 }
         );

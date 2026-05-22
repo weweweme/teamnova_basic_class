@@ -45,7 +45,7 @@
         <!-- intent-filter: "나는 이 요청을 처리할 수 있어요"라는 자격 선언 -->
         <!-- Unity로 비유하면 "이런 SendMessage 이름을 받을 수 있는 오브젝트"로 등록하는 것 -->
         <activity
-            android:name=".MainActivity"
+            android:name=".DiaryActivity"
             android:label="@string/main_title"
             android:exported="true">
             <!-- ACTION_SEND + text/plain 수신 필터 -->
@@ -64,7 +64,7 @@
         <activity
             android:name=".GameDetailActivity"
             android:label="@string/detail_title"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName=".DiaryActivity"
             android:exported="false" />
 
         <!-- 리뷰 작성: forResult로 별점+한줄평 반환 -->
@@ -88,7 +88,7 @@
         <activity
             android:name=".AboutActivity"
             android:label="@string/about_title"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName=".DiaryActivity"
             android:exported="false" />
 
         <!-- 게임 추가: 사용자가 수동으로 새 게임을 라이브러리에 등록 -->
@@ -96,7 +96,7 @@
         <activity
             android:name=".AddGameActivity"
             android:label="@string/add_game_title"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName=".DiaryActivity"
             android:exported="false" />
     </application>
 

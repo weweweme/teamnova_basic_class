@@ -13,7 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.week8.data.GameRepository;
-import com.example.week8.databinding.ActivityMainBinding;
+import com.example.week8.databinding.ActivityDiaryBinding;
 import com.example.week8.model.Game;
 import com.example.week8.model.Genre;
 import com.example.week8.model.Platform;
@@ -29,12 +29,12 @@ import com.example.week8.ui.GameCardAdapter;
 /// onResume: GameDetail/ReviewWrite 다녀온 뒤 변경된 데이터 반영
 /// onNewIntent: 앱이 살아있을 때 다른 앱의 공유로 다시 호출될 때 처리
 /// </summary>
-public class MainActivity extends AppCompatActivity {
+public class DiaryActivity extends AppCompatActivity {
 
     /// <summary>
     /// ViewBinding 객체
     /// </summary>
-    private ActivityMainBinding binding;
+    private ActivityDiaryBinding binding;
 
     /// <summary>
     /// 게임 데이터 저장소
@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // ViewBinding 연결
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        binding = ActivityDiaryBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         // App에서 공용 GameRepository 가져오기

@@ -10,5 +10,5 @@
     android:layout_height="match_parent"
     android:padding="8dp"
     android:clipToPadding="false"
-    tools:context=".MainActivity"
+    tools:context=".DiaryActivity"
     tools:listitem="@layout/item_game_card" />

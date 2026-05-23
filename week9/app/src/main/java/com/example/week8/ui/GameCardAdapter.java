@@ -34,11 +34,19 @@ public class GameCardAdapter extends RecyclerView.Adapter<GameCardViewHolder> {
     private final OnGameClickListener clickListener;
 
     /// <summary>
+    /// 카드 길게 누르기 콜백 (보통 컨텍스트 메뉴 표시에 사용)
+    /// </summary>
+    private final OnGameLongClickListener longClickListener;
+
+    /// <summary>
     /// 어댑터 생성
     /// </summary>
-    public GameCardAdapter(List<Game> games, OnGameClickListener clickListener) {
+    public GameCardAdapter(List<Game> games,
+                           OnGameClickListener clickListener,
+                           OnGameLongClickListener longClickListener) {
         this.games = games;
         this.clickListener = clickListener;
+        this.longClickListener = longClickListener;
     }
 
     // ========== RecyclerView.Adapter 콜백 ==========
@@ -63,7 +71,7 @@ public class GameCardAdapter extends RecyclerView.Adapter<GameCardViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull GameCardViewHolder holder, int position) {
         Game game = games.get(position);
-        holder.bind(game, clickListener);
+        holder.bind(game, clickListener, longClickListener);
     }
 
     /// <summary>

@@ -19,6 +19,11 @@
     <string name="main_shared_text">공유받은 텍스트: %s</string>
     <string name="main_add_game">게임 추가</string>
 
+    <!-- 다이어리(카드 길게 누르기) BottomSheet 액션 -->
+    <string name="diary_action_delete">삭제</string>
+    <string name="diary_action_share">공유</string>
+    <string name="diary_action_detail">상세 보기</string>
+
     <!-- 게임 추가 -->
     <string name="add_game_title">게임 추가</string>
     <string name="add_game_hint_title">게임 제목</string>

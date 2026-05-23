@@ -35,9 +35,11 @@ public class GameCardViewHolder extends RecyclerView.ViewHolder {
 
     /// <summary>
     /// Game 데이터를 카드 뷰의 각 자리에 채움
-    /// 제목, 장르·플랫폼, 별점·한줄평, 표지 이미지, 클릭 리스너 설정
+    /// 제목, 장르·플랫폼, 별점·한줄평, 표지 이미지, 클릭/롱클릭 리스너 설정
     /// </summary>
-    public void bind(Game game, OnGameClickListener clickListener) {
+    public void bind(Game game,
+                     OnGameClickListener clickListener,
+                     OnGameLongClickListener longClickListener) {
         Context context = binding.getRoot().getContext();
 
         // 제목
@@ -74,6 +76,17 @@ public class GameCardViewHolder extends RecyclerView.ViewHolder {
             if (clickListener != null) {
                 clickListener.onGameClick(game);
             }
+        });
+
+        // 카드 길게 누르기 리스너
+        // return true: "이벤트를 내가 처리했음" → 짧은 클릭 이벤트로 전파되지 않음
+        // return false: 짧은 클릭으로 이어짐 (long click과 click이 동시에 발생)
+        binding.getRoot().setOnLongClickListener(v -> {
+            if (longClickListener != null) {
+                longClickListener.onGameLongClick(game);
+                return true;
+            }
+            return false;
         });
     }
 }

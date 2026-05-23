@@ -14,10 +14,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.week8.data.GameRepository;
 import com.example.week8.databinding.ActivityDiaryBinding;
+import com.example.week8.databinding.BottomSheetGameActionsBinding;
 import com.example.week8.model.Game;
 import com.example.week8.model.Genre;
 import com.example.week8.model.Platform;
 import com.example.week8.ui.GameCardAdapter;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 /// <summary>
 /// 메인 화면 (내 게임 다이어리)
@@ -77,7 +79,10 @@ public class DiaryActivity extends AppCompatActivity {
         // Adapter: Repository의 게임 목록을 카드에 채워주는 통역사
         // 카드 클릭 시 onGameClick(game)이 호출되도록 메서드 참조를 콜백으로 전달
         binding.recyclerViewGames.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new GameCardAdapter(gameRepository.getAllGames(), this::onGameClick);
+        adapter = new GameCardAdapter(
+                gameRepository.getAllGames(),
+                this::onGameClick,
+                this::onGameLongClick);
         binding.recyclerViewGames.setAdapter(adapter);
 
         // 게임 추가 화면에서 결과를 받을 런처 등록 (Lifecycle 연동 위해 onCreate에서)
@@ -280,5 +285,40 @@ public class DiaryActivity extends AppCompatActivity {
         Intent intent = new Intent(this, GameDetailActivity.class);
         intent.putExtra(GameDetailActivity.EXTRA_GAME, game);
         startActivity(intent);
+    }
+
+    /// <summary>
+    /// 카드 길게 누르기 콜백
+    /// BottomSheetDialog로 컨텍스트 메뉴(삭제 / 공유 / 상세 보기) 표시
+    /// 각 메뉴 항목의 실제 동작은 후속 커밋에서 구현 (지금은 stub)
+    /// </summary>
+    private void onGameLongClick(Game game) {
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        BottomSheetGameActionsBinding sheetBinding =
+                BottomSheetGameActionsBinding.inflate(getLayoutInflater());
+
+        // 상단에 어떤 게임에 대한 액션인지 표시
+        sheetBinding.textViewSheetTitle.setText(game.getTitle());
+
+        // 삭제 (다음 커밋에서 구현 — 지금은 Toast로 동작 확인용)
+        sheetBinding.actionDelete.setOnClickListener(v -> {
+            Toast.makeText(this, "삭제: " + game.getTitle(), Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        // 공유 (다음 커밋에서 구현)
+        sheetBinding.actionShare.setOnClickListener(v -> {
+            Toast.makeText(this, "공유: " + game.getTitle(), Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        // 상세 보기 — 카드 짧게 누르기와 동일한 동작
+        sheetBinding.actionDetail.setOnClickListener(v -> {
+            dialog.dismiss();
+            onGameClick(game);
+        });
+
+        dialog.setContentView(sheetBinding.getRoot());
+        dialog.show();
     }
 }

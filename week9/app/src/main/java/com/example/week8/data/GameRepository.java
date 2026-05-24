@@ -173,4 +173,24 @@ public class GameRepository {
         original.setReview(updated.getReview());
         original.replaceScreenshots(updated.getScreenshots());
     }
+
+    // ========== 삭제 ==========
+
+    /// <summary>
+    /// id로 게임을 라이브러리에서 제거
+    /// 호출자(어댑터)가 notifyItemRemoved에 쓸 수 있도록 제거된 position을 반환
+    ///
+    /// 반환값
+    ///   ≥ 0 : 제거에 성공한 경우 그 항목이 있던 인덱스
+    ///   -1  : 해당 id를 찾지 못한 경우 (이미 지워졌거나 잘못된 id)
+    /// </summary>
+    public int removeGame(int id) {
+        for (int i = 0; i < games.size(); i++) {
+            if (games.get(i).getId() == id) {
+                games.remove(i);
+                return i;
+            }
+        }
+        return -1;
+    }
 }

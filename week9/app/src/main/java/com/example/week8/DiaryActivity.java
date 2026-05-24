@@ -85,7 +85,7 @@ public class DiaryActivity extends AppCompatActivity {
                 this::onGameLongClick);
         binding.recyclerViewGames.setAdapter(adapter);
 
-        // 게임 추가 화면에서 결과를 받을 런처 등록 (Lifecycle 연동 위해 onCreate에서)
+        // 게임 추가 화면에서 결과를 받을 런처 등록
         addGameLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -300,9 +300,13 @@ public class DiaryActivity extends AppCompatActivity {
         // 상단에 어떤 게임에 대한 액션인지 표시
         sheetBinding.textViewSheetTitle.setText(game.getTitle());
 
-        // 삭제 (다음 커밋에서 구현 — 지금은 Toast로 동작 확인용)
+        // 삭제: Repository에서 제거 + 어댑터에 위치 알림
+        // notifyItemRemoved는 해당 위치만 제거 애니메이션과 함께 갱신 (전체 리바인딩 X)
         sheetBinding.actionDelete.setOnClickListener(v -> {
-            Toast.makeText(this, "삭제: " + game.getTitle(), Toast.LENGTH_SHORT).show();
+            int removedPosition = gameRepository.removeGame(game.getId());
+            if (removedPosition >= 0) {
+                adapter.notifyItemRemoved(removedPosition);
+            }
             dialog.dismiss();
         });
 

@@ -37,9 +37,9 @@ public class GameCardViewHolder extends RecyclerView.ViewHolder {
     /// Game 데이터를 카드 뷰의 각 자리에 채움
     /// 제목, 장르·플랫폼, 별점·한줄평, 표지 이미지, 클릭/롱클릭 리스너 설정
     /// </summary>
-    public void bind(Game game,
-                     OnGameClickListener clickListener,
-                     OnGameLongClickListener longClickListener) {
+    public void bindGameData(Game game,
+                         OnGameClickListener clickListener,
+                         OnGameLongClickListener longClickListener) {
         Context context = binding.getRoot().getContext();
 
         // 제목

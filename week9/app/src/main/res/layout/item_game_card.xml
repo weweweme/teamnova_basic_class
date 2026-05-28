@@ -60,6 +60,18 @@
                 android:layout_marginTop="4dp"
                 android:textSize="13sp" />
         </LinearLayout>
+
+        <!-- 드래그 핸들 -->
+        <!-- 이 아이콘을 누른 채 위/아래로 끌면 카드 순서 변경 (오작동 방지 위해 핸들에서만 드래그 시작) -->
+        <ImageView
+            android:id="@+id/imageViewDragHandle"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_drag_handle"
+            android:contentDescription="@string/diary_drag_handle_description" />
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

@@ -24,6 +24,9 @@
     <string name="diary_action_share">공유</string>
     <string name="diary_action_detail">상세 보기</string>
 
+    <!-- 다이어리 카드 드래그 핸들 (접근성 설명) -->
+    <string name="diary_drag_handle_description">카드 위치 변경 핸들 — 누른 채 위아래로 끌어 순서 변경</string>
+
     <!-- 게임 추가 -->
     <string name="add_game_title">게임 추가</string>
     <string name="add_game_hint_title">게임 제목</string>

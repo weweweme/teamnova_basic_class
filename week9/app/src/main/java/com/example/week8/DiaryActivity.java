@@ -288,6 +288,29 @@ public class DiaryActivity extends AppCompatActivity {
     }
 
     /// <summary>
+    /// 게임 정보를 다른 앱(카톡, 메시지 등)으로 공유
+    /// ACTION_SEND + Chooser 패턴 (GameDetailActivity의 공유 버튼과 동일한 동작)
+    /// </summary>
+    private void shareGame(Game game) {
+        // 공유할 텍스트 조합 (제목 + 리뷰 있으면 별점·한줄평 포함)
+        String shareText = game.getTitle();
+        boolean hasReview = game.getReview() != null && !game.getReview().isEmpty();
+        if (hasReview) {
+            shareText += "\n★ " + game.getRating() + " - " + game.getReview();
+        }
+
+        // ACTION_SEND: "이 데이터를 보낼 수 있는 앱 목록 보여줘"
+        Intent sendIntent = new Intent(Intent.ACTION_SEND);
+        sendIntent.setType("text/plain");
+        sendIntent.putExtra(Intent.EXTRA_SUBJECT, game.getTitle());
+        sendIntent.putExtra(Intent.EXTRA_TEXT, shareText);
+
+        // createChooser: 항상 앱 선택 다이얼로그 표시
+        Intent chooser = Intent.createChooser(sendIntent, getString(R.string.detail_share));
+        startActivity(chooser);
+    }
+
+    /// <summary>
     /// 카드 길게 누르기 콜백
     /// BottomSheetDialog로 컨텍스트 메뉴(삭제 / 공유 / 상세 보기) 표시
     /// 각 메뉴 항목의 실제 동작은 후속 커밋에서 구현 (지금은 stub)
@@ -310,10 +333,11 @@ public class DiaryActivity extends AppCompatActivity {
             dialog.dismiss();
         });
 
-        // 공유 (다음 커밋에서 구현)
+        // 공유: 게임 정보를 다른 앱(카톡, 메시지 등)으로 공유
+        // GameDetailActivity의 shareGame과 동일한 ACTION_SEND + Chooser 패턴
         sheetBinding.actionShare.setOnClickListener(v -> {
-            Toast.makeText(this, "공유: " + game.getTitle(), Toast.LENGTH_SHORT).show();
             dialog.dismiss();
+            shareGame(game);
         });
 
         // 상세 보기 — 카드 짧게 누르기와 동일한 동작

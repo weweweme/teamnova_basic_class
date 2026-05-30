@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.week8.databinding.ItemGameCardBinding;
@@ -37,6 +38,17 @@ public class GameCardAdapter extends RecyclerView.Adapter<GameCardViewHolder> {
     /// 카드 길게 누르기 콜백 (보통 컨텍스트 메뉴 표시에 사용)
     /// </summary>
     private final OnGameLongClickListener longClickListener;
+
+    /// <summary>
+    /// 드래그 정렬에 쓰는 ItemTouchHelper 참조 (DiaryActivity에서 setter로 늦은 주입)
+    /// 카드 핸들 ACTION_DOWN 시 itemTouchHelper.startDrag(holder) 호출에 사용
+    ///
+    /// 늦은 주입을 쓰는 이유:
+    /// ItemTouchHelper 생성 시 Adapter의 onItemMove 콜백이 필요하고,
+    /// Adapter는 다시 ItemTouchHelper의 startDrag가 필요해 순환 의존이 됨
+    /// → 둘 중 하나를 setter로 풀어주는 게 가장 단순
+    /// </summary>
+    private ItemTouchHelper itemTouchHelper;
 
     /// <summary>
     /// 어댑터 생성
@@ -108,7 +120,37 @@ public class GameCardAdapter extends RecyclerView.Adapter<GameCardViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull GameCardViewHolder holder, int position) {
         Game game = games.get(position);
-        holder.bindGameData(game, clickListener, longClickListener);
+        holder.bindGameData(game, clickListener, longClickListener, itemTouchHelper);
+    }
+
+    /// <summary>
+    /// DiaryActivity에서 ItemTouchHelper 생성 후 늦게 주입
+    /// 이후 onBindViewHolder에서 ViewHolder에 전달되어 핸들 터치 시 startDrag 호출에 사용됨
+    /// </summary>
+    public void setItemTouchHelper(ItemTouchHelper itemTouchHelper) {
+        this.itemTouchHelper = itemTouchHelper;
+    }
+
+    /// <summary>
+    /// 드래그로 항목 위치가 이동했을 때 호출 (GameCardItemTouchCallback에서 메서드 참조로 연결)
+    /// games 리스트는 GameRepository와 같은 인스턴스이므로 여기서 변경하면 Repository에도 반영됨
+    /// notifyItemMoved는 변경된 두 위치만 애니메이션으로 갱신 (전체 리바인딩 X)
+    /// </summary>
+    public void onItemMove(int fromPosition, int toPosition) {
+        int size = games.size();
+        // 시작 위치가 리스트 범위 밖 (음수 또는 size 이상 — 존재하지 않는 인덱스)
+        boolean fromOutOfRange = fromPosition < 0 || fromPosition >= size;
+        // 도착 위치가 리스트 범위 밖 (음수 또는 size 이상 — 거기로 옮길 수 없음)
+        boolean toOutOfRange = toPosition < 0 || toPosition >= size;
+        // 시작과 도착이 같은 위치 (이동할 필요 없음 — 무의미한 notifyItemMoved 호출 방지)
+        boolean samePosition = fromPosition == toPosition;
+
+        if (fromOutOfRange || toOutOfRange || samePosition) {
+            return;
+        }
+        Game game = games.remove(fromPosition);
+        games.add(toPosition, game);
+        notifyItemMoved(fromPosition, toPosition);
     }
 
     /// <summary>

@@ -1,8 +1,11 @@
 package com.example.week8.ui;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.view.MotionEvent;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.week8.R;
@@ -35,11 +38,12 @@ public class GameCardViewHolder extends RecyclerView.ViewHolder {
 
     /// <summary>
     /// Game 데이터를 카드 뷰의 각 자리에 채움
-    /// 제목, 장르·플랫폼, 별점·한줄평, 표지 이미지, 클릭/롱클릭 리스너 설정
+    /// 제목, 장르·플랫폼, 별점·한줄평, 표지 이미지, 클릭/롱클릭 리스너, 드래그 핸들 설정
     /// </summary>
     public void bindGameData(Game game,
                          OnGameClickListener clickListener,
-                         OnGameLongClickListener longClickListener) {
+                         OnGameLongClickListener longClickListener,
+                         ItemTouchHelper itemTouchHelper) {
         Context context = binding.getRoot().getContext();
 
         // 제목
@@ -86,6 +90,33 @@ public class GameCardViewHolder extends RecyclerView.ViewHolder {
                 longClickListener.onGameLongClick(game);
                 return true;
             }
+            return false;
+        });
+
+        // 드래그 핸들 터치 시 드래그 시작
+        setupDragHandle(itemTouchHelper);
+    }
+
+    /// <summary>
+    /// 드래그 핸들 ImageView에 터치 리스너 등록
+    /// ACTION_DOWN 시 itemTouchHelper.startDrag(this)를 명시 호출하여 드래그 시작
+    /// (콜백의 isLongPressDragEnabled=false이므로 이 경로 외에는 드래그 시작 안 됨)
+    ///
+    /// @SuppressLint("ClickableViewAccessibility")
+    ///   setOnTouchListener는 안드로이드 접근성 경고를 일으킴 (TalkBack 등 보조 기기에서
+    ///   터치 이벤트가 무시될 수 있음). 드래그 핸들은 본질적으로 접근성 보조 도구로
+    ///   재현하기 어려운 제스처이므로 의도적으로 무시 — 별도의 접근성 처리는 길게 누르기
+    ///   기반 BottomSheet 메뉴(상세/공유/삭제)가 대체 경로로 제공됨
+    /// </summary>
+    @SuppressLint("ClickableViewAccessibility")
+    private void setupDragHandle(ItemTouchHelper itemTouchHelper) {
+        binding.imageViewDragHandle.setOnTouchListener((v, event) -> {
+            if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                if (itemTouchHelper != null) {
+                    itemTouchHelper.startDrag(this);
+                }
+            }
+            // false: 이벤트 미소비 — 뷰의 ripple 같은 후속 처리에 영향 없음
             return false;
         });
     }

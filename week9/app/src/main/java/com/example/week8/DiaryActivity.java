@@ -10,6 +10,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.week8.data.GameRepository;
@@ -19,6 +20,7 @@ import com.example.week8.model.Game;
 import com.example.week8.model.Genre;
 import com.example.week8.model.Platform;
 import com.example.week8.ui.GameCardAdapter;
+import com.example.week8.ui.GameCardItemTouchCallback;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 /// <summary>
@@ -84,6 +86,50 @@ public class DiaryActivity extends AppCompatActivity {
                 this::onGameClick,
                 this::onGameLongClick);
         binding.recyclerViewGames.setAdapter(adapter);
+
+        // 드래그 정렬 설정
+        // 1. 콜백 생성 (위치 이동 시 adapter.onItemMove 호출되도록 메서드 참조 연결)
+        // 2. ItemTouchHelper 생성 후 RecyclerView에 부착 → 내부 터치 이벤트 가로채기 시작
+        // 3. 어댑터에 ItemTouchHelper 늦은 주입 → ViewHolder의 핸들이 startDrag 호출에 사용
+        //    (어댑터 생성자에서 받으려 하면 ItemTouchHelper ↔ Adapter 순환 의존 → setter로 분리)
+        //
+        // ──── adapter::onItemMove 의 "::" 의미(메서드 참조) ────
+        // "::" 는 Java의 메서드 참조(method reference) 문법.
+        // "이 객체의 이 메서드를 나중에 호출할 함수로 넘긴다"는 뜻 (지금 호출하는 게 아님).
+        //
+        // ─ 왜 "인터페이스 자리"에 "메서드"를 넘길 수 있나? (함수형 인터페이스) ─
+        // GameCardItemTouchCallback 생성자는 OnItemMoveListener 인터페이스를 받는데,
+        // 이 인터페이스에는 추상 메서드가 onItemMove(from, to) 딱 하나뿐임.
+        // → 이렇게 "추상 메서드가 1개뿐인 인터페이스"를 함수형 인터페이스라 부르고,
+        //   Java는 이걸 "함수 1개"와 동일하게 취급함.
+        // → 그래서 인터페이스 구현 객체를 만드는 대신, 시그니처가 맞는 함수(람다/메서드 참조)를
+        //   바로 넘길 수 있음.
+        //
+        // 컴파일러가 내부적으로 해주는 일 (adapter::onItemMove를 넘기면):
+        //   new GameCardItemTouchCallback(new OnItemMoveListener() {
+        //       public void onItemMove(int from, int to) {
+        //           adapter.onItemMove(from, to);   // ← 이 구현체를 자동 생성해줌
+        //       }
+        //   });
+        //
+        // 꽂히는 조건은 "시그니처 일치"뿐:
+        //   인터페이스: void onItemMove(int, int)
+        //   adapter  : void onItemMove(int, int)   → 파라미터·반환형 일치 → OK
+        //   (메서드 이름은 달라도 됨. 시그니처만 맞으면 됨)
+        // 비유: 콘센트(인터페이스)는 "구멍 모양(시그니처)"만 맞으면 어느 플러그든 꽂아줌.
+        //       어느 회사 제품(어느 객체의 메서드)인지는 안 따짐.
+        //
+        // ─ 람다 vs 메서드 참조 (둘은 완전히 같은 의미) ─
+        //   (from, to) -> adapter.onItemMove(from, to)   // 람다로 풀어쓴 형태
+        //   adapter::onItemMove                          // 메서드 참조로 줄인 형태
+        // → 이미 그 일을 하는 메서드가 있으면 람다로 다시 감싸지 않고 :: 로 바로 가리킴
+        //
+        // this::onGameClick (위 어댑터 생성 부분)도 같은 문법.
+        // "this(=DiaryActivity)의 onGameClick 메서드를 클릭 콜백으로 넘긴다"는 뜻.
+        GameCardItemTouchCallback dragCallback = new GameCardItemTouchCallback(adapter::onItemMove);
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(dragCallback);
+        itemTouchHelper.attachToRecyclerView(binding.recyclerViewGames);
+        adapter.setItemTouchHelper(itemTouchHelper);
 
         // 게임 추가 화면에서 결과를 받을 런처 등록
         addGameLauncher = registerForActivityResult(

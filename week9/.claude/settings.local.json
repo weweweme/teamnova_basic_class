@@ -14,7 +14,9 @@
       "Bash(curl -sSL -o cover_celeste.jpg \"https://cdn.cloudflare.steamstatic.com/steam/apps/504230/header.jpg\")",
       "WebFetch(domain:jtm0609.tistory.com)",
       "Bash(git mv *)",
-      "Bash(git status *)"
+      "Bash(git status *)",
+      "WebFetch(domain:googlesamples.github.io)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

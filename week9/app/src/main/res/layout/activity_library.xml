@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 라이브러리 화면 레이아웃 -->
+<!-- 게임 표지를 RecyclerView + GridLayoutManager로 격자(2~3열) 표시 -->
+<!-- 셀 한 칸의 모양은 item_library_grid.xml, 데이터 채우기는 LibraryAdapter가 담당 -->
+<!-- DiaryActivity와의 차이는 LayoutManager뿐 (Linear → Grid). 어댑터 구조는 동일 -->
+<androidx.recyclerview.widget.RecyclerView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/recyclerViewLibrary"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="6dp"
+    android:clipToPadding="false"
+    tools:context=".LibraryActivity"
+    tools:listitem="@layout/item_library_grid" />

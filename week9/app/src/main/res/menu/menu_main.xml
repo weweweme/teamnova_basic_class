@@ -13,6 +13,13 @@
         android:title="@string/main_add_game"
         app:showAsAction="always" />
 
+    <!-- 라이브러리(그리드 뷰): ⋮ 오버플로우 메뉴 안에 표시 -->
+    <!-- 임시 진입점 — Phase 6에서 HomeActivity 도입 후 그쪽으로 옮길 예정 -->
+    <item
+        android:id="@+id/action_library"
+        android:title="@string/main_open_library"
+        app:showAsAction="never" />
+
     <!-- 앱 정보: ⋮ 오버플로우 메뉴 안에 숨김 -->
     <item
         android:id="@+id/action_about"

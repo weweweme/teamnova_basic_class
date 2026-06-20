@@ -433,6 +433,14 @@ public class GameDetailActivity extends AppCompatActivity {
         }
         binding.textViewRatingReview.setText(ratingReview);
 
+        // 리뷰 버튼 텍스트: 이미 리뷰가 있으면 "수정", 없으면 "작성"
+        // 같은 화면에서 같은 버튼이지만 상태에 따라 의미가 달라지므로 라벨도 맞춰줌
+        if (hasReview) {
+            binding.buttonReview.setText(R.string.detail_edit_review);
+        } else {
+            binding.buttonReview.setText(R.string.detail_write_review);
+        }
+
         // 표지 이미지
         // 주의: getIdentifier()는 이름(문자열)으로 이미지를 찾아서 느림 (비권장 표시됨)
         // R.drawable.cover_zelda 처럼 직접 지정하면 빠르지만,

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 활동 로그 - PLAYED (플레이 세션) -->
+<!-- 시간 배지 뷰타입: 좌측 PLAY 배지 + 게임 제목 + 플레이 시간 강조 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="14dp">
+
+    <!-- PLAY 배지 (좌측 강조) -->
+    <TextView
+        android:id="@+id/textViewBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        android:background="#E3F2FD"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:text="@string/timeline_played_badge"
+        android:textColor="#1565C0"
+        android:textStyle="bold"
+        android:textSize="11sp" />
+
+    <!-- 게임 제목 + 플레이 시간 (세로 2줄) -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- 게임 제목 -->
+        <TextView
+            android:id="@+id/textViewContent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <!-- 플레이 시간 (payload) -->
+        <TextView
+            android:id="@+id/textViewPlayTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="#1565C0"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- 시간 (n시간 전) -->
+    <TextView
+        android:id="@+id/textViewTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textColor="#888888"
+        android:textSize="12sp" />
+
+</LinearLayout>

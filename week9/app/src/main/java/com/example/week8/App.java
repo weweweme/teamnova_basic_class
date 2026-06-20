@@ -2,6 +2,7 @@ package com.example.week8;
 
 import android.app.Application;
 
+import com.example.week8.data.ActivityLogRepository;
 import com.example.week8.data.GameRepository;
 
 /// <summary>
@@ -29,6 +30,12 @@ public class App extends Application {
     private GameRepository gameRepository;
 
     /// <summary>
+    /// 앱 전역 활동 로그 저장소 (타임라인 표시용)
+    /// 사용처: ((App) getApplication()).getActivityLogRepository()
+    /// </summary>
+    private ActivityLogRepository activityLogRepository;
+
+    /// <summary>
     /// 앱 프로세스 시작 시 단 한 번 호출
     /// 여기서 만든 객체들은 앱이 살아있는 동안 계속 같은 인스턴스로 유지됨
     /// </summary>
@@ -36,6 +43,7 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         gameRepository = new GameRepository();
+        activityLogRepository = new ActivityLogRepository();
     }
 
     /// <summary>
@@ -44,5 +52,13 @@ public class App extends Application {
     /// </summary>
     public GameRepository getGameRepository() {
         return gameRepository;
+    }
+
+    /// <summary>
+    /// 공용 활동 로그 저장소 반환
+    /// Activity에서 ((App) getApplication()).getActivityLogRepository() 형태로 접근
+    /// </summary>
+    public ActivityLogRepository getActivityLogRepository() {
+        return activityLogRepository;
     }
 }

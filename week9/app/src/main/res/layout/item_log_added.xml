@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 활동 로그 - ADDED (게임 추가) -->
+<!-- 가장 단순한 뷰타입: 한 줄짜리 텍스트 + 시간 -->
+<!-- TimelineAdapter가 getItemViewType()으로 ADDED일 때 이 레이아웃을 inflate -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="14dp">
+
+    <!-- 좌측 아이콘 (추가 = + 모양) -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        android:text="➕"
+        android:textSize="18sp" />
+
+    <!-- 활동 내용 ("○○을 라이브러리에 추가했어요") -->
+    <TextView
+        android:id="@+id/textViewContent"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="14sp" />
+
+    <!-- 시간 (n시간 전) -->
+    <TextView
+        android:id="@+id/textViewTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textColor="#888888"
+        android:textSize="12sp" />
+
+</LinearLayout>

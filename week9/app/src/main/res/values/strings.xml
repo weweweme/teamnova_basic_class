@@ -23,6 +23,15 @@
     <string name="library_title">라이브러리</string>
     <string name="main_open_library">라이브러리</string>
 
+    <!-- 타임라인 (멀티 뷰타입) -->
+    <string name="timeline_title">타임라인</string>
+    <string name="main_open_timeline">타임라인</string>
+    <!-- 타입별 활동 문구 (%s 자리에 게임 제목) -->
+    <string name="timeline_added">%s 을(를) 라이브러리에 추가했어요</string>
+    <string name="timeline_completed">%s 클리어 완료!</string>
+    <string name="timeline_reviewed">%s 리뷰를 남겼어요</string>
+    <string name="timeline_played_badge">PLAY</string>
+
     <!-- 다이어리(카드 길게 누르기) BottomSheet 액션 -->
     <string name="diary_action_delete">삭제</string>
     <string name="diary_action_share">공유</string>

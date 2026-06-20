@@ -307,23 +307,6 @@ public class DiaryActivity extends AppCompatActivity {
             return true;
         }
 
-        if (itemId == R.id.action_library) {
-            // "라이브러리" 메뉴 → LibraryActivity로 이동 (그리드 뷰)
-            // 같은 게임 데이터를 격자 형태로 보여줄 뿐 돌려줄 값이 없으므로 단순 startActivity
-            // (임시 진입점 — Phase 6 HomeActivity 도입 후 그쪽으로 이동 예정)
-            Intent intent = new Intent(this, LibraryActivity.class);
-            startActivity(intent);
-            return true;
-        }
-
-        if (itemId == R.id.action_timeline) {
-            // "타임라인" 메뉴 → TimelineActivity로 이동 (활동 피드, 멀티 뷰타입)
-            // (임시 진입점 — Phase 6 HomeActivity 도입 후 그쪽으로 이동 예정)
-            Intent intent = new Intent(this, TimelineActivity.class);
-            startActivity(intent);
-            return true;
-        }
-
         if (itemId == R.id.action_about) {
             // "앱 정보" 메뉴 → AboutActivity로 이동
             // About은 정보 표시만, 돌려줄 값이 없으므로 단순 startActivity

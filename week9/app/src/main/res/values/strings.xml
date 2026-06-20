@@ -21,7 +21,6 @@
 
     <!-- 라이브러리 (그리드 뷰) -->
     <string name="library_title">라이브러리</string>
-    <string name="main_open_library">라이브러리</string>
 
     <!-- 홈 (허브) -->
     <string name="home_title">홈</string>
@@ -32,7 +31,6 @@
 
     <!-- 타임라인 (멀티 뷰타입) -->
     <string name="timeline_title">타임라인</string>
-    <string name="main_open_timeline">타임라인</string>
     <!-- 타입별 활동 문구 (%s 자리에 게임 제목) -->
     <string name="timeline_added">%s 을(를) 라이브러리에 추가했어요</string>
     <string name="timeline_completed">%s 클리어 완료!</string>

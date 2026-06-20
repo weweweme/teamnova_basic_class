@@ -3,6 +3,7 @@ package com.example.week8.ui;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.MotionEvent;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -210,11 +211,18 @@ public class GameCardViewHolder extends RecyclerView.ViewHolder {
     /// </summary>
     @SuppressLint("ClickableViewAccessibility")
     private void setupDragHandle(ItemTouchHelper itemTouchHelper) {
+        // itemTouchHelper가 없으면 드래그 정렬을 안 쓰는 화면(예: 홈 미리보기)
+        // → 드래그 핸들 아이콘을 숨겨서 "끌 수 있는 것처럼" 보이지 않게 함
+        if (itemTouchHelper == null) {
+            binding.imageViewDragHandle.setVisibility(View.GONE);
+            return;
+        }
+
+        // 드래그 정렬을 쓰는 화면(DiaryActivity)에선 핸들 표시 + 터치 시 드래그 시작
+        binding.imageViewDragHandle.setVisibility(View.VISIBLE);
         binding.imageViewDragHandle.setOnTouchListener((v, event) -> {
             if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-                if (itemTouchHelper != null) {
-                    itemTouchHelper.startDrag(this);
-                }
+                itemTouchHelper.startDrag(this);
             }
 
             // false: 이벤트 미소비 — 뷰의 ripple 같은 후속 처리에 영향 없음

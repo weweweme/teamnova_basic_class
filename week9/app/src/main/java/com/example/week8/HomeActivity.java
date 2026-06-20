@@ -11,6 +11,7 @@ import com.example.week8.data.GameRepository;
 import com.example.week8.databinding.ActivityHomeBinding;
 import com.example.week8.model.ActivityLog;
 import com.example.week8.model.Game;
+import com.example.week8.ui.GameCardAdapter;
 import com.example.week8.ui.LibraryAdapter;
 import com.example.week8.ui.TimelineAdapter;
 
@@ -42,6 +43,11 @@ public class HomeActivity extends AppCompatActivity {
     /// 전체를 다 보여주면 미리보기 의미가 없으므로 앞에서 몇 개만 잘라 표시
     /// </summary>
     private static final int PREVIEW_MAX = 6;
+
+    /// <summary>
+    /// 다이어리 미리보기는 정보형 카드(세로)라 화면을 많이 차지하므로 적게 표시
+    /// </summary>
+    private static final int DIARY_PREVIEW_MAX = 3;
 
     /// <summary>
     /// 타임라인 미리보기는 세로라 화면을 많이 차지하므로 더 적게 표시
@@ -81,15 +87,19 @@ public class HomeActivity extends AppCompatActivity {
     // ========== 섹션별 미리보기 세팅 ==========
 
     /// <summary>
-    /// 다이어리 미리보기 (가로 스크롤, 표지 셀)
-    /// 게임 목록 앞쪽 일부만 잘라서 LibraryAdapter로 표시
+    /// 다이어리 미리보기 (세로 일부, 정보형 카드)
+    /// DiaryActivity와 같은 GameCardAdapter(제목·별점·한줄평)를 써서 "기록" 느낌을 강조
+    /// → 표지 위주인 라이브러리 미리보기와 시각적으로 구분됨
+    ///
+    /// longClickListener=null: 미리보기라 BottomSheet 메뉴 불필요
+    /// setItemTouchHelper 호출 안 함: 드래그 정렬 불필요 → ViewHolder가 핸들을 자동으로 숨김
+    /// setNestedScrollingEnabled(false): 바깥 ScrollView가 스크롤을 담당 (몇 개뿐이라 가능)
     /// </summary>
     private void setupDiaryPreview(GameRepository gameRepository) {
-        List<Game> preview = takeFirst(gameRepository.getAllGames(), PREVIEW_MAX);
-        LibraryAdapter adapter = new LibraryAdapter(preview, this::onGameClick);
-        // 가로 방향 LinearLayoutManager → 카드가 좌우로 늘어섬
-        binding.recyclerDiaryPreview.setLayoutManager(
-                new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        List<Game> preview = takeFirst(gameRepository.getAllGames(), DIARY_PREVIEW_MAX);
+        GameCardAdapter adapter = new GameCardAdapter(preview, this::onGameClick, null);
+        binding.recyclerDiaryPreview.setLayoutManager(new LinearLayoutManager(this));
+        binding.recyclerDiaryPreview.setNestedScrollingEnabled(false);
         binding.recyclerDiaryPreview.setAdapter(adapter);
     }
 

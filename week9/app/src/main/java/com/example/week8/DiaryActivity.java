@@ -72,6 +72,11 @@ public class DiaryActivity extends AppCompatActivity {
         binding = ActivityDiaryBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // ActionBar에 ← 뒤로가기 버튼 표시 (HomeActivity로 돌아가기)
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
         // App에서 공용 GameRepository 가져오기
         // (모든 Activity가 같은 인스턴스를 공유하므로 다른 화면에서 수정한 결과가 그대로 반영됨)
         gameRepository = ((App) getApplication()).getGameRepository();
@@ -297,6 +302,12 @@ public class DiaryActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
+
+        if (itemId == android.R.id.home) {
+            // ActionBar ← 버튼 → HomeActivity로 돌아감 (finish로 백스택 이전 화면 복귀)
+            finish();
+            return true;
+        }
 
         if (itemId == R.id.action_add_game) {
             // + 아이콘 → AddGameActivity를 런처로 실행

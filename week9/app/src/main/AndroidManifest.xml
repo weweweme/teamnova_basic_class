@@ -54,6 +54,7 @@
         <activity
             android:name=".DiaryActivity"
             android:label="@string/main_title"
+            android:parentActivityName=".HomeActivity"
             android:exported="true">
             <!-- ACTION_SEND + text/plain 수신 필터 -->
             <!-- 다른 앱에서 텍스트를 공유할 때 "Game Diary"가 후보 목록에 나타남 -->
@@ -99,19 +100,19 @@
             android:exported="false" />
 
         <!-- 라이브러리: 게임 표지 격자 보기 (GridLayoutManager) -->
-        <!-- parentActivityName: ← 버튼 누르면 DiaryActivity로 돌아감 -->
+        <!-- parentActivityName: ← 버튼 누르면 HomeActivity로 돌아감 -->
         <activity
             android:name=".LibraryActivity"
             android:label="@string/library_title"
-            android:parentActivityName=".DiaryActivity"
+            android:parentActivityName=".HomeActivity"
             android:exported="false" />
 
         <!-- 타임라인: 활동 피드 (멀티 뷰타입) -->
-        <!-- parentActivityName: ← 버튼 누르면 DiaryActivity로 돌아감 -->
+        <!-- parentActivityName: ← 버튼 누르면 HomeActivity로 돌아감 -->
         <activity
             android:name=".TimelineActivity"
             android:label="@string/timeline_title"
-            android:parentActivityName=".DiaryActivity"
+            android:parentActivityName=".HomeActivity"
             android:exported="false" />
 
         <!-- 게임 추가: 사용자가 수동으로 새 게임을 라이브러리에 등록 -->

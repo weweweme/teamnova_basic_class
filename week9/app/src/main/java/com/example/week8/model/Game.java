@@ -66,6 +66,13 @@ public class Game implements Parcelable {
     private final String storeUrl;
 
     /// <summary>
+    /// 게임 진행 상태 (플레이중/완료/중단/백로그)
+    /// LibraryActivity의 상태별 필터 탭에서 분류 기준으로 사용
+    /// 사용자가 바꿀 수 있으므로 final 아님
+    /// </summary>
+    private GameStatus status;
+
+    /// <summary>
     /// 사용자가 매긴 별점 (0.0 ~ 5.0, 초기값 0)
     /// ReviewWriteActivity에서 수정되며, SharedPreferences로 영속화됨
     /// </summary>
@@ -100,13 +107,15 @@ public class Game implements Parcelable {
     /// Unity로 비유하면 new GameData(id, title, ...) 호출과 동일
     /// </summary>
     public Game(int id, String title, String coverAssetName, Genre genre,
-                Platform platform, String storeUrl, float rating, String review) {
+                Platform platform, String storeUrl, GameStatus status,
+                float rating, String review) {
         this.id = id;
         this.title = title;
         this.coverAssetName = coverAssetName;
         this.genre = genre;
         this.platform = platform;
         this.storeUrl = storeUrl;
+        this.status = status;
         this.rating = rating;
         this.review = review;
         // 스크린샷은 처음에는 비어 있고, 사용자가 ScreenshotActivity에서 갤러리로 추가하면 채워짐
@@ -130,6 +139,8 @@ public class Game implements Parcelable {
         this.genre = Genre.valueOf(in.readString());
         this.platform = Platform.valueOf(in.readString());
         this.storeUrl = in.readString();
+        // 상태도 enum이라 이름(String)으로 저장했으므로 valueOf()로 복원
+        this.status = GameStatus.valueOf(in.readString());
         this.rating = in.readFloat();
         this.review = in.readString();
         // 스크린샷 Uri 문자열 목록 복원
@@ -154,6 +165,8 @@ public class Game implements Parcelable {
         dest.writeString(genre.name());
         dest.writeString(platform.name());
         dest.writeString(storeUrl);
+        // 상태 enum을 name()으로 문자열 변환하여 저장 (읽을 때 valueOf()로 복원)
+        dest.writeString(status.name());
         dest.writeFloat(rating);
         dest.writeString(review);
         // 스크린샷 Uri 문자열 목록을 Parcel에 그대로 직렬화
@@ -238,6 +251,13 @@ public class Game implements Parcelable {
     }
 
     /// <summary>
+    /// 게임 진행 상태 반환
+    /// </summary>
+    public GameStatus getStatus() {
+        return status;
+    }
+
+    /// <summary>
     /// 별점 반환
     /// </summary>
     public float getRating() {
@@ -261,6 +281,13 @@ public class Game implements Parcelable {
     }
 
     // ========== Setter (변경 가능한 필드만) ==========
+
+    /// <summary>
+    /// 게임 진행 상태 설정 (사용자가 상태를 바꿀 때 사용)
+    /// </summary>
+    public void setStatus(GameStatus status) {
+        this.status = status;
+    }
 
     /// <summary>
     /// 별점 설정 (ReviewWriteActivity에서 사용자가 입력한 값 반영)

@@ -1,6 +1,7 @@
 package com.example.week8.data;
 
 import com.example.week8.model.Game;
+import com.example.week8.model.GameStatus;
 import com.example.week8.model.Genre;
 import com.example.week8.model.Platform;
 
@@ -47,6 +48,7 @@ public class GameRepository {
                 Genre.RPG,
                 Platform.STEAM,
                 "https://store.steampowered.com/app/1245620/ELDEN_RING/",
+                GameStatus.COMPLETED,
                 5.0f,
                 "프롬소프트의 정점. 죽고 배우는 쾌감이 끝내준다"
         ));
@@ -58,6 +60,7 @@ public class GameRepository {
                 Genre.RPG,
                 Platform.STEAM,
                 "https://store.steampowered.com/app/1086940/Baldurs_Gate_3/",
+                GameStatus.PLAYING,
                 4.5f,
                 "선택 하나하나가 결과로 이어지는 진짜 TRPG 경험"
         ));
@@ -69,6 +72,7 @@ public class GameRepository {
                 Genre.PLATFORMER,
                 Platform.STEAM,
                 "https://store.steampowered.com/app/367520/Hollow_Knight/",
+                GameStatus.COMPLETED,
                 5.0f,
                 "인디 메트로배니아의 정점. 아트와 음악이 압도적"
         ));
@@ -81,6 +85,7 @@ public class GameRepository {
                 Genre.PLATFORMER,
                 Platform.STEAM,
                 "https://store.steampowered.com/app/504230/Celeste/",
+                GameStatus.BACKLOG,
                 0f,
                 ""
         ));
@@ -130,6 +135,7 @@ public class GameRepository {
                 genre,
                 platform,
                 storeUrl == null ? "" : storeUrl,
+                GameStatus.BACKLOG, // 새로 추가한 게임은 "백로그"(하고 싶은 목록)로 시작
                 0f,                 // 초기 별점
                 ""                  // 초기 한줄평
         );

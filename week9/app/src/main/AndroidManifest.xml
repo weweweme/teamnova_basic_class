@@ -99,6 +99,14 @@
             android:parentActivityName=".DiaryActivity"
             android:exported="false" />
 
+        <!-- 타임라인: 활동 피드 (멀티 뷰타입) -->
+        <!-- parentActivityName: ← 버튼 누르면 DiaryActivity로 돌아감 -->
+        <activity
+            android:name=".TimelineActivity"
+            android:label="@string/timeline_title"
+            android:parentActivityName=".DiaryActivity"
+            android:exported="false" />
+
         <!-- 게임 추가: 사용자가 수동으로 새 게임을 라이브러리에 등록 -->
         <!-- 결과 Intent로 입력값을 MainActivity에 돌려줌 -->
         <activity

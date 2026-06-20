@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 홈 화면 (허브) 레이아웃 -->
+<!-- 바깥은 ScrollView(세로 스크롤), 안에 섹션 3개를 세로로 쌓음 -->
+<!-- 각 섹션의 미리보기는 가로 스크롤 RecyclerView → "세로 안에 가로" = 중첩 스크롤 구조 -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".HomeActivity">
+
+    <!-- ScrollView는 자식을 하나만 가질 수 있으므로 LinearLayout으로 감쌈 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="8dp"
+        android:paddingBottom="16dp">
+
+        <!-- ════════ 섹션 1: 다이어리 미리보기 ════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="12dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/home_section_diary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- 더 보기 → DiaryActivity -->
+            <Button
+                android:id="@+id/buttonMoreDiary"
+                style="?attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/home_more"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- 가로 스크롤 미리보기 (LibraryAdapter 재사용, 가로 LinearLayoutManager) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerDiaryPreview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:clipToPadding="false"
+            tools:listitem="@layout/item_library_grid" />
+
+        <!-- ════════ 섹션 2: 라이브러리 미리보기 ════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/home_section_library"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/buttonMoreLibrary"
+                style="?attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/home_more"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerLibraryPreview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:clipToPadding="false"
+            tools:listitem="@layout/item_library_grid" />
+
+        <!-- ════════ 섹션 3: 최근 활동(타임라인) 미리보기 ════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/home_section_timeline"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/buttonMoreTimeline"
+                style="?attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/home_more"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- 타임라인 미리보기는 세로 일부 (TimelineAdapter 재사용, 세로 LinearLayoutManager) -->
+        <!-- 바깥 ScrollView 안에서 자체 스크롤하지 않도록 HomeActivity에서 nestedScrolling 비활성 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerTimelinePreview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:listitem="@layout/item_log_completed" />
+
+    </LinearLayout>
+
+</ScrollView>

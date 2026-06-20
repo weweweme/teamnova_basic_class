@@ -186,12 +186,13 @@ public class OnboardingActivity extends AppCompatActivity {
 
     /// <summary>
     /// 온보딩 완료 처리
-    /// DiaryActivity로 이동
+    /// HomeActivity(허브)로 이동
+    /// 9주차에서 HomeActivity 도입 → 진입 목적지를 DiaryActivity에서 HomeActivity로 변경
     /// TODO: 10주차에서 SharedPreferences 학습 후 완료 플래그 저장 추가
     /// </summary>
     private void completeOnboarding() {
-        // DiaryActivity로 이동
-        Intent intent = new Intent(this, DiaryActivity.class);
+        // HomeActivity로 이동
+        Intent intent = new Intent(this, HomeActivity.class);
 
         // FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK
         // → Onboarding을 백스택에서 제거 (뒤로가기로 돌아올 수 없게)

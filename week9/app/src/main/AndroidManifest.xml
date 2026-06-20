@@ -40,6 +40,13 @@
             android:name=".OnboardingActivity"
             android:exported="false" />
 
+        <!-- 홈: 허브 화면 (Diary/Library/Timeline 미리보기) -->
+        <!-- Onboarding 완료 후 진입하는 최상위 화면 -->
+        <activity
+            android:name=".HomeActivity"
+            android:label="@string/home_title"
+            android:exported="false" />
+
         <!-- 메인: 게임 리스트 화면 -->
         <!-- exported=true: 다른 앱(Chrome, 메모 등)의 "공유" 대상으로 우리 앱이 나타나게 함 -->
         <!-- intent-filter: "나는 이 요청을 처리할 수 있어요"라는 자격 선언 -->

@@ -16,7 +16,10 @@
       "Bash(git mv *)",
       "Bash(git status *)",
       "WebFetch(domain:googlesamples.github.io)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git --no-pager log --oneline -6 HEAD)"
     ]
   }
 }

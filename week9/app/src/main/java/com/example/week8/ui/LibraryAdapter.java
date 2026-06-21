@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.week8.databinding.ItemLibraryGridBinding;
 import com.example.week8.model.Game;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /// <summary>
@@ -24,7 +25,8 @@ import java.util.List;
 public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
 
     /// <summary>
-    /// 표시할 게임 목록 (GameRepository의 리스트를 그대로 참조)
+    /// 화면에 표시할 게임 목록 (필터 결과가 담기는 가변 리스트)
+    /// 생성자에서 받은 원본을 복사해 보관 → 필터로 clear/addAll 해도 원본은 안전
     /// </summary>
     private final List<Game> games;
 
@@ -35,10 +37,22 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
 
     /// <summary>
     /// 어댑터 생성
+    /// 넘어온 리스트를 그대로 참조하지 않고 복사 → updateItems로 교체해도 원본 보호
     /// </summary>
     public LibraryAdapter(List<Game> games, OnGameClickListener clickListener) {
-        this.games = games;
+        this.games = new ArrayList<>(games);
         this.clickListener = clickListener;
+    }
+
+    /// <summary>
+    /// 표시 목록을 새 목록으로 교체 (상태별 필터 탭에서 사용)
+    /// 기존 내용을 비우고 새 항목으로 채운 뒤 전체 갱신
+    /// (어떤 항목이 추가/삭제됐는지 추적하지 않으므로 notifyDataSetChanged)
+    /// </summary>
+    public void updateItems(List<Game> newItems) {
+        games.clear();
+        games.addAll(newItems);
+        notifyDataSetChanged();
     }
 
     /// <summary>

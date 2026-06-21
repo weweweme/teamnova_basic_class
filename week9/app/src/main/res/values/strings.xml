@@ -21,6 +21,8 @@
 
     <!-- 라이브러리 (그리드 뷰) -->
     <string name="library_title">라이브러리</string>
+    <string name="library_filter_all">전체</string>
+    <string name="library_empty">이 상태의 게임이 없어요</string>
 
     <!-- 홈 (허브) -->
     <string name="home_title">홈</string>

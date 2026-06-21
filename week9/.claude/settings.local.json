@@ -19,7 +19,9 @@
       "WebFetch(domain:github.com)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(git --no-pager log --oneline -6 HEAD)"
+      "Bash(git --no-pager log --oneline -6 HEAD)",
+      "Bash(curl -sSL -o /tmp/test_cover.jpg \"https://cdn.cloudflare.steamstatic.com/steam/apps/413150/header.jpg\")",
+      "Read(//tmp/**)"
     ]
   }
 }

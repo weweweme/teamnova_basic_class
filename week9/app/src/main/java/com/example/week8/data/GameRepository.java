@@ -39,7 +39,7 @@ public class GameRepository {
     /// </summary>
     public GameRepository() {
         this.games = new ArrayList<>();
-        this.nextId = 5;  // 더미 4개가 1~4 사용하므로 5부터 시작
+        this.nextId = 21;  // 더미 20개가 1~20 사용하므로 21부터 시작
 
         this.games.add(new Game(
                 1,
@@ -89,6 +89,87 @@ public class GameRepository {
                 0f,
                 ""
         ));
+
+        // ──── RecyclerView 테스트용 추가 더미 16종 (상태/장르/별점 다양하게) ────
+        this.games.add(new Game(5, "스타듀 밸리", "cover_stardewvalley",
+                Genre.SIMULATION, Platform.STEAM,
+                "https://store.steampowered.com/app/413150/",
+                GameStatus.PLAYING, 4.5f, "힐링과 중독의 완벽한 균형"));
+
+        this.games.add(new Game(6, "하데스", "cover_hades",
+                Genre.ACTION, Platform.STEAM,
+                "https://store.steampowered.com/app/1145360/",
+                GameStatus.COMPLETED, 5.0f, "로그라이크의 교과서"));
+
+        this.games.add(new Game(7, "디스코 엘리시움", "cover_discoelysium",
+                Genre.RPG, Platform.STEAM,
+                "https://store.steampowered.com/app/632470/",
+                GameStatus.COMPLETED, 4.5f, "텍스트로 이렇게 몰입될 수 있다니"));
+
+        this.games.add(new Game(8, "테라리아", "cover_terraria",
+                Genre.ADVENTURE, Platform.STEAM,
+                "https://store.steampowered.com/app/105600/",
+                GameStatus.DROPPED, 4.0f, "자유도는 최고인데 끝이 없어 지침"));
+
+        this.games.add(new Game(9, "포탈 2", "cover_portal2",
+                Genre.PUZZLE, Platform.STEAM,
+                "https://store.steampowered.com/app/620/",
+                GameStatus.COMPLETED, 5.0f, "퍼즐 게임의 정점"));
+
+        this.games.add(new Game(10, "위쳐 3", "cover_witcher3",
+                Genre.RPG, Platform.STEAM,
+                "https://store.steampowered.com/app/292030/",
+                GameStatus.BACKLOG, 0f, ""));
+
+        this.games.add(new Game(11, "사이버펑크 2077", "cover_cyberpunk2077",
+                Genre.RPG, Platform.STEAM,
+                "https://store.steampowered.com/app/1091500/",
+                GameStatus.PLAYING, 4.0f, "패치 후 정말 좋아졌다"));
+
+        this.games.add(new Game(12, "다크 소울 3", "cover_darksouls3",
+                Genre.RPG, Platform.STEAM,
+                "https://store.steampowered.com/app/374320/",
+                GameStatus.COMPLETED, 4.5f, "소울 시리즈의 완성형"));
+
+        this.games.add(new Game(13, "림월드", "cover_rimworld",
+                Genre.SIMULATION, Platform.STEAM,
+                "https://store.steampowered.com/app/294100/",
+                GameStatus.PLAYING, 4.5f, "내 식민지 이야기는 끝이 없다"));
+
+        this.games.add(new Game(14, "팩토리오", "cover_factorio",
+                Genre.SIMULATION, Platform.STEAM,
+                "https://store.steampowered.com/app/427520/",
+                GameStatus.DROPPED, 4.0f, "공장 자동화 중독, 시간 순삭"));
+
+        this.games.add(new Game(15, "슬레이 더 스파이어", "cover_slaythespire",
+                Genre.STRATEGY, Platform.STEAM,
+                "https://store.steampowered.com/app/646570/",
+                GameStatus.BACKLOG, 0f, ""));
+
+        this.games.add(new Game(16, "언더테일", "cover_undertale",
+                Genre.RPG, Platform.STEAM,
+                "https://store.steampowered.com/app/391540/",
+                GameStatus.COMPLETED, 5.0f, "한 번쯤은 꼭 해봐야 할 게임"));
+
+        this.games.add(new Game(17, "컵헤드", "cover_cuphead",
+                Genre.PLATFORMER, Platform.STEAM,
+                "https://store.steampowered.com/app/268910/",
+                GameStatus.DROPPED, 3.5f, "너무 어려워서 잠시 중단"));
+
+        this.games.add(new Game(18, "오리와 눈먼 숲", "cover_oriblindforest",
+                Genre.PLATFORMER, Platform.STEAM,
+                "https://store.steampowered.com/app/387290/",
+                GameStatus.COMPLETED, 4.5f, "아트와 음악이 동화 같다"));
+
+        this.games.add(new Game(19, "데드 셀", "cover_deadcells",
+                Genre.PLATFORMER, Platform.STEAM,
+                "https://store.steampowered.com/app/588650/",
+                GameStatus.PLAYING, 4.0f, "죽고 또 죽어도 또 한판"));
+
+        this.games.add(new Game(20, "발헤임", "cover_valheim",
+                Genre.ADVENTURE, Platform.STEAM,
+                "https://store.steampowered.com/app/892970/",
+                GameStatus.BACKLOG, 0f, ""));
     }
 
     // ========== 조회 ==========

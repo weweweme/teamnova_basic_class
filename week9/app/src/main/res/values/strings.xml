@@ -25,6 +25,7 @@
     <string name="library_empty">이 상태의 게임이 없어요</string>
     <string name="library_search_hint">게임 제목 검색</string>
     <string name="library_search_empty">검색 결과가 없어요</string>
+    <string name="library_sort">정렬</string>
 
     <!-- 홈 (허브) -->
     <string name="home_title">홈</string>

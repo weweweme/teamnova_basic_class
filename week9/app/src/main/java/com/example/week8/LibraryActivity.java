@@ -10,9 +10,14 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.GridLayoutManager;
+
+import com.example.week8.ui.GameSortOrder;
+
+import java.util.Comparator;
 
 import com.example.week8.data.GameRepository;
 import com.example.week8.databinding.ActivityLibraryBinding;
@@ -80,6 +85,11 @@ public class LibraryActivity extends AppCompatActivity {
     /// </summary>
     private String currentQuery = "";
 
+    /// <summary>
+    /// 현재 정렬 기준 (FAB 다이얼로그에서 선택). 기본은 추가순
+    /// </summary>
+    private GameSortOrder currentSort = GameSortOrder.DEFAULT;
+
     // ========== Lifecycle ==========
 
     /// <summary>
@@ -110,6 +120,9 @@ public class LibraryActivity extends AppCompatActivity {
         binding.recyclerViewLibrary.setAdapter(adapter);
 
         setupFilterTabs();
+
+        // 정렬 FAB → 정렬 옵션 다이얼로그
+        binding.fabSort.setOnClickListener(v -> showSortDialog());
 
         // 게임 추가 결과 런처 등록
         addGameLauncher = registerForActivityResult(
@@ -259,6 +272,9 @@ public class LibraryActivity extends AppCompatActivity {
             filtered = statusFiltered;
         }
 
+        // 3) 정렬 적용 (기본순은 원본 순서 유지)
+        applySorting(filtered);
+
         adapter.updateItems(filtered);
 
         // 빈 상태: 검색 중이면 "검색 결과 없음", 아니면 "이 상태의 게임 없음"
@@ -268,6 +284,59 @@ public class LibraryActivity extends AppCompatActivity {
                 : R.string.library_empty);
         binding.textViewEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
         binding.recyclerViewLibrary.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+    }
+
+    // ========== 정렬 ==========
+
+    /// <summary>
+    /// 현재 정렬 기준(currentSort)에 맞게 리스트를 제자리 정렬
+    /// DEFAULT(기본순)는 원본(추가) 순서를 유지하므로 정렬하지 않음
+    /// </summary>
+    private void applySorting(List<Game> list) {
+        switch (currentSort) {
+            case NAME:
+                // 제목 가나다/알파벳 순
+                list.sort(Comparator.comparing(Game::getTitle));
+                break;
+            case RATING_HIGH:
+                // 별점 높은 순 (내림차순)
+                list.sort(Comparator.comparingDouble(Game::getRating).reversed());
+                break;
+            case RATING_LOW:
+                // 별점 낮은 순 (오름차순)
+                list.sort(Comparator.comparingDouble(Game::getRating));
+                break;
+            case DEFAULT:
+            default:
+                // 원본 순서 유지 (정렬 안 함)
+                break;
+        }
+    }
+
+    /// <summary>
+    /// 정렬 옵션 다이얼로그 표시 (FAB 클릭 시)
+    /// 4종(기본순/이름순/별점 높은순/별점 낮은순)을 단일 선택으로 띄우고,
+    /// 선택 시 currentSort 변경 후 현재 필터를 다시 적용
+    /// </summary>
+    private void showSortDialog() {
+        GameSortOrder[] orders = GameSortOrder.values();
+
+        String[] orderNames = new String[orders.length];
+        for (int i = 0; i < orders.length; i++) {
+            orderNames[i] = orders[i].getDisplayName();
+        }
+
+        int currentIndex = currentSort.ordinal();
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.library_sort)
+                .setSingleChoiceItems(orderNames, currentIndex, (dialog, which) -> {
+                    currentSort = orders[which];
+                    applyCurrentFilter();
+                    dialog.dismiss();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     // ========== ActionBar 메뉴 (+ 게임 추가 / ⋮ 앱 정보) ==========

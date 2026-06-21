@@ -86,9 +86,9 @@ public class LibraryActivity extends AppCompatActivity {
     private String currentQuery = "";
 
     /// <summary>
-    /// 현재 정렬 기준 (FAB 다이얼로그에서 선택). 기본은 추가순
+    /// 현재 정렬 기준 (FAB 다이얼로그에서 선택). 기본은 최근 추가순
     /// </summary>
-    private GameSortOrder currentSort = GameSortOrder.DEFAULT;
+    private GameSortOrder currentSort = GameSortOrder.RECENT;
 
     // ========== Lifecycle ==========
 
@@ -306,9 +306,11 @@ public class LibraryActivity extends AppCompatActivity {
                 // 별점 낮은 순 (오름차순)
                 list.sort(Comparator.comparingDouble(Game::getRating));
                 break;
-            case DEFAULT:
+            case RECENT:
             default:
-                // 원본 순서 유지 (정렬 안 함)
+                // 최근 추가순: id가 클수록 나중에 추가됐으므로 id 내림차순
+                // (새로 추가한 게임이 맨 위 — Letterboxd/Goodreads의 기본 정렬과 동일)
+                list.sort(Comparator.comparingInt(Game::getId).reversed());
                 break;
         }
     }

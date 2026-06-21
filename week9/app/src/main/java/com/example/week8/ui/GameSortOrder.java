@@ -9,7 +9,7 @@ package com.example.week8.ui;
 /// (Comparator를 enum에 넣으면 무거워지고 Game 모델 의존이 생겨 분리)
 /// </summary>
 public enum GameSortOrder {
-    DEFAULT("기본순"),
+    RECENT("최근 추가순"),
     NAME("이름순"),
     RATING_HIGH("별점 높은순"),
     RATING_LOW("별점 낮은순");

@@ -1,6 +1,7 @@
 package com.example.week8;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -8,10 +9,12 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.week8.databinding.ActivityGameDetailBinding;
 import com.example.week8.model.Game;
+import com.example.week8.model.GameStatus;
 
 /// <summary>
 /// 게임 상세 화면
@@ -252,6 +255,9 @@ public class GameDetailActivity extends AppCompatActivity {
     /// 각 버튼에 클릭 리스너 등록
     /// </summary>
     private void setupButtons() {
+        // 상태 변경 버튼 → 상태 선택 다이얼로그 표시
+        binding.buttonChangeStatus.setOnClickListener(v -> showStatusDialog());
+
         // 리뷰 작성 버튼 → ReviewWriteActivity를 forResult로 실행
         binding.buttonReview.setOnClickListener(v -> openReviewWrite());
 
@@ -263,6 +269,48 @@ public class GameDetailActivity extends AppCompatActivity {
 
         // 스크린샷 버튼 → ScreenshotActivity로 이동
         binding.buttonScreenshot.setOnClickListener(v -> openScreenshot());
+    }
+
+    // ========== 상태 변경 ==========
+
+    /// <summary>
+    /// 진행 상태 선택 다이얼로그 표시
+    /// 4개 상태(플레이중/완료/중단/백로그)를 단일 선택 목록으로 띄우고,
+    /// 선택 시 Game과 Repository 원본에 반영 + 화면 갱신
+    ///
+    /// ──── 인덱스 ↔ enum 매핑 ────
+    /// 다이얼로그 목록 순서 = GameStatus.values() 순서 (둘 다 같은 enum 배열에서 만듦)
+    /// 현재 상태의 ordinal()을 초기 선택 위치로 전달 → 지금 상태에 체크 표시됨
+    /// </summary>
+    private void showStatusDialog() {
+        GameStatus[] statuses = GameStatus.values();
+
+        // 다이얼로그에 보여줄 상태 이름 배열 (enum 순서 그대로)
+        String[] statusNames = new String[statuses.length];
+        for (int i = 0; i < statuses.length; i++) {
+            statusNames[i] = statuses[i].getDisplayName();
+        }
+
+        // 현재 상태가 처음에 선택돼 보이도록 초기 인덱스 지정
+        int currentIndex = game.getStatus().ordinal();
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.detail_change_status)
+                .setSingleChoiceItems(statusNames, currentIndex, (dialog, which) -> {
+                    // 선택한 위치의 상태로 변경
+                    GameStatus selected = statuses[which];
+                    game.setStatus(selected);
+
+                    // Repository 원본에도 반영 → 라이브러리 필터/리스트에 일관 반영
+                    ((App) getApplication()).getGameRepository().updateGame(game);
+
+                    // 화면의 상태 텍스트 갱신
+                    bindGameData();
+
+                    dialog.dismiss();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     /// <summary>
@@ -422,6 +470,13 @@ public class GameDetailActivity extends AppCompatActivity {
         String genrePlatform = game.getGenre().getDisplayName()
                 + " · " + game.getPlatform().getDisplayName();
         binding.textViewGenrePlatform.setText(genrePlatform);
+
+        // 진행 상태 배지 (이름 + 상태색 배경)
+        // 배지 모양(둥근 배경)은 XML, 색은 상태별로 다르므로 코드에서 tint 적용
+        GameStatus status = game.getStatus();
+        binding.textViewStatus.setText(status.getDisplayName());
+        binding.textViewStatus.setBackgroundTintList(
+                ColorStateList.valueOf(status.getColorArgb()));
 
         // 별점: RatingBar로 별을 채우고 숫자도 함께 표시
         binding.ratingBar.setRating(game.getRating());

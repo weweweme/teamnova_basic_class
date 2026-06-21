@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 상태 배지 배경 (둥근 모서리 사각형) -->
+<!-- solid 색은 흰색이지만, 코드에서 backgroundTintList로 상태별 색을 덮어씌움 -->
+<!-- → 배지 모양은 공통, 색만 상태에 따라 동적으로 바뀜 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="10dp" />
+    <solid android:color="#FFFFFF" />
+</shape>

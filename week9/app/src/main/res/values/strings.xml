@@ -70,6 +70,7 @@
     <string name="detail_open_store">스토어 열기</string>
     <string name="detail_no_store_url">스토어 링크가 없는 게임입니다</string>
     <string name="detail_screenshot">스크린샷</string>
+    <string name="detail_change_status">상태 변경</string>
 
     <!-- 스크린샷 -->
     <string name="screenshot_title">스크린샷</string>

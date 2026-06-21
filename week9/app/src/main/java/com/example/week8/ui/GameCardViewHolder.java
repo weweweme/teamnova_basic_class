@@ -2,6 +2,7 @@ package com.example.week8.ui;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -54,6 +55,11 @@ public class GameCardViewHolder extends RecyclerView.ViewHolder {
         String genrePlatform = game.getGenre().getDisplayName()
                 + " · " + game.getPlatform().getDisplayName();
         binding.textViewGenrePlatform.setText(genrePlatform);
+
+        // 진행 상태 배지 (이름 + 상태색 배경)
+        binding.textViewStatus.setText(game.getStatus().getDisplayName());
+        binding.textViewStatus.setBackgroundTintList(
+                ColorStateList.valueOf(game.getStatus().getColorArgb()));
 
         // 별점: 작은 별 아이콘으로 시각화
         binding.ratingBar.setRating(game.getRating());

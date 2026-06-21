@@ -175,6 +175,7 @@ public class GameRepository {
             return;
         }
 
+        original.setStatus(updated.getStatus());
         original.setRating(updated.getRating());
         original.setReview(updated.getReview());
         original.replaceScreenshots(updated.getScreenshots());

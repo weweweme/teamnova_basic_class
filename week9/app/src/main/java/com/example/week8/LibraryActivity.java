@@ -11,6 +11,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.example.week8.data.GameRepository;
@@ -72,6 +73,12 @@ public class LibraryActivity extends AppCompatActivity {
     /// 게임 추가 화면을 실행하고 결과를 받는 런처
     /// </summary>
     private ActivityResultLauncher<Intent> addGameLauncher;
+
+    /// <summary>
+    /// 현재 검색어 (SearchView 입력). 비어있으면 검색 안 함
+    /// 상태 탭 필터 결과 안에서 제목으로 한 번 더 거르는 데 사용
+    /// </summary>
+    private String currentQuery = "";
 
     // ========== Lifecycle ==========
 
@@ -218,26 +225,47 @@ public class LibraryActivity extends AppCompatActivity {
     }
 
     /// <summary>
-    /// 탭 위치에 따라 게임을 걸러 어댑터에 반영하고, 결과가 비면 빈 상태 표시
+    /// 탭(상태) + 검색어(제목) 두 조건으로 게임을 걸러 어댑터에 반영
+    /// 1) 상태 탭으로 1차 필터 → 2) 검색어가 있으면 제목으로 2차 필터
+    /// 결과가 비면 빈 상태 안내 (검색 중이면 "검색 결과 없음" 문구로 구분)
     /// </summary>
     private void applyFilter(int tabPosition) {
-        List<Game> filtered;
-
+        // 1) 상태 필터
+        List<Game> statusFiltered = new ArrayList<>();
         if (tabPosition == TAB_POSITION_ALL) {
-            filtered = gameRepository.getAllGames();
+            statusFiltered.addAll(gameRepository.getAllGames());
         } else {
             GameStatus targetStatus = GameStatus.values()[tabPosition - 1];
-            filtered = new ArrayList<>();
             for (Game game : gameRepository.getAllGames()) {
                 if (game.getStatus() == targetStatus) {
-                    filtered.add(game);
+                    statusFiltered.add(game);
                 }
             }
         }
 
+        // 2) 제목 검색 필터 (검색어가 있을 때만)
+        boolean hasQuery = currentQuery != null && !currentQuery.trim().isEmpty();
+        List<Game> filtered;
+        if (hasQuery) {
+            String query = currentQuery.trim().toLowerCase();
+            filtered = new ArrayList<>();
+            for (Game game : statusFiltered) {
+                // 대소문자 무시하고 제목에 검색어가 포함되면 통과
+                if (game.getTitle().toLowerCase().contains(query)) {
+                    filtered.add(game);
+                }
+            }
+        } else {
+            filtered = statusFiltered;
+        }
+
         adapter.updateItems(filtered);
 
+        // 빈 상태: 검색 중이면 "검색 결과 없음", 아니면 "이 상태의 게임 없음"
         boolean isEmpty = filtered.isEmpty();
+        binding.textViewEmpty.setText(hasQuery
+                ? R.string.library_search_empty
+                : R.string.library_empty);
         binding.textViewEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
         binding.recyclerViewLibrary.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
     }
@@ -250,6 +278,25 @@ public class LibraryActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        // 검색(SearchView) 연결: 입력이 바뀔 때마다 currentQuery 갱신 + 다시 필터
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) searchItem.getActionView();
+        searchView.setQueryHint(getString(R.string.library_search_hint));
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                // 입력 중 onQueryTextChange로 이미 처리되므로 제출은 별도 동작 없음
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                currentQuery = newText;
+                applyCurrentFilter();
+                return true;
+            }
+        });
         return true;
     }
 

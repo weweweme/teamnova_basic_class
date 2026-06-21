@@ -181,32 +181,6 @@ public class GameRepository {
         original.replaceScreenshots(updated.getScreenshots());
     }
 
-    // ========== 정렬 ==========
-
-    /// <summary>
-    /// 게임의 위치를 from에서 to로 이동 (메모리상 순서만 변경)
-    /// DiaryActivity의 드래그 정렬에서 호출됨
-    ///
-    /// 잘못된 인덱스(범위 밖)나 from == to인 경우 아무 일도 하지 않음
-    /// 현재는 메모리만 변경 → 앱 재시작 시 초기 순서로 복원
-    /// (10주차 Room DB 도입 후 영속 정렬로 교체 예정)
-    /// </summary>
-    public void moveGame(int from, int to) {
-        int size = games.size();
-        // 시작 위치가 리스트 범위 밖 (음수 또는 size 이상 — 존재하지 않는 인덱스)
-        boolean fromOutOfRange = from < 0 || from >= size;
-        // 도착 위치가 리스트 범위 밖 (음수 또는 size 이상 — 거기로 옮길 수 없음)
-        boolean toOutOfRange = to < 0 || to >= size;
-        // 시작과 도착이 같은 위치 (이동할 필요 없음 — no-op)
-        boolean samePosition = from == to;
-
-        if (fromOutOfRange || toOutOfRange || samePosition) {
-            return;
-        }
-        Game game = games.remove(from);
-        games.add(to, game);
-    }
-
     // ========== 삭제 ==========
 
     /// <summary>

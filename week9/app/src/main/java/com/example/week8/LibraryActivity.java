@@ -2,45 +2,54 @@ package com.example.week8;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.example.week8.data.GameRepository;
 import com.example.week8.databinding.ActivityLibraryBinding;
+import com.example.week8.databinding.BottomSheetGameActionsBinding;
 import com.example.week8.model.Game;
 import com.example.week8.model.GameStatus;
+import com.example.week8.model.Genre;
+import com.example.week8.model.Platform;
 import com.example.week8.ui.LibraryAdapter;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /// <summary>
-/// 라이브러리 화면 (게임 표지 격자 + 상태별 필터 탭)
-/// 상단 탭(전체/플레이중/완료/중단/백로그)으로 게임을 골라 격자에 표시
+/// 보관함 화면 (게임 표지 격자 + 상태별 필터 탭)
+/// 앱의 메인 컬렉션 화면 — 내 게임 전체를 표지 격자로 보고, 상태 탭으로 필터링
 ///
-/// DiaryActivity(세로 리스트, 드래그 정렬)와 역할이 갈림:
-///   DiaryActivity   = 기록 중심 + 드래그로 직접 정렬
-///   LibraryActivity = 소장 전체 + 상태별 필터로 골라보기 (Steam 라이브러리 느낌)
+/// ──── 이 화면이 가진 기능 ────
+/// - 상태별 필터 탭 (전체/플레이중/완료/중단/찜 목록)
+/// - 게임 추가(+ 메뉴) / 앱 정보(⋮ 메뉴)
+/// - 셀 클릭 → 상세, 셀 길게 누르기 → BottomSheet(삭제/공유)
+/// - 다른 앱의 "공유"로 들어온 텍스트 수신 (Intent Filter)
 ///
 /// ──── Lifecycle 학습 ────
 /// onResume: 다른 화면에서 상태/별점 변경 후 돌아오면 현재 탭 기준으로 다시 필터
+/// onNewIntent: 앱이 살아있을 때 다른 앱의 공유로 다시 호출될 때 처리
 /// </summary>
 public class LibraryActivity extends AppCompatActivity {
 
     /// <summary>
-    /// 격자에 한 줄당 표시할 열 개수
-    /// 값을 3으로 바꾸면 한 줄에 3개씩 배치됨 (★ 테스트: 2 ↔ 3 바꿔보며 관찰)
+    /// 격자에 한 줄당 표시할 열 개수 (2 ↔ 3 바꿔보며 관찰)
     /// </summary>
     private static final int GRID_SPAN_COUNT = 2;
 
     /// <summary>
-    /// "전체" 탭의 위치 (0번)
-    /// 1번부터는 GameStatus.values() 순서와 1:1 대응 (탭 위치 - 1 = enum 인덱스)
+    /// "전체" 탭의 위치 (0번). 1번부터 GameStatus.values()와 1:1 대응
     /// </summary>
     private static final int TAB_POSITION_ALL = 0;
 
@@ -59,11 +68,15 @@ public class LibraryActivity extends AppCompatActivity {
     /// </summary>
     private LibraryAdapter adapter;
 
+    /// <summary>
+    /// 게임 추가 화면을 실행하고 결과를 받는 런처
+    /// </summary>
+    private ActivityResultLauncher<Intent> addGameLauncher;
+
     // ========== Lifecycle ==========
 
     /// <summary>
-    /// 라이브러리 화면 생성
-    /// ViewBinding 연결 + Repository 접근 + 격자/어댑터 + 필터 탭 세팅
+    /// 보관함 화면 생성
     /// </summary>
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,48 +91,106 @@ public class LibraryActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        // App 공용 GameRepository 가져오기 (DiaryActivity와 같은 인스턴스 공유)
+        // App 공용 GameRepository
         gameRepository = ((App) getApplication()).getGameRepository();
 
         // RecyclerView 설정 (GridLayoutManager 격자)
         binding.recyclerViewLibrary.setLayoutManager(
                 new GridLayoutManager(this, GRID_SPAN_COUNT));
-        // 어댑터는 처음 전체 목록으로 생성 (탭 세팅 후 applyFilter로 다시 맞춤)
-        adapter = new LibraryAdapter(gameRepository.getAllGames(), this::onGameClick);
+        // 클릭 → 상세, 길게 누르기 → BottomSheet
+        adapter = new LibraryAdapter(
+                gameRepository.getAllGames(), this::onGameClick, this::onGameLongClick);
         binding.recyclerViewLibrary.setAdapter(adapter);
 
         setupFilterTabs();
+
+        // 게임 추가 결과 런처 등록
+        addGameLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    boolean isOk = result.getResultCode() == RESULT_OK;
+                    boolean hasData = result.getData() != null;
+                    if (!isOk || !hasData) {
+                        return;
+                    }
+
+                    Intent data = result.getData();
+                    String title = data.getStringExtra(AddGameActivity.EXTRA_TITLE);
+                    String genreName = data.getStringExtra(AddGameActivity.EXTRA_GENRE);
+                    String platformName = data.getStringExtra(AddGameActivity.EXTRA_PLATFORM);
+                    String storeUrl = data.getStringExtra(AddGameActivity.EXTRA_STORE_URL);
+
+                    // enum은 name() 문자열로 건너왔으므로 valueOf로 복원
+                    Genre genre = Genre.valueOf(genreName);
+                    Platform platform = Platform.valueOf(platformName);
+
+                    // 저장소에 추가 후 현재 탭 기준으로 다시 필터 (새 게임은 찜 목록 기본)
+                    gameRepository.addGame(title, genre, platform, storeUrl);
+                    applyCurrentFilter();
+                }
+        );
+
+        // 다른 앱에서 공유로 실행됐다면 받은 텍스트 처리
+        handleIncomingShareIntent(getIntent());
     }
 
     /// <summary>
-    /// 다른 화면에서 상태/데이터 변경 후 돌아왔을 때, 현재 선택된 탭 기준으로 다시 필터
-    /// (예: 어떤 게임을 "완료"로 바꾸고 돌아오면 완료 탭 결과가 갱신됨)
+    /// 앱이 살아있는 상태에서 다른 앱이 공유로 다시 부르면 호출됨
+    /// </summary>
+    @Override
+    protected void onNewIntent(@NonNull Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIncomingShareIntent(intent);
+    }
+
+    /// <summary>
+    /// 다른 화면에서 상태/데이터 변경 후 돌아왔을 때 현재 탭 기준으로 다시 필터
     /// </summary>
     @Override
     protected void onResume() {
         super.onResume();
-        int selected = binding.tabLayoutFilter.getSelectedTabPosition();
-        // 화면 최초 진입 시점엔 선택 탭이 없을 수 있어(-1) 전체로 처리
-        applyFilter(selected < 0 ? TAB_POSITION_ALL : selected);
+        applyCurrentFilter();
+    }
+
+    // ========== 공유 수신 ==========
+
+    /// <summary>
+    /// 다른 앱에서 "ACTION_SEND + text/plain"으로 실행했을 때 받은 텍스트 처리
+    /// 지금은 학습용으로 Toast만 표시
+    /// </summary>
+    private void handleIncomingShareIntent(Intent intent) {
+        if (intent == null) {
+            return;
+        }
+        boolean isSendAction = Intent.ACTION_SEND.equals(intent.getAction());
+        boolean isTextType = "text/plain".equals(intent.getType());
+        if (!isSendAction || !isTextType) {
+            return;
+        }
+
+        String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+        if (sharedText == null || sharedText.isEmpty()) {
+            return;
+        }
+
+        String message = getString(R.string.main_shared_text, sharedText);
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
     // ========== 필터 탭 ==========
 
     /// <summary>
-    /// 필터 탭 구성: "전체" + GameStatus 4종을 순서대로 추가하고 선택 리스너 등록
-    /// 탭 위치와 enum의 대응: 0=전체, 1~4 = GameStatus.values()[위치-1]
+    /// 필터 탭 구성: "전체" + GameStatus 4종 + 선택 리스너
     /// </summary>
     private void setupFilterTabs() {
         TabLayout tabLayout = binding.tabLayoutFilter;
 
-        // 0번 탭: 전체
         tabLayout.addTab(tabLayout.newTab().setText(R.string.library_filter_all));
-        // 1~4번 탭: 각 상태 (enum 순서대로)
         for (GameStatus status : GameStatus.values()) {
             tabLayout.addTab(tabLayout.newTab().setText(status.getDisplayName()));
         }
 
-        // 탭 선택 시 해당 위치로 필터
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -133,23 +204,28 @@ public class LibraryActivity extends AppCompatActivity {
 
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
-                // 같은 탭 다시 눌러도 동작 동일하게 한 번 더 필터 (무해)
                 applyFilter(tab.getPosition());
             }
         });
     }
 
     /// <summary>
-    /// 탭 위치에 따라 게임을 걸러 어댑터에 반영하고, 결과가 비면 빈 상태 안내 표시
+    /// 현재 선택된 탭 기준으로 다시 필터 (없으면 전체)
+    /// </summary>
+    private void applyCurrentFilter() {
+        int selected = binding.tabLayoutFilter.getSelectedTabPosition();
+        applyFilter(selected < 0 ? TAB_POSITION_ALL : selected);
+    }
+
+    /// <summary>
+    /// 탭 위치에 따라 게임을 걸러 어댑터에 반영하고, 결과가 비면 빈 상태 표시
     /// </summary>
     private void applyFilter(int tabPosition) {
         List<Game> filtered;
 
         if (tabPosition == TAB_POSITION_ALL) {
-            // 전체: 원본 목록 그대로 (어댑터가 내부에서 복사하므로 그대로 넘겨도 안전)
             filtered = gameRepository.getAllGames();
         } else {
-            // 상태별: 탭 위치 - 1 로 enum을 찾아 일치하는 게임만 모음
             GameStatus targetStatus = GameStatus.values()[tabPosition - 1];
             filtered = new ArrayList<>();
             for (Game game : gameRepository.getAllGames()) {
@@ -161,32 +237,110 @@ public class LibraryActivity extends AppCompatActivity {
 
         adapter.updateItems(filtered);
 
-        // 빈 상태 토글: 결과가 없으면 안내 문구, 있으면 격자
         boolean isEmpty = filtered.isEmpty();
         binding.textViewEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
         binding.recyclerViewLibrary.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
     }
 
+    // ========== ActionBar 메뉴 (+ 게임 추가 / ⋮ 앱 정보) ==========
+
     /// <summary>
-    /// ActionBar ← 버튼 처리
+    /// 메뉴 inflate (게임 추가 + / 앱 정보 ⋮)
+    /// </summary>
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    /// <summary>
+    /// 메뉴 항목 클릭 처리
     /// </summary>
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
+        int itemId = item.getItemId();
+
+        if (itemId == android.R.id.home) {
             finish();
             return true;
         }
+
+        if (itemId == R.id.action_add_game) {
+            // + 아이콘 → AddGameActivity를 런처로 실행 (결과로 새 게임 정보 받음)
+            addGameLauncher.launch(new Intent(this, AddGameActivity.class));
+            return true;
+        }
+
+        if (itemId == R.id.action_about) {
+            // 앱 정보 → AboutActivity
+            startActivity(new Intent(this, AboutActivity.class));
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
     // ========== 어댑터 콜백 ==========
 
     /// <summary>
-    /// 격자 셀 클릭 콜백 — 클릭된 Game을 GameDetailActivity로 전달
+    /// 격자 셀 클릭 → GameDetailActivity로 이동
     /// </summary>
     private void onGameClick(Game game) {
         Intent intent = new Intent(this, GameDetailActivity.class);
         intent.putExtra(GameDetailActivity.EXTRA_GAME, game);
         startActivity(intent);
+    }
+
+    /// <summary>
+    /// 격자 셀 길게 누르기 → BottomSheet(삭제/공유/상세) 표시
+    /// </summary>
+    private void onGameLongClick(Game game) {
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        BottomSheetGameActionsBinding sheetBinding =
+                BottomSheetGameActionsBinding.inflate(getLayoutInflater());
+
+        sheetBinding.textViewSheetTitle.setText(game.getTitle());
+
+        // 삭제: Repository에서 제거 후 현재 탭 다시 필터
+        // (그리드는 필터된 목록이라 position 직접 계산 대신 재필터가 안전)
+        sheetBinding.actionDelete.setOnClickListener(v -> {
+            gameRepository.removeGame(game.getId());
+            applyCurrentFilter();
+            dialog.dismiss();
+        });
+
+        // 공유: ACTION_SEND chooser
+        sheetBinding.actionShare.setOnClickListener(v -> {
+            dialog.dismiss();
+            shareGame(game);
+        });
+
+        // 상세 보기: 클릭과 동일
+        sheetBinding.actionDetail.setOnClickListener(v -> {
+            dialog.dismiss();
+            onGameClick(game);
+        });
+
+        dialog.setContentView(sheetBinding.getRoot());
+        dialog.show();
+    }
+
+    /// <summary>
+    /// 게임 정보를 다른 앱으로 공유 (ACTION_SEND chooser)
+    /// </summary>
+    private void shareGame(Game game) {
+        String shareText = game.getTitle();
+        boolean hasReview = game.getReview() != null && !game.getReview().isEmpty();
+        if (hasReview) {
+            shareText += "\n★ " + game.getRating() + " - " + game.getReview();
+        }
+
+        Intent sendIntent = new Intent(Intent.ACTION_SEND);
+        sendIntent.setType("text/plain");
+        sendIntent.putExtra(Intent.EXTRA_SUBJECT, game.getTitle());
+        sendIntent.putExtra(Intent.EXTRA_TEXT, shareText);
+
+        Intent chooser = Intent.createChooser(sendIntent, getString(R.string.detail_share));
+        startActivity(chooser);
     }
 }

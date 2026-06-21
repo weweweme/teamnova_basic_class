@@ -36,9 +36,11 @@ public class LibraryViewHolder extends RecyclerView.ViewHolder {
 
     /// <summary>
     /// Game 데이터를 그리드 셀에 채움 (표지 이미지 + 제목)
-    /// 셀 클릭 시 clickListener를 통해 Activity에 알림
+    /// 셀 클릭/길게 누르기 시 각 콜백을 통해 Activity에 알림
     /// </summary>
-    public void bindGameData(Game game, OnGameClickListener clickListener) {
+    public void bindGameData(Game game,
+                             OnGameClickListener clickListener,
+                             OnGameLongClickListener longClickListener) {
         Context context = binding.getRoot().getContext();
 
         // 제목
@@ -60,6 +62,15 @@ public class LibraryViewHolder extends RecyclerView.ViewHolder {
             if (clickListener != null) {
                 clickListener.onGameClick(game);
             }
+        });
+
+        // 셀 길게 누르기 리스너 (BottomSheet 메뉴 표시용)
+        binding.getRoot().setOnLongClickListener(v -> {
+            if (longClickListener != null) {
+                longClickListener.onGameLongClick(game);
+                return true;
+            }
+            return false;
         });
     }
 }

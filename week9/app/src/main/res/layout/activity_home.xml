@@ -16,43 +16,7 @@
         android:paddingTop="8dp"
         android:paddingBottom="16dp">
 
-        <!-- ════════ 섹션 1: 다이어리 미리보기 ════════ -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingStart="16dp"
-            android:paddingEnd="8dp"
-            android:paddingTop="12dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/home_section_diary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <!-- 더 보기 → DiaryActivity -->
-            <Button
-                android:id="@+id/buttonMoreDiary"
-                style="?attr/borderlessButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/home_more"
-                android:textSize="13sp" />
-        </LinearLayout>
-
-        <!-- 세로 미리보기 (GameCardAdapter 재사용, 정보형 카드 — "기록" 느낌) -->
-        <!-- 라이브러리(표지형)와 달리 제목·별점·한줄평이 보이는 가로 카드 -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerDiaryPreview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            tools:listitem="@layout/item_game_card" />
-
-        <!-- ════════ 섹션 2: 라이브러리 미리보기 ════════ -->
+        <!-- ════════ 섹션 1: 보관함 미리보기 ════════ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

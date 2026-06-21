@@ -31,17 +31,25 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
     private final List<Game> games;
 
     /// <summary>
-    /// 셀 클릭 콜백 (DiaryActivity와 같은 OnGameClickListener 재사용)
+    /// 셀 클릭 콜백
     /// </summary>
     private final OnGameClickListener clickListener;
+
+    /// <summary>
+    /// 셀 길게 누르기 콜백 (BottomSheet 메뉴 표시용, 없으면 null)
+    /// </summary>
+    private final OnGameLongClickListener longClickListener;
 
     /// <summary>
     /// 어댑터 생성
     /// 넘어온 리스트를 그대로 참조하지 않고 복사 → updateItems로 교체해도 원본 보호
     /// </summary>
-    public LibraryAdapter(List<Game> games, OnGameClickListener clickListener) {
+    public LibraryAdapter(List<Game> games,
+                          OnGameClickListener clickListener,
+                          OnGameLongClickListener longClickListener) {
         this.games = new ArrayList<>(games);
         this.clickListener = clickListener;
+        this.longClickListener = longClickListener;
     }
 
     /// <summary>
@@ -72,7 +80,7 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull LibraryViewHolder holder, int position) {
         Game game = games.get(position);
-        holder.bindGameData(game, clickListener);
+        holder.bindGameData(game, clickListener, longClickListener);
     }
 
     /// <summary>

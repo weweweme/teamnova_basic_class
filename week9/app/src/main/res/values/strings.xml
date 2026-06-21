@@ -39,13 +39,10 @@
     <string name="timeline_reviewed">%s 리뷰를 남겼어요</string>
     <string name="timeline_played_badge">PLAY</string>
 
-    <!-- 다이어리(카드 길게 누르기) BottomSheet 액션 -->
+    <!-- 카드 길게 누르기 BottomSheet 액션 -->
     <string name="diary_action_delete">삭제</string>
     <string name="diary_action_share">공유</string>
     <string name="diary_action_detail">상세 보기</string>
-
-    <!-- 다이어리 카드 드래그 핸들 (접근성 설명) -->
-    <string name="diary_drag_handle_description">카드 위치 변경 핸들 — 누른 채 위아래로 끌어 순서 변경</string>
 
     <!-- 게임 추가 -->
     <string name="add_game_title">게임 추가</string>

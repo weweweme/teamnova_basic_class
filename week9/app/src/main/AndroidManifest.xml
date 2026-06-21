@@ -47,32 +47,12 @@
             android:label="@string/home_title"
             android:exported="false" />
 
-        <!-- 메인: 게임 리스트 화면 -->
-        <!-- exported=true: 다른 앱(Chrome, 메모 등)의 "공유" 대상으로 우리 앱이 나타나게 함 -->
-        <!-- intent-filter: "나는 이 요청을 처리할 수 있어요"라는 자격 선언 -->
-        <!-- Unity로 비유하면 "이런 SendMessage 이름을 받을 수 있는 오브젝트"로 등록하는 것 -->
-        <activity
-            android:name=".DiaryActivity"
-            android:label="@string/main_title"
-            android:parentActivityName=".HomeActivity"
-            android:exported="true">
-            <!-- ACTION_SEND + text/plain 수신 필터 -->
-            <!-- 다른 앱에서 텍스트를 공유할 때 "Game Diary"가 후보 목록에 나타남 -->
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <!-- DEFAULT: "암시적 Intent로도 받을 수 있게" 하는 필수 카테고리 -->
-                <category android:name="android.intent.category.DEFAULT" />
-                <!-- text/plain: 평문 텍스트만 받겠다 (이미지, URL도 받으려면 추가 선언 필요) -->
-                <data android:mimeType="text/plain" />
-            </intent-filter>
-        </activity>
-
         <!-- 게임 상세: 암시적 Intent 4종 집결지 -->
-        <!-- parentActivityName: ← 버튼 누르면 MainActivity로 돌아감 -->
+        <!-- parentActivityName: ← 버튼 누르면 보관함으로 돌아감 -->
         <activity
             android:name=".GameDetailActivity"
             android:label="@string/detail_title"
-            android:parentActivityName=".DiaryActivity"
+            android:parentActivityName=".LibraryActivity"
             android:exported="false" />
 
         <!-- 리뷰 작성: forResult로 별점+한줄평 반환 -->
@@ -92,20 +72,29 @@
             android:exported="false" />
 
         <!-- 앱 정보: ACTION_VIEW / ACTION_SENDTO 학습 화면 -->
-        <!-- parentActivityName: ← 버튼 누르면 MainActivity로 돌아감 -->
+        <!-- parentActivityName: ← 버튼 누르면 보관함으로 돌아감 -->
         <activity
             android:name=".AboutActivity"
             android:label="@string/about_title"
-            android:parentActivityName=".DiaryActivity"
+            android:parentActivityName=".LibraryActivity"
             android:exported="false" />
 
-        <!-- 라이브러리: 게임 표지 격자 보기 (GridLayoutManager) -->
+        <!-- 보관함: 게임 표지 격자 + 상태 필터 (앱의 메인 컬렉션 화면) -->
         <!-- parentActivityName: ← 버튼 누르면 HomeActivity로 돌아감 -->
+        <!-- exported=true + intent-filter: 다른 앱의 "공유" 대상으로 우리 앱이 나타나게 함 -->
         <activity
             android:name=".LibraryActivity"
             android:label="@string/library_title"
             android:parentActivityName=".HomeActivity"
-            android:exported="false" />
+            android:exported="true">
+            <!-- ACTION_SEND + text/plain 수신 필터 -->
+            <!-- 다른 앱에서 텍스트를 공유할 때 우리 앱이 후보 목록에 나타남 -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
 
         <!-- 타임라인: 활동 피드 (멀티 뷰타입) -->
         <!-- parentActivityName: ← 버튼 누르면 HomeActivity로 돌아감 -->

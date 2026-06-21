@@ -147,6 +147,7 @@ public class LibraryActivity extends AppCompatActivity {
                     // 저장소에 추가 후 현재 탭 기준으로 다시 필터 (새 게임은 찜 목록 기본)
                     gameRepository.addGame(title, genre, platform, storeUrl);
                     applyCurrentFilter();
+                    updateTabCounts();
                 }
         );
 
@@ -171,6 +172,7 @@ public class LibraryActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         applyCurrentFilter();
+        updateTabCounts();
     }
 
     // ========== 공유 수신 ==========
@@ -206,10 +208,12 @@ public class LibraryActivity extends AppCompatActivity {
     private void setupFilterTabs() {
         TabLayout tabLayout = binding.tabLayoutFilter;
 
-        tabLayout.addTab(tabLayout.newTab().setText(R.string.library_filter_all));
-        for (GameStatus status : GameStatus.values()) {
-            tabLayout.addTab(tabLayout.newTab().setText(status.getDisplayName()));
+        // 탭만 먼저 추가하고, 텍스트(개수 포함)는 updateTabCounts에서 채움
+        tabLayout.addTab(tabLayout.newTab());
+        for (int i = 0; i < GameStatus.values().length; i++) {
+            tabLayout.addTab(tabLayout.newTab());
         }
+        updateTabCounts();
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -235,6 +239,32 @@ public class LibraryActivity extends AppCompatActivity {
     private void applyCurrentFilter() {
         int selected = binding.tabLayoutFilter.getSelectedTabPosition();
         applyFilter(selected < 0 ? TAB_POSITION_ALL : selected);
+    }
+
+    /// <summary>
+    /// 각 탭 라벨에 게임 개수를 붙여 표시 ("전체 20", "완료 7" 등)
+    /// 데이터가 바뀔 때(추가/삭제/상태변경) 호출해서 개수를 최신으로 유지
+    /// (검색/정렬은 개수를 바꾸지 않으므로 호출 불필요)
+    /// </summary>
+    private void updateTabCounts() {
+        TabLayout tabLayout = binding.tabLayoutFilter;
+
+        // 0번 탭: 전체
+        TabLayout.Tab allTab = tabLayout.getTabAt(TAB_POSITION_ALL);
+        if (allTab != null) {
+            allTab.setText(getString(R.string.library_filter_all)
+                    + " " + gameRepository.getTotalCount());
+        }
+
+        // 1번부터: 각 상태별 개수
+        GameStatus[] statuses = GameStatus.values();
+        for (int i = 0; i < statuses.length; i++) {
+            TabLayout.Tab tab = tabLayout.getTabAt(i + 1);
+            if (tab != null) {
+                tab.setText(statuses[i].getDisplayName()
+                        + " " + gameRepository.countByStatus(statuses[i]));
+            }
+        }
     }
 
     /// <summary>
@@ -452,6 +482,7 @@ public class LibraryActivity extends AppCompatActivity {
                 .setPositiveButton(R.string.delete_confirm_ok, (dialog, which) -> {
                     gameRepository.removeGame(game.getId());
                     applyCurrentFilter();
+                    updateTabCounts();
                 })
                 .setNegativeButton(android.R.string.cancel, null)
                 .show();

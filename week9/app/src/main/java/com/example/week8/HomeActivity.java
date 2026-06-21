@@ -11,6 +11,7 @@ import com.example.week8.data.GameRepository;
 import com.example.week8.databinding.ActivityHomeBinding;
 import com.example.week8.model.ActivityLog;
 import com.example.week8.model.Game;
+import com.example.week8.model.GameStatus;
 import com.example.week8.ui.LibraryAdapter;
 import com.example.week8.ui.TimelineAdapter;
 
@@ -70,9 +71,36 @@ public class HomeActivity extends AppCompatActivity {
         GameRepository gameRepository = app.getGameRepository();
         ActivityLogRepository logRepository = app.getActivityLogRepository();
 
+        setupStatsSummary(gameRepository);
         setupLibraryPreview(gameRepository);
         setupTimelinePreview(logRepository, gameRepository);
         setupMoreButtons();
+    }
+
+    /// <summary>
+    /// 다른 화면에서 상태 변경/게임 추가/삭제 후 돌아오면 통계 숫자를 다시 계산
+    /// </summary>
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setupStatsSummary(((App) getApplication()).getGameRepository());
+    }
+
+    // ========== 통계 요약 ==========
+
+    /// <summary>
+    /// 통계 카드 숫자 채우기 (전체/완료/플레이중/찜 목록 개수)
+    /// Repository가 상태별 집계를 계산해주고, 여기서는 화면에 표시만
+    /// </summary>
+    private void setupStatsSummary(GameRepository gameRepository) {
+        binding.textViewStatTotal.setText(
+                String.valueOf(gameRepository.getTotalCount()));
+        binding.textViewStatCompleted.setText(
+                String.valueOf(gameRepository.countByStatus(GameStatus.COMPLETED)));
+        binding.textViewStatPlaying.setText(
+                String.valueOf(gameRepository.countByStatus(GameStatus.PLAYING)));
+        binding.textViewStatBacklog.setText(
+                String.valueOf(gameRepository.countByStatus(GameStatus.BACKLOG)));
     }
 
     // ========== 섹션별 미리보기 세팅 ==========

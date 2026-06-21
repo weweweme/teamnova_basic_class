@@ -95,10 +95,30 @@ public class GameRepository {
 
     /// <summary>
     /// 전체 게임 목록 반환
-    /// MainActivity에서 카드 리스트를 만들 때 사용
+    /// 카드/그리드 리스트를 만들 때 사용
     /// </summary>
     public ArrayList<Game> getAllGames() {
         return this.games;
+    }
+
+    /// <summary>
+    /// 전체 게임 개수 반환 (홈 통계 카드 등에서 사용)
+    /// </summary>
+    public int getTotalCount() {
+        return this.games.size();
+    }
+
+    /// <summary>
+    /// 특정 상태인 게임 개수 반환 (홈 통계 카드에서 상태별 집계에 사용)
+    /// </summary>
+    public int countByStatus(GameStatus status) {
+        int count = 0;
+        for (Game game : this.games) {
+            if (game.getStatus() == status) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /// <summary>

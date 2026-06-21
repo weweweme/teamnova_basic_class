@@ -419,12 +419,10 @@ public class LibraryActivity extends AppCompatActivity {
 
         sheetBinding.textViewSheetTitle.setText(game.getTitle());
 
-        // 삭제: Repository에서 제거 후 현재 탭 다시 필터
-        // (그리드는 필터된 목록이라 position 직접 계산 대신 재필터가 안전)
+        // 삭제: 실수 방지를 위해 확인 다이얼로그를 거친 뒤 제거
         sheetBinding.actionDelete.setOnClickListener(v -> {
-            gameRepository.removeGame(game.getId());
-            applyCurrentFilter();
             dialog.dismiss();
+            confirmDelete(game);
         });
 
         // 공유: ACTION_SEND chooser
@@ -441,6 +439,22 @@ public class LibraryActivity extends AppCompatActivity {
 
         dialog.setContentView(sheetBinding.getRoot());
         dialog.show();
+    }
+
+    /// <summary>
+    /// 삭제 확인 다이얼로그 → 확인 시에만 실제 삭제
+    /// (그리드는 필터된 목록이라 position 직접 계산 대신 재필터가 안전)
+    /// </summary>
+    private void confirmDelete(Game game) {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.delete_confirm_title)
+                .setMessage(getString(R.string.delete_confirm_message, game.getTitle()))
+                .setPositiveButton(R.string.delete_confirm_ok, (dialog, which) -> {
+                    gameRepository.removeGame(game.getId());
+                    applyCurrentFilter();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     /// <summary>

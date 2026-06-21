@@ -40,12 +40,41 @@
             android:layout_marginTop="8dp"
             android:textSize="16sp" />
 
-        <!-- 별점 + 한줄평 -->
-        <TextView
-            android:id="@+id/textViewRatingReview"
+        <!-- 별점 (별 아이콘 + 숫자) -->
+        <!-- RatingBar: 0.5 단위로 별을 채워 별점을 시각화 -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- isIndicator=true: 표시 전용 (사용자가 터치로 못 바꿈, 리뷰 화면에서만 변경) -->
+            <!-- stepSize=0.5: 반 별 표시 / numStars=5: 별 5개 -->
+            <RatingBar
+                android:id="@+id/ratingBar"
+                style="?android:attr/ratingBarStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:isIndicator="true"
+                android:numStars="5"
+                android:stepSize="0.5" />
+
+            <!-- 별점 숫자 (예: 4.5) -->
+            <TextView
+                android:id="@+id/textViewRatingValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <!-- 한줄평 -->
+        <TextView
+            android:id="@+id/textViewReview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
             android:textSize="16sp" />
 
         <!-- 버튼 영역 -->

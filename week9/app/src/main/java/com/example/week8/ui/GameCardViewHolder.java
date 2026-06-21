@@ -55,15 +55,16 @@ public class GameCardViewHolder extends RecyclerView.ViewHolder {
                 + " · " + game.getPlatform().getDisplayName();
         binding.textViewGenrePlatform.setText(genrePlatform);
 
-        // 별점 + 한줄평 (리뷰가 없으면 "리뷰 없음" 표시)
+        // 별점: 작은 별 아이콘으로 시각화
+        binding.ratingBar.setRating(game.getRating());
+
+        // 한줄평 (리뷰가 없으면 "리뷰 없음" 표시)
         boolean hasReview = game.getReview() != null && !game.getReview().isEmpty();
-        String ratingReview;
         if (hasReview) {
-            ratingReview = "★ " + game.getRating() + "  " + game.getReview();
+            binding.textViewReview.setText(game.getReview());
         } else {
-            ratingReview = "리뷰 없음";
+            binding.textViewReview.setText("리뷰 없음");
         }
-        binding.textViewRatingReview.setText(ratingReview);
 
         // 표지 이미지 (이름 문자열로 drawable 리소스 ID 조회)
         // 게임마다 이미지 이름이 다르므로 getIdentifier 사용이 불가피

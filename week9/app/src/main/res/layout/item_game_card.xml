@@ -52,13 +52,26 @@
                 android:layout_marginTop="4dp"
                 android:textSize="13sp" />
 
-            <!-- 별점 + 한줄평 -->
-            <TextView
-                android:id="@+id/textViewRatingReview"
+            <!-- 별점 (작은 별 아이콘) -->
+            <RatingBar
+                android:id="@+id/ratingBar"
+                style="?android:attr/ratingBarStyleSmall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textSize="13sp" />
+                android:isIndicator="true"
+                android:numStars="5"
+                android:stepSize="0.5" />
+
+            <!-- 한줄평 -->
+            <TextView
+                android:id="@+id/textViewReview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="13sp"
+                android:maxLines="1"
+                android:ellipsize="end" />
         </LinearLayout>
 
         <!-- 드래그 핸들 -->

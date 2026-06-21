@@ -423,15 +423,19 @@ public class GameDetailActivity extends AppCompatActivity {
                 + " · " + game.getPlatform().getDisplayName();
         binding.textViewGenrePlatform.setText(genrePlatform);
 
-        // 별점 + 한줄평
+        // 별점: RatingBar로 별을 채우고 숫자도 함께 표시
+        binding.ratingBar.setRating(game.getRating());
+
+        // 한줄평 (리뷰 유무에 따라 숫자/문구 분기)
         boolean hasReview = game.getReview() != null && !game.getReview().isEmpty();
-        String ratingReview;
         if (hasReview) {
-            ratingReview = "★ " + game.getRating() + "  " + game.getReview();
+            binding.textViewRatingValue.setText(String.valueOf(game.getRating()));
+            binding.textViewReview.setText(game.getReview());
         } else {
-            ratingReview = "리뷰 없음";
+            // 리뷰가 없으면 숫자는 비우고 "리뷰 없음" 안내
+            binding.textViewRatingValue.setText("");
+            binding.textViewReview.setText("리뷰 없음");
         }
-        binding.textViewRatingReview.setText(ratingReview);
 
         // 리뷰 버튼 텍스트: 이미 리뷰가 있으면 "수정", 없으면 "작성"
         // 같은 화면에서 같은 버튼이지만 상태에 따라 의미가 달라지므로 라벨도 맞춰줌

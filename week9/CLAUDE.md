@@ -419,38 +419,41 @@ UserConfig (설정)
 - BottomSheetDialog로 카드 액션 메뉴 구현
 - ItemTouchHelper로 드래그 정렬 구현
 
-### 화면 구조 변경
-8주차에서는 Splash → Onboarding → Main(게임 리스트) 였으나, 9주차에서 **HomeActivity를 신규 도입**하여 허브 역할을 맡기고, 기존 MainActivity는 **DiaryActivity**로 이름 변경(역할은 동일 — 게임 카드 리스트).
+### 화면 구조 (현재 = 최종)
+8주차에서는 Splash → Onboarding → Main(게임 리스트) 였으나, 9주차에서 **HomeActivity를 허브로 도입**.
 
 ```
-SplashActivity → OnboardingActivity → HomeActivity (신규)
-                                         ├─ DiaryActivity    (구 MainActivity, 리스트 뷰)
-                                         ├─ LibraryActivity  (신규, 그리드 뷰)
-                                         └─ TimelineActivity (신규, 활동 피드)
+SplashActivity → OnboardingActivity → HomeActivity (허브)
+                                         ├─ LibraryActivity  (보관함 — 그리드, 메인 컬렉션)
+                                         └─ TimelineActivity (최근 활동 — 활동 피드)
+                                       → GameDetailActivity → ReviewWrite / Screenshot
 ```
 
-### 화면별 RecyclerView 학습 매핑
-| 화면 | 상태 | LayoutManager | 학습 포인트 |
-|---|---|---|---|
-| HomeActivity | 신규 | LinearLayout(세로) + 자식 RecyclerView(가로) | **중첩 RecyclerView**(허브에 섹션별 미리보기) |
-| DiaryActivity | 이름 변경 + 전환 | LinearLayoutManager | 기본기 (Adapter/ViewHolder), 길게 누르기, 드래그 정렬 |
-| LibraryActivity | 신규 | GridLayoutManager (2~3열) | 그리드 레이아웃, 커버 이미지 위주 |
-| TimelineActivity | 신규 | LinearLayoutManager | **멀티 뷰타입** (`getItemViewType()` 4종 분기) |
+> ⚠️ 진행 경과: 초기엔 구 MainActivity를 **DiaryActivity**(리스트 뷰)로 전환해 함께 뒀으나,
+> 보관함과 "같은 데이터를 보여주는" 중복이라 **DiaryActivity는 제거**하고 기능을 보관함이 흡수함.
+> (드래그 정렬은 그리드와 안 맞아 함께 제거 — 학습 코드는 git 히스토리에 보존)
+> 아래 "단계별 구현 순서"의 DiaryActivity 관련 단계는 **당시 진행 기록**으로 남겨둠.
+
+### 화면별 RecyclerView 학습 매핑 (현재)
+| 화면 | LayoutManager | 학습 포인트 |
+|---|---|---|
+| HomeActivity | ScrollView(세로) + 자식 RecyclerView(가로) | **중첩 스크롤**(허브에 섹션별 미리보기, 어댑터 재사용) |
+| LibraryActivity (보관함) | GridLayoutManager (2열) | 그리드 + 상태별 필터 탭 + 길게 누르기 BottomSheet |
+| TimelineActivity (최근 활동) | LinearLayoutManager | **멀티 뷰타입** (`getItemViewType()` 4종 분기) |
 
 ### 벤치마킹 출처
 - **HomeActivity 미리보기 허브**: Letterboxd, Spotify, Backloggd
-- **LibraryActivity 그리드**: Steam 라이브러리, Backloggd
+- **LibraryActivity 그리드 + 상태 필터**: Steam 라이브러리, Backloggd
 - **TimelineActivity 활동 피드**: Letterboxd 다이어리, Day One
 - **카드 길게 누르기 → BottomSheet**: Spotify, YouTube, Letterboxd
 
-### DiaryActivity 추가 기능
-- **카드 길게 누르기 → BottomSheetDialog**
-  - 메뉴 구성: 삭제 / 공유 / 상세 보기
-  - 삭제: 더미 Repository에서 제거 + `notifyItemRemoved`
-  - 공유: 기존 GameDetail의 ACTION_SEND chooser 재사용
-- **카드 드래그 정렬**: `ItemTouchHelper.SimpleCallback` (UP|DOWN)
-  - 드래그 핸들 아이콘을 카드 우측에 두고 거기서만 시작 (오작동 방지)
-  - `notifyItemMoved` + Repository 순서 반영 (메모리상)
+### LibraryActivity(보관함) 기능 — 앱의 메인 컬렉션 화면
+- **상태별 필터 탭** (전체 / 플레이중 / 완료 / 중단 / 찜 목록) + 빈 상태 안내
+- **게임 추가(+ 메뉴) / 앱 정보(⋮ 메뉴)** — 구 DiaryActivity에서 이전
+- **공유 수신** (다른 앱 → 우리 앱, ACTION_SEND intent-filter) — 구 DiaryActivity에서 이전
+- **카드 길게 누르기 → BottomSheetDialog** (삭제 / 공유 / 상세 보기)
+  - 삭제: Repository에서 제거 후 현재 탭 재필터
+  - 공유: ACTION_SEND chooser
 
 ### TimelineActivity 데이터 모델 (더미)
 ```
@@ -518,3 +521,18 @@ ActivityLog
 20. `HomeActivity` 뼈대 + Splash/Onboarding 진입 경로 변경 (FLAG_ACTIVITY_CLEAR_TASK)
 21. 섹션별 미리보기용 가로 RecyclerView (Diary/Library/Timeline 일부)
 22. "더 보기"로 각 자식 Activity 진입
+
+### 9주차 확장 작업 (Phase 0~6 이후 추가)
+RecyclerView 기본 학습을 마친 뒤 앱을 풍성하게 만든 후속 작업들:
+
+- **게임 진행 상태 (`GameStatus`)**: PLAYING / COMPLETED / DROPPED / BACKLOG enum
+  (Game에 status 필드 + Parcelable R/W, displayName + 배지색 ARGB 보유)
+- **보관함 상태별 필터 탭**: TabLayout(전체 + 4상태) → 선택 시 필터링 + 빈 상태 안내
+- **별점 시각화**: 텍스트 "★ 4.5" → `RatingBar`(small, stepSize 0.5) 별 아이콘
+- **상태 변경 UI**: GameDetail에서 AlertDialog 단일 선택으로 상태 변경 → Repository 반영
+- **상태별 색상 배지**: 상태색을 `backgroundTintList`로 적용 (배지 모양 drawable 1개 공유)
+- **용어 순화** (중학생 기준): 백로그→찜 목록, 다이어리→일기, 라이브러리→보관함, 타임라인→최근 활동
+  (코드 식별자/클래스명은 영어 유지, 화면 표시 텍스트만 변경)
+- **일기(DiaryActivity) 제거**: 보관함과 데이터 중복이라 제거, 기능(게임추가/공유수신/BottomSheet)은
+  보관함이 흡수. 드래그 정렬(ItemTouchHelper)은 그리드와 안 맞아 함께 제거
+  → 최종 화면: Home → (보관함 / 최근 활동) → GameDetail

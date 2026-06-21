@@ -4,37 +4,37 @@
 
     <!-- 온보딩 -->
     <string name="onboarding_title_1">Game Diary</string>
-    <string name="onboarding_desc_1">나만의 게임 다이어리에 오신 것을 환영합니다</string>
+    <string name="onboarding_desc_1">나만의 게임 일기에 오신 것을 환영합니다</string>
     <string name="onboarding_title_2">게임 기록</string>
     <string name="onboarding_desc_2">플레이한 게임에 별점과 한줄평을 남겨보세요</string>
     <string name="onboarding_title_3">시작할 준비 완료!</string>
-    <string name="onboarding_desc_3">지금 바로 게임 라이브러리를 만들어보세요</string>
+    <string name="onboarding_desc_3">지금 바로 게임 보관함을 만들어보세요</string>
     <string name="onboarding_next">다음</string>
     <string name="onboarding_start">시작하기</string>
 
     <!-- 메인 -->
-    <string name="main_title">내 게임 다이어리</string>
+    <string name="main_title">내 게임 일기</string>
     <string name="game_cover_description">게임 표지</string>
     <!-- 다른 앱에서 공유받았을 때 Toast에 표시 (%s 자리에 실제 공유된 텍스트 들어감) -->
     <string name="main_shared_text">공유받은 텍스트: %s</string>
     <string name="main_add_game">게임 추가</string>
 
     <!-- 라이브러리 (그리드 뷰) -->
-    <string name="library_title">라이브러리</string>
+    <string name="library_title">보관함</string>
     <string name="library_filter_all">전체</string>
     <string name="library_empty">이 상태의 게임이 없어요</string>
 
     <!-- 홈 (허브) -->
     <string name="home_title">홈</string>
-    <string name="home_section_diary">내 다이어리</string>
-    <string name="home_section_library">라이브러리</string>
+    <string name="home_section_diary">내 일기</string>
+    <string name="home_section_library">보관함</string>
     <string name="home_section_timeline">최근 활동</string>
     <string name="home_more">더 보기</string>
 
     <!-- 타임라인 (멀티 뷰타입) -->
-    <string name="timeline_title">타임라인</string>
+    <string name="timeline_title">최근 활동</string>
     <!-- 타입별 활동 문구 (%s 자리에 게임 제목) -->
-    <string name="timeline_added">%s 을(를) 라이브러리에 추가했어요</string>
+    <string name="timeline_added">%s 을(를) 보관함에 추가했어요</string>
     <string name="timeline_completed">%s 클리어 완료!</string>
     <string name="timeline_reviewed">%s 리뷰를 남겼어요</string>
     <string name="timeline_played_badge">PLAY</string>
@@ -83,7 +83,7 @@
     <string name="about_title">앱 정보</string>
     <string name="about_app_name">Game Diary</string>
     <string name="about_version">버전 1.0.0</string>
-    <string name="about_description">나만의 게임 다이어리 — 별점과 한줄평으로 기록하는 개인 게임 일지</string>
+    <string name="about_description">나만의 게임 일기 — 별점과 한줄평으로 기록하는 개인 게임 일지</string>
     <string name="about_developer_github">개발자 GitHub</string>
     <string name="about_send_feedback">개발자에게 피드백 보내기</string>
     <string name="about_menu_label">앱 정보</string>

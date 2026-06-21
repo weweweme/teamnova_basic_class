@@ -14,7 +14,7 @@ public enum GameStatus {
     PLAYING("플레이중", 0xFF1565C0),
     COMPLETED("완료", 0xFF2E7D32),
     DROPPED("중단", 0xFF757575),
-    BACKLOG("백로그", 0xFFEF6C00);
+    BACKLOG("찜 목록", 0xFFEF6C00);
 
     /// <summary>
     /// 화면에 표시할 한국어 이름

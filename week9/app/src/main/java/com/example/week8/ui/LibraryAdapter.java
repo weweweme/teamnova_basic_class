@@ -41,6 +41,20 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
     private final OnGameLongClickListener longClickListener;
 
     /// <summary>
+    /// 셀 고정 폭(dp). 0이면 LayoutManager가 폭 결정 (그리드 = 화면 분할)
+    /// 0보다 크면 셀 폭을 이 값으로 고정 → 가로 스크롤 미리보기에서 여러 개 보이게
+    /// (홈 화면 가로 미리보기 전용. 보관함 그리드는 setter를 호출 안 해 0 유지)
+    /// </summary>
+    private int itemWidthDp = 0;
+
+    /// <summary>
+    /// 가로 미리보기용 셀 고정 폭 지정 (dp)
+    /// </summary>
+    public void setItemWidthDp(int dp) {
+        this.itemWidthDp = dp;
+    }
+
+    /// <summary>
     /// 어댑터 생성
     /// 넘어온 리스트를 그대로 참조하지 않고 복사 → updateItems로 교체해도 원본 보호
     /// </summary>
@@ -71,6 +85,17 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
     public LibraryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         ItemLibraryGridBinding binding = ItemLibraryGridBinding.inflate(
                 LayoutInflater.from(parent.getContext()), parent, false);
+
+        // 고정 폭이 지정되면 셀 폭을 dp → px로 변환해 적용 (가로 미리보기용)
+        // 지정 안 됐으면(0) 레이아웃 원래 값(match_parent) 유지 → 그리드에선 LayoutManager가 폭 결정
+        if (itemWidthDp > 0) {
+            float density = parent.getResources().getDisplayMetrics().density;
+            int widthPx = (int) (itemWidthDp * density);
+            ViewGroup.LayoutParams lp = binding.getRoot().getLayoutParams();
+            lp.width = widthPx;
+            binding.getRoot().setLayoutParams(lp);
+        }
+
         return new LibraryViewHolder(binding);
     }
 

@@ -112,6 +112,9 @@ public class HomeActivity extends AppCompatActivity {
     private void setupLibraryPreview(GameRepository gameRepository) {
         List<Game> preview = takeFirst(gameRepository.getAllGames(), PREVIEW_MAX);
         LibraryAdapter adapter = new LibraryAdapter(preview, this::onGameClick, null);
+        // 가로 스크롤 미리보기 → 셀 폭을 고정해야 여러 개가 보임
+        // (안 하면 셀이 match_parent라 화면 폭을 꽉 채워 1개만 보임)
+        adapter.setItemWidthDp(120);
         binding.recyclerLibraryPreview.setLayoutManager(
                 new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         binding.recyclerLibraryPreview.setAdapter(adapter);

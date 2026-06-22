@@ -22,6 +22,7 @@ import com.example.week8.library.LibraryAdapter;
 import com.example.week8.timeline.TimelineAdapter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /// <summary>
@@ -95,7 +96,10 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        setupStatsSummary(((App) getApplication()).getGameRepository());
+        GameRepository gameRepository = ((App) getApplication()).getGameRepository();
+        setupStatsSummary(gameRepository);
+        // 화면에 돌아올 때마다 미리보기를 다시 뽑음 → 매번 다른 게임이 보임
+        setupLibraryPreview(gameRepository);
     }
 
     // ========== 통계 요약 ==========
@@ -122,7 +126,7 @@ public class HomeActivity extends AppCompatActivity {
     /// longClickListener=null: 미리보기라 BottomSheet 메뉴 불필요
     /// </summary>
     private void setupLibraryPreview(GameRepository gameRepository) {
-        List<Game> preview = takeFirst(gameRepository.getAllGames(), PREVIEW_MAX);
+        List<Game> preview = takeRandom(gameRepository.getAllGames(), PREVIEW_MAX);
         LibraryAdapter adapter = new LibraryAdapter(preview, this::onGameClick, null);
         // 가로 스크롤 미리보기 → 셀 폭을 고정해야 여러 개가 보임
         // (안 하면 셀이 match_parent라 화면 폭을 꽉 채워 1개만 보임)
@@ -180,5 +184,17 @@ public class HomeActivity extends AppCompatActivity {
     private <T> List<T> takeFirst(List<T> source, int count) {
         int end = Math.min(count, source.size());
         return new ArrayList<>(source.subList(0, end));
+    }
+
+    /// <summary>
+    /// 원본을 건드리지 않고 무작위로 최대 count개를 뽑아 반환
+    /// 복사본을 섞은 뒤 앞에서 count개를 자름 ("오늘의 게임" 느낌의 랜덤 미리보기)
+    /// 원본이 count보다 적으면 있는 만큼만 반환
+    /// </summary>
+    private <T> List<T> takeRandom(List<T> source, int count) {
+        List<T> copy = new ArrayList<>(source);
+        Collections.shuffle(copy);
+        int end = Math.min(count, copy.size());
+        return new ArrayList<>(copy.subList(0, end));
     }
 }

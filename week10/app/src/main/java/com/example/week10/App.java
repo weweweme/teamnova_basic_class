@@ -2,6 +2,7 @@ package com.example.week10;
 
 import android.app.Application;
 
+import com.example.week10.account.AccountManager;
 import com.example.week10.data.ActivityLogRepository;
 import com.example.week10.data.GameRepository;
 
@@ -36,6 +37,12 @@ public class App extends Application {
     private ActivityLogRepository activityLogRepository;
 
     /// <summary>
+    /// 앱 전역 계정 관리자 (로그인/회원가입/자동로그인 — app_global 파일 담당)
+    /// 사용처: ((App) getApplication()).getAccountManager()
+    /// </summary>
+    private AccountManager accountManager;
+
+    /// <summary>
     /// 앱 프로세스 시작 시 단 한 번 호출
     /// 여기서 만든 객체들은 앱이 살아있는 동안 계속 같은 인스턴스로 유지됨
     /// </summary>
@@ -44,6 +51,8 @@ public class App extends Application {
         super.onCreate();
         gameRepository = new GameRepository();
         activityLogRepository = new ActivityLogRepository();
+        // this(Application)도 Context의 일종이라 SharedPreferences 파일을 열 수 있다 → 그대로 넘김
+        accountManager = new AccountManager(this);
     }
 
     /// <summary>
@@ -60,5 +69,13 @@ public class App extends Application {
     /// </summary>
     public ActivityLogRepository getActivityLogRepository() {
         return activityLogRepository;
+    }
+
+    /// <summary>
+    /// 공용 계정 관리자 반환
+    /// Activity에서 ((App) getApplication()).getAccountManager() 형태로 접근
+    /// </summary>
+    public AccountManager getAccountManager() {
+        return accountManager;
     }
 }

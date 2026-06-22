@@ -42,6 +42,14 @@
             android:label="@string/login_title"
             android:exported="false" />
 
+        <!-- 회원가입: 새 계정 생성 (user_<id> 파일 + account_ids 추가) -->
+        <!-- parentActivityName: ← 버튼 누르면 로그인 화면으로 돌아감 -->
+        <activity
+            android:name=".account.SignupActivity"
+            android:label="@string/signup_title"
+            android:parentActivityName=".account.LoginActivity"
+            android:exported="false" />
+
         <!-- 온보딩: 최초 실행 시 앱 소개 3페이지 -->
         <activity
             android:name=".intro.OnboardingActivity"

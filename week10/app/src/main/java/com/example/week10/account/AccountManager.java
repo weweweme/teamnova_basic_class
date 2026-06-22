@@ -239,32 +239,35 @@ public class AccountManager {
         return true;
     }
 
-    // ========== 임시: Phase 3(회원가입) 완료 후 제거 ==========
+    // ========== 회원가입 ==========
 
     /// <summary>
-    /// 가입된 계정이 하나도 없을 때만, 테스트용 계정(test / PIN 0000)을 만든다
+    /// 새 계정을 만든다
+    ///   ① 전역 목록(account_ids)에 id 추가
+    ///   ② 그 계정 전용 파일(user_<id>)에 별명/PIN 기록 → 이 시점에 새 파일이 생김
+    /// 이미 있는 아이디면 아무것도 하지 않고 false를 돌려준다 (덮어쓰기 방지).
     ///
-    /// 아직 회원가입 화면(Phase 3)이 없어 계정이 0개라 로그인을 테스트할 수 없으므로
-    /// 임시로 하나 심어두는 용도. Phase 3에서 회원가입이 생기면 이 메서드와 호출부를 지운다.
+    /// 빈칸·형식·PIN 일치 같은 입력 검증은 화면(SignupActivity)에서 미리 끝낸다고 보고,
+    /// 여기서는 "중복 여부"만 마지막 안전장치로 확인한다.
     /// </summary>
-    public void seedTestAccountIfEmpty() {
-        if (!getAccountIds().isEmpty()) {
-            return;
+    public boolean register(String id, String nickname, String pin) {
+        if (isRegistered(id)) {
+            return false;
         }
 
-        String id = "test";
-
-        // 전역 계정 목록에 추가
+        // ① 전역 계정 목록에 추가
         Set<String> ids = getAccountIds();
         ids.add(id);
         globalPrefs.edit()
                 .putStringSet(KEY_ACCOUNT_IDS, ids)
                 .apply();
 
-        // 계정 전용 파일에 별명/PIN 기록
+        // ② 계정 전용 파일에 별명/PIN 기록 (없던 파일이면 이때 새로 만들어짐)
         openUserPrefs(id).edit()
-                .putString(KEY_NICKNAME, "테스터")
-                .putString(KEY_PIN, "0000")
+                .putString(KEY_NICKNAME, nickname)
+                .putString(KEY_PIN, pin)
                 .apply();
+
+        return true;
     }
 }

@@ -71,10 +71,6 @@ public class LoginActivity extends AppCompatActivity {
         // App에서 공용 계정 관리자 꺼내오기 (모든 화면이 같은 인스턴스를 공유)
         accountManager = ((App) getApplication()).getAccountManager();
 
-        // 임시: 아직 회원가입(Phase 3)이 없어 계정이 0개면 테스트 계정(test/0000)을 심는다
-        // Phase 3 완료 후 이 줄과 AccountManager.seedTestAccountIfEmpty()를 함께 제거
-        accountManager.seedTestAccountIfEmpty();
-
         // 가입된 계정을 Spinner에 채우고, 계정 유무에 따라 화면 모양을 맞춘다
         loadAccountsIntoSpinner();
 
@@ -159,11 +155,14 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     /// <summary>
-    /// 회원가입 버튼 클릭 처리
-    /// TODO: Phase 3에서 회원가입 화면으로 이동하도록 연결 (현재는 안내만)
+    /// 회원가입 버튼 클릭 처리 → 회원가입 화면으로 이동
+    /// SignupActivity는 같은 account 패키지라 import 없이 바로 참조 가능
+    /// (가입에 성공하면 SignupActivity가 자동 로그인 후 Home으로 보내므로
+    ///  이 로그인 화면으로 되돌아오지 않는다)
     /// </summary>
     private void onSignupClicked() {
-        showToast(getString(R.string.login_signup_todo));
+        Intent intent = new Intent(this, SignupActivity.class);
+        startActivity(intent);
     }
 
     // ========== 화면 이동 ==========

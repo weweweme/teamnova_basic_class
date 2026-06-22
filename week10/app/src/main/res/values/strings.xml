@@ -23,8 +23,22 @@
     <string name="login_failed">PIN이 일치하지 않아요</string>
     <!-- %s 자리에 별명 -->
     <string name="login_success">환영합니다, %s 님!</string>
-    <!-- 임시: Phase 3(회원가입) 완료 후 제거 -->
-    <string name="login_signup_todo">회원가입은 다음 단계에서 추가됩니다</string>
+
+    <!-- 회원가입 -->
+    <string name="signup_title">회원가입</string>
+    <string name="signup_id_hint">계정 아이디 (영문/숫자/밑줄)</string>
+    <string name="signup_nickname_hint">별명</string>
+    <string name="signup_pin_hint">PIN 4자리</string>
+    <string name="signup_pin_confirm_hint">PIN 확인 (다시 입력)</string>
+    <string name="signup_button">가입하기</string>
+    <string name="signup_id_empty">아이디를 입력해주세요</string>
+    <string name="signup_id_invalid">아이디는 영문, 숫자, 밑줄(_)만 쓸 수 있어요</string>
+    <string name="signup_nickname_empty">별명을 입력해주세요</string>
+    <string name="signup_pin_invalid">PIN 4자리를 입력해주세요</string>
+    <string name="signup_pin_mismatch">PIN이 서로 달라요</string>
+    <string name="signup_id_taken">이미 있는 아이디예요</string>
+    <!-- %s 자리에 별명 -->
+    <string name="signup_success">%s 님, 가입을 환영해요!</string>
 
     <!-- 메인 -->
     <string name="main_title">내 게임 일기</string>

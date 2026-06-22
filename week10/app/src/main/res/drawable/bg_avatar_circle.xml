@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 아바타 배경 (원형) -->
+<!-- solid 색은 흰색이지만, 코드에서 backgroundTintList로 계정별 아바타 색을 덮어씌움 -->
+<!-- → 원 모양은 공통, 색만 계정에 따라 동적으로 바뀜 (상태 배지 bg_status_badge와 같은 방식) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="#FFFFFF" />
+</shape>

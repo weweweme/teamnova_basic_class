@@ -199,6 +199,17 @@ public class AccountManager {
     }
 
     /// <summary>
+    /// 별명을 새 값으로 바꾼다 (프로필 편집에서 사용)
+    /// 별명은 AccountManager가 소유한 key(KEY_NICKNAME)라 여기서 수정한다
+    /// (id/PIN은 그대로 두고 표시용 별명만 변경)
+    /// </summary>
+    public void updateNickname(String id, String nickname) {
+        openUserPrefs(id).edit()
+                .putString(KEY_NICKNAME, nickname)
+                .apply();
+    }
+
+    /// <summary>
     /// 가입된 모든 계정을 Account 객체 목록으로 반환 (id 순서로 정렬)
     ///
     /// getAccountIds()는 순서가 들쭉날쭉한 Set이라, 화면에 매번 같은 순서로

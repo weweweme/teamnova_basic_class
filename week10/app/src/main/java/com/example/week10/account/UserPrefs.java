@@ -41,6 +41,25 @@ public class UserPrefs {
     private static final String KEY_TUTORIAL_SEEN = "tutorial_seen";
 
     /// <summary>
+    /// key: 아바타 원의 색 (ARGB 정수 한 개로 저장)
+    /// 색 자체를 숫자로 저장하므로 화면에서 그대로 꺼내 원에 칠하면 됨
+    /// </summary>
+    private static final String KEY_AVATAR_COLOR = "avatar_color";
+
+    /// <summary>
+    /// key: 한 줄 소개(bio)
+    /// </summary>
+    private static final String KEY_BIO = "bio";
+
+    /// <summary>
+    /// 아직 색을 고르지 않은 계정에 쓸 기본 아바타 색 (파랑)
+    /// 0xFF... 형태의 ARGB 값 (맨 앞 FF = 불투명)
+    /// ★ 프로필 편집 화면(ProfileEditActivity)의 색 팔레트에도 이 값이 들어 있어야
+    ///   처음 들어갔을 때 "현재 색"이 팔레트에서 선택된 상태로 보인다
+    /// </summary>
+    private static final int DEFAULT_AVATAR_COLOR = 0xFF1E88E5;
+
+    /// <summary>
     /// 이 UserPrefs가 담당하는 계정의 저장소 핸들 (user_<id> 파일)
     /// 생성 시점에 한 번 열어두고 계속 재사용
     /// </summary>
@@ -70,6 +89,40 @@ public class UserPrefs {
     public void setTutorialSeen(boolean seen) {
         prefs.edit()
                 .putBoolean(KEY_TUTORIAL_SEEN, seen)
+                .apply();
+    }
+
+    // ========== 프로필 (avatar_color / bio) ==========
+
+    /// <summary>
+    /// 아바타 색을 반환 (아직 고른 적 없으면 기본 파랑)
+    /// </summary>
+    public int getAvatarColor() {
+        return prefs.getInt(KEY_AVATAR_COLOR, DEFAULT_AVATAR_COLOR);
+    }
+
+    /// <summary>
+    /// 아바타 색을 저장 (ARGB 정수)
+    /// </summary>
+    public void setAvatarColor(int color) {
+        prefs.edit()
+                .putInt(KEY_AVATAR_COLOR, color)
+                .apply();
+    }
+
+    /// <summary>
+    /// 한 줄 소개를 반환 (아직 없으면 빈 문자열)
+    /// </summary>
+    public String getBio() {
+        return prefs.getString(KEY_BIO, "");
+    }
+
+    /// <summary>
+    /// 한 줄 소개를 저장
+    /// </summary>
+    public void setBio(String bio) {
+        prefs.edit()
+                .putString(KEY_BIO, bio)
                 .apply();
     }
 }

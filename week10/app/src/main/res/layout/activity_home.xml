@@ -17,6 +17,68 @@
         android:paddingTop="8dp"
         android:paddingBottom="16dp">
 
+        <!-- ════════ 프로필 헤더 (아바타 + 별명 + 한 줄 소개) ════════ -->
+        <!-- 탭하면 ProfileEditActivity로 이동 → clickable + foreground 리플 -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginTop="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="16dp">
+
+                <!-- 아바타 (색 + 별명 첫 글자) — 색은 코드에서 backgroundTintList로 칠함 -->
+                <TextView
+                    android:id="@+id/textViewAvatarHome"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="@drawable/bg_avatar_circle"
+                    android:gravity="center"
+                    android:textColor="#FFFFFF"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    tools:text="A" />
+
+                <!-- 별명 + 한 줄 소개 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/textViewNicknameHome"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        tools:text="앨리스" />
+
+                    <TextView
+                        android:id="@+id/textViewBioHome"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="#888888"
+                        android:textSize="13sp"
+                        tools:text="인디 게임 좋아합니다" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- ════════ 내 통계 (제목 + 더 보기) ════════ -->
         <LinearLayout
             android:layout_width="match_parent"

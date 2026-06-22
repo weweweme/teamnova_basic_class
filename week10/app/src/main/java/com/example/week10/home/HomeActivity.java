@@ -1,6 +1,7 @@
 package com.example.week10.home;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,6 +16,8 @@ import com.example.week10.App;
 import com.example.week10.R;
 import com.example.week10.account.AccountManager;
 import com.example.week10.account.LoginActivity;
+import com.example.week10.account.ProfileEditActivity;
+import com.example.week10.account.UserPrefs;
 import com.example.week10.detail.GameDetailActivity;
 import com.example.week10.library.LibraryActivity;
 import com.example.week10.stats.StatsActivity;
@@ -81,10 +84,15 @@ public class HomeActivity extends AppCompatActivity {
         ActivityLogRepository logRepository = app.getActivityLogRepository();
         accountManager = app.getAccountManager();
 
+        setupProfileHeader();
         setupStatsSummary(gameRepository);
         setupLibraryPreview(gameRepository);
         setupTimelinePreview(logRepository, gameRepository);
         setupMoreButtons();
+
+        // 프로필 헤더 탭 → 프로필 편집 화면
+        binding.cardProfile.setOnClickListener(v ->
+                startActivity(new Intent(this, ProfileEditActivity.class)));
 
         // 통계 카드 탭 또는 "더 보기" → 상세 통계 화면
         View.OnClickListener openStats = v ->
@@ -100,6 +108,8 @@ public class HomeActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         GameRepository gameRepository = ((App) getApplication()).getGameRepository();
+        // 프로필 편집 후 돌아오면 바뀐 아바타/별명/소개를 다시 그림
+        setupProfileHeader();
         setupStatsSummary(gameRepository);
         // 화면에 돌아올 때마다 미리보기를 다시 뽑음 → 매번 다른 게임이 보임
         setupLibraryPreview(gameRepository);
@@ -183,6 +193,52 @@ public class HomeActivity extends AppCompatActivity {
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
+    }
+
+    // ========== 프로필 헤더 ==========
+
+    /// <summary>
+    /// 프로필 헤더(아바타 + 별명 + 한 줄 소개)를 현재 계정 정보로 채운다
+    ///   - 별명 → AccountManager
+    ///   - 아바타 색 / 한 줄 소개 → UserPrefs
+    /// 한 줄 소개가 비어 있으면 "추가해보세요" 안내 문구를 대신 보여준다
+    /// </summary>
+    private void setupProfileHeader() {
+        String id = accountManager.getCurrentAccountId();
+        // 로그인 상태가 아니면(비정상) 헤더를 건드리지 않음
+        if (id == null) {
+            return;
+        }
+
+        String nickname = accountManager.getNickname(id);
+        UserPrefs userPrefs = ((App) getApplication()).getUserPrefs();
+        int avatarColor = userPrefs.getAvatarColor();
+        String bio = userPrefs.getBio();
+
+        // 별명 + 아바타(첫 글자 + 색)
+        binding.textViewNicknameHome.setText(nickname);
+        binding.textViewAvatarHome.setText(initialOf(nickname));
+        binding.textViewAvatarHome.setBackgroundTintList(ColorStateList.valueOf(avatarColor));
+
+        // 한 줄 소개 (없으면 안내 문구)
+        boolean bioEmpty = bio.isEmpty();
+        if (bioEmpty) {
+            binding.textViewBioHome.setText(R.string.profile_bio_empty_hint);
+        } else {
+            binding.textViewBioHome.setText(bio);
+        }
+    }
+
+    /// <summary>
+    /// 별명의 첫 글자(대문자)를 반환, 비어 있으면 물음표
+    /// 아바타 원 안에 넣을 한 글자를 만든다 (한글은 대문자 변환이 없어 그대로 나옴)
+    /// </summary>
+    private String initialOf(String nickname) {
+        if (nickname.isEmpty()) {
+            return getString(R.string.profile_avatar_placeholder);
+        }
+        char first = Character.toUpperCase(nickname.charAt(0));
+        return String.valueOf(first);
     }
 
     // ========== 통계 요약 ==========

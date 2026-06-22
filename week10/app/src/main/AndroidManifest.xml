@@ -50,6 +50,14 @@
             android:parentActivityName=".account.LoginActivity"
             android:exported="false" />
 
+        <!-- 프로필 편집: 아바타 색 / 별명 / 한 줄 소개 수정 -->
+        <!-- parentActivityName: ← 버튼 누르면 홈으로 돌아감 -->
+        <activity
+            android:name=".account.ProfileEditActivity"
+            android:label="@string/profile_edit_title"
+            android:parentActivityName=".home.HomeActivity"
+            android:exported="false" />
+
         <!-- 온보딩: 최초 실행 시 앱 소개 3페이지 -->
         <activity
             android:name=".intro.OnboardingActivity"

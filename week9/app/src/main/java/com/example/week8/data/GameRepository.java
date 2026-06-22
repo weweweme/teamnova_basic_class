@@ -225,6 +225,19 @@ public class GameRepository {
     }
 
     /// <summary>
+    /// 특정 장르의 게임 개수 반환 (통계 화면 장르 분포에 사용)
+    /// </summary>
+    public int countByGenre(Genre genre) {
+        int count = 0;
+        for (Game game : this.games) {
+            if (game.getGenre() == genre) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /// <summary>
     /// ID로 게임 찾기
     /// 해당 ID의 게임이 없으면 null 반환
     /// </summary>

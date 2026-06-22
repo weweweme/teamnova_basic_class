@@ -12,6 +12,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.week8.data.GameRepository;
 import com.example.week8.databinding.ActivityStatsBinding;
 import com.example.week8.model.GameStatus;
+import com.example.week8.model.Genre;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 /// <summary>
 /// 통계 화면
@@ -50,6 +55,7 @@ public class StatsActivity extends AppCompatActivity {
 
         setupStatusSummary();
         setupRatingDistribution();
+        setupGenreDistribution();
     }
 
     /// <summary>
@@ -125,6 +131,53 @@ public class StatsActivity extends AppCompatActivity {
             countText.setText(String.valueOf(count));
 
             binding.layoutRatingDistribution.addView(row);
+        }
+    }
+
+    // ========== 장르 분포 그래프 ==========
+
+    /// <summary>
+    /// 장르 분포 막대 그래프
+    /// 게임이 1개 이상 있는 장르만, 개수 많은 순으로 표시
+    /// (장르 11종을 다 표시하면 0개 빈 막대가 많아 보기 나쁨)
+    /// </summary>
+    private void setupGenreDistribution() {
+        // 1) 개수 있는 장르만 모으기
+        List<Genre> genres = new ArrayList<>();
+        for (Genre genre : Genre.values()) {
+            if (gameRepository.countByGenre(genre) > 0) {
+                genres.add(genre);
+            }
+        }
+
+        // 2) 개수 많은 순(내림차순) 정렬
+        genres.sort(Comparator.comparingInt(
+                (Genre g) -> gameRepository.countByGenre(g)).reversed());
+
+        // 막대 비율 기준이 될 최댓값 (가장 많은 장르 = 100%)
+        int maxCount = 1;
+        for (Genre genre : genres) {
+            maxCount = Math.max(maxCount, gameRepository.countByGenre(genre));
+        }
+
+        binding.layoutGenreDistribution.removeAllViews();
+
+        for (Genre genre : genres) {
+            int count = gameRepository.countByGenre(genre);
+
+            View row = getLayoutInflater().inflate(
+                    R.layout.item_genre_bar, binding.layoutGenreDistribution, false);
+
+            TextView label = row.findViewById(R.id.textViewGenreLabel);
+            ProgressBar bar = row.findViewById(R.id.progressBar);
+            TextView countText = row.findViewById(R.id.textViewGenreCount);
+
+            label.setText(genre.getDisplayName());
+            bar.setMax(maxCount);
+            bar.setProgress(count);
+            countText.setText(String.valueOf(count));
+
+            binding.layoutGenreDistribution.addView(row);
         }
     }
 }

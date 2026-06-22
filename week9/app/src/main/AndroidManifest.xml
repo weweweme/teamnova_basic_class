@@ -96,6 +96,14 @@
             </intent-filter>
         </activity>
 
+        <!-- 통계: 상태별 게임 수 + 별점 분포 -->
+        <!-- parentActivityName: ← 버튼 누르면 HomeActivity로 돌아감 -->
+        <activity
+            android:name=".StatsActivity"
+            android:label="@string/stats_title"
+            android:parentActivityName=".HomeActivity"
+            android:exported="false" />
+
         <!-- 타임라인: 활동 피드 (멀티 뷰타입) -->
         <!-- parentActivityName: ← 버튼 누르면 HomeActivity로 돌아감 -->
         <activity

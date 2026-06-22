@@ -1,33 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 활동 로그 - PLAYED (플레이 세션) -->
-<!-- 시간 배지 뷰타입: 좌측 PLAY 배지 + 게임 제목 + 플레이 시간 강조 -->
+<!-- 공통 구조 + 둘째 줄에 플레이 시간 추가 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:padding="14dp">
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="14dp"
+    android:paddingBottom="14dp">
 
-    <!-- PLAY 배지 (좌측 강조) -->
+    <!-- 타입 아이콘 (플레이 = 🎮) -->
     <TextView
-        android:id="@+id/textViewBadge"
-        android:layout_width="wrap_content"
+        android:layout_width="36dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="12dp"
-        android:background="#E3F2FD"
-        android:paddingStart="10dp"
-        android:paddingEnd="10dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
-        android:text="@string/timeline_played_badge"
-        android:textColor="#1565C0"
-        android:textStyle="bold"
-        android:textSize="11sp" />
+        android:gravity="center"
+        android:text="🎮"
+        android:textSize="20sp" />
 
-    <!-- 게임 제목 + 플레이 시간 (세로 2줄) -->
+    <!-- 내용 + 플레이 시간 (세로) -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_weight="1"
         android:orientation="vertical">
 
@@ -36,20 +31,19 @@
             android:id="@+id/textViewContent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:textSize="14sp" />
 
-        <!-- 플레이 시간 (payload) -->
+        <!-- 플레이 시간 -->
         <TextView
             android:id="@+id/textViewPlayTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="4dp"
             android:textColor="#1565C0"
             android:textSize="13sp" />
     </LinearLayout>
 
-    <!-- 시간 (n시간 전) -->
+    <!-- 시간 (우측) -->
     <TextView
         android:id="@+id/textViewTime"
         android:layout_width="wrap_content"

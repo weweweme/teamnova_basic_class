@@ -1,55 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 활동 로그 - REVIEWED (리뷰 작성) -->
-<!-- 인용구 뷰타입: 제목 줄 + 별점 + 리뷰 본문(인용 스타일 들여쓰기) -->
+<!-- 공통 구조 + 둘째 줄에 리뷰 본문(인용 스타일) 추가 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="14dp">
+    android:orientation="horizontal"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="14dp"
+    android:paddingBottom="14dp">
 
-    <!-- 상단 줄: 아이콘 + 활동 내용 + 시간 -->
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- 타입 아이콘 (리뷰 = ✍️) -->
+    <TextView
+        android:layout_width="36dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center"
+        android:text="✍️"
+        android:textSize="20sp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="12dp"
-            android:text="✍️"
-            android:textSize="18sp" />
+    <!-- 내용 + 리뷰 본문 (세로) -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <!-- 활동 내용 ("○○ 리뷰를 남겼어요") -->
         <TextView
             android:id="@+id/textViewContent"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="14sp" />
-
-        <!-- 시간 -->
-        <TextView
-            android:id="@+id/textViewTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:textColor="#888888"
-            android:textSize="12sp" />
+            android:textSize="14sp" />
+
+        <!-- 리뷰 본문 (인용 스타일: 기울임 + 회색) -->
+        <TextView
+            android:id="@+id/textViewReviewBody"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#555555"
+            android:textSize="13sp"
+            android:textStyle="italic" />
     </LinearLayout>
 
-    <!-- 리뷰 본문 (인용 스타일: 왼쪽 들여쓰기 + 기울임) -->
-    <!-- payload(리뷰 본문)가 여기 들어감 -->
+    <!-- 시간 (우측) -->
     <TextView
-        android:id="@+id/textViewReviewBody"
-        android:layout_width="match_parent"
+        android:id="@+id/textViewTime"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginStart="30dp"
-        android:paddingStart="12dp"
-        android:textStyle="italic"
-        android:textColor="#555555"
-        android:textSize="14sp" />
+        android:layout_marginStart="8dp"
+        android:textColor="#888888"
+        android:textSize="12sp" />
 
 </LinearLayout>

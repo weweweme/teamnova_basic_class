@@ -8,6 +8,7 @@ import android.os.Looper;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.week10.account.LoginActivity;
 import com.example.week10.databinding.ActivitySplashBinding;
 
 /// <summary>
@@ -119,13 +120,14 @@ public class SplashActivity extends AppCompatActivity {
     // ========== 화면 이동 ==========
 
     /// <summary>
-    /// OnboardingActivity로 이동
-    /// TODO: 10주차에서 SharedPreferences 학습 후
-    ///       온보딩 완료 여부에 따라 Main/Onboarding 분기 추가
+    /// LoginActivity로 이동 (가상 계정 시스템 입구)
+    /// 9주차까지는 Onboarding으로 갔으나, 10주차에서 로그인 화면을 진입점으로 도입.
+    /// TODO: Phase 5에서 "로그인 유지(auto_login)" + 현재 로그인 계정이 있으면
+    ///       Login을 건너뛰고 바로 Home으로 가는 분기 추가
     /// </summary>
     private void navigateToNextScreen() {
-        // 명시적 Intent로 OnboardingActivity 이동
-        Intent intent = new Intent(this, OnboardingActivity.class);
+        // 명시적 Intent로 LoginActivity 이동
+        Intent intent = new Intent(this, LoginActivity.class);
 
         // FLAG_ACTIVITY_NEW_TASK: 새 태스크에서 시작
         // FLAG_ACTIVITY_CLEAR_TASK: 기존 태스크(Splash 포함) 전부 제거

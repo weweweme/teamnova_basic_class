@@ -3,7 +3,12 @@ package com.example.week10.account;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.example.week10.model.Account;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /// <summary>
@@ -53,10 +58,35 @@ public class AccountManager {
     private static final String KEY_AUTO_LOGIN = "auto_login";
 
     /// <summary>
+    /// 계정별 파일 이름 앞에 붙이는 접두사
+    /// 예: id가 "alice"면 파일 이름은 "user_alice"가 됨 (계정마다 별도 PlayerPrefs 슬롯)
+    /// </summary>
+    private static final String FILE_USER_PREFIX = "user_";
+
+    /// <summary>
+    /// (user_<id> 파일) key: 화면에 보여줄 별명
+    /// </summary>
+    private static final String KEY_NICKNAME = "nickname";
+
+    /// <summary>
+    /// (user_<id> 파일) key: 로그인용 PIN
+    /// 주의: 학습용 가상 계정이라 암호화 없이 평문 저장 — 실제 앱에서는 절대 이렇게 하면 안 됨
+    /// </summary>
+    private static final String KEY_PIN = "pin";
+
+    /// <summary>
     /// 실제 저장소 핸들 — "app_global" 파일을 가리킨다
     /// 한 번 열어두고 계속 재사용 (매번 다시 열 필요 없음)
     /// </summary>
     private final SharedPreferences globalPrefs;
+
+    /// <summary>
+    /// 계정별 파일(user_<id>)을 그때그때 열기 위해 보관하는 컨텍스트
+    /// 계정마다 파일 이름이 달라(user_alice, user_bob...) globalPrefs처럼 미리 하나만 열어둘 수 없음
+    /// → 필요할 때 이 컨텍스트로 해당 계정 파일을 연다
+    /// getApplicationContext: Activity는 화면이 닫히면 사라지므로, 앱 전체 수명과 같은 컨텍스트를 보관
+    /// </summary>
+    private final Context appContext;
 
     /// <summary>
     /// 관리자 생성 — app_global 파일을 연다
@@ -64,8 +94,17 @@ public class AccountManager {
     /// </summary>
     /// <param name="context">파일을 열기 위한 안드로이드 컨텍스트 (App에서 넘겨줌)</param>
     public AccountManager(Context context) {
+        this.appContext = context.getApplicationContext();
         // getSharedPreferences(이름, 모드): 그 이름의 PlayerPrefs를 연다(없으면 새로 만듦)
-        this.globalPrefs = context.getSharedPreferences(FILE_GLOBAL, Context.MODE_PRIVATE);
+        this.globalPrefs = appContext.getSharedPreferences(FILE_GLOBAL, Context.MODE_PRIVATE);
+    }
+
+    /// <summary>
+    /// 해당 계정의 전용 파일(user_<id>)을 연다
+    /// 자격증명(별명/PIN)을 읽고 쓰는 다른 메서드들이 공통으로 사용
+    /// </summary>
+    private SharedPreferences openUserPrefs(String id) {
+        return appContext.getSharedPreferences(FILE_USER_PREFIX + id, Context.MODE_PRIVATE);
     }
 
     // ========== 계정 목록 (account_ids) ==========
@@ -146,6 +185,86 @@ public class AccountManager {
     public void setAutoLogin(boolean enabled) {
         globalPrefs.edit()
                 .putBoolean(KEY_AUTO_LOGIN, enabled)
+                .apply();
+    }
+
+    // ========== 자격증명 (user_<id> 파일의 별명/PIN) ==========
+
+    /// <summary>
+    /// 해당 계정의 별명을 반환 (로그인 화면 목록 표시용)
+    /// 저장된 별명이 없으면 id를 그대로 돌려줌 (이름표가 비는 일이 없도록)
+    /// </summary>
+    public String getNickname(String id) {
+        return openUserPrefs(id).getString(KEY_NICKNAME, id);
+    }
+
+    /// <summary>
+    /// 가입된 모든 계정을 Account 객체 목록으로 반환 (id 순서로 정렬)
+    ///
+    /// getAccountIds()는 순서가 들쭉날쭉한 Set이라, 화면에 매번 같은 순서로
+    /// 보여주려면 List로 옮겨 정렬해야 한다. (Spinner 항목 순서가 흔들리면 사용자가 헷갈림)
+    /// </summary>
+    public List<Account> getAccounts() {
+        List<String> ids = new ArrayList<>(getAccountIds());
+        // id 기준 오름차순 정렬 → 화면에 항상 같은 순서로 표시
+        Collections.sort(ids);
+
+        List<Account> accounts = new ArrayList<>();
+        for (String id : ids) {
+            accounts.add(new Account(id, getNickname(id)));
+        }
+        return accounts;
+    }
+
+    /// <summary>
+    /// 입력한 PIN이 해당 계정의 저장된 PIN과 같은지 확인
+    /// 저장된 PIN이 아예 없으면(=비정상 상태) 무조건 실패 처리
+    /// </summary>
+    public boolean verifyPin(String id, String inputPin) {
+        String savedPin = openUserPrefs(id).getString(KEY_PIN, null);
+        boolean hasPin = savedPin != null;
+        boolean matches = hasPin && savedPin.equals(inputPin);
+        return matches;
+    }
+
+    /// <summary>
+    /// 로그인 시도: PIN이 맞으면 현재 로그인 계정으로 지정하고 true, 틀리면 아무것도 하지 않고 false
+    /// (검증 + current_account 세팅을 한 번에 — 화면 쪽 코드가 단순해짐)
+    /// </summary>
+    public boolean login(String id, String pin) {
+        if (!verifyPin(id, pin)) {
+            return false;
+        }
+        setCurrentAccount(id);
+        return true;
+    }
+
+    // ========== 임시: Phase 3(회원가입) 완료 후 제거 ==========
+
+    /// <summary>
+    /// 가입된 계정이 하나도 없을 때만, 테스트용 계정(test / PIN 0000)을 만든다
+    ///
+    /// 아직 회원가입 화면(Phase 3)이 없어 계정이 0개라 로그인을 테스트할 수 없으므로
+    /// 임시로 하나 심어두는 용도. Phase 3에서 회원가입이 생기면 이 메서드와 호출부를 지운다.
+    /// </summary>
+    public void seedTestAccountIfEmpty() {
+        if (!getAccountIds().isEmpty()) {
+            return;
+        }
+
+        String id = "test";
+
+        // 전역 계정 목록에 추가
+        Set<String> ids = getAccountIds();
+        ids.add(id);
+        globalPrefs.edit()
+                .putStringSet(KEY_ACCOUNT_IDS, ids)
+                .apply();
+
+        // 계정 전용 파일에 별명/PIN 기록
+        openUserPrefs(id).edit()
+                .putString(KEY_NICKNAME, "테스터")
+                .putString(KEY_PIN, "0000")
                 .apply();
     }
 }

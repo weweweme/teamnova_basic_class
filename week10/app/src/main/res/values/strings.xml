@@ -12,6 +12,20 @@
     <string name="onboarding_next">다음</string>
     <string name="onboarding_start">시작하기</string>
 
+    <!-- 로그인 (가상 계정) -->
+    <string name="login_title">로그인</string>
+    <string name="login_account_label">계정</string>
+    <string name="login_pin_hint">PIN 4자리</string>
+    <string name="login_button">로그인</string>
+    <string name="login_signup">회원가입</string>
+    <string name="login_no_accounts">가입된 계정이 없어요. 회원가입을 해주세요</string>
+    <string name="login_pin_empty">PIN을 입력해주세요</string>
+    <string name="login_failed">PIN이 일치하지 않아요</string>
+    <!-- %s 자리에 별명 -->
+    <string name="login_success">환영합니다, %s 님!</string>
+    <!-- 임시: Phase 3(회원가입) 완료 후 제거 -->
+    <string name="login_signup_todo">회원가입은 다음 단계에서 추가됩니다</string>
+
     <!-- 메인 -->
     <string name="main_title">내 게임 일기</string>
     <string name="game_cover_description">게임 표지</string>

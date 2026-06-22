@@ -35,6 +35,13 @@
             </intent-filter>
         </activity>
 
+        <!-- 로그인: 가상 계정 선택 + PIN 검증 (Splash 다음 진입점) -->
+        <!-- exported=false: 외부에서 직접 열 필요 없음 (앱 내부 흐름으로만 진입) -->
+        <activity
+            android:name=".account.LoginActivity"
+            android:label="@string/login_title"
+            android:exported="false" />
+
         <!-- 온보딩: 최초 실행 시 앱 소개 3페이지 -->
         <activity
             android:name=".intro.OnboardingActivity"

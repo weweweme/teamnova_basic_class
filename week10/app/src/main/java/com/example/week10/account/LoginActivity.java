@@ -74,6 +74,9 @@ public class LoginActivity extends AppCompatActivity {
         // 가입된 계정을 Spinner에 채우고, 계정 유무에 따라 화면 모양을 맞춘다
         loadAccountsIntoSpinner();
 
+        // "로그인 유지" 체크박스를 저장된 설정값으로 맞춰둔다 (지난번 선택을 기억)
+        binding.checkBoxKeepLogin.setChecked(accountManager.isAutoLogin());
+
         // 버튼 리스너 등록 (Unity의 Button.onClick.AddListener와 같은 개념)
         binding.buttonLogin.setOnClickListener(v -> onLoginClicked());
         binding.buttonSignup.setOnClickListener(v -> onSignupClicked());
@@ -98,6 +101,7 @@ public class LoginActivity extends AppCompatActivity {
         int inputVisibility = hasAccounts ? View.VISIBLE : View.GONE;
         binding.spinnerAccount.setVisibility(inputVisibility);
         binding.editTextPin.setVisibility(inputVisibility);
+        binding.checkBoxKeepLogin.setVisibility(inputVisibility);
         binding.buttonLogin.setVisibility(inputVisibility);
         binding.textViewNoAccounts.setVisibility(hasAccounts ? View.GONE : View.VISIBLE);
 
@@ -147,6 +151,8 @@ public class LoginActivity extends AppCompatActivity {
         boolean success = accountManager.login(selected.getId(), pin);
 
         if (success) {
+            // 체크 상태를 저장 → 켜져 있으면 다음 앱 실행 때 Splash가 로그인을 건너뛰고 바로 홈으로 보냄
+            accountManager.setAutoLogin(binding.checkBoxKeepLogin.isChecked());
             showToast(getString(R.string.login_success, selected.getNickname()));
             goToHome();
         } else {

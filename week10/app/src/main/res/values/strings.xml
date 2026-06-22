@@ -16,6 +16,7 @@
     <string name="login_title">로그인</string>
     <string name="login_account_label">계정</string>
     <string name="login_pin_hint">PIN 4자리</string>
+    <string name="login_keep">로그인 유지</string>
     <string name="login_button">로그인</string>
     <string name="login_signup">회원가입</string>
     <string name="login_no_accounts">가입된 계정이 없어요. 회원가입을 해주세요</string>

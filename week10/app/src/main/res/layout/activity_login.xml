@@ -61,6 +61,15 @@
             android:maxLength="4"
             android:autofillHints="" />
 
+        <!-- 로그인 유지 체크박스 -->
+        <!-- 체크하고 로그인하면 다음 앱 실행 시 로그인 화면을 건너뛰고 바로 홈으로 감 -->
+        <CheckBox
+            android:id="@+id/checkBoxKeepLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/login_keep" />
+
         <!-- 로그인 버튼 -->
         <Button
             android:id="@+id/buttonLogin"

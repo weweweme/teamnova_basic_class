@@ -8,12 +8,15 @@ import android.os.Looper;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.week10.App;
+import com.example.week10.account.AccountManager;
 import com.example.week10.account.LoginActivity;
 import com.example.week10.databinding.ActivitySplashBinding;
+import com.example.week10.home.HomeActivity;
 
 /// <summary>
 /// 스플래시 화면 (앱 진입점)
-/// 1.5초간 로고를 보여준 뒤 OnboardingActivity로 이동
+/// 1.5초간 로고를 보여준 뒤, 자동 로그인 여부에 따라 Home 또는 Login으로 이동
 /// Unity로 비유하면 게임 시작 시 로고 Scene → Invoke("GoToNext", 1.5f)
 ///
 /// ──── Lifecycle 학습 ────
@@ -25,12 +28,10 @@ import com.example.week10.databinding.ActivitySplashBinding;
 ///
 /// ──── Intent 학습 ────
 /// Intent Filter: Manifest에 MAIN + LAUNCHER 등록 (앱 아이콘으로 실행되는 진입점)
-/// 명시적 Intent: OnboardingActivity로 이동
+/// 명시적 Intent: Home 또는 Login으로 이동 (자동 로그인 분기)
 /// Flags: FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK
 ///   → Splash를 백스택에서 아예 제거 (뒤로가기로 돌아올 수 없게)
 ///   → Unity에서 로고 Scene을 LoadSceneMode.Single로 날려버리는 것과 동일
-///
-/// TODO: 10주차에서 SharedPreferences 학습 후 온보딩 완료 여부 분기 추가
 /// </summary>
 ///
 /// ──── @SuppressLint("CustomSplashScreen") 이 왜 필요한가 ────
@@ -120,14 +121,22 @@ public class SplashActivity extends AppCompatActivity {
     // ========== 화면 이동 ==========
 
     /// <summary>
-    /// LoginActivity로 이동 (가상 계정 시스템 입구)
+    /// 자동 로그인 여부에 따라 다음 화면을 정해 이동
+    ///   "로그인 유지"가 켜져 있고(auto_login) + 로그인된 계정이 남아 있으면(current_account) → 바로 Home
+    ///   그 외에는 → Login (로그인 화면)
     /// 9주차까지는 Onboarding으로 갔으나, 10주차에서 로그인 화면을 진입점으로 도입.
-    /// TODO: Phase 5에서 "로그인 유지(auto_login)" + 현재 로그인 계정이 있으면
-    ///       Login을 건너뛰고 바로 Home으로 가는 분기 추가
     /// </summary>
     private void navigateToNextScreen() {
-        // 명시적 Intent로 LoginActivity 이동
-        Intent intent = new Intent(this, LoginActivity.class);
+        AccountManager accountManager = ((App) getApplication()).getAccountManager();
+
+        // 두 조건이 모두 참일 때만 자동 로그인 (이름을 붙여 의도를 분명히)
+        boolean keepLogin = accountManager.isAutoLogin();
+        boolean hasAccount = accountManager.hasCurrentAccount();
+        boolean canAutoLogin = keepLogin && hasAccount;
+
+        // 갈 화면을 먼저 고른다 (Home 또는 Login)
+        Class<?> target = canAutoLogin ? HomeActivity.class : LoginActivity.class;
+        Intent intent = new Intent(this, target);
 
         // FLAG_ACTIVITY_NEW_TASK: 새 태스크에서 시작
         // FLAG_ACTIVITY_CLEAR_TASK: 기존 태스크(Splash 포함) 전부 제거

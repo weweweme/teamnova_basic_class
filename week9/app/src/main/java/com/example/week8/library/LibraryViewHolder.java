@@ -10,13 +10,9 @@ import com.example.week8.databinding.ItemLibraryGridBinding;
 import com.example.week8.model.Game;
 
 /// <summary>
-/// 라이브러리 그리드 한 칸의 뷰 참조를 보관하는 ViewHolder
-///
-/// DiaryActivity의 GameCardViewHolder와 역할은 같지만(데이터를 뷰에 바인딩),
-/// 레이아웃이 다름:
-///   GameCardViewHolder = 가로형 카드 (표지 + 제목 + 장르 + 별점 + 드래그 핸들)
-///   LibraryViewHolder  = 세로형 포스터 (표지 + 제목만)
-/// 그래서 별도 ViewHolder/Adapter로 분리 (레이아웃이 다르면 재사용보다 분리가 명확)
+/// 보관함 그리드 한 칸의 뷰 참조를 보관하는 ViewHolder
+/// 셀 레이아웃은 세로형 포스터 (표지 + 제목)
+/// 데이터를 뷰에 채우고(bindGameData), 클릭/길게 누르기를 콜백으로 Activity에 전달
 /// </summary>
 public class LibraryViewHolder extends RecyclerView.ViewHolder {
 

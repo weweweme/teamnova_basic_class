@@ -13,14 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /// <summary>
-/// 라이브러리 그리드 RecyclerView 어댑터
+/// 보관함 그리드 RecyclerView 어댑터
 /// Game 데이터 리스트와 그리드 셀(LibraryViewHolder)을 연결
 ///
-/// GameCardAdapter(세로 리스트)와 구조는 같지만:
-///   - 레이아웃이 다름 (item_library_grid)
-///   - 클릭만 지원 (드래그/롱클릭 없음 — 그리드엔 불필요)
-/// 배치 방식(2~3열 그리드)은 어댑터가 아니라 LayoutManager가 결정하므로
-/// 어댑터 코드는 GameCardAdapter와 거의 동일 — LayoutManager만 GridLayoutManager로 바꾸면 됨
+/// 단일 뷰타입 어댑터(셀 모양 1종) → getItemViewType 없이 onCreate/onBind만 구현
+/// 배치 방식(2열 그리드 / 가로 스크롤)은 어댑터가 아니라 LayoutManager가 결정하므로
+/// 같은 어댑터를 보관함(그리드)과 홈 미리보기(가로 스크롤)에서 그대로 재사용
+/// 셀 클릭 → 상세, 셀 길게 누르기 → BottomSheet (콜백으로 Activity에 위임)
 /// </summary>
 public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
 

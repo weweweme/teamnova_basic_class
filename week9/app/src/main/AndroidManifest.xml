@@ -81,20 +81,11 @@
 
         <!-- 보관함: 게임 표지 격자 + 상태 필터 (앱의 메인 컬렉션 화면) -->
         <!-- parentActivityName: ← 버튼 누르면 HomeActivity로 돌아감 -->
-        <!-- exported=true + intent-filter: 다른 앱의 "공유" 대상으로 우리 앱이 나타나게 함 -->
         <activity
             android:name=".library.LibraryActivity"
             android:label="@string/library_title"
             android:parentActivityName=".home.HomeActivity"
-            android:exported="true">
-            <!-- ACTION_SEND + text/plain 수신 필터 -->
-            <!-- 다른 앱에서 텍스트를 공유할 때 우리 앱이 후보 목록에 나타남 -->
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="text/plain" />
-            </intent-filter>
-        </activity>
+            android:exported="false" />
 
         <!-- 통계: 상태별 게임 수 + 별점 분포 -->
         <!-- parentActivityName: ← 버튼 누르면 HomeActivity로 돌아감 -->

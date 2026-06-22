@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -56,11 +55,6 @@ import java.util.Set;
 /// onNewIntent: 앱이 살아있을 때 다른 앱의 공유로 다시 호출될 때 처리
 /// </summary>
 public class LibraryActivity extends AppCompatActivity {
-
-    /// <summary>
-    /// 격자에 한 줄당 표시할 열 개수 (2 ↔ 3 바꿔보며 관찰)
-    /// </summary>
-    private static final int GRID_SPAN_COUNT = 2;
 
     /// <summary>
     /// "전체" 탭의 위치 (0번). 1번부터 GameStatus.values()와 1:1 대응
@@ -133,8 +127,7 @@ public class LibraryActivity extends AppCompatActivity {
 
         // RecyclerView 설정 — 보기 모드(그리드/리스트)에 맞는 LayoutManager 적용
         // 클릭 → 상세, 길게 누르기 → BottomSheet
-        adapter = new LibraryAdapter(
-                gameRepository.getAllGames(), this::onGameClick, this::onGameLongClick);
+        adapter = new LibraryAdapter(gameRepository.getAllGames(), this::onGameClick, this::onGameLongClick);
         binding.recyclerViewLibrary.setAdapter(adapter);
         applyViewMode();
 
@@ -170,19 +163,6 @@ public class LibraryActivity extends AppCompatActivity {
                     updateTabCounts();
                 }
         );
-
-        // 다른 앱에서 공유로 실행됐다면 받은 텍스트 처리
-        handleIncomingShareIntent(getIntent());
-    }
-
-    /// <summary>
-    /// 앱이 살아있는 상태에서 다른 앱이 공유로 다시 부르면 호출됨
-    /// </summary>
-    @Override
-    protected void onNewIntent(@NonNull Intent intent) {
-        super.onNewIntent(intent);
-        setIntent(intent);
-        handleIncomingShareIntent(intent);
     }
 
     /// <summary>
@@ -193,31 +173,6 @@ public class LibraryActivity extends AppCompatActivity {
         super.onResume();
         applyCurrentFilter();
         updateTabCounts();
-    }
-
-    // ========== 공유 수신 ==========
-
-    /// <summary>
-    /// 다른 앱에서 "ACTION_SEND + text/plain"으로 실행했을 때 받은 텍스트 처리
-    /// 지금은 학습용으로 Toast만 표시
-    /// </summary>
-    private void handleIncomingShareIntent(Intent intent) {
-        if (intent == null) {
-            return;
-        }
-        boolean isSendAction = Intent.ACTION_SEND.equals(intent.getAction());
-        boolean isTextType = "text/plain".equals(intent.getType());
-        if (!isSendAction || !isTextType) {
-            return;
-        }
-
-        String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
-        if (sharedText == null || sharedText.isEmpty()) {
-            return;
-        }
-
-        String message = getString(R.string.main_shared_text, sharedText);
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
     // ========== 필터 탭 ==========
@@ -389,11 +344,11 @@ public class LibraryActivity extends AppCompatActivity {
     /// </summary>
     private void applyViewMode() {
         if (isGridMode) {
-            binding.recyclerViewLibrary.setLayoutManager(
-                    new GridLayoutManager(this, GRID_SPAN_COUNT));
+            // 격자에 한 줄당 표시할 열 개수
+            final int GRID_SPAN_COUNT = 2;
+            binding.recyclerViewLibrary.setLayoutManager(new GridLayoutManager(this, GRID_SPAN_COUNT));
         } else {
-            binding.recyclerViewLibrary.setLayoutManager(
-                    new LinearLayoutManager(this));
+            binding.recyclerViewLibrary.setLayoutManager(new LinearLayoutManager(this));
         }
     }
 

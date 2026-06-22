@@ -1,7 +1,6 @@
 package com.example.week8.timeline;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.week8.databinding.ItemLogPlayedBinding;
 import com.example.week8.model.ActivityLog;
@@ -11,7 +10,7 @@ import com.example.week8.model.ActivityLog;
 /// item_log_played.xml을 바인딩 (PLAY 배지 + 제목 + 플레이 시간)
 /// payload에 플레이 시간 텍스트가 들어있어 textViewPlayTime에 표시
 /// </summary>
-public class PlayedLogViewHolder extends RecyclerView.ViewHolder {
+public class PlayedLogViewHolder extends LogViewHolder {
 
     private final ItemLogPlayedBinding binding;
 
@@ -24,6 +23,7 @@ public class PlayedLogViewHolder extends RecyclerView.ViewHolder {
     /// 로그 데이터를 셀에 바인딩
     /// 제목은 그대로, payload(플레이 시간)는 별도 TextView에 표시
     /// </summary>
+    @Override
     public void bindLog(ActivityLog log, String gameTitle) {
         binding.textViewContent.setText(gameTitle);
         binding.textViewPlayTime.setText(log.getPayload());

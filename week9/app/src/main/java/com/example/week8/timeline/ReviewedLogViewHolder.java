@@ -1,7 +1,6 @@
 package com.example.week8.timeline;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.week8.R;
 import com.example.week8.databinding.ItemLogReviewedBinding;
@@ -12,7 +11,7 @@ import com.example.week8.model.ActivityLog;
 /// item_log_reviewed.xml을 바인딩 (인용구: 상단 내용 + 리뷰 본문)
 /// payload에 리뷰 본문이 들어있어 textViewReviewBody에 표시
 /// </summary>
-public class ReviewedLogViewHolder extends RecyclerView.ViewHolder {
+public class ReviewedLogViewHolder extends LogViewHolder {
 
     private final ItemLogReviewedBinding binding;
 
@@ -25,6 +24,7 @@ public class ReviewedLogViewHolder extends RecyclerView.ViewHolder {
     /// 로그 데이터를 셀에 바인딩
     /// payload(리뷰 본문)는 인용구 스타일 TextView에 표시
     /// </summary>
+    @Override
     public void bindLog(ActivityLog log, String gameTitle) {
         binding.textViewContent.setText(
                 binding.getRoot().getContext().getString(R.string.timeline_reviewed, gameTitle));

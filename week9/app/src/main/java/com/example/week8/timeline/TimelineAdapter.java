@@ -36,7 +36,7 @@ import java.util.List;
 /// 어댑터가 GameRepository.findById(gameId)로 게임을 찾아 제목을 ViewHolder에 넘김.
 /// → ViewHolder는 Repository를 모르고 제목 문자열만 받음 (의존성 최소화)
 /// </summary>
-public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class TimelineAdapter extends RecyclerView.Adapter<LogViewHolder> {
 
     /// <summary>
     /// 뷰타입 상수
@@ -97,7 +97,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     /// </summary>
     @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public LogViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         switch (viewType) {
             case VIEW_TYPE_COMPLETED:
@@ -118,23 +118,15 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     /// <summary>
     /// 위치에 맞는 데이터를 ViewHolder에 바인딩
-    /// holder는 onCreateViewHolder에서 만든 타입이므로 instanceof로 구분해 캐스팅
-    /// 게임 제목은 gameId로 조회해서 각 ViewHolder의 bindLog에 넘김
+    /// holder는 공통 부모(LogViewHolder) 타입이라 instanceof·캐스팅 없이 bindLog 호출
+    /// → 실제 종류(Added/Completed/...)에 맞는 bindLog가 자동 실행됨 (다형성)
+    /// 게임 제목은 gameId로 조회해서 bindLog에 넘김
     /// </summary>
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull LogViewHolder holder, int position) {
         ActivityLog log = logs.get(position);
         String gameTitle = findGameTitle(log.getGameId());
-
-        if (holder instanceof CompletedLogViewHolder) {
-            ((CompletedLogViewHolder) holder).bindLog(log, gameTitle);
-        } else if (holder instanceof ReviewedLogViewHolder) {
-            ((ReviewedLogViewHolder) holder).bindLog(log, gameTitle);
-        } else if (holder instanceof PlayedLogViewHolder) {
-            ((PlayedLogViewHolder) holder).bindLog(log, gameTitle);
-        } else if (holder instanceof AddedLogViewHolder) {
-            ((AddedLogViewHolder) holder).bindLog(log, gameTitle);
-        }
+        holder.bindLog(log, gameTitle);
     }
 
     /// <summary>

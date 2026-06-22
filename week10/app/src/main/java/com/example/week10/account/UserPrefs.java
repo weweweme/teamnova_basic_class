@@ -76,6 +76,12 @@ public class UserPrefs {
     private static final String KEY_STREAK = "streak";
 
     /// <summary>
+    /// key 앞부분: 작성 중인 리뷰 초안 (게임마다 따로) → 실제 key는 "draft_review_<게임id>"
+    /// 게임 12번 리뷰를 쓰다 말면 "draft_review_12"에 저장됨
+    /// </summary>
+    private static final String KEY_DRAFT_REVIEW_PREFIX = "draft_review_";
+
+    /// <summary>
     /// 아직 색을 고르지 않은 계정에 쓸 기본 아바타 색 (파랑)
     /// 0xFF... 형태의 ARGB 값 (맨 앞 FF = 불투명)
     /// ★ 프로필 편집 화면(ProfileEditActivity)의 색 팔레트에도 이 값이 들어 있어야
@@ -230,5 +236,47 @@ public class UserPrefs {
                 .putString(KEY_LAST_VISIT_DATE, todayStr)
                 .apply();
         return true;
+    }
+
+    // ========== 리뷰 초안 (draft_review_<게임id>) ==========
+
+    /// <summary>
+    /// 게임 id로 초안 key를 만든다 (예: 12 → "draft_review_12")
+    /// 게임마다 다른 key를 써야 서로 다른 게임의 초안이 섞이지 않음
+    /// </summary>
+    private String draftKey(int gameId) {
+        return KEY_DRAFT_REVIEW_PREFIX + gameId;
+    }
+
+    /// <summary>
+    /// 이 게임에 저장된 리뷰 초안이 있는지 확인 (Tester)
+    /// </summary>
+    public boolean hasDraftReview(int gameId) {
+        return prefs.contains(draftKey(gameId));
+    }
+
+    /// <summary>
+    /// 이 게임의 리뷰 초안을 반환 (없으면 빈 문자열)
+    /// </summary>
+    public String getDraftReview(int gameId) {
+        return prefs.getString(draftKey(gameId), "");
+    }
+
+    /// <summary>
+    /// 이 게임의 리뷰 초안을 저장 (작성 중 실시간 호출 → 앱이 꺼져도 내용이 남음)
+    /// </summary>
+    public void saveDraftReview(int gameId, String text) {
+        prefs.edit()
+                .putString(draftKey(gameId), text)
+                .apply();
+    }
+
+    /// <summary>
+    /// 이 게임의 리뷰 초안을 지운다 (정식 저장이 끝나 더 이상 초안이 필요 없을 때)
+    /// </summary>
+    public void clearDraftReview(int gameId) {
+        prefs.edit()
+                .remove(draftKey(gameId))
+                .apply();
     }
 }

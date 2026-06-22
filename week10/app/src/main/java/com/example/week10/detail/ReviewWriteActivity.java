@@ -2,12 +2,16 @@ package com.example.week10.detail;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.widget.SeekBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.week10.App;
 import com.example.week10.R;
+import com.example.week10.account.UserPrefs;
 import com.example.week10.databinding.ActivityReviewWriteBinding;
 
 /// <summary>
@@ -150,6 +154,17 @@ public class ReviewWriteActivity extends AppCompatActivity {
     /// </summary>
     private float currentRating;
 
+    /// <summary>
+    /// 현재 로그인 계정의 개인 설정 저장소 (리뷰 초안 자동저장/복원에 사용)
+    /// </summary>
+    private UserPrefs userPrefs;
+
+    /// <summary>
+    /// 지금 작성 중인 리뷰가 어느 게임 것인지 (초안 key "draft_review_<gameId>"에 사용)
+    /// Intent로 못 받으면 -1 → 초안 기능을 끔
+    /// </summary>
+    private int gameId;
+
     // ========== Lifecycle ==========
 
     /// <summary>
@@ -171,9 +186,14 @@ public class ReviewWriteActivity extends AppCompatActivity {
         }
 
         // Intent에서 게임 정보 받기
+        int gameId = getIntent().getIntExtra(EXTRA_GAME_ID, -1);
         String gameTitle = getIntent().getStringExtra(EXTRA_GAME_TITLE);
         float existingRating = getIntent().getFloatExtra(EXTRA_CURRENT_RATING, 0f);
         String existingReview = getIntent().getStringExtra(EXTRA_CURRENT_REVIEW);
+
+        // 어느 게임의 리뷰인지 + 현재 계정 저장소 확보 (초안 자동저장/복원용)
+        this.gameId = gameId;
+        userPrefs = ((App) getApplication()).getUserPrefs();
 
         // 게임 제목 표시
         binding.textViewGameTitle.setText(gameTitle);
@@ -186,6 +206,13 @@ public class ReviewWriteActivity extends AppCompatActivity {
 
         if (existingReview != null) {
             binding.editTextReview.setText(existingReview);
+        }
+
+        // 작성 중이던 초안이 남아 있으면 그 내용으로 복원 (기존 리뷰보다 우선 = 가장 최근 작성분)
+        // → 앱이 갑자기 꺼졌다 다시 들어와도 쓰던 내용이 살아있음
+        boolean canRestoreDraft = userPrefs != null && gameId != -1 && userPrefs.hasDraftReview(gameId);
+        if (canRestoreDraft) {
+            binding.editTextReview.setText(userPrefs.getDraftReview(gameId));
         }
 
         // SeekBar 변경 리스너
@@ -211,6 +238,26 @@ public class ReviewWriteActivity extends AppCompatActivity {
 
         // 저장 버튼 클릭 → 결과 반환 후 화면 닫기
         binding.buttonSave.setOnClickListener(v -> saveAndFinish());
+
+        // 한줄평이 바뀔 때마다 초안을 실시간 저장 (위의 프리필/복원 이후에 등록 →
+        // 미리 채워둔 텍스트는 "사용자 입력"으로 오인되어 저장되지 않음)
+        binding.editTextReview.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // 입력 전 — 할 일 없음
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // 입력 중 — 할 일 없음
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // 입력이 끝난 시점의 전체 텍스트를 초안으로 저장
+                autoSaveDraft(s.toString());
+            }
+        });
     }
 
     // ========== 회전 대응 (onSaveInstanceState / onRestoreInstanceState) ==========
@@ -301,6 +348,28 @@ public class ReviewWriteActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    // ========== 초안 자동저장 ==========
+
+    /// <summary>
+    /// 현재 한줄평을 초안으로 실시간 저장
+    ///   - 내용이 비면 초안을 지운다 → 기존에 저장돼 있던 정식 리뷰를 가리지 않게
+    ///   - 내용이 있으면 그대로 저장 → 앱이 꺼져도 다음에 들어오면 복원됨
+    /// gameId가 없으면(-1) 어느 게임 초안인지 알 수 없으므로 아무것도 안 함
+    /// </summary>
+    private void autoSaveDraft(String text) {
+        boolean draftDisabled = userPrefs == null || gameId == -1;
+        if (draftDisabled) {
+            return;
+        }
+
+        boolean textEmpty = text.trim().isEmpty();
+        if (textEmpty) {
+            userPrefs.clearDraftReview(gameId);
+        } else {
+            userPrefs.saveDraftReview(gameId, text);
+        }
+    }
+
     // ========== UI 갱신 ==========
 
     /// <summary>
@@ -362,6 +431,13 @@ public class ReviewWriteActivity extends AppCompatActivity {
         // Unity 비유:
         //   WinForm의 Modal 다이얼로그에서 DialogResult 설정 후 Close 호출하는 것과 동일
         setResult(RESULT_OK, resultIntent);
+
+        // 정식 저장이 끝났으니 작성 중 초안은 더 이상 필요 없음 → 삭제
+        // (지우지 않으면 다음에 들어왔을 때 이미 저장된 리뷰 대신 옛 초안이 복원됨)
+        boolean draftEnabled = userPrefs != null && gameId != -1;
+        if (draftEnabled) {
+            userPrefs.clearDraftReview(gameId);
+        }
 
         // ──── finish() 동작 상세 ────
         // 이 Activity를 "종료해달라"고 Android에 요청하는 메서드 (Lifecycle 콜백이 아님)

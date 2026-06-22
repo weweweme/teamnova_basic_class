@@ -2,6 +2,7 @@ package com.example.week8;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -76,9 +77,11 @@ public class HomeActivity extends AppCompatActivity {
         setupTimelinePreview(logRepository, gameRepository);
         setupMoreButtons();
 
-        // 통계 카드 탭 → 상세 통계 화면
-        binding.cardStats.setOnClickListener(v ->
-                startActivity(new Intent(this, StatsActivity.class)));
+        // 통계 카드 탭 또는 "더 보기" → 상세 통계 화면
+        View.OnClickListener openStats = v ->
+                startActivity(new Intent(this, StatsActivity.class));
+        binding.cardStats.setOnClickListener(openStats);
+        binding.buttonMoreStats.setOnClickListener(openStats);
     }
 
     /// <summary>

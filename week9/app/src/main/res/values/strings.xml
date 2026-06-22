@@ -44,6 +44,7 @@
     <string name="home_section_diary">내 일기</string>
     <string name="home_section_library">보관함</string>
     <string name="home_section_timeline">최근 활동</string>
+    <string name="home_section_stats">내 통계</string>
     <string name="home_more">더 보기</string>
 
     <!-- 타임라인 (멀티 뷰타입) -->

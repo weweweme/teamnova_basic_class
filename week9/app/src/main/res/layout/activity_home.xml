@@ -17,6 +17,34 @@
         android:paddingTop="8dp"
         android:paddingBottom="16dp">
 
+        <!-- ════════ 내 통계 (제목 + 더 보기) ════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="12dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/home_section_stats"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- 더 보기 → StatsActivity -->
+            <Button
+                android:id="@+id/buttonMoreStats"
+                style="?attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/home_more"
+                android:textSize="13sp" />
+        </LinearLayout>
+
         <!-- ════════ 통계 요약 카드 (내 게임 현황 한눈에) ════════ -->
         <!-- 4칸(전체/완료/플레이중/찜 목록)을 가로 균등 배치, 숫자는 코드에서 채움 -->
         <!-- 탭하면 StatsActivity(상세 통계)로 이동 → clickable + foreground 리플 -->
@@ -26,7 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_marginEnd="12dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="4dp"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"

@@ -82,6 +82,18 @@ public class UserPrefs {
     private static final String KEY_DRAFT_REVIEW_PREFIX = "draft_review_";
 
     /// <summary>
+    /// key: 보관함에서 마지막으로 보던 필터 탭 위치 (0=전체, 1부터 상태별)
+    /// </summary>
+    private static final String KEY_LAST_FILTER_TAB = "last_filter_tab";
+
+    /// <summary>
+    /// key: 보관함에서 마지막으로 고른 정렬 기준 (GameSortOrder의 이름 문자열로 저장)
+    /// GameSortOrder는 library 쪽 enum이라, UserPrefs는 그 타입을 모른 채 "이름(문자열)"만 보관한다
+    /// (enum ↔ 이름 변환은 이 값을 쓰는 LibraryActivity가 담당)
+    /// </summary>
+    private static final String KEY_LAST_SORT = "last_sort";
+
+    /// <summary>
     /// 아직 색을 고르지 않은 계정에 쓸 기본 아바타 색 (파랑)
     /// 0xFF... 형태의 ARGB 값 (맨 앞 FF = 불투명)
     /// ★ 프로필 편집 화면(ProfileEditActivity)의 색 팔레트에도 이 값이 들어 있어야
@@ -277,6 +289,41 @@ public class UserPrefs {
     public void clearDraftReview(int gameId) {
         prefs.edit()
                 .remove(draftKey(gameId))
+                .apply();
+    }
+
+    // ========== 보관함 마지막 상태 (last_filter_tab / last_sort) ==========
+
+    /// <summary>
+    /// 마지막으로 보던 필터 탭 위치를 반환 (없으면 0 = 전체 탭)
+    /// </summary>
+    public int getLastFilterTab() {
+        return prefs.getInt(KEY_LAST_FILTER_TAB, 0);
+    }
+
+    /// <summary>
+    /// 마지막으로 보던 필터 탭 위치를 저장
+    /// </summary>
+    public void setLastFilterTab(int tabPosition) {
+        prefs.edit()
+                .putInt(KEY_LAST_FILTER_TAB, tabPosition)
+                .apply();
+    }
+
+    /// <summary>
+    /// 마지막으로 고른 정렬 기준 이름을 반환 (없으면 넘겨준 기본값 그대로)
+    /// </summary>
+    /// <param name="fallback">저장된 값이 없을 때 돌려줄 기본 정렬 이름</param>
+    public String getLastSort(String fallback) {
+        return prefs.getString(KEY_LAST_SORT, fallback);
+    }
+
+    /// <summary>
+    /// 마지막으로 고른 정렬 기준 이름을 저장 (GameSortOrder.name() 문자열)
+    /// </summary>
+    public void setLastSort(String sortName) {
+        prefs.edit()
+                .putString(KEY_LAST_SORT, sortName)
                 .apply();
     }
 }

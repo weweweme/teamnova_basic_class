@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.week10.App;
 import com.example.week10.R;
 import com.example.week10.about.AboutActivity;
+import com.example.week10.account.UserPrefs;
 import com.example.week10.addgame.AddGameActivity;
 import com.example.week10.detail.GameDetailActivity;
 
@@ -72,6 +73,11 @@ public class LibraryActivity extends AppCompatActivity {
     private GameRepository gameRepository;
 
     /// <summary>
+    /// 현재 로그인 계정의 개인 설정 저장소 (마지막 필터 탭 / 정렬 기억에 사용)
+    /// </summary>
+    private UserPrefs userPrefs;
+
+    /// <summary>
     /// 격자 셀을 그리는 어댑터
     /// </summary>
     private LibraryAdapter adapter;
@@ -122,8 +128,13 @@ public class LibraryActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        // App 공용 GameRepository
-        gameRepository = ((App) getApplication()).getGameRepository();
+        // App 공용 GameRepository + 현재 계정 저장소
+        App app = (App) getApplication();
+        gameRepository = app.getGameRepository();
+        userPrefs = app.getUserPrefs();
+
+        // 마지막으로 고른 정렬 기준을 먼저 복원 (이후 필터 적용 시 이 값이 쓰임)
+        restoreLastSort();
 
         // RecyclerView 설정 — 보기 모드(그리드/리스트)에 맞는 LayoutManager 적용
         // 클릭 → 상세, 길게 누르기 → BottomSheet
@@ -133,6 +144,9 @@ public class LibraryActivity extends AppCompatActivity {
 
         setupFilterTabs();
         setupGenreChips();
+
+        // 마지막으로 보던 필터 탭 복원 (탭을 고르면 리스너가 필터까지 적용)
+        restoreLastFilterTab();
 
         // 정렬 FAB → 정렬 옵션 다이얼로그
         binding.fabSort.setOnClickListener(v -> showSortDialog());
@@ -193,7 +207,7 @@ public class LibraryActivity extends AppCompatActivity {
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                applyFilter(tab.getPosition());
+                onFilterTabChosen(tab.getPosition());
             }
 
             @Override
@@ -203,9 +217,40 @@ public class LibraryActivity extends AppCompatActivity {
 
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
-                applyFilter(tab.getPosition());
+                onFilterTabChosen(tab.getPosition());
             }
         });
+    }
+
+    /// <summary>
+    /// 필터 탭이 선택됐을 때: 그 위치를 마지막 상태로 저장하고 필터를 적용
+    /// (선택/재선택 두 경우가 같은 동작이라 한 곳으로 묶음)
+    /// </summary>
+    private void onFilterTabChosen(int position) {
+        if (userPrefs != null) {
+            userPrefs.setLastFilterTab(position);
+        }
+        applyFilter(position);
+    }
+
+    /// <summary>
+    /// 마지막으로 보던 필터 탭을 복원해 선택
+    /// 선택하면 위 리스너가 동작해 필터까지 적용된다.
+    /// 저장값이 현재 탭 개수를 벗어나면(예: 탭 구성이 바뀐 경우) 전체 탭으로 안전하게 처리
+    /// </summary>
+    private void restoreLastFilterTab() {
+        if (userPrefs == null) {
+            return;
+        }
+        TabLayout tabLayout = binding.tabLayoutFilter;
+        int savedTab = userPrefs.getLastFilterTab();
+        boolean validRange = savedTab >= 0 && savedTab < tabLayout.getTabCount();
+        int target = validRange ? savedTab : TAB_POSITION_ALL;
+
+        TabLayout.Tab tab = tabLayout.getTabAt(target);
+        if (tab != null) {
+            tab.select();
+        }
     }
 
     /// <summary>
@@ -382,9 +427,35 @@ public class LibraryActivity extends AppCompatActivity {
     }
 
     /// <summary>
+    /// 마지막으로 고른 정렬 기준을 복원해 currentSort에 반영
+    /// 저장은 이름(문자열)으로 돼 있으므로 GameSortOrder로 되돌린다.
+    /// 저장값이 없거나 알 수 없는 이름이면 기본(RECENT)으로 안전하게 처리
+    /// </summary>
+    private void restoreLastSort() {
+        if (userPrefs == null) {
+            return;
+        }
+        String savedName = userPrefs.getLastSort(GameSortOrder.RECENT.name());
+        currentSort = parseSortOrder(savedName);
+    }
+
+    /// <summary>
+    /// 정렬 기준 이름(문자열)을 GameSortOrder로 변환 (알 수 없으면 RECENT)
+    /// 잘못된 값이 와도 앱이 죽지 않도록 하나씩 비교해 찾는다
+    /// </summary>
+    private GameSortOrder parseSortOrder(String name) {
+        for (GameSortOrder order : GameSortOrder.values()) {
+            if (order.name().equals(name)) {
+                return order;
+            }
+        }
+        return GameSortOrder.RECENT;
+    }
+
+    /// <summary>
     /// 정렬 옵션 다이얼로그 표시 (FAB 클릭 시)
     /// 4종(기본순/이름순/별점 높은순/별점 낮은순)을 단일 선택으로 띄우고,
-    /// 선택 시 currentSort 변경 후 현재 필터를 다시 적용
+    /// 선택 시 currentSort 변경 → 마지막 상태로 저장 → 현재 필터를 다시 적용
     /// </summary>
     private void showSortDialog() {
         GameSortOrder[] orders = GameSortOrder.values();
@@ -400,6 +471,9 @@ public class LibraryActivity extends AppCompatActivity {
                 .setTitle(R.string.library_sort)
                 .setSingleChoiceItems(orderNames, currentIndex, (dialog, which) -> {
                     currentSort = orders[which];
+                    if (userPrefs != null) {
+                        userPrefs.setLastSort(currentSort.name());
+                    }
                     applyCurrentFilter();
                     dialog.dismiss();
                 })

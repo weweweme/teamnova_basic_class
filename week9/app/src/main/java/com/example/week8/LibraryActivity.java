@@ -34,7 +34,9 @@ import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /// <summary>
 /// 보관함 화면 (게임 표지 격자 + 상태별 필터 탭)
@@ -100,10 +102,10 @@ public class LibraryActivity extends AppCompatActivity {
     private boolean isGridMode = true;
 
     /// <summary>
-    /// 현재 장르 필터 (장르 칩에서 선택). null이면 전체 장르
-    /// 상태 탭 결과 안에서 장르로 한 번 더 거르는 데 사용
+    /// 현재 선택된 장르들 (장르 칩 다중 선택). 비어있으면 전체 장르
+    /// 한 게임은 장르가 하나뿐이라, 여러 장르 선택은 OR(이 중 하나면 통과)로 동작
     /// </summary>
-    private Genre currentGenre = null;
+    private final Set<Genre> selectedGenres = new HashSet<>();
 
     // ========== Lifecycle ==========
 
@@ -285,43 +287,39 @@ public class LibraryActivity extends AppCompatActivity {
     // ========== 장르 칩 필터 ==========
 
     /// <summary>
-    /// 장르 칩 구성: "전체" + 게임이 있는 장르들을 단일 선택 칩으로 추가
-    /// 칩 선택 시 currentGenre 갱신 후 현재 필터를 다시 적용
-    /// 칩의 tag에 Genre를 담아두고(전체는 null) 선택된 칩의 tag로 장르를 식별
+    /// 장르 칩 구성: 게임이 있는 장르들을 다중 선택 칩으로 추가
+    /// "전체" 칩은 없음 — 아무것도 선택 안 하면 전체로 간주
+    /// 여러 장르를 동시에 켜면 OR 필터 (선택한 장르 중 하나면 통과)
+    ///
+    /// 각 칩에 setId(generateViewId)로 고유 id 부여:
+    ///   코드로 만든 칩은 기본 id가 없는데(NO_ID), id가 없으면 체크 상태 토글이
+    ///   제대로 동작하지 않아 클릭해도 선택이 안 되는 문제가 있음
     /// </summary>
     private void setupGenreChips() {
         ChipGroup chipGroup = binding.chipGroupGenre;
 
-        // "전체" 칩 (tag=null) — 기본 선택
-        Chip allChip = new Chip(this);
-        allChip.setText(R.string.library_filter_all);
-        allChip.setCheckable(true);
-        allChip.setChecked(true);
-        allChip.setTag(null);
-        chipGroup.addView(allChip);
-
-        // 게임이 1개 이상 있는 장르만 칩으로 추가
         for (Genre genre : Genre.values()) {
             if (gameRepository.countByGenre(genre) == 0) {
                 continue;
             }
             Chip chip = new Chip(this);
+            chip.setId(View.generateViewId());
             chip.setText(genre.getDisplayName());
             chip.setCheckable(true);
             chip.setTag(genre);
+
+            // 칩 체크 변경 → 선택 장르 집합 갱신 + 재필터
+            chip.setOnCheckedChangeListener((button, isChecked) -> {
+                if (isChecked) {
+                    selectedGenres.add(genre);
+                } else {
+                    selectedGenres.remove(genre);
+                }
+                applyCurrentFilter();
+            });
+
             chipGroup.addView(chip);
         }
-
-        // 칩 선택 변경 → currentGenre 갱신 + 재필터
-        chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
-            if (checkedIds.isEmpty()) {
-                currentGenre = null;
-            } else {
-                Chip checked = group.findViewById(checkedIds.get(0));
-                currentGenre = (Genre) checked.getTag();
-            }
-            applyCurrentFilter();
-        });
     }
 
     /// <summary>
@@ -343,9 +341,9 @@ public class LibraryActivity extends AppCompatActivity {
             }
         }
 
-        // 1.5) 장르 필터 (장르 칩 선택 시, null이면 전체 장르라 건너뜀)
-        if (currentGenre != null) {
-            statusFiltered.removeIf(game -> game.getGenre() != currentGenre);
+        // 1.5) 장르 필터 (선택된 장르가 있을 때만, OR 조건)
+        if (!selectedGenres.isEmpty()) {
+            statusFiltered.removeIf(game -> !selectedGenres.contains(game.getGenre()));
         }
 
         // 2) 제목 검색 필터 (검색어가 있을 때만)

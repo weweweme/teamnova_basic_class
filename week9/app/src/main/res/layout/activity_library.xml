@@ -33,9 +33,7 @@
             android:id="@+id/chipGroupGenre"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:singleLine="true"
-            app:singleSelection="true"
-            app:selectionRequired="true" />
+            app:singleLine="true" />
     </HorizontalScrollView>
 
     <!-- 표지 격자 영역 (탭으로 필터된 게임 표시) -->

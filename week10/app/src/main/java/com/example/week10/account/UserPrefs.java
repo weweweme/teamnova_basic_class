@@ -3,6 +3,8 @@ package com.example.week10.account;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.time.LocalDate;
+
 /// <summary>
 /// 계정별 개인 설정 저장소 — "user_<id>" 파일 담당
 ///
@@ -56,6 +58,22 @@ public class UserPrefs {
     /// enum 이름을 문자열로 저장해두면 나중에 다시 ThemeMode로 되돌리기 쉬움
     /// </summary>
     private static final String KEY_THEME = "theme";
+
+    /// <summary>
+    /// key: 누적 방문 횟수 (하루에 한 번만 올라감)
+    /// </summary>
+    private static final String KEY_VISIT_COUNT = "visit_count";
+
+    /// <summary>
+    /// key: 마지막으로 방문한 날짜 ("2026-06-23" 같은 yyyy-MM-dd 문자열)
+    /// "오늘 이미 방문했는지" / "어제 방문했는지"를 이 값과 비교해 판단
+    /// </summary>
+    private static final String KEY_LAST_VISIT_DATE = "last_visit_date";
+
+    /// <summary>
+    /// key: 연속 방문 일수 (어제도 왔으면 +1, 하루라도 건너뛰면 1로 리셋)
+    /// </summary>
+    private static final String KEY_STREAK = "streak";
 
     /// <summary>
     /// 아직 색을 고르지 않은 계정에 쓸 기본 아바타 색 (파랑)
@@ -158,5 +176,59 @@ public class UserPrefs {
         prefs.edit()
                 .putString(KEY_THEME, mode.name())
                 .apply();
+    }
+
+    // ========== 출석/방문 (visit_count / last_visit_date / streak) ==========
+
+    /// <summary>
+    /// 누적 방문 횟수를 반환 (없으면 0)
+    /// </summary>
+    public int getVisitCount() {
+        return prefs.getInt(KEY_VISIT_COUNT, 0);
+    }
+
+    /// <summary>
+    /// 연속 방문 일수를 반환 (없으면 0)
+    /// </summary>
+    public int getStreak() {
+        return prefs.getInt(KEY_STREAK, 0);
+    }
+
+    /// <summary>
+    /// 오늘 방문을 기록한다
+    ///   - 오늘 이미 방문했으면 → 아무것도 하지 않고 false (하루 한 번만 집계)
+    ///   - 오늘 첫 방문이면 → 누적 +1, 연속 일수 갱신, 마지막 방문일을 오늘로 저장하고 true
+    ///     · 어제도 방문했으면 연속 +1
+    ///     · 하루라도 건너뛰었으면(또는 첫 방문) 연속을 1로 리셋
+    ///
+    /// 오늘 날짜를 인자로 받는 이유: UserPrefs가 직접 "지금 시각"을 읽지 않게 하기 위함.
+    /// (시계에 직접 의존하지 않으면 동작을 예측·확인하기 쉬워짐)
+    /// </summary>
+    /// <param name="today">호출하는 쪽에서 구한 오늘 날짜 (LocalDate.now())</param>
+    /// <returns>오늘 첫 방문으로 새로 집계되었으면 true</returns>
+    public boolean recordVisit(LocalDate today) {
+        // LocalDate를 "2026-06-23" 형태 문자열로 (toString 기본 형식이 yyyy-MM-dd)
+        String todayStr = today.toString();
+        String lastStr = prefs.getString(KEY_LAST_VISIT_DATE, null);
+
+        // 오늘 이미 방문했으면 중복 집계하지 않음
+        boolean alreadyVisitedToday = todayStr.equals(lastStr);
+        if (alreadyVisitedToday) {
+            return false;
+        }
+
+        int newVisitCount = getVisitCount() + 1;
+
+        // 어제 날짜 문자열과 비교해 "연속"인지 판단
+        String yesterdayStr = today.minusDays(1).toString();
+        boolean visitedYesterday = yesterdayStr.equals(lastStr);
+        int newStreak = visitedYesterday ? getStreak() + 1 : 1;
+
+        prefs.edit()
+                .putInt(KEY_VISIT_COUNT, newVisitCount)
+                .putInt(KEY_STREAK, newStreak)
+                .putString(KEY_LAST_VISIT_DATE, todayStr)
+                .apply();
+        return true;
     }
 }

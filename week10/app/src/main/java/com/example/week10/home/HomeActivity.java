@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -32,6 +33,7 @@ import com.example.week10.model.GameStatus;
 import com.example.week10.library.LibraryAdapter;
 import com.example.week10.timeline.TimelineAdapter;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -85,6 +87,8 @@ public class HomeActivity extends AppCompatActivity {
         ActivityLogRepository logRepository = app.getActivityLogRepository();
         accountManager = app.getAccountManager();
 
+        // 오늘 첫 방문이면 출석 집계 + 연출 (프로필 헤더보다 먼저 → 헤더가 갱신된 값 표시)
+        recordTodayVisit();
         setupProfileHeader();
         setupStatsSummary(gameRepository);
         setupLibraryPreview(gameRepository);
@@ -267,6 +271,31 @@ public class HomeActivity extends AppCompatActivity {
             binding.textViewBioHome.setText(R.string.profile_bio_empty_hint);
         } else {
             binding.textViewBioHome.setText(bio);
+        }
+
+        // 출석/방문 (연속 일수 · 누적 횟수)
+        int streak = userPrefs.getStreak();
+        int visitCount = userPrefs.getVisitCount();
+        binding.textViewAttendanceHome.setText(
+                getString(R.string.attendance_summary, streak, visitCount));
+    }
+
+    /// <summary>
+    /// 오늘 첫 방문이면 출석을 집계하고 연출(토스트)을 띄운다
+    /// 같은 날 다시 들어오면(또는 테마 변경으로 화면 재생성되면) recordVisit이 false를 돌려줘
+    /// 토스트가 다시 뜨지 않는다 → 하루 한 번만 축하
+    /// </summary>
+    private void recordTodayVisit() {
+        UserPrefs userPrefs = ((App) getApplication()).getUserPrefs();
+        if (userPrefs == null) {
+            return;
+        }
+
+        // 오늘 날짜는 여기서 구해 UserPrefs에 넘긴다 (UserPrefs는 시계에 직접 의존하지 않음)
+        boolean newVisitToday = userPrefs.recordVisit(LocalDate.now());
+        if (newVisitToday) {
+            String message = getString(R.string.attendance_toast, userPrefs.getStreak());
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         }
     }
 

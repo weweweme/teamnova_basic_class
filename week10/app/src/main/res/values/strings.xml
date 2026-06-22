@@ -56,6 +56,12 @@
     <!-- Home 프로필 헤더에서 bio가 비었을 때 안내 -->
     <string name="profile_bio_empty_hint">한 줄 소개를 추가해보세요</string>
 
+    <!-- 출석/방문 통계 -->
+    <!-- %1$d=연속 일수, %2$d=누적 방문 횟수 -->
+    <string name="attendance_summary">🔥 %1$d일 연속 · 누적 %2$d회 방문</string>
+    <!-- 오늘 첫 방문 연출 (%d=연속 일수) -->
+    <string name="attendance_toast">오늘도 방문했어요! %d일 연속 🔥</string>
+
     <!-- 테마 (Home 오버플로우 메뉴 → 단일 선택 다이얼로그) -->
     <string name="home_action_theme">테마</string>
     <string name="theme_dialog_title">테마 선택</string>

@@ -1,4 +1,4 @@
-package com.example.week8;
+package com.example.week8.intro;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;

@@ -1,4 +1,4 @@
-package com.example.week8;
+package com.example.week8.home;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,14 +7,19 @@ import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.week8.App;
+import com.example.week8.detail.GameDetailActivity;
+import com.example.week8.library.LibraryActivity;
+import com.example.week8.stats.StatsActivity;
+import com.example.week8.timeline.TimelineActivity;
 import com.example.week8.data.ActivityLogRepository;
 import com.example.week8.data.GameRepository;
 import com.example.week8.databinding.ActivityHomeBinding;
 import com.example.week8.model.ActivityLog;
 import com.example.week8.model.Game;
 import com.example.week8.model.GameStatus;
-import com.example.week8.ui.LibraryAdapter;
-import com.example.week8.ui.TimelineAdapter;
+import com.example.week8.library.LibraryAdapter;
+import com.example.week8.timeline.TimelineAdapter;
 
 import java.util.ArrayList;
 import java.util.List;

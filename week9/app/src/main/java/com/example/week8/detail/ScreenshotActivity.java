@@ -1,4 +1,4 @@
-package com.example.week8;
+package com.example.week8.detail;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -13,6 +13,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.week8.R;
 import com.example.week8.databinding.ActivityScreenshotBinding;
 import com.example.week8.model.Game;
 

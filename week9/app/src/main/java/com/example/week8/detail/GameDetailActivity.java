@@ -1,4 +1,4 @@
-package com.example.week8;
+package com.example.week8.detail;
 
 import android.content.Intent;
 import android.content.res.ColorStateList;
@@ -15,6 +15,8 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.week8.App;
+import com.example.week8.R;
 import com.example.week8.databinding.ActivityGameDetailBinding;
 import com.example.week8.model.Game;
 import com.example.week8.model.GameStatus;

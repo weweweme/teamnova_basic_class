@@ -1,4 +1,4 @@
-package com.example.week8;
+package com.example.week8.library;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,7 +16,11 @@ import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.example.week8.ui.GameSortOrder;
+import com.example.week8.App;
+import com.example.week8.R;
+import com.example.week8.about.AboutActivity;
+import com.example.week8.addgame.AddGameActivity;
+import com.example.week8.detail.GameDetailActivity;
 
 import java.util.Comparator;
 
@@ -27,7 +31,6 @@ import com.example.week8.model.Game;
 import com.example.week8.model.GameStatus;
 import com.example.week8.model.Genre;
 import com.example.week8.model.Platform;
-import com.example.week8.ui.LibraryAdapter;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;

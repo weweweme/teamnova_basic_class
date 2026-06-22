@@ -1,4 +1,4 @@
-package com.example.week8;
+package com.example.week8.addgame;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,6 +8,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.week8.R;
 import com.example.week8.databinding.ActivityAddGameBinding;
 import com.example.week8.model.Genre;
 import com.example.week8.model.Platform;

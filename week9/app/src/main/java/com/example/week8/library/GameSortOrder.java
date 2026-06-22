@@ -1,4 +1,4 @@
-package com.example.week8.ui;
+package com.example.week8.library;
 
 /// <summary>
 /// 보관함 게임 정렬 기준

@@ -1,4 +1,4 @@
-package com.example.week8;
+package com.example.week8.intro;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -6,6 +6,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.week8.home.HomeActivity;
+import com.example.week8.R;
 import com.example.week8.databinding.ActivityOnboardingBinding;
 
 /// <summary>

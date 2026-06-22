@@ -9,7 +9,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    tools:context=".ReviewWriteActivity">
+    tools:context=".detail.ReviewWriteActivity">
 
     <!-- 게임 제목 (어떤 게임의 리뷰인지 표시) -->
     <TextView

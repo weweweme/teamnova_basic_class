@@ -1,4 +1,4 @@
-package com.example.week8;
+package com.example.week8.detail;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,6 +7,7 @@ import android.widget.SeekBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.week8.R;
 import com.example.week8.databinding.ActivityReviewWriteBinding;
 
 /// <summary>

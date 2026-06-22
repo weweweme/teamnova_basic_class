@@ -27,7 +27,7 @@
         <!-- 스플래시: 앱 진입점 (MAIN + LAUNCHER) -->
         <!-- exported=true: 외부(런처)에서 실행 가능해야 하므로 필수 -->
         <activity
-            android:name=".SplashActivity"
+            android:name=".intro.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -37,55 +37,55 @@
 
         <!-- 온보딩: 최초 실행 시 앱 소개 3페이지 -->
         <activity
-            android:name=".OnboardingActivity"
+            android:name=".intro.OnboardingActivity"
             android:exported="false" />
 
         <!-- 홈: 허브 화면 (Diary/Library/Timeline 미리보기) -->
         <!-- Onboarding 완료 후 진입하는 최상위 화면 -->
         <activity
-            android:name=".HomeActivity"
+            android:name=".home.HomeActivity"
             android:label="@string/home_title"
             android:exported="false" />
 
         <!-- 게임 상세: 암시적 Intent 4종 집결지 -->
         <!-- parentActivityName: ← 버튼 누르면 보관함으로 돌아감 -->
         <activity
-            android:name=".GameDetailActivity"
+            android:name=".detail.GameDetailActivity"
             android:label="@string/detail_title"
-            android:parentActivityName=".LibraryActivity"
+            android:parentActivityName=".library.LibraryActivity"
             android:exported="false" />
 
         <!-- 리뷰 작성: forResult로 별점+한줄평 반환 -->
         <!-- parentActivityName: ← 버튼 누르면 GameDetailActivity로 돌아감 -->
         <activity
-            android:name=".ReviewWriteActivity"
+            android:name=".detail.ReviewWriteActivity"
             android:label="@string/review_title"
-            android:parentActivityName=".GameDetailActivity"
+            android:parentActivityName=".detail.GameDetailActivity"
             android:exported="false" />
 
         <!-- 스크린샷: 갤러리에서 이미지 선택 + 미리보기 -->
         <!-- parentActivityName: ← 버튼 누르면 GameDetailActivity로 돌아감 -->
         <activity
-            android:name=".ScreenshotActivity"
+            android:name=".detail.ScreenshotActivity"
             android:label="@string/screenshot_title"
-            android:parentActivityName=".GameDetailActivity"
+            android:parentActivityName=".detail.GameDetailActivity"
             android:exported="false" />
 
         <!-- 앱 정보: ACTION_VIEW / ACTION_SENDTO 학습 화면 -->
         <!-- parentActivityName: ← 버튼 누르면 보관함으로 돌아감 -->
         <activity
-            android:name=".AboutActivity"
+            android:name=".about.AboutActivity"
             android:label="@string/about_title"
-            android:parentActivityName=".LibraryActivity"
+            android:parentActivityName=".library.LibraryActivity"
             android:exported="false" />
 
         <!-- 보관함: 게임 표지 격자 + 상태 필터 (앱의 메인 컬렉션 화면) -->
         <!-- parentActivityName: ← 버튼 누르면 HomeActivity로 돌아감 -->
         <!-- exported=true + intent-filter: 다른 앱의 "공유" 대상으로 우리 앱이 나타나게 함 -->
         <activity
-            android:name=".LibraryActivity"
+            android:name=".library.LibraryActivity"
             android:label="@string/library_title"
-            android:parentActivityName=".HomeActivity"
+            android:parentActivityName=".home.HomeActivity"
             android:exported="true">
             <!-- ACTION_SEND + text/plain 수신 필터 -->
             <!-- 다른 앱에서 텍스트를 공유할 때 우리 앱이 후보 목록에 나타남 -->
@@ -99,23 +99,23 @@
         <!-- 통계: 상태별 게임 수 + 별점 분포 -->
         <!-- parentActivityName: ← 버튼 누르면 HomeActivity로 돌아감 -->
         <activity
-            android:name=".StatsActivity"
+            android:name=".stats.StatsActivity"
             android:label="@string/stats_title"
-            android:parentActivityName=".HomeActivity"
+            android:parentActivityName=".home.HomeActivity"
             android:exported="false" />
 
         <!-- 타임라인: 활동 피드 (멀티 뷰타입) -->
         <!-- parentActivityName: ← 버튼 누르면 HomeActivity로 돌아감 -->
         <activity
-            android:name=".TimelineActivity"
+            android:name=".timeline.TimelineActivity"
             android:label="@string/timeline_title"
-            android:parentActivityName=".HomeActivity"
+            android:parentActivityName=".home.HomeActivity"
             android:exported="false" />
 
         <!-- 게임 추가: 사용자가 수동으로 새 게임을 라이브러리에 등록 -->
         <!-- 결과 Intent로 입력값을 MainActivity에 돌려줌 -->
         <activity
-            android:name=".AddGameActivity"
+            android:name=".addgame.AddGameActivity"
             android:label="@string/add_game_title"
             android:parentActivityName=".DiaryActivity"
             android:exported="false" />

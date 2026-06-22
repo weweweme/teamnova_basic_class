@@ -1,4 +1,4 @@
-package com.example.week8;
+package com.example.week8.timeline;
 
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -7,8 +7,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.week8.App;
 import com.example.week8.databinding.ActivityTimelineBinding;
-import com.example.week8.ui.TimelineAdapter;
 
 /// <summary>
 /// 타임라인 화면 (활동 피드 — 멀티 뷰타입)

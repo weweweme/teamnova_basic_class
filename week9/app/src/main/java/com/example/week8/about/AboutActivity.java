@@ -1,4 +1,4 @@
-package com.example.week8;
+package com.example.week8.about;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.week8.R;
 import com.example.week8.databinding.ActivityAboutBinding;
 
 /// <summary>

@@ -1,4 +1,4 @@
-package com.example.week8.ui;
+package com.example.week8.timeline;
 
 /// <summary>
 /// 타임스탬프(밀리초)를 "n시간 전" / "n일 전" 같은 사람이 읽기 쉬운 문구로 변환하는 헬퍼

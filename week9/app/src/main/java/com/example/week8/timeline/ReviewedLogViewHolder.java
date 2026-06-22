@@ -1,4 +1,4 @@
-package com.example.week8.ui;
+package com.example.week8.timeline;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;

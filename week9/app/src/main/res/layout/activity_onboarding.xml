@@ -8,7 +8,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".OnboardingActivity">
+    tools:context=".intro.OnboardingActivity">
 
     <!-- ViewFlipper: 자식 View를 하나씩 보여주는 컨테이너 -->
     <!-- Unity로 비유하면 여러 Panel 중 하나만 SetActive(true)인 상태 -->

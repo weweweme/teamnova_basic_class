@@ -8,7 +8,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".LibraryActivity">
+    tools:context=".library.LibraryActivity">
 
     <!-- 상태별 필터 탭 (전체/플레이중/완료/중단/백로그) -->
     <!-- 탭이 많아 가로로 넘칠 수 있으니 tabMode=scrollable -->

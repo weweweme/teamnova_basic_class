@@ -8,7 +8,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SplashActivity">
+    tools:context=".intro.SplashActivity">
 
     <!-- 앱 아이콘 (로고 역할) -->
     <!-- 추후 전용 로고 이미지로 교체 가능 -->

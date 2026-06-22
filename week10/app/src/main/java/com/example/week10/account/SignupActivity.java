@@ -10,6 +10,7 @@ import com.example.week10.App;
 import com.example.week10.R;
 import com.example.week10.databinding.ActivitySignupBinding;
 import com.example.week10.home.HomeActivity;
+import com.example.week10.intro.OnboardingActivity;
 
 /// <summary>
 /// 회원가입 화면 (가상 계정 시스템)
@@ -129,22 +130,28 @@ public class SignupActivity extends AppCompatActivity {
             return;
         }
 
-        // 방금 만든 계정으로 바로 로그인 상태로 만든 뒤 Home 진입
+        // 방금 만든 계정으로 바로 로그인 상태로 만든 뒤 다음 화면으로
         accountManager.setCurrentAccount(id);
         showToast(getString(R.string.signup_success, nickname));
-        goToHome();
+        proceedAfterAuth();
     }
 
     // ========== 화면 이동 ==========
 
     /// <summary>
-    /// 가입 성공 → HomeActivity로 이동
+    /// 가입 성공 후 다음 화면 결정
+    ///   갓 만든 계정은 튜토리얼을 본 적이 없으므로 → Onboarding(튜토리얼)로 가게 된다
+    ///   (로그인과 같은 규칙을 그대로 적용 — tutorial_seen 기준)
+    ///
     /// FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK:
-    ///   로그인/회원가입 화면을 백스택에서 모두 제거 → 홈에서 뒤로가기로 돌아오지 않음
-    /// TODO: Phase 6에서 가입 직후 "계정별 튜토리얼(Onboarding)"을 거쳐 Home으로 가도록 변경
+    ///   로그인/회원가입 화면을 백스택에서 모두 제거 → 다음 화면에서 뒤로가기로 돌아오지 않음
     /// </summary>
-    private void goToHome() {
-        Intent intent = new Intent(this, HomeActivity.class);
+    private void proceedAfterAuth() {
+        UserPrefs userPrefs = ((App) getApplication()).getUserPrefs();
+        boolean seenTutorial = userPrefs.hasSeenTutorial();
+
+        Class<?> target = seenTutorial ? HomeActivity.class : OnboardingActivity.class;
+        Intent intent = new Intent(this, target);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }

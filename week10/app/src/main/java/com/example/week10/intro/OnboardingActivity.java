@@ -6,6 +6,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.week10.App;
+import com.example.week10.account.UserPrefs;
 import com.example.week10.home.HomeActivity;
 import com.example.week10.R;
 import com.example.week10.databinding.ActivityOnboardingBinding;
@@ -187,12 +189,17 @@ public class OnboardingActivity extends AppCompatActivity {
     // ========== 온보딩 완료 ==========
 
     /// <summary>
-    /// 온보딩 완료 처리
-    /// HomeActivity(허브)로 이동
-    /// 9주차에서 HomeActivity 도입 → 진입 목적지를 DiaryActivity에서 HomeActivity로 변경
-    /// TODO: 10주차에서 SharedPreferences 학습 후 완료 플래그 저장 추가
+    /// 온보딩(튜토리얼) 완료 처리
+    /// 현재 계정이 "튜토리얼을 봤다"고 기록한 뒤 HomeActivity(허브)로 이동
+    /// → 다음부터 이 계정으로 로그인하면 튜토리얼을 건너뛰고 바로 홈으로 감
+    /// (10주차에서 전역 온보딩 → 계정별 튜토리얼로 의미 변경: tutorial_seen 기준)
     /// </summary>
     private void completeOnboarding() {
+        // 현재 로그인된 계정의 개인 설정에 "튜토리얼 봤음"을 저장
+        // 이 화면은 로그인/가입 직후에만 오므로 getUserPrefs()는 그 계정 것을 돌려줌
+        UserPrefs userPrefs = ((App) getApplication()).getUserPrefs();
+        userPrefs.setTutorialSeen(true);
+
         // HomeActivity로 이동
         Intent intent = new Intent(this, HomeActivity.class);
 

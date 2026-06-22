@@ -12,6 +12,7 @@ import com.example.week10.App;
 import com.example.week10.R;
 import com.example.week10.databinding.ActivityLoginBinding;
 import com.example.week10.home.HomeActivity;
+import com.example.week10.intro.OnboardingActivity;
 import com.example.week10.model.Account;
 
 import java.util.ArrayList;
@@ -154,7 +155,7 @@ public class LoginActivity extends AppCompatActivity {
             // 체크 상태를 저장 → 켜져 있으면 다음 앱 실행 때 Splash가 로그인을 건너뛰고 바로 홈으로 보냄
             accountManager.setAutoLogin(binding.checkBoxKeepLogin.isChecked());
             showToast(getString(R.string.login_success, selected.getNickname()));
-            goToHome();
+            proceedAfterAuth();
         } else {
             showToast(getString(R.string.login_failed));
         }
@@ -174,13 +175,21 @@ public class LoginActivity extends AppCompatActivity {
     // ========== 화면 이동 ==========
 
     /// <summary>
-    /// 로그인 성공 → HomeActivity로 이동
+    /// 로그인 성공 후 다음 화면 결정
+    ///   이 계정이 튜토리얼을 본 적 없으면 → Onboarding(튜토리얼)
+    ///   이미 봤으면 → Home
+    /// (튜토리얼은 계정마다 따로 본다 → 같은 폰이라도 새 계정으로 로그인하면 다시 봄)
+    ///
     /// FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK:
-    ///   로그인 화면을 백스택에서 제거 → 홈에서 뒤로가기 눌러도 로그인으로 안 돌아옴
-    ///   (Unity에서 로그인 Scene을 LoadSceneMode.Single로 날리는 것과 동일)
+    ///   로그인 화면을 백스택에서 제거 → 다음 화면에서 뒤로가기로 로그인에 안 돌아옴
     /// </summary>
-    private void goToHome() {
-        Intent intent = new Intent(this, HomeActivity.class);
+    private void proceedAfterAuth() {
+        // 로그인 직후라 현재 계정이 정해져 있어 getUserPrefs()는 항상 그 계정 것을 돌려줌
+        UserPrefs userPrefs = ((App) getApplication()).getUserPrefs();
+        boolean seenTutorial = userPrefs.hasSeenTutorial();
+
+        Class<?> target = seenTutorial ? HomeActivity.class : OnboardingActivity.class;
+        Intent intent = new Intent(this, target);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }

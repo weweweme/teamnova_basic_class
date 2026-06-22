@@ -3,6 +3,7 @@ package com.example.week10;
 import android.app.Application;
 
 import com.example.week10.account.AccountManager;
+import com.example.week10.account.UserPrefs;
 import com.example.week10.data.ActivityLogRepository;
 import com.example.week10.data.GameRepository;
 
@@ -43,6 +44,18 @@ public class App extends Application {
     private AccountManager accountManager;
 
     /// <summary>
+    /// 현재 로그인된 계정의 개인 설정 저장소 (user_<id> 파일 담당)
+    /// 로그인한 계정이 바뀌면 다른 파일을 봐야 하므로 그때마다 새로 만든다 → getUserPrefs() 참고
+    /// </summary>
+    private UserPrefs userPrefs;
+
+    /// <summary>
+    /// userPrefs가 지금 어느 계정을 담당하고 있는지 기억하는 값
+    /// 현재 로그인 계정과 이 값이 다르면 "계정이 바뀐 것" → userPrefs를 새로 만든다
+    /// </summary>
+    private String userPrefsAccountId;
+
+    /// <summary>
     /// 앱 프로세스 시작 시 단 한 번 호출
     /// 여기서 만든 객체들은 앱이 살아있는 동안 계속 같은 인스턴스로 유지됨
     /// </summary>
@@ -77,5 +90,30 @@ public class App extends Application {
     /// </summary>
     public AccountManager getAccountManager() {
         return accountManager;
+    }
+
+    /// <summary>
+    /// 현재 로그인된 계정의 개인 설정 저장소를 반환
+    ///
+    /// 로그인한 계정이 바뀌면(다른 계정으로 로그인) 담당 파일도 달라져야 하므로,
+    /// 지금 로그인된 계정 아이디와 보관 중인 것을 비교해 다르면 새로 만든다.
+    /// (한 번 만든 뒤 같은 계정이면 그대로 재사용 → 매번 새로 만들지 않음)
+    ///
+    /// 주의: 로그인 전(현재 계정 없음)에 부르면 null을 돌려준다.
+    ///       이 메서드는 로그인/가입 이후 화면에서만 사용한다.
+    /// </summary>
+    public UserPrefs getUserPrefs() {
+        String currentId = accountManager.getCurrentAccountId();
+        if (currentId == null) {
+            return null;
+        }
+
+        // 보관 중인 게 없거나, 담당 계정이 바뀌었으면 새로 만든다
+        boolean needsRebuild = userPrefs == null || !currentId.equals(userPrefsAccountId);
+        if (needsRebuild) {
+            userPrefs = new UserPrefs(this, currentId);
+            userPrefsAccountId = currentId;
+        }
+        return userPrefs;
     }
 }

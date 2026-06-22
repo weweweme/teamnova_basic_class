@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 별점 분포 그래프의 한 행 -->
+<!-- [★ 별점] [────막대(개수 비례)────] [개수] -->
+<!-- HomeActivity가 별점 단계마다 이 레이아웃을 inflate해서 세로로 쌓음 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="3dp"
+    android:paddingBottom="3dp">
+
+    <!-- 별점 라벨 (예: ★ 5.0) -->
+    <TextView
+        android:id="@+id/textViewRatingLabel"
+        android:layout_width="52dp"
+        android:layout_height="wrap_content"
+        android:textColor="#EFA000"
+        android:textSize="13sp" />
+
+    <!-- 개수에 비례한 가로 막대 (가로형 ProgressBar) -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:max="100" />
+
+    <!-- 개수 -->
+    <TextView
+        android:id="@+id/textViewRatingCount"
+        android:layout_width="28dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:gravity="end"
+        android:textColor="#888888"
+        android:textSize="13sp" />
+
+</LinearLayout>

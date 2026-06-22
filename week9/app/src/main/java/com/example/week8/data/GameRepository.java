@@ -203,6 +203,28 @@ public class GameRepository {
     }
 
     /// <summary>
+    /// 별점 분포 집계 (홈 별점 분포 그래프에 사용)
+    /// 0.5 단위 10단계로 세어 배열로 반환
+    ///   index 0 = 0.5점, index 1 = 1.0점, ... index 9 = 5.0점
+    /// 미평가(별점 0) 게임은 분포에서 제외 (아직 평가 안 한 것이므로)
+    /// </summary>
+    public int[] getRatingDistribution() {
+        int[] distribution = new int[10];
+        for (Game game : this.games) {
+            float rating = game.getRating();
+            if (rating <= 0f) {
+                continue;  // 미평가 제외
+            }
+            // 0.5 → 0, 1.0 → 1, ... 5.0 → 9 로 변환
+            int index = Math.round(rating / 0.5f) - 1;
+            if (index >= 0 && index < distribution.length) {
+                distribution[index]++;
+            }
+        }
+        return distribution;
+    }
+
+    /// <summary>
     /// ID로 게임 찾기
     /// 해당 ID의 게임이 없으면 null 반환
     /// </summary>

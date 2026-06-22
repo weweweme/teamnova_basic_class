@@ -136,6 +136,26 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- ════════ 별점 분포 그래프 ════════ -->
+        <!-- 제목 + 막대 행들이 들어갈 빈 컨테이너 (행은 HomeActivity가 코드로 채움) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="20dp"
+            android:text="@string/home_rating_distribution"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/layoutRatingDistribution"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="8dp" />
+
         <!-- ════════ 섹션 1: 보관함 미리보기 ════════ -->
         <LinearLayout
             android:layout_width="match_parent"

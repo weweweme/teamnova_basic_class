@@ -2,6 +2,9 @@ package com.example.week8;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -72,6 +75,7 @@ public class HomeActivity extends AppCompatActivity {
         ActivityLogRepository logRepository = app.getActivityLogRepository();
 
         setupStatsSummary(gameRepository);
+        setupRatingDistribution(gameRepository);
         setupLibraryPreview(gameRepository);
         setupTimelinePreview(logRepository, gameRepository);
         setupMoreButtons();
@@ -83,7 +87,9 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        setupStatsSummary(((App) getApplication()).getGameRepository());
+        GameRepository gameRepository = ((App) getApplication()).getGameRepository();
+        setupStatsSummary(gameRepository);
+        setupRatingDistribution(gameRepository);
     }
 
     // ========== 통계 요약 ==========
@@ -101,6 +107,47 @@ public class HomeActivity extends AppCompatActivity {
                 String.valueOf(gameRepository.countByStatus(GameStatus.PLAYING)));
         binding.textViewStatBacklog.setText(
                 String.valueOf(gameRepository.countByStatus(GameStatus.BACKLOG)));
+    }
+
+    // ========== 별점 분포 그래프 ==========
+
+    /// <summary>
+    /// 별점 분포 막대 그래프 그리기
+    /// 0.5단위 10단계를 5.0(위)부터 0.5(아래)까지 행으로 쌓음
+    /// 각 행: ★별점 + 막대(개수 비례) + 개수
+    /// 막대 길이는 "가장 많은 단계"를 100%로 잡아 상대 비율로 표시
+    /// </summary>
+    private void setupRatingDistribution(GameRepository gameRepository) {
+        int[] distribution = gameRepository.getRatingDistribution();
+
+        // 막대 비율 기준이 될 최댓값 (0이면 1로 둬서 0 나눗셈 방지)
+        int maxCount = 1;
+        for (int count : distribution) {
+            maxCount = Math.max(maxCount, count);
+        }
+
+        // 매번 다시 그리므로 기존 행 제거 후 재생성 (onResume 갱신 대비)
+        binding.layoutRatingDistribution.removeAllViews();
+
+        // 5.0(index 9)부터 0.5(index 0)까지 위→아래로
+        for (int i = distribution.length - 1; i >= 0; i--) {
+            float star = (i + 1) * 0.5f;
+            int count = distribution[i];
+
+            View row = getLayoutInflater().inflate(
+                    R.layout.item_rating_bar, binding.layoutRatingDistribution, false);
+
+            TextView label = row.findViewById(R.id.textViewRatingLabel);
+            ProgressBar bar = row.findViewById(R.id.progressBar);
+            TextView countText = row.findViewById(R.id.textViewRatingCount);
+
+            label.setText("★ " + star);
+            bar.setMax(maxCount);
+            bar.setProgress(count);
+            countText.setText(String.valueOf(count));
+
+            binding.layoutRatingDistribution.addView(row);
+        }
     }
 
     // ========== 섹션별 미리보기 세팅 ==========

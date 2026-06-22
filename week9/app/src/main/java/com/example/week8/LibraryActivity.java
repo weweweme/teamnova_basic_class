@@ -302,10 +302,11 @@ public class LibraryActivity extends AppCompatActivity {
             if (gameRepository.countByGenre(genre) == 0) {
                 continue;
             }
-            Chip chip = new Chip(this);
+            // new Chip(this) 대신 XML(Filter 스타일)을 inflate → Bridge 테마에서도 체크 정상 동작
+            Chip chip = (Chip) getLayoutInflater()
+                    .inflate(R.layout.item_genre_chip, chipGroup, false);
             chip.setId(View.generateViewId());
             chip.setText(genre.getDisplayName());
-            chip.setCheckable(true);
             chip.setTag(genre);
 
             // 칩 체크 변경 → 선택 장르 집합 갱신 + 재필터

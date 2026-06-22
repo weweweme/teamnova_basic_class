@@ -11,7 +11,8 @@ import java.util.ArrayList;
 /// Unity로 비유하면 테스트용 로그 데이터를 하드코딩해둔 매니저
 ///
 /// 현재(9주차)는 하드코딩 더미 데이터만 사용 (4종 타입을 섞어 멀티 뷰타입 시연용)
-/// gameId는 GameRepository의 더미 게임 id(1~4)와 매칭됨
+/// gameId는 GameRepository의 더미 게임 id(1~20)와 매칭됨
+/// RecyclerView 스크롤/재활용 체감을 위해 30여 개를 최신→과거 순으로 배치
 /// </summary>
 public class ActivityLogRepository {
 
@@ -64,6 +65,54 @@ public class ActivityLogRepository {
                 ActivityLogType.ADDED, 2, now - 5 * DAY_MS, ""));
         this.logs.add(new ActivityLog(
                 ActivityLogType.ADDED, 1, now - 6 * DAY_MS, ""));
+
+        // ──── RecyclerView 테스트용 추가 로그 (game id 5~20 활용) ────
+        this.logs.add(new ActivityLog(
+                ActivityLogType.PLAYED, 5, now - 7 * DAY_MS, "1시간 20분"));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.REVIEWED, 5, now - 7 * DAY_MS - 2 * HOUR_MS,
+                "힐링과 중독의 완벽한 균형"));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.PLAYED, 6, now - 8 * DAY_MS, "3시간 5분"));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.COMPLETED, 6, now - 8 * DAY_MS - 4 * HOUR_MS, ""));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.REVIEWED, 6, now - 8 * DAY_MS - 5 * HOUR_MS,
+                "로그라이크의 교과서"));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.PLAYED, 7, now - 9 * DAY_MS, "5시간 30분"));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.COMPLETED, 7, now - 10 * DAY_MS, ""));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.REVIEWED, 7, now - 10 * DAY_MS - 1 * HOUR_MS,
+                "텍스트로 이렇게 몰입될 수 있다니"));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.PLAYED, 9, now - 11 * DAY_MS, "2시간 10분"));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.COMPLETED, 9, now - 11 * DAY_MS - 3 * HOUR_MS, ""));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.REVIEWED, 9, now - 11 * DAY_MS - 4 * HOUR_MS, "퍼즐 게임의 정점"));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.PLAYED, 11, now - 12 * DAY_MS, "6시간"));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.PLAYED, 12, now - 13 * DAY_MS, "4시간 40분"));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.COMPLETED, 12, now - 14 * DAY_MS, ""));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.PLAYED, 13, now - 15 * DAY_MS, "8시간 15분"));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.ADDED, 16, now - 16 * DAY_MS, ""));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.COMPLETED, 16, now - 17 * DAY_MS, ""));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.REVIEWED, 16, now - 17 * DAY_MS - 2 * HOUR_MS,
+                "한 번쯤은 꼭 해봐야 할 게임"));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.PLAYED, 18, now - 18 * DAY_MS, "2시간 50분"));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.COMPLETED, 18, now - 19 * DAY_MS, ""));
+        this.logs.add(new ActivityLog(
+                ActivityLogType.PLAYED, 19, now - 20 * DAY_MS, "1시간 30분"));
     }
 
     // ========== 조회 ==========

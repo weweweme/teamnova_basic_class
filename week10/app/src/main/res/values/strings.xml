@@ -40,6 +40,17 @@
     <!-- %s 자리에 별명 -->
     <string name="signup_success">%s 님, 가입을 환영해요!</string>
 
+    <!-- 로그아웃 / 계정 삭제 (Home 오버플로우 메뉴) -->
+    <string name="home_action_logout">로그아웃</string>
+    <string name="home_action_delete_account">계정 삭제</string>
+    <string name="logout_confirm_title">로그아웃</string>
+    <string name="logout_confirm_message">로그아웃할까요?</string>
+    <string name="logout_confirm_ok">로그아웃</string>
+    <string name="delete_account_confirm_title">계정 삭제</string>
+    <!-- %s 자리에 별명 -->
+    <string name="delete_account_confirm_message">\'%s\' 계정의 모든 기록이 사라져요. 정말 삭제할까요?</string>
+    <string name="delete_account_confirm_ok">삭제</string>
+
     <!-- 메인 -->
     <string name="main_title">내 게임 일기</string>
     <string name="game_cover_description">게임 표지</string>

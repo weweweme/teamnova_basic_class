@@ -2,12 +2,19 @@ package com.example.week10.home;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.week10.App;
+import com.example.week10.R;
+import com.example.week10.account.AccountManager;
+import com.example.week10.account.LoginActivity;
 import com.example.week10.detail.GameDetailActivity;
 import com.example.week10.library.LibraryActivity;
 import com.example.week10.stats.StatsActivity;
@@ -49,6 +56,11 @@ public class HomeActivity extends AppCompatActivity {
     /// </summary>
     private ActivityHomeBinding binding;
 
+    /// <summary>
+    /// 전역 계정 관리자 (로그아웃 / 계정 삭제 메뉴 처리에 사용)
+    /// </summary>
+    private AccountManager accountManager;
+
     // ========== Lifecycle ==========
 
     /// <summary>
@@ -67,6 +79,7 @@ public class HomeActivity extends AppCompatActivity {
         App app = (App) getApplication();
         GameRepository gameRepository = app.getGameRepository();
         ActivityLogRepository logRepository = app.getActivityLogRepository();
+        accountManager = app.getAccountManager();
 
         setupStatsSummary(gameRepository);
         setupLibraryPreview(gameRepository);
@@ -90,6 +103,86 @@ public class HomeActivity extends AppCompatActivity {
         setupStatsSummary(gameRepository);
         // 화면에 돌아올 때마다 미리보기를 다시 뽑음 → 매번 다른 게임이 보임
         setupLibraryPreview(gameRepository);
+    }
+
+    // ========== ActionBar 메뉴 (⋮ 로그아웃 / 계정 삭제) ==========
+
+    /// <summary>
+    /// ActionBar에 menu_home.xml을 띄운다
+    /// inflate: 메뉴 리소스(XML)를 실제 메뉴 항목들로 만들어 ActionBar에 얹는 것
+    /// </summary>
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_home, menu);
+        return true;
+    }
+
+    /// <summary>
+    /// 메뉴 항목 선택 처리
+    /// 단일 값(선택된 항목 id)으로 여러 분기 → switch 사용
+    /// </summary>
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_logout) {
+            confirmLogout();
+            return true;
+        }
+        if (id == R.id.action_delete_account) {
+            confirmDeleteAccount();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /// <summary>
+    /// 로그아웃 확인 다이얼로그 → 확인 시 세션을 비우고 로그인 화면으로
+    /// </summary>
+    private void confirmLogout() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.logout_confirm_title)
+                .setMessage(R.string.logout_confirm_message)
+                .setPositiveButton(R.string.logout_confirm_ok, (dialog, which) -> {
+                    accountManager.logout();
+                    goToLogin();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    /// <summary>
+    /// 계정 삭제 확인 다이얼로그 → 확인 시 현재 계정을 통째로 지우고 로그인 화면으로
+    /// 되돌릴 수 없는 동작이라 별명을 메시지에 넣어 "어떤 계정을 지우는지" 분명히 보여준다
+    /// </summary>
+    private void confirmDeleteAccount() {
+        // 현재 로그인 계정이 없으면(비정상) 아무것도 하지 않음
+        if (!accountManager.hasCurrentAccount()) {
+            return;
+        }
+        String currentId = accountManager.getCurrentAccountId();
+        String nickname = accountManager.getNickname(currentId);
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.delete_account_confirm_title)
+                .setMessage(getString(R.string.delete_account_confirm_message, nickname))
+                .setPositiveButton(R.string.delete_account_confirm_ok, (dialog, which) -> {
+                    accountManager.deleteAccount(currentId);
+                    goToLogin();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    /// <summary>
+    /// 로그인 화면으로 이동 (로그아웃/계정 삭제 후 공통)
+    /// FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK:
+    ///   홈을 비롯한 기존 화면을 모두 제거 → 뒤로가기로 로그인된 화면에 못 돌아옴
+    /// </summary>
+    private void goToLogin() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
     }
 
     // ========== 통계 요약 ==========

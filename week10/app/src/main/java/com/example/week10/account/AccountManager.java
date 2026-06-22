@@ -270,4 +270,46 @@ public class AccountManager {
 
         return true;
     }
+
+    // ========== 로그아웃 / 계정 삭제 ==========
+
+    /// <summary>
+    /// 로그아웃: 현재 로그인 계정을 비우고, "로그인 유지"도 끈다
+    ///
+    /// 로그인 유지까지 끄는 이유: 끄지 않으면 다음 실행 때 자동 로그인이 켜져 있어
+    /// 방금 로그아웃한 계정으로 다시 들어가 버린다 (로그아웃한 의도와 어긋남).
+    /// 계정 데이터(user_<id> 파일)는 그대로 둔다 — 다시 로그인하면 기록이 남아 있음.
+    /// </summary>
+    public void logout() {
+        setAutoLogin(false);
+        clearCurrentAccount();
+    }
+
+    /// <summary>
+    /// 계정 삭제: 그 계정의 전용 파일을 통째로 지우고 전역 목록에서도 뺀다 (되돌릴 수 없음)
+    ///   ① user_<id> 파일 삭제 → 별명/PIN/프로필 등 그 계정의 모든 저장값이 사라짐
+    ///   ② account_ids 목록에서 제거 → 로그인 화면 드롭다운에서 사라짐
+    ///   ③ 지운 계정이 지금 로그인 중이던 계정이면 세션도 비움(로그아웃)
+    /// </summary>
+    public void deleteAccount(String id) {
+        // ① 계정 전용 파일 통째 삭제
+        // deleteSharedPreferences: 그 이름의 SharedPreferences 파일 자체를 지움 (API 24+)
+        // minSdk 33이라 항상 사용 가능. 그 파일을 들고 있는 참조가 없어야 안전한데,
+        // openUserPrefs는 매번 새로 열어 쓰고 보관하지 않으므로 문제 없음.
+        appContext.deleteSharedPreferences(FILE_USER_PREFIX + id);
+
+        // ② 전역 계정 목록에서 제거
+        Set<String> ids = getAccountIds();
+        ids.remove(id);
+        globalPrefs.edit()
+                .putStringSet(KEY_ACCOUNT_IDS, ids)
+                .apply();
+
+        // ③ 지운 계정이 현재 로그인 계정이면 세션 비우기
+        // getCurrentAccountId()가 null이어도 id.equals(null)은 false라 안전
+        boolean wasCurrent = id.equals(getCurrentAccountId());
+        if (wasCurrent) {
+            logout();
+        }
+    }
 }

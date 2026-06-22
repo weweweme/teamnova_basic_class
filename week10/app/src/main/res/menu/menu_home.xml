@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- HomeActivity의 ActionBar 메뉴 (가상 계정) -->
+<!-- 로그아웃 / 계정 삭제를 ⋮ 오버플로우 메뉴에 숨겨둠 (자주 쓰는 기능이 아니라 always로 띄우지 않음) -->
+<!-- Phase 7에서 Profile 화면이 생기면 그쪽으로 옮길 수 있는 임시 위치 -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- 로그아웃: 세션만 비우고 계정 데이터는 남김 -->
+    <item
+        android:id="@+id/action_logout"
+        android:title="@string/home_action_logout"
+        app:showAsAction="never" />
+
+    <!-- 계정 삭제: 그 계정의 모든 기록을 통째로 지움 (되돌릴 수 없음) -->
+    <item
+        android:id="@+id/action_delete_account"
+        android:title="@string/home_action_delete_account"
+        app:showAsAction="never" />
+
+</menu>

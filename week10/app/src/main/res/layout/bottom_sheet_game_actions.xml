@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 게임 카드를 길게 누르면 화면 아래에서 올라오는 BottomSheet 메뉴 -->
+<!-- 삭제 / 공유 / 상세 보기 액션을 선택할 수 있음 -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="8dp"
+    android:paddingBottom="16dp">
+
+    <!-- 상단에 어떤 게임에 대한 액션인지 표시 (DiaryActivity에서 게임 제목 채워줌) -->
+    <TextView
+        android:id="@+id/textViewSheetTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <!-- 제목과 메뉴 항목을 시각적으로 구분하는 얇은 선 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider" />
+
+    <!-- 삭제 액션 -->
+    <TextView
+        android:id="@+id/actionDelete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:text="@string/diary_action_delete"
+        android:textSize="16sp"
+        android:background="?attr/selectableItemBackground" />
+
+    <!-- 공유 액션 -->
+    <TextView
+        android:id="@+id/actionShare"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:text="@string/diary_action_share"
+        android:textSize="16sp"
+        android:background="?attr/selectableItemBackground" />
+
+    <!-- 상세 보기 액션 (카드 짧게 누르기와 동일하게 GameDetailActivity로 이동) -->
+    <TextView
+        android:id="@+id/actionDetail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:text="@string/diary_action_detail"
+        android:textSize="16sp"
+        android:background="?attr/selectableItemBackground" />
+</LinearLayout>

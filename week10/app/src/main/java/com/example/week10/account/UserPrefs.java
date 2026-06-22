@@ -52,6 +52,12 @@ public class UserPrefs {
     private static final String KEY_BIO = "bio";
 
     /// <summary>
+    /// key: 화면 테마 (ThemeMode의 이름 SYSTEM/LIGHT/DARK 문자열로 저장)
+    /// enum 이름을 문자열로 저장해두면 나중에 다시 ThemeMode로 되돌리기 쉬움
+    /// </summary>
+    private static final String KEY_THEME = "theme";
+
+    /// <summary>
     /// 아직 색을 고르지 않은 계정에 쓸 기본 아바타 색 (파랑)
     /// 0xFF... 형태의 ARGB 값 (맨 앞 FF = 불투명)
     /// ★ 프로필 편집 화면(ProfileEditActivity)의 색 팔레트에도 이 값이 들어 있어야
@@ -123,6 +129,34 @@ public class UserPrefs {
     public void setBio(String bio) {
         prefs.edit()
                 .putString(KEY_BIO, bio)
+                .apply();
+    }
+
+    // ========== 테마 (theme) ==========
+
+    /// <summary>
+    /// 이 계정의 화면 테마를 반환 (아직 고른 적 없으면 시스템 설정 따라감)
+    ///
+    /// 저장은 enum 이름(문자열)으로 해두었으므로 ThemeMode.valueOf로 되돌린다.
+    /// 혹시 저장값이 깨져 있으면(없거나 알 수 없는 이름) 안전하게 SYSTEM으로 처리한다.
+    /// </summary>
+    public ThemeMode getThemeMode() {
+        String saved = prefs.getString(KEY_THEME, ThemeMode.SYSTEM.name());
+        // 알 수 없는 값이 들어와도 앱이 죽지 않도록 하나씩 비교해 찾는다
+        for (ThemeMode mode : ThemeMode.values()) {
+            if (mode.name().equals(saved)) {
+                return mode;
+            }
+        }
+        return ThemeMode.SYSTEM;
+    }
+
+    /// <summary>
+    /// 이 계정의 화면 테마를 저장 (enum 이름 문자열로)
+    /// </summary>
+    public void setThemeMode(ThemeMode mode) {
+        prefs.edit()
+                .putString(KEY_THEME, mode.name())
                 .apply();
     }
 }

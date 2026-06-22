@@ -147,7 +147,12 @@ public class SignupActivity extends AppCompatActivity {
     ///   로그인/회원가입 화면을 백스택에서 모두 제거 → 다음 화면에서 뒤로가기로 돌아오지 않음
     /// </summary>
     private void proceedAfterAuth() {
-        UserPrefs userPrefs = ((App) getApplication()).getUserPrefs();
+        App app = (App) getApplication();
+
+        // 갓 만든 계정의 테마(기본 시스템)를 적용 → 다음 화면이 그 설정으로 뜸
+        app.applyCurrentAccountTheme();
+
+        UserPrefs userPrefs = app.getUserPrefs();
         boolean seenTutorial = userPrefs.hasSeenTutorial();
 
         Class<?> target = seenTutorial ? HomeActivity.class : OnboardingActivity.class;

@@ -184,8 +184,13 @@ public class LoginActivity extends AppCompatActivity {
     ///   로그인 화면을 백스택에서 제거 → 다음 화면에서 뒤로가기로 로그인에 안 돌아옴
     /// </summary>
     private void proceedAfterAuth() {
+        App app = (App) getApplication();
+
+        // 로그인한 계정의 테마를 먼저 적용 → 다음 화면이 그 계정이 고른 밝기로 뜸
+        app.applyCurrentAccountTheme();
+
         // 로그인 직후라 현재 계정이 정해져 있어 getUserPrefs()는 항상 그 계정 것을 돌려줌
-        UserPrefs userPrefs = ((App) getApplication()).getUserPrefs();
+        UserPrefs userPrefs = app.getUserPrefs();
         boolean seenTutorial = userPrefs.hasSeenTutorial();
 
         Class<?> target = seenTutorial ? HomeActivity.class : OnboardingActivity.class;

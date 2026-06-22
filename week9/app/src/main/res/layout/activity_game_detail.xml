@@ -92,6 +92,34 @@
             android:layout_marginTop="6dp"
             android:textSize="16sp" />
 
+        <!-- 스크린샷 썸네일 (가로 스크롤) -->
+        <!-- 스크린샷이 있을 때만 표시 (없으면 라벨·스크롤뷰 모두 GONE) -->
+        <TextView
+            android:id="@+id/textViewScreenshotsLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/detail_screenshots_label"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <HorizontalScrollView
+            android:id="@+id/scrollScreenshots"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:scrollbars="none"
+            android:visibility="gone">
+
+            <!-- 썸네일 ImageView들이 코드로 추가되는 컨테이너 -->
+            <LinearLayout
+                android:id="@+id/layoutScreenshots"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+
         <!-- 버튼 영역 -->
         <!-- 각 버튼이 이후 단계에서 Intent 학습 포인트가 됨 -->
         <LinearLayout

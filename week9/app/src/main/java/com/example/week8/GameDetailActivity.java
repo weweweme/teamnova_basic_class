@@ -5,6 +5,8 @@ import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -224,8 +226,11 @@ public class GameDetailActivity extends AppCompatActivity {
                     // (이후 다른 작업에서 game.getScreenshots()로 최신 목록을 보게 됨)
                     game = updated;
 
-                    // Repository 원본에도 반영 → MainActivity로 돌아갔을 때 일관성 유지
+                    // Repository 원본에도 반영 → 다른 화면으로 돌아갔을 때 일관성 유지
                     ((App) getApplication()).getGameRepository().updateGame(game);
+
+                    // 추가된 스크린샷이 상세 화면에 바로 보이도록 재바인딩
+                    bindGameData();
                 }
         );
 
@@ -510,6 +515,44 @@ public class GameDetailActivity extends AppCompatActivity {
             binding.imageViewCover.setImageResource(coverResId);
         } else {
             binding.imageViewCover.setImageResource(R.mipmap.ic_launcher);
+        }
+
+        // 스크린샷 썸네일 표시
+        bindScreenshots();
+    }
+
+    /// <summary>
+    /// 추가된 스크린샷을 가로 썸네일로 표시
+    /// 스크린샷이 없으면 라벨·스크롤뷰를 숨기고, 있으면 각 Uri로 ImageView를 동적 생성
+    /// (개수가 적고 재활용이 불필요해 RecyclerView 대신 HorizontalScrollView 사용)
+    /// </summary>
+    private void bindScreenshots() {
+        java.util.List<String> screenshots = game.getScreenshots();
+        boolean hasScreenshots = screenshots != null && !screenshots.isEmpty();
+
+        // 스크린샷 없으면 섹션 전체 숨김
+        binding.textViewScreenshotsLabel.setVisibility(hasScreenshots ? View.VISIBLE : View.GONE);
+        binding.scrollScreenshots.setVisibility(hasScreenshots ? View.VISIBLE : View.GONE);
+        if (!hasScreenshots) {
+            return;
+        }
+
+        // 매번 다시 그리므로 기존 썸네일 제거 후 재생성
+        binding.layoutScreenshots.removeAllViews();
+
+        float density = getResources().getDisplayMetrics().density;
+        int widthPx = (int) (120 * density);
+        int heightPx = (int) (70 * density);
+        int marginPx = (int) (8 * density);
+
+        for (String uriString : screenshots) {
+            ImageView thumbnail = new ImageView(this);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(widthPx, heightPx);
+            lp.setMarginEnd(marginPx);
+            thumbnail.setLayoutParams(lp);
+            thumbnail.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            thumbnail.setImageURI(Uri.parse(uriString));
+            binding.layoutScreenshots.addView(thumbnail);
         }
     }
 }

@@ -45,16 +45,6 @@ import java.util.List;
 public class HomeActivity extends AppCompatActivity {
 
     /// <summary>
-    /// 보관함 미리보기에 보여줄 최대 항목 수 (가로 스크롤이라 넉넉히)
-    /// </summary>
-    private static final int PREVIEW_MAX = 6;
-
-    /// <summary>
-    /// 최근 활동 미리보기는 세로라 화면을 많이 차지하므로 더 적게 표시
-    /// </summary>
-    private static final int TIMELINE_PREVIEW_MAX = 3;
-
-    /// <summary>
     /// ViewBinding 객체
     /// </summary>
     private ActivityHomeBinding binding;
@@ -126,11 +116,18 @@ public class HomeActivity extends AppCompatActivity {
     /// longClickListener=null: 미리보기라 BottomSheet 메뉴 불필요
     /// </summary>
     private void setupLibraryPreview(GameRepository gameRepository) {
+        // 미리보기에 보여줄 최대 게임 수
+        final int PREVIEW_MAX = 6;
+        // 가로 미리보기 셀 한 칸의 고정 폭(dp)
+        // (그리드는 LayoutManager가 폭을 나누지만, 가로 스크롤은 고정해야 여러 개가 보임)
+        final int PREVIEW_ITEM_WIDTH_DP = 120;
+
         List<Game> preview = takeRandom(gameRepository.getAllGames(), PREVIEW_MAX);
         LibraryAdapter adapter = new LibraryAdapter(preview, this::onGameClick, null);
+
         // 가로 스크롤 미리보기 → 셀 폭을 고정해야 여러 개가 보임
         // (안 하면 셀이 match_parent라 화면 폭을 꽉 채워 1개만 보임)
-        adapter.setItemWidthDp(120);
+        adapter.setItemWidthDp(PREVIEW_ITEM_WIDTH_DP);
         binding.recyclerLibraryPreview.setLayoutManager(
                 new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         binding.recyclerLibraryPreview.setAdapter(adapter);
@@ -146,8 +143,8 @@ public class HomeActivity extends AppCompatActivity {
     /// </summary>
     private void setupTimelinePreview(ActivityLogRepository logRepository,
                                       GameRepository gameRepository) {
-        List<ActivityLog> preview = takeFirst(
-                logRepository.getAllLogs(), TIMELINE_PREVIEW_MAX);
+        final int TIMELINE_PREVIEW_MAX = 3;
+        List<ActivityLog> preview = takeFirst(logRepository.getAllLogs(), TIMELINE_PREVIEW_MAX);
         TimelineAdapter adapter = new TimelineAdapter(preview, gameRepository);
         binding.recyclerTimelinePreview.setLayoutManager(new LinearLayoutManager(this));
         binding.recyclerTimelinePreview.setNestedScrollingEnabled(false);

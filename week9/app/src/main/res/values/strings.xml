@@ -20,7 +20,7 @@
     <string name="main_add_game">게임 추가</string>
 
     <!-- 라이브러리 (그리드 뷰) -->
-    <string name="library_title">보관함</string>
+    <string name="library_title">내 게임 일지</string>
     <string name="library_filter_all">전체</string>
     <string name="library_empty">이 상태의 게임이 없어요</string>
     <string name="library_search_hint">게임 제목 검색</string>
@@ -44,7 +44,7 @@
     <string name="stats_genre_distribution">장르 분포</string>
     <string name="stats_unrated">미평가</string>
     <string name="home_section_diary">내 일기</string>
-    <string name="home_section_library">보관함</string>
+    <string name="home_section_library">내 게임 일지</string>
     <string name="home_section_timeline">최근 활동</string>
     <string name="home_section_stats">내 통계</string>
     <string name="home_more">더 보기</string>

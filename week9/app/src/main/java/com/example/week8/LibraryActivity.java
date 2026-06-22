@@ -14,6 +14,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.week8.ui.GameSortOrder;
 
@@ -90,6 +91,12 @@ public class LibraryActivity extends AppCompatActivity {
     /// </summary>
     private GameSortOrder currentSort = GameSortOrder.RECENT;
 
+    /// <summary>
+    /// 보기 모드: true=그리드(2열), false=리스트(1열)
+    /// 같은 어댑터/셀에 LayoutManager만 바꿔 배치를 전환 (Steam 라이브러리식)
+    /// </summary>
+    private boolean isGridMode = true;
+
     // ========== Lifecycle ==========
 
     /// <summary>
@@ -111,13 +118,12 @@ public class LibraryActivity extends AppCompatActivity {
         // App 공용 GameRepository
         gameRepository = ((App) getApplication()).getGameRepository();
 
-        // RecyclerView 설정 (GridLayoutManager 격자)
-        binding.recyclerViewLibrary.setLayoutManager(
-                new GridLayoutManager(this, GRID_SPAN_COUNT));
+        // RecyclerView 설정 — 보기 모드(그리드/리스트)에 맞는 LayoutManager 적용
         // 클릭 → 상세, 길게 누르기 → BottomSheet
         adapter = new LibraryAdapter(
                 gameRepository.getAllGames(), this::onGameClick, this::onGameLongClick);
         binding.recyclerViewLibrary.setAdapter(adapter);
+        applyViewMode();
 
         setupFilterTabs();
 
@@ -316,6 +322,23 @@ public class LibraryActivity extends AppCompatActivity {
         binding.recyclerViewLibrary.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
     }
 
+    // ========== 보기 모드 (그리드 / 리스트) ==========
+
+    /// <summary>
+    /// 현재 보기 모드에 맞는 LayoutManager 적용
+    /// 그리드 = GridLayoutManager(2열), 리스트 = LinearLayoutManager(1열)
+    /// 같은 어댑터/셀을 그대로 두고 LayoutManager만 교체 → 배치가 완전히 달라짐
+    /// </summary>
+    private void applyViewMode() {
+        if (isGridMode) {
+            binding.recyclerViewLibrary.setLayoutManager(
+                    new GridLayoutManager(this, GRID_SPAN_COUNT));
+        } else {
+            binding.recyclerViewLibrary.setLayoutManager(
+                    new LinearLayoutManager(this));
+        }
+    }
+
     // ========== 정렬 ==========
 
     /// <summary>
@@ -410,6 +433,16 @@ public class LibraryActivity extends AppCompatActivity {
 
         if (itemId == android.R.id.home) {
             finish();
+            return true;
+        }
+
+        if (itemId == R.id.action_view_toggle) {
+            // 그리드 ↔ 리스트 전환 + 아이콘을 "반대 모드"로 갱신
+            isGridMode = !isGridMode;
+            applyViewMode();
+            item.setIcon(isGridMode
+                    ? R.drawable.ic_view_list   // 그리드 모드 → "리스트로 전환" 아이콘
+                    : R.drawable.ic_view_grid); // 리스트 모드 → "그리드로 전환" 아이콘
             return true;
         }
 

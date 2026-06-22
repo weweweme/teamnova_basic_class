@@ -6,6 +6,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <!-- 그리드/리스트 보기 토글: 현재 모드의 "반대" 아이콘을 표시 -->
+    <item
+        android:id="@+id/action_view_toggle"
+        android:icon="@drawable/ic_view_list"
+        android:title="@string/library_view_toggle"
+        app:showAsAction="always" />
+
     <!-- 검색: 돋보기 아이콘 → 탭하면 SearchView 펼쳐짐 (제목 실시간 검색) -->
     <!-- collapseActionView: 평소엔 아이콘, 탭하면 입력창으로 펼쳐지고 ←로 접힘 -->
     <item

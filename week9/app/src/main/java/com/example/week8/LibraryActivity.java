@@ -29,6 +29,8 @@ import com.example.week8.model.Genre;
 import com.example.week8.model.Platform;
 import com.example.week8.ui.LibraryAdapter;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
@@ -97,6 +99,12 @@ public class LibraryActivity extends AppCompatActivity {
     /// </summary>
     private boolean isGridMode = true;
 
+    /// <summary>
+    /// 현재 장르 필터 (장르 칩에서 선택). null이면 전체 장르
+    /// 상태 탭 결과 안에서 장르로 한 번 더 거르는 데 사용
+    /// </summary>
+    private Genre currentGenre = null;
+
     // ========== Lifecycle ==========
 
     /// <summary>
@@ -126,6 +134,7 @@ public class LibraryActivity extends AppCompatActivity {
         applyViewMode();
 
         setupFilterTabs();
+        setupGenreChips();
 
         // 정렬 FAB → 정렬 옵션 다이얼로그
         binding.fabSort.setOnClickListener(v -> showSortDialog());
@@ -273,9 +282,51 @@ public class LibraryActivity extends AppCompatActivity {
         }
     }
 
+    // ========== 장르 칩 필터 ==========
+
     /// <summary>
-    /// 탭(상태) + 검색어(제목) 두 조건으로 게임을 걸러 어댑터에 반영
-    /// 1) 상태 탭으로 1차 필터 → 2) 검색어가 있으면 제목으로 2차 필터
+    /// 장르 칩 구성: "전체" + 게임이 있는 장르들을 단일 선택 칩으로 추가
+    /// 칩 선택 시 currentGenre 갱신 후 현재 필터를 다시 적용
+    /// 칩의 tag에 Genre를 담아두고(전체는 null) 선택된 칩의 tag로 장르를 식별
+    /// </summary>
+    private void setupGenreChips() {
+        ChipGroup chipGroup = binding.chipGroupGenre;
+
+        // "전체" 칩 (tag=null) — 기본 선택
+        Chip allChip = new Chip(this);
+        allChip.setText(R.string.library_filter_all);
+        allChip.setCheckable(true);
+        allChip.setChecked(true);
+        allChip.setTag(null);
+        chipGroup.addView(allChip);
+
+        // 게임이 1개 이상 있는 장르만 칩으로 추가
+        for (Genre genre : Genre.values()) {
+            if (gameRepository.countByGenre(genre) == 0) {
+                continue;
+            }
+            Chip chip = new Chip(this);
+            chip.setText(genre.getDisplayName());
+            chip.setCheckable(true);
+            chip.setTag(genre);
+            chipGroup.addView(chip);
+        }
+
+        // 칩 선택 변경 → currentGenre 갱신 + 재필터
+        chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds.isEmpty()) {
+                currentGenre = null;
+            } else {
+                Chip checked = group.findViewById(checkedIds.get(0));
+                currentGenre = (Genre) checked.getTag();
+            }
+            applyCurrentFilter();
+        });
+    }
+
+    /// <summary>
+    /// 탭(상태) + 장르(칩) + 검색어(제목) 조건으로 게임을 걸러 어댑터에 반영
+    /// 1) 상태 → 1.5) 장르 → 2) 검색 → 3) 정렬
     /// 결과가 비면 빈 상태 안내 (검색 중이면 "검색 결과 없음" 문구로 구분)
     /// </summary>
     private void applyFilter(int tabPosition) {
@@ -290,6 +341,11 @@ public class LibraryActivity extends AppCompatActivity {
                     statusFiltered.add(game);
                 }
             }
+        }
+
+        // 1.5) 장르 필터 (장르 칩 선택 시, null이면 전체 장르라 건너뜀)
+        if (currentGenre != null) {
+            statusFiltered.removeIf(game -> game.getGenre() != currentGenre);
         }
 
         // 2) 제목 검색 필터 (검색어가 있을 때만)

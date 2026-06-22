@@ -238,6 +238,20 @@ public class GameRepository {
     }
 
     /// <summary>
+    /// 아직 별점을 매기지 않은(미평가) 게임 개수 반환
+    /// 별점 분포에서 제외된 게임들을 "미평가" 항목으로 따로 보여줄 때 사용
+    /// </summary>
+    public int countUnrated() {
+        int count = 0;
+        for (Game game : this.games) {
+            if (game.getRating() <= 0f) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /// <summary>
     /// ID로 게임 찾기
     /// 해당 ID의 게임이 없으면 null 반환
     /// </summary>

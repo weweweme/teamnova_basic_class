@@ -18,6 +18,26 @@
         android:layout_height="wrap_content"
         app:tabMode="scrollable" />
 
+    <!-- 장르 칩 필터 (상태 탭 + 장르 = 2차원 필터) -->
+    <!-- 가로 스크롤 한 줄, 단일 선택. 칩은 코드에서 동적 생성 -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:scrollbars="none">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupGenre"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleLine="true"
+            app:singleSelection="true"
+            app:selectionRequired="true" />
+    </HorizontalScrollView>
+
     <!-- 표지 격자 영역 (탭으로 필터된 게임 표시) -->
     <FrameLayout
         android:layout_width="match_parent"

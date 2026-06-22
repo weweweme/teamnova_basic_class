@@ -42,6 +42,7 @@
     <string name="stats_summary">상태별 게임 수</string>
     <string name="stats_status_total">전체</string>
     <string name="stats_genre_distribution">장르 분포</string>
+    <string name="stats_unrated">미평가</string>
     <string name="home_section_diary">내 일기</string>
     <string name="home_section_library">보관함</string>
     <string name="home_section_timeline">최근 활동</string>

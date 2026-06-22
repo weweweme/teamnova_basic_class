@@ -106,8 +106,10 @@ public class StatsActivity extends AppCompatActivity {
     /// </summary>
     private void setupRatingDistribution() {
         int[] distribution = gameRepository.getRatingDistribution();
+        int unratedCount = gameRepository.countUnrated();
 
-        int maxCount = 1;
+        // 막대 비율 기준 최댓값 — 별점 단계와 미평가까지 포함해 가장 큰 값
+        int maxCount = Math.max(1, unratedCount);
         for (int count : distribution) {
             maxCount = Math.max(maxCount, count);
         }
@@ -132,6 +134,18 @@ public class StatsActivity extends AppCompatActivity {
 
             binding.layoutRatingDistribution.addView(row);
         }
+
+        // 별점 막대 아래에 "미평가" 행 추가 (아직 별점 안 매긴 게임)
+        View unratedRow = getLayoutInflater().inflate(
+                R.layout.item_rating_bar, binding.layoutRatingDistribution, false);
+        TextView unratedLabel = unratedRow.findViewById(R.id.textViewRatingLabel);
+        ProgressBar unratedBar = unratedRow.findViewById(R.id.progressBar);
+        TextView unratedText = unratedRow.findViewById(R.id.textViewRatingCount);
+        unratedLabel.setText(R.string.stats_unrated);
+        unratedBar.setMax(maxCount);
+        unratedBar.setProgress(unratedCount);
+        unratedText.setText(String.valueOf(unratedCount));
+        binding.layoutRatingDistribution.addView(unratedRow);
     }
 
     // ========== 장르 분포 그래프 ==========

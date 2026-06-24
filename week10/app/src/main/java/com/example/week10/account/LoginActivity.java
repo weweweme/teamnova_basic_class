@@ -2,7 +2,6 @@ package com.example.week10.account;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
@@ -95,22 +94,9 @@ public class LoginActivity extends AppCompatActivity {
         accounts.clear();
         accounts.addAll(accountManager.getAccounts());
 
-        boolean hasAccounts = !accounts.isEmpty();
-
-        // 계정 유무에 따라 입력 UI / 안내 문구를 켜고 끈다
-        // View.VISIBLE: 보임, View.GONE: 숨김(자리도 차지 안 함)
-        int inputVisibility = hasAccounts ? View.VISIBLE : View.GONE;
-        binding.spinnerAccount.setVisibility(inputVisibility);
-        binding.editTextPin.setVisibility(inputVisibility);
-        binding.checkBoxKeepLogin.setVisibility(inputVisibility);
-        binding.buttonLogin.setVisibility(inputVisibility);
-        binding.textViewNoAccounts.setVisibility(hasAccounts ? View.GONE : View.VISIBLE);
-
-        if (!hasAccounts) {
-            return;
-        }
-
         // Spinner에는 별명만 보여준다 (id는 내부 식별용이라 화면에 노출하지 않음)
+        // 계정이 없으면 목록이 비어 Spinner도 비지만, 로그인 폼은 항상 그대로 보여준다
+        // (일반 앱처럼 "가입된 계정 없음" 같은 안내를 띄우지 않음)
         List<String> nicknames = new ArrayList<>();
         for (Account account : accounts) {
             nicknames.add(account.getNickname());
@@ -134,6 +120,13 @@ public class LoginActivity extends AppCompatActivity {
     /// 선택된 계정 + 입력 PIN을 AccountManager에 넘겨 검증하고, 결과에 따라 화면을 처리
     /// </summary>
     private void onLoginClicked() {
+        // 선택할 계정이 하나도 없으면(첫 실행 등) 회원가입을 안내하고 끝
+        // (목록이 비어 있을 때 아래 accounts.get(...)을 호출하면 오류가 나므로 먼저 막음)
+        if (accounts.isEmpty()) {
+            showToast(getString(R.string.login_need_signup));
+            return;
+        }
+
         // 입력 PIN 읽기 (앞뒤 공백 제거)
         String pin = binding.editTextPin.getText().toString().trim();
 

@@ -15,13 +15,13 @@
     <!-- 로그인 (가상 계정) -->
     <string name="login_title">로그인</string>
     <string name="login_account_label">계정</string>
-    <string name="login_pin_hint">PIN 4자리</string>
+    <string name="login_pin_hint">비밀번호 (숫자 4자리)</string>
     <string name="login_keep">로그인 유지</string>
     <string name="login_button">로그인</string>
     <string name="login_signup">회원가입</string>
     <string name="login_need_signup">회원가입 후 로그인할 수 있어요</string>
-    <string name="login_pin_empty">PIN을 입력해주세요</string>
-    <string name="login_failed">PIN이 일치하지 않아요</string>
+    <string name="login_pin_empty">비밀번호를 입력해주세요</string>
+    <string name="login_failed">비밀번호가 일치하지 않아요</string>
     <!-- %s 자리에 별명 -->
     <string name="login_success">환영합니다, %s 님!</string>
 
@@ -29,14 +29,14 @@
     <string name="signup_title">회원가입</string>
     <string name="signup_id_hint">계정 아이디 (영문/숫자/밑줄)</string>
     <string name="signup_nickname_hint">별명</string>
-    <string name="signup_pin_hint">PIN 4자리</string>
-    <string name="signup_pin_confirm_hint">PIN 확인 (다시 입력)</string>
+    <string name="signup_pin_hint">비밀번호 (숫자 4자리)</string>
+    <string name="signup_pin_confirm_hint">비밀번호 확인 (다시 입력)</string>
     <string name="signup_button">가입하기</string>
     <string name="signup_id_empty">아이디를 입력해주세요</string>
     <string name="signup_id_invalid">아이디는 영문, 숫자, 밑줄(_)만 쓸 수 있어요</string>
     <string name="signup_nickname_empty">별명을 입력해주세요</string>
-    <string name="signup_pin_invalid">PIN 4자리를 입력해주세요</string>
-    <string name="signup_pin_mismatch">PIN이 서로 달라요</string>
+    <string name="signup_pin_invalid">비밀번호는 숫자 4자리로 만들어주세요</string>
+    <string name="signup_pin_mismatch">비밀번호가 서로 달라요</string>
     <string name="signup_id_taken">이미 있는 아이디예요</string>
     <!-- %s 자리에 별명 -->
     <string name="signup_success">%s 님, 가입을 환영해요!</string>

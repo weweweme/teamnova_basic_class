@@ -29,12 +29,7 @@ import java.time.LocalDate;
 /// </summary>
 public class UserPrefs {
 
-    /// <summary>
-    /// 계정별 파일 이름 앞에 붙이는 접두사
-    /// ★ 주의: AccountManager의 FILE_USER_PREFIX와 반드시 같은 값이어야 한다
-    ///   (둘이 똑같은 "user_<id>" 파일을 가리켜야 별명/PIN과 개인설정이 한 파일에 모임)
-    /// </summary>
-    private static final String FILE_USER_PREFIX = "user_";
+
 
     /// <summary>
     /// key: 이 계정이 튜토리얼(온보딩)을 본 적 있는지
@@ -107,7 +102,10 @@ public class UserPrefs {
     /// <param name="context">파일을 열기 위한 안드로이드 컨텍스트</param>
     /// <param name="accountId">이 저장소가 담당할 계정 아이디 (파일 이름 user_<id>가 됨)</param>
     public UserPrefs(Context context, String accountId) {
-        this.prefs = context.getSharedPreferences(FILE_USER_PREFIX + accountId, Context.MODE_PRIVATE);
+        // 계정 파일 이름 접두사는 AccountManager가 소유한 공용 상수를 그대로 사용
+        // → 두 클래스가 항상 같은 user_<id> 파일을 가리킴 (값 중복/불일치 가능성 제거)
+        this.prefs = context.getSharedPreferences(
+                AccountManager.FILE_USER_PREFIX + accountId, Context.MODE_PRIVATE);
     }
 
     // ========== 튜토리얼 (tutorial_seen) ==========

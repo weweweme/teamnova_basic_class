@@ -35,44 +35,40 @@ import java.util.Set;
 public class AccountManager {
 
     /// <summary>
-    /// 전역 정보를 저장할 SharedPreferences 파일 이름
-    /// 이 이름으로 열면 항상 같은 파일에 접근한다 (PlayerPrefs의 "전역 슬롯")
-    /// </summary>
-    private static final String FILE_GLOBAL = "app_global";
-
-    /// <summary>
     /// key: 가입된 계정 아이디 목록 (문자열 여러 개를 담는 StringSet)
     /// 예: {"alice", "bob"}
     /// </summary>
-    private static final String KEY_ACCOUNT_IDS = "account_ids";
+    private final String KEY_ACCOUNT_IDS = "account_ids";
 
     /// <summary>
     /// key: 지금 로그인된 계정 아이디 (한 명)
     /// 값이 없으면(=key가 비어있으면) 아무도 로그인하지 않은 상태
     /// </summary>
-    private static final String KEY_CURRENT_ACCOUNT = "current_account";
+    private final String KEY_CURRENT_ACCOUNT = "current_account";
 
     /// <summary>
     /// key: "로그인 유지" 켜짐 여부 (true면 다음 실행 시 자동 로그인)
     /// </summary>
-    private static final String KEY_AUTO_LOGIN = "auto_login";
+    private final String KEY_AUTO_LOGIN = "auto_login";
 
     /// <summary>
-    /// 계정별 파일 이름 앞에 붙이는 접두사
-    /// 예: id가 "alice"면 파일 이름은 "user_alice"가 됨 (계정마다 별도 PlayerPrefs 슬롯)
+    /// 계정별 파일 이름 앞에 붙이는 접두사 — 계정 파일 이름의 "주인"은 여기 한 곳뿐
+    /// 예: id가 "alice"면 파일 이름은 "user_alice"가 됨 (계정마다 별도 저장소 슬롯)
+    /// UserPrefs도 같은 user_<id> 파일을 열어야 하므로 이 값을 그대로 가져다 쓴다
+    ///   (public static: 인스턴스 없이 AccountManager.FILE_USER_PREFIX로 참조)
     /// </summary>
-    private static final String FILE_USER_PREFIX = "user_";
+    public static final String FILE_USER_PREFIX = "user_";
 
     /// <summary>
     /// (user_<id> 파일) key: 화면에 보여줄 별명
     /// </summary>
-    private static final String KEY_NICKNAME = "nickname";
+    private final String KEY_NICKNAME = "nickname";
 
     /// <summary>
     /// (user_<id> 파일) key: 로그인용 PIN
     /// 주의: 학습용 가상 계정이라 암호화 없이 평문 저장 — 실제 앱에서는 절대 이렇게 하면 안 됨
     /// </summary>
-    private static final String KEY_PIN = "pin";
+    private final String KEY_PIN = "pin";
 
     /// <summary>
     /// 실제 저장소 핸들 — "app_global" 파일을 가리킨다
@@ -95,7 +91,10 @@ public class AccountManager {
     /// <param name="context">파일을 열기 위한 안드로이드 컨텍스트 (App에서 넘겨줌)</param>
     public AccountManager(Context context) {
         this.appContext = context.getApplicationContext();
-        // getSharedPreferences(이름, 모드): 그 이름의 PlayerPrefs를 연다(없으면 새로 만듦)
+
+        final String FILE_GLOBAL = "app_global";
+
+        // MODE_PRIVATE: 이 앱만 읽고 쓸 수 있는 비공개 파일 (다른 앱은 접근 불가)
         this.globalPrefs = appContext.getSharedPreferences(FILE_GLOBAL, Context.MODE_PRIVATE);
     }
 

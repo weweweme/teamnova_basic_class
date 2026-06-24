@@ -38,6 +38,7 @@
     <string name="signup_pin_invalid">비밀번호는 숫자 4자리로 만들어주세요</string>
     <string name="signup_pin_mismatch">비밀번호가 서로 달라요</string>
     <string name="signup_id_taken">이미 있는 아이디예요</string>
+    <string name="signup_nickname_taken">이미 있는 별명이에요</string>
     <!-- %s 자리에 별명 -->
     <string name="signup_success">%s 님, 가입을 환영해요!</string>
 

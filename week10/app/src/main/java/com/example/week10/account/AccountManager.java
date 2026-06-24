@@ -128,6 +128,19 @@ public class AccountManager {
         return getAccountIds().contains(id);
     }
 
+    /// <summary>
+    /// 해당 별명을 이미 다른 계정이 쓰고 있는지 확인 (회원가입 별명 중복 체크)
+    /// 가입된 계정을 하나씩 돌며 저장된 별명과 비교 (대소문자 구분, 똑같아야 중복으로 판정)
+    /// </summary>
+    public boolean isNicknameTaken(String nickname) {
+        for (String id : getAccountIds()) {
+            if (getNickname(id).equals(nickname)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // ========== 현재 로그인 계정 (current_account) ==========
 
     /// <summary>

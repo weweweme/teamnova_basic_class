@@ -104,11 +104,21 @@ public class SignupActivity extends AppCompatActivity {
             showToast(getString(R.string.signup_id_invalid));
             return;
         }
+        boolean idTaken = accountManager.isRegistered(id);
+        if (idTaken) {
+            showToast(getString(R.string.signup_id_taken));
+            return;
+        }
 
-        // 별명: 빈칸
+        // 별명: 빈칸 / 중복
         boolean nicknameEmpty = nickname.isEmpty();
         if (nicknameEmpty) {
             showToast(getString(R.string.signup_nickname_empty));
+            return;
+        }
+        boolean nicknameTaken = accountManager.isNicknameTaken(nickname);
+        if (nicknameTaken) {
+            showToast(getString(R.string.signup_nickname_taken));
             return;
         }
 
@@ -127,12 +137,8 @@ public class SignupActivity extends AppCompatActivity {
             return;
         }
 
-        // ──── 실제 가입 (중복 아이디면 false) ────
-        boolean created = accountManager.register(id, nickname, pin);
-        if (!created) {
-            showToast(getString(R.string.signup_id_taken));
-            return;
-        }
+        // ──── 실제 가입 (아이디·별명 중복까지 위에서 모두 검증했으므로 성공) ────
+        accountManager.register(id, nickname, pin);
 
         // 방금 만든 계정으로 바로 로그인 상태로 만든 뒤 다음 화면으로
         accountManager.setCurrentAccount(id);

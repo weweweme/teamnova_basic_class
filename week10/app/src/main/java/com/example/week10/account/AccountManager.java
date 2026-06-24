@@ -323,4 +323,29 @@ public class AccountManager {
             logout();
         }
     }
+
+    // ========== 전체 초기화 (테스트/시연용) ==========
+
+    /// <summary>
+    /// 모든 계정과 저장된 값을 지워 "새로 설치한" 상태로 되돌린다 (테스트/시연용)
+    ///   - 가입된 각 계정 파일(user_<id>)의 내용을 비움
+    ///   - 전역 파일(app_global)의 내용을 비움 → account_ids/current_account/auto_login 모두 사라짐
+    ///
+    /// 파일을 삭제(deleteSharedPreferences)하지 않고 clear()로 "비우는" 이유:
+    ///   삭제는 그 파일을 들고 있는 참조가 없어야 안전한데, clear()는 그런 제약이 없고
+    ///   내용만 비우면 다음에 읽을 때 전부 기본값이 나와 "새 설치"와 같은 효과라 더 안전하다.
+    /// </summary>
+    public void resetAll() {
+        // 각 계정 파일 비우기 (account_ids를 비우기 전에 먼저 순회)
+        for (String id : getAccountIds()) {
+            openUserPrefs(id).edit()
+                    .clear()
+                    .apply();
+        }
+
+        // 전역 파일 비우기 (계정 목록·로그인 세션·자동로그인 전부 제거)
+        globalPrefs.edit()
+                .clear()
+                .apply();
+    }
 }

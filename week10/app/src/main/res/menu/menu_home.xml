@@ -17,4 +17,10 @@
         android:title="@string/home_action_delete_account"
         app:showAsAction="never" />
 
+    <!-- 전체 초기화: 모든 계정과 prefs를 비워 "새 설치" 상태로 (테스트/시연용) -->
+    <item
+        android:id="@+id/action_reset_all"
+        android:title="@string/home_action_reset"
+        app:showAsAction="never" />
+
 </menu>

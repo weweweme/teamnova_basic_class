@@ -147,7 +147,27 @@ public class HomeActivity extends AppCompatActivity {
             confirmDeleteAccount();
             return true;
         }
+        if (id == R.id.action_reset_all) {
+            confirmResetAll();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
+    }
+
+    /// <summary>
+    /// 전체 초기화 확인 다이얼로그 (테스트/시연용)
+    /// 확인 시 모든 계정·prefs를 비우고 로그인 화면으로 → "새 설치" 상태
+    /// </summary>
+    private void confirmResetAll() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.reset_confirm_title)
+                .setMessage(R.string.reset_confirm_message)
+                .setPositiveButton(R.string.reset_confirm_ok, (dialog, which) -> {
+                    accountManager.resetAll();
+                    goToLogin();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     /// <summary>

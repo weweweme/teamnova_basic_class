@@ -51,23 +51,28 @@
       private static final int MAX_HP = 100;
   }
   ```
-- **static 사용 기준**: 상수는 `static final`, 그 외에는 지양
-  - `static final` 상수: **OK** — 고정값은 인스턴스마다 중복 저장할 필요 없음 (public/private 모두)
-  - `final` 인스턴스 필드: 생성자에서 인스턴스마다 다른 값을 받는 경우에만 사용
+- **static 사용 기준**: `static`은 "꼭 필요할 때만" 쓴다 — 즉 **인스턴스 없이 / 클래스 차원에서 공유**해야 할 때
+  - **공유 상수**(다른 클래스에서 인스턴스 없이 참조): `public static final` 로 승격
+    - 예: `AccountManager.FILE_USER_PREFIX`("user_"), `UserPrefs.DEFAULT_AVATAR_COLOR`
+    - 한 클래스 안에서만 쓰는 상수는 `private`로 닫는다 (공개는 필요할 때만)
+  - **인스턴스가 하나뿐인 클래스**(App이 보유하는 매니저 등)의 내부 전용 상수: `static`을 굳이 안 붙이고 인스턴스 `final`로 둬도 된다 — 인스턴스가 1개라 복제 비용이 없음 (`static final`도 무방, 차이 없음)
+    - 예: `AccountManager`의 `KEY_NICKNAME`, `KEY_ACCOUNT_IDS` 등 → `private final`
+  - **인스턴스가 여러 개 생기는 클래스**의 고정값: 반드시 `static final` (안 그러면 객체마다 같은 값이 중복 저장돼 메모리 낭비)
+  - `final` 인스턴스 필드: 생성자에서 인스턴스마다 다른 값을 받는 경우에 사용
   - 가변 `static` 필드: **금지** — 해당 데이터를 관리하는 객체의 인스턴스 필드로 이동
   - `static` 메서드: 유틸리티 헬퍼나 팩토리 메서드에만 사용. 그 외에는 인스턴스 메서드 사용
   ```java
-  // 좋은 예: 외부에서 접근하는 고정값
-  public static final int WIDTH = 100;
+  // 좋은 예: 다른 클래스에서 인스턴스 없이 참조하는 공유 상수
+  public static final String FILE_USER_PREFIX = "user_";
 
-  // 좋은 예: 내부 고정값 (인스턴스마다 중복 저장 방지)
-  private static final int SHOOT_COL = 12;
+  // 좋은 예: 인스턴스가 하나뿐인 싱글톤의 내부 전용 상수 (static 생략 OK)
+  private final String KEY_NICKNAME = "nickname";
 
   // 좋은 예: 인스턴스마다 다른 값 (생성자에서 받음)
   private final String name;
 
-  // 나쁜 예: 고정값인데 인스턴스 필드 (메모리 낭비)
-  private final int SHOOT_COL = 12;
+  // 나쁜 예: '인스턴스가 여러 개 생기는' 클래스에서 고정값을 인스턴스 필드로 (객체마다 중복 = 메모리 낭비)
+  private final int SHOOT_COL = 12;   // → private static final 로
 
   // 나쁜 예: 가변 static 필드
   private static int count = 0;

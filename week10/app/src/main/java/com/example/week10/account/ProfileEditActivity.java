@@ -32,16 +32,16 @@ public class ProfileEditActivity extends AppCompatActivity {
 
     /// <summary>
     /// 고를 수 있는 아바타 색 팔레트 (ARGB)
-    /// ★ UserPrefs.DEFAULT_AVATAR_COLOR(파랑 0xFF1E88E5)도 이 안에 들어 있어야
-    ///   아직 색을 안 고른 계정이 처음 들어왔을 때 기본 색이 선택된 상태로 보인다
+    /// 기본색(파랑)은 UserPrefs.DEFAULT_AVATAR_COLOR를 그대로 넣는다 → 아직 색을 안 고른 계정이
+    /// 처음 들어왔을 때 그 기본 색이 팔레트에서 선택된 상태로 보임 (값 중복 제거)
     /// </summary>
     private static final int[] AVATAR_PALETTE = {
-            0xFFE53935, // 빨강
-            0xFFFB8C00, // 주황
-            0xFF43A047, // 초록
-            0xFF1E88E5, // 파랑 (기본값)
-            0xFF8E24AA, // 보라
-            0xFF757575, // 회색
+            0xFFE53935,                      // 빨강
+            0xFFFB8C00,                      // 주황
+            0xFF43A047,                      // 초록
+            UserPrefs.DEFAULT_AVATAR_COLOR,  // 파랑 (기본값 — UserPrefs와 공유)
+            0xFF8E24AA,                      // 보라
+            0xFF757575,                      // 회색
     };
 
     /// <summary>

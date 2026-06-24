@@ -83,12 +83,12 @@ public class UserPrefs {
     private static final String KEY_LAST_SORT = "last_sort";
 
     /// <summary>
-    /// 아직 색을 고르지 않은 계정에 쓸 기본 아바타 색 (파랑)
+    /// 아직 색을 고르지 않은 계정에 쓸 기본 아바타 색 (파랑) — 기본색의 "주인"은 여기 한 곳
     /// 0xFF... 형태의 ARGB 값 (맨 앞 FF = 불투명)
-    /// ★ 프로필 편집 화면(ProfileEditActivity)의 색 팔레트에도 이 값이 들어 있어야
-    ///   처음 들어갔을 때 "현재 색"이 팔레트에서 선택된 상태로 보인다
+    /// 프로필 편집 화면도 팔레트에서 이 값을 그대로 가져다 써서 항상 일치한다
+    ///   (public static: ProfileEditActivity가 UserPrefs.DEFAULT_AVATAR_COLOR로 참조)
     /// </summary>
-    private static final int DEFAULT_AVATAR_COLOR = 0xFF1E88E5;
+    public static final int DEFAULT_AVATAR_COLOR = 0xFF1E88E5;
 
     /// <summary>
     /// 이 UserPrefs가 담당하는 계정의 저장소 핸들 (user_<id> 파일)

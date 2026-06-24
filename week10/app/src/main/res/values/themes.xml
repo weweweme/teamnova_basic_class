@@ -1,10 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Material Components Bridge 테마 (DayNight) -->
+    <!-- Material Components Bridge 테마 -->
     <!-- AppCompat 기반이라 edge-to-edge 강제 없음 + Material 위젯 호환 -->
-    <!-- DayNight: 야간 모드 값(AppCompatDelegate.setDefaultNightMode)에 따라 -->
-    <!--   밝을 땐 라이트, 어두울 땐 다크 표면/글자색을 자동으로 골라줌 -->
-    <!--   → 계정별 테마(시스템/라이트/다크) 전환이 실제 화면 색으로 반영됨 -->
-    <style name="Base.Theme.Week10" parent="Theme.MaterialComponents.DayNight.DarkActionBar.Bridge">
+    <style name="Base.Theme.Week10" parent="Theme.MaterialComponents.Light.DarkActionBar.Bridge">
         <!-- Android 15(API 35)+ 에서 강제되는 edge-to-edge를 앱 전체에서 끔 -->
         <!-- 각 Activity에서 WindowCompat.setDecorFitsSystemWindows(true) 호출하지 않아도 됨 -->
         <!-- 낮은 API에서는 이 속성이 무시되므로 안전 -->

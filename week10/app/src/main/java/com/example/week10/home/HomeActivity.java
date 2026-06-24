@@ -18,7 +18,6 @@ import com.example.week10.R;
 import com.example.week10.account.AccountManager;
 import com.example.week10.account.LoginActivity;
 import com.example.week10.account.ProfileEditActivity;
-import com.example.week10.account.ThemeMode;
 import com.example.week10.account.UserPrefs;
 import com.example.week10.detail.GameDetailActivity;
 import com.example.week10.library.LibraryActivity;
@@ -140,10 +139,6 @@ public class HomeActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_theme) {
-            showThemeDialog();
-            return true;
-        }
         if (id == R.id.action_logout) {
             confirmLogout();
             return true;
@@ -153,42 +148,6 @@ public class HomeActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    /// <summary>
-    /// 테마 선택 다이얼로그 (시스템/라이트/다크 중 하나)
-    /// 고르면 현재 계정에 저장하고 즉시 적용 → AppCompat이 화면을 다시 그려 테마가 바로 바뀜
-    /// </summary>
-    private void showThemeDialog() {
-        UserPrefs userPrefs = ((App) getApplication()).getUserPrefs();
-        // 로그인 상태가 아니면(비정상) 무시
-        if (userPrefs == null) {
-            return;
-        }
-
-        // ThemeMode 종류들을 이름 배열로 만들고, 현재 테마가 몇 번째인지 찾는다
-        ThemeMode[] modes = ThemeMode.values();
-        String[] names = new String[modes.length];
-        ThemeMode current = userPrefs.getThemeMode();
-        int currentIndex = 0;
-        for (int i = 0; i < modes.length; i++) {
-            names[i] = modes[i].getDisplayName();
-            if (modes[i] == current) {
-                currentIndex = i;
-            }
-        }
-
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.theme_dialog_title)
-                .setSingleChoiceItems(names, currentIndex, (dialog, which) -> {
-                    ThemeMode selected = modes[which];
-                    userPrefs.setThemeMode(selected);
-                    // 전역 야간 모드 적용 → 이 화면이 자동으로 recreate 되며 새 테마로 다시 그려짐
-                    ((App) getApplication()).applyCurrentAccountTheme();
-                    dialog.dismiss();
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
     }
 
     /// <summary>

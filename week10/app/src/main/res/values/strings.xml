@@ -62,10 +62,6 @@
     <!-- 오늘 첫 방문 연출 (%d=연속 일수) -->
     <string name="attendance_toast">오늘도 방문했어요! %d일 연속 🔥</string>
 
-    <!-- 테마 (Home 오버플로우 메뉴 → 단일 선택 다이얼로그) -->
-    <string name="home_action_theme">테마</string>
-    <string name="theme_dialog_title">테마 선택</string>
-
     <!-- 로그아웃 / 계정 삭제 (Home 오버플로우 메뉴) -->
     <string name="home_action_logout">로그아웃</string>
     <string name="home_action_delete_account">계정 삭제</string>

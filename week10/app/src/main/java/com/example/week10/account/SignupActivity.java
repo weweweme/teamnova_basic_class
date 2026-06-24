@@ -149,9 +149,6 @@ public class SignupActivity extends AppCompatActivity {
     private void proceedAfterAuth() {
         App app = (App) getApplication();
 
-        // 갓 만든 계정의 테마(기본 시스템)를 적용 → 다음 화면이 그 설정으로 뜸
-        app.applyCurrentAccountTheme();
-
         UserPrefs userPrefs = app.getUserPrefs();
         boolean seenTutorial = userPrefs.hasSeenTutorial();
 

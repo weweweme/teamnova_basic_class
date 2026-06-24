@@ -2,10 +2,7 @@ package com.example.week10;
 
 import android.app.Application;
 
-import androidx.appcompat.app.AppCompatDelegate;
-
 import com.example.week10.account.AccountManager;
-import com.example.week10.account.ThemeMode;
 import com.example.week10.account.UserPrefs;
 import com.example.week10.data.ActivityLogRepository;
 import com.example.week10.data.GameRepository;
@@ -69,27 +66,6 @@ public class App extends Application {
         activityLogRepository = new ActivityLogRepository();
         // this(Application)도 Context의 일종이라 SharedPreferences 파일을 열 수 있다 → 그대로 넘김
         accountManager = new AccountManager(this);
-
-        // 로그인된 계정이 있으면(자동 로그인 등) 그 계정의 테마를 앱 시작 시점에 적용
-        // → 첫 화면(Splash/Home)부터 그 계정이 고른 밝기로 보인다
-        applyCurrentAccountTheme();
-    }
-
-    /// <summary>
-    /// 현재 로그인된 계정의 테마를 화면 전체에 적용
-    ///
-    /// setDefaultNightMode는 앱 전체(모든 Activity)에 한 번에 먹는 전역 설정이다.
-    /// 그래서 "계정별 테마"는 로그인한 계정이 정해질 때마다 이 메서드로 다시 적용해야 한다.
-    ///   호출 시점: 앱 시작(onCreate) / 로그인·가입 직후 / 테마 변경 시
-    /// 로그인 전(현재 계정 없음)에는 시스템 설정을 따라간다.
-    ///
-    /// 이미 화면이 떠 있는 상태에서 모드가 바뀌면 AppCompat이 그 Activity를 자동으로
-    /// 다시 만들어(recreate) 새 테마로 그려준다.
-    /// </summary>
-    public void applyCurrentAccountTheme() {
-        UserPrefs prefs = getUserPrefs();
-        ThemeMode mode = (prefs != null) ? prefs.getThemeMode() : ThemeMode.SYSTEM;
-        AppCompatDelegate.setDefaultNightMode(mode.getNightMode());
     }
 
     /// <summary>

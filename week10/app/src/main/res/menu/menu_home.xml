@@ -5,12 +5,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!-- 테마: 시스템/라이트/다크 선택 (계정별 저장) -->
-    <item
-        android:id="@+id/action_theme"
-        android:title="@string/home_action_theme"
-        app:showAsAction="never" />
-
     <!-- 로그아웃: 세션만 비우고 계정 데이터는 남김 -->
     <item
         android:id="@+id/action_logout"

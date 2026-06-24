@@ -94,12 +94,12 @@ public class LoginActivity extends AppCompatActivity {
         accounts.clear();
         accounts.addAll(accountManager.getAccounts());
 
-        // Spinner에는 별명만 보여준다 (id는 내부 식별용이라 화면에 노출하지 않음)
+        // Spinner에는 "계정 아이디"를 보여준다 — 로그인할 때 고르는 식별자이기 때문
+        // (별명은 로그인 후 화면 표시용이라 여기엔 안 씀)
         // 계정이 없으면 목록이 비어 Spinner도 비지만, 로그인 폼은 항상 그대로 보여준다
-        // (일반 앱처럼 "가입된 계정 없음" 같은 안내를 띄우지 않음)
-        List<String> nicknames = new ArrayList<>();
+        List<String> accountIds = new ArrayList<>();
         for (Account account : accounts) {
-            nicknames.add(account.getNickname());
+            accountIds.add(account.getId());
         }
 
         // ArrayAdapter: 문자열 목록 ↔ Spinner 항목을 이어주는 다리
@@ -107,7 +107,7 @@ public class LoginActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_spinner_item,
-                nicknames);
+                accountIds);
         // 드롭다운을 펼쳤을 때 각 줄의 모양 (역시 기본 제공 레이아웃)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         binding.spinnerAccount.setAdapter(adapter);

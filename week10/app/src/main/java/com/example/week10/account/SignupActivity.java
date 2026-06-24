@@ -32,19 +32,22 @@ import com.example.week10.intro.OnboardingActivity;
 public class SignupActivity extends AppCompatActivity {
 
     /// <summary>
-    /// 계정 아이디에 허용하는 글자 규칙: 영문 대소문자 / 숫자 / 밑줄(_)만, 1글자 이상
+    /// 계정 아이디에 허용하는 글자 규칙(정규식): 영문 대소문자 / 숫자 / 밑줄(_)만, 1글자 이상
+    ///
+    /// 정규식 `[a-zA-Z0-9_]+` 읽는 법:
+    ///   `[ ]`       : 이 안의 글자들 중 하나
+    ///   `a-z` `A-Z` : 영문 소문자·대문자
+    ///   `0-9`       : 숫자
+    ///   `_`         : 밑줄
+    ///   `+`         : 바로 앞 묶음이 1글자 이상 반복
+    ///   → "영문/숫자/밑줄로만 이뤄진 1글자 이상 문자열"
+    /// id.matches(ID_PATTERN)은 문자열 "전체"가 이 패턴에 맞는지 검사(일부만 맞으면 false).
     ///
     /// 아이디는 user_<id> 라는 파일 이름의 일부가 되기 때문에,
     /// 한글·공백·특수문자가 들어가면 파일 이름으로 문제가 될 수 있어 안전한 글자만 허용한다.
     /// (별명은 화면 표시용이라 한글도 자유롭게 가능 — 규칙 적용 안 함)
     /// </summary>
     private static final String ID_PATTERN = "[a-zA-Z0-9_]+";
-
-    /// <summary>
-    /// PIN 자릿수 (4자리 고정)
-    /// 레이아웃의 maxLength와 같은 값 — 한쪽만 바뀌어 어긋나는 일이 없게 상수로 둠
-    /// </summary>
-    private static final int PIN_LENGTH = 4;
 
     /// <summary>
     /// activity_signup.xml의 View들을 모아둔 ViewBinding 묶음
@@ -109,7 +112,8 @@ public class SignupActivity extends AppCompatActivity {
             return;
         }
 
-        // PIN: 정확히 4자리
+        // 비밀번호: 정확히 4자리
+        final int PIN_LENGTH = 4;
         boolean pinValid = pin.length() == PIN_LENGTH;
         if (!pinValid) {
             showToast(getString(R.string.signup_pin_invalid));

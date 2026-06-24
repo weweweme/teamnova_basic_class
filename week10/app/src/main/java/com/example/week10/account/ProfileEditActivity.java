@@ -45,21 +45,6 @@ public class ProfileEditActivity extends AppCompatActivity {
     };
 
     /// <summary>
-    /// 색 동그라미 한 칸의 지름 (dp)
-    /// </summary>
-    private static final int SWATCH_SIZE_DP = 44;
-
-    /// <summary>
-    /// 색 동그라미 사이 간격 (dp)
-    /// </summary>
-    private static final int SWATCH_MARGIN_DP = 8;
-
-    /// <summary>
-    /// 선택 안 된 색 동그라미의 투명도 (0~1) — 흐리게 보여 "안 고름"을 표시
-    /// </summary>
-    private static final float SWATCH_DIM_ALPHA = 0.35f;
-
-    /// <summary>
     /// activity_profile_edit.xml의 View 묶음
     /// </summary>
     private ActivityProfileEditBinding binding;
@@ -149,7 +134,12 @@ public class ProfileEditActivity extends AppCompatActivity {
     /// 각 동그라미를 누르면 그 색을 고르고 미리보기를 갱신
     /// </summary>
     private void buildColorSwatches() {
+        // 색 동그라미 한 칸의 지름 (dp)
+        final int SWATCH_SIZE_DP = 44;
         int sizePx = dpToPx(SWATCH_SIZE_DP);
+
+        // 색 동그라미 사이 간격 (dp)
+        final int SWATCH_MARGIN_DP = 8;
         int marginPx = dpToPx(SWATCH_MARGIN_DP);
 
         for (int color : AVATAR_PALETTE) {
@@ -191,6 +181,9 @@ public class ProfileEditActivity extends AppCompatActivity {
             View swatch = binding.layoutColorSwatches.getChildAt(i);
             int swatchColor = (int) swatch.getTag();
             boolean isSelected = swatchColor == selectedColor;
+
+            // 선택 안 된 색 동그라미의 투명도 (0~1) — 흐리게 보여 "안 고름"을 표시
+            final float SWATCH_DIM_ALPHA = 0.35f;
             swatch.setAlpha(isSelected ? 1.0f : SWATCH_DIM_ALPHA);
         }
     }

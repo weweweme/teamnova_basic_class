@@ -185,6 +185,13 @@ public class LoginActivity extends AppCompatActivity {
 
         Class<?> target = seenTutorial ? HomeActivity.class : OnboardingActivity.class;
         Intent intent = new Intent(this, target);
+
+        // setFlags: 이 화면을 "어떻게" 띄울지 옵션을 건다
+        //   FLAG_ACTIVITY_CLEAR_TASK : 지금까지 쌓여 있던 화면들(Splash·Login 등)을 전부 비움
+        //   FLAG_ACTIVITY_NEW_TASK   : 비운 자리에 이 화면을 새 출발점으로 띄움
+        //                              (CLEAR_TASK는 NEW_TASK와 함께 써야 동작함)
+        //   → 결과: 이전 화면이 모두 사라져, 다음 화면에서 뒤로가기를 눌러도 로그인으로 안 돌아옴
+        //   (화면 쌓임을 "책 위에 책 얹기"라 하면, 이건 쌓인 책을 다 치우고 새 책 한 권만 올리는 것)
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }

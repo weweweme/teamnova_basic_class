@@ -35,8 +35,8 @@ import java.util.Set;
 public class AccountManager {
 
     /// <summary>
-    /// key: 가입된 계정 아이디 목록 (문자열 여러 개를 담는 StringSet)
-    /// 예: {"alice", "bob"}
+    /// key: 가입된 계정 아이디 목록 (쉼표로 이어 붙인 한 줄 문자열로 저장)
+    /// 예: "alice,bob,123"
     /// </summary>
     private final String KEY_ACCOUNT_IDS = "account_ids";
 
@@ -111,14 +111,36 @@ public class AccountManager {
     /// <summary>
     /// 가입된 계정 아이디 목록을 반환
     ///
-    /// 주의: getStringSet이 돌려주는 Set은 "직접 수정하면 안 되는" 원본이다.
-    /// (안드로이드 문서가 명시: 반환된 Set을 고치면 저장값이 깨질 수 있음)
-    /// 그래서 새 HashSet으로 복사해 안전한 사본을 돌려준다.
-    /// 두 번째 인자: 저장된 값이 없을 때 돌려줄 기본값 → 빈 집합
+    /// 저장 형식: 아이디들을 쉼표(,)로 이어 붙인 "한 줄 문자열" (예: "alice,bob,123")
+    ///   - 아이디는 영문/숫자/밑줄만 허용하므로 쉼표가 들어갈 일이 없어 안전한 구분자
+    ///   - StringSet(putStringSet)은 기기에 따라 저장/복원이 불안정하다는 보고가 많아 쓰지 않음
+    ///
+    /// 예전에 StringSet 형식으로 저장된 값이 남아 있을 수 있어, "문자열일 때만" 읽는다.
+    /// (옛 Set 형식이면 무시 → 깔끔히 쓰려면 전체 초기화 권장. getString으로 바로 읽으면
+    ///  옛 값이 Set이라 형변환 오류가 날 수 있어 getAll로 타입을 확인하고 읽음)
     /// </summary>
     public Set<String> getAccountIds() {
-        Set<String> stored = globalPrefs.getStringSet(KEY_ACCOUNT_IDS, new HashSet<>());
-        return new HashSet<>(stored);
+        Set<String> ids = new HashSet<>();
+        Object raw = globalPrefs.getAll().get(KEY_ACCOUNT_IDS);
+        if (raw instanceof String) {
+            String joined = (String) raw;
+            if (!joined.isEmpty()) {
+                for (String id : joined.split(",")) {
+                    ids.add(id);
+                }
+            }
+        }
+        return ids;
+    }
+
+    /// <summary>
+    /// 계정 아이디 목록을 저장 (쉼표로 이어 붙인 한 줄 문자열로)
+    /// 추가/삭제 후 이 메서드로 통째로 다시 써준다
+    /// </summary>
+    private void saveAccountIds(Set<String> ids) {
+        globalPrefs.edit()
+                .putString(KEY_ACCOUNT_IDS, String.join(",", ids))
+                .apply();
     }
 
     /// <summary>
@@ -281,9 +303,7 @@ public class AccountManager {
         // ① 전역 계정 목록에 추가
         Set<String> ids = getAccountIds();
         ids.add(id);
-        globalPrefs.edit()
-                .putStringSet(KEY_ACCOUNT_IDS, ids)
-                .apply();
+        saveAccountIds(ids);
 
         // ② 계정 전용 파일에 별명/PIN 기록 (없던 파일이면 이때 새로 만들어짐)
         openUserPrefs(id).edit()
@@ -324,9 +344,7 @@ public class AccountManager {
         // ② 전역 계정 목록에서 제거
         Set<String> ids = getAccountIds();
         ids.remove(id);
-        globalPrefs.edit()
-                .putStringSet(KEY_ACCOUNT_IDS, ids)
-                .apply();
+        saveAccountIds(ids);
 
         // ③ 지운 계정이 현재 로그인 계정이면 세션 비우기
         // getCurrentAccountId()가 null이어도 id.equals(null)은 false라 안전

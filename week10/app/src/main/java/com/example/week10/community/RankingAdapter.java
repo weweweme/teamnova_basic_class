@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.week10.account.UserPrefs;
 import com.example.week10.databinding.ItemRankingBinding;
 import com.example.week10.model.AccountProfile;
 
@@ -29,11 +30,17 @@ public class RankingAdapter extends RecyclerView.Adapter<RankingViewHolder> {
     private final String currentAccountId;
 
     /// <summary>
+    /// 지금 로그인한 내 저장소 (팔로우 확인·토글에 사용)
+    /// </summary>
+    private final UserPrefs myPrefs;
+
+    /// <summary>
     /// 어댑터 생성
     /// </summary>
-    public RankingAdapter(List<AccountProfile> profiles, String currentAccountId) {
+    public RankingAdapter(List<AccountProfile> profiles, String currentAccountId, UserPrefs myPrefs) {
         this.profiles = new ArrayList<>(profiles);
         this.currentAccountId = currentAccountId;
+        this.myPrefs = myPrefs;
     }
 
     /// <summary>
@@ -55,7 +62,7 @@ public class RankingAdapter extends RecyclerView.Adapter<RankingViewHolder> {
         AccountProfile profile = profiles.get(position);
         int rank = position + 1;
         boolean isMe = profile.getId().equals(currentAccountId);
-        holder.bind(profile, rank, isMe);
+        holder.bind(profile, rank, isMe, myPrefs);
     }
 
     /// <summary>

@@ -2,11 +2,13 @@ package com.example.week10.community;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.week10.R;
+import com.example.week10.account.UserPrefs;
 import com.example.week10.databinding.ItemRankingBinding;
 import com.example.week10.model.AccountProfile;
 
@@ -35,7 +37,8 @@ public class RankingViewHolder extends RecyclerView.ViewHolder {
     /// <param name="profile">이 줄의 유저 프로필</param>
     /// <param name="rank">순위 (1부터)</param>
     /// <param name="isMe">지금 로그인한 내 계정이면 별명 뒤에 "(나)" 표시</param>
-    public void bind(AccountProfile profile, int rank, boolean isMe) {
+    /// <param name="myPrefs">지금 로그인한 내 저장소 — 이 유저를 내가 팔로우했는지 확인·토글</param>
+    public void bind(AccountProfile profile, int rank, boolean isMe, UserPrefs myPrefs) {
         Context context = binding.getRoot().getContext();
 
         // 순위: 1~3위는 메달 이모지, 그 외는 숫자
@@ -56,6 +59,28 @@ public class RankingViewHolder extends RecyclerView.ViewHolder {
         // 리뷰 수
         binding.textViewRankReviews.setText(
                 context.getString(R.string.ranking_review_count, profile.getReviewCount()));
+
+        // 팔로우 버튼 — 내 계정 줄에는 안 보이고, 남의 줄에만 팔로우/팔로잉 토글
+        if (isMe || myPrefs == null) {
+            binding.buttonFollow.setVisibility(View.GONE);
+        } else {
+            binding.buttonFollow.setVisibility(View.VISIBLE);
+            updateFollowButton(myPrefs.isFollowing(profile.getId()));
+            binding.buttonFollow.setOnClickListener(v -> {
+                boolean now = myPrefs.isFollowing(profile.getId());
+                myPrefs.setFollowing(profile.getId(), !now);
+                updateFollowButton(!now);
+            });
+        }
+    }
+
+    /// <summary>
+    /// 팔로우 버튼 상태 갱신 — 팔로우 중이면 "팔로잉"(연하게), 아니면 "팔로우"
+    /// </summary>
+    private void updateFollowButton(boolean following) {
+        binding.buttonFollow.setText(following ? R.string.ranking_following : R.string.ranking_follow);
+        // 팔로우 중일 땐 살짝 흐리게 해서 "이미 팔로우함"을 표시
+        binding.buttonFollow.setAlpha(following ? 0.5f : 1.0f);
     }
 
     /// <summary>

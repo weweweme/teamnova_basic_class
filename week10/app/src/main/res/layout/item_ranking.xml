@@ -68,6 +68,22 @@
                 android:textSize="13sp"
                 tools:text="리뷰 3개" />
         </LinearLayout>
+
+        <!-- 팔로우/팔로잉 버튼 (내 계정 줄에서는 코드에서 숨김) -->
+        <Button
+            android:id="@+id/buttonFollow"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:textSize="12sp"
+            tools:text="팔로우" />
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

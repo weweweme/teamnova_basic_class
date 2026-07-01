@@ -95,6 +95,13 @@ public class UserPrefs {
     private static final String KEY_LIKE_PREFIX = "like_";
 
     /// <summary>
+    /// key 앞부분: 이 계정이 "팔로우한 상대" → 실제 key는 "follow_<상대id>"
+    /// 내가 X를 팔로우하면 내 파일에 "follow_X" 가 생김
+    /// (팔로잉 수 = 내 follow_ key 개수 / 팔로워 수 = 나를 follow_한 계정 수)
+    /// </summary>
+    private static final String KEY_FOLLOW_PREFIX = "follow_";
+
+    /// <summary>
     /// key: 보관함에서 마지막으로 보던 필터 탭 위치 (0=전체, 1부터 상태별)
     /// </summary>
     private static final String KEY_LAST_FILTER_TAB = "last_filter_tab";
@@ -393,6 +400,44 @@ public class UserPrefs {
         } else {
             prefs.edit().remove(likeKey(gameId, reviewerId)).apply();
         }
+    }
+
+    // ========== 팔로우 (follow_<상대id>) ==========
+
+    /// <summary>상대 id로 팔로우 key를 만든다 (예: bob → "follow_bob")</summary>
+    private String followKey(String targetId) {
+        return KEY_FOLLOW_PREFIX + targetId;
+    }
+
+    /// <summary>
+    /// 이 계정이 상대(targetId)를 팔로우하고 있는지
+    /// </summary>
+    public boolean isFollowing(String targetId) {
+        return prefs.contains(followKey(targetId));
+    }
+
+    /// <summary>
+    /// 팔로우를 켜거나(true) 끈다(false) — 팔로우/언팔로우 버튼에 사용
+    /// </summary>
+    public void setFollowing(String targetId, boolean follow) {
+        if (follow) {
+            prefs.edit().putBoolean(followKey(targetId), true).apply();
+        } else {
+            prefs.edit().remove(followKey(targetId)).apply();
+        }
+    }
+
+    /// <summary>
+    /// 이 계정이 팔로우한 사람 수 ("follow_"로 시작하는 key 개수)
+    /// </summary>
+    public int getFollowingCount() {
+        int count = 0;
+        for (String key : prefs.getAll().keySet()) {
+            if (key.startsWith(KEY_FOLLOW_PREFIX)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /// <summary>

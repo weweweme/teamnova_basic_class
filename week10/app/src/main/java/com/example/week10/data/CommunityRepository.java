@@ -150,4 +150,30 @@ public class CommunityRepository {
         return count;
     }
 
+    /// <summary>
+    /// 이 계정을 팔로우한 사람 수(팔로워 수)
+    /// 모든 계정을 훑어 accountId를 팔로우(follow_accountId)한 계정을 센다
+    /// </summary>
+    public int getFollowerCount(String accountId) {
+        int count = 0;
+        for (Account account : accountManager.getAccounts()) {
+            if (account.getId().equals(accountId)) {
+                continue;  // 자기 자신은 제외
+            }
+            UserPrefs prefs = new UserPrefs(appContext, account.getId());
+            if (prefs.isFollowing(accountId)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /// <summary>
+    /// 이 계정이 팔로우한 사람 수(팔로잉 수)
+    /// 그 계정 파일의 follow_ key 개수 (UserPrefs가 세어줌)
+    /// </summary>
+    public int getFollowingCount(String accountId) {
+        return new UserPrefs(appContext, accountId).getFollowingCount();
+    }
+
 }

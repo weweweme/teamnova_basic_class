@@ -25,6 +25,7 @@ import com.example.week10.library.LibraryActivity;
 import com.example.week10.stats.StatsActivity;
 import com.example.week10.timeline.TimelineActivity;
 import com.example.week10.data.ActivityLogRepository;
+import com.example.week10.data.CommunityRepository;
 import com.example.week10.data.GameRepository;
 import com.example.week10.databinding.ActivityHomeBinding;
 import com.example.week10.model.ActivityLog;
@@ -263,6 +264,13 @@ public class HomeActivity extends AppCompatActivity {
         int visitCount = userPrefs.getVisitCount();
         binding.textViewAttendanceHome.setText(
                 getString(R.string.attendance_summary, streak, visitCount));
+
+        // 팔로잉 · 팔로워 수 (커뮤니티 저장소가 계정들을 훑어 집계)
+        CommunityRepository community = ((App) getApplication()).getCommunityRepository();
+        int following = community.getFollowingCount(id);
+        int follower = community.getFollowerCount(id);
+        binding.textViewFollowHome.setText(
+                getString(R.string.profile_follow_summary, following, follower));
     }
 
     /// <summary>

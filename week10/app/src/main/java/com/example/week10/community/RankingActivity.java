@@ -57,7 +57,7 @@ public class RankingActivity extends AppCompatActivity {
         binding.recyclerRanking.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
 
         binding.recyclerRanking.setLayoutManager(new LinearLayoutManager(this));
-        binding.recyclerRanking.setAdapter(new RankingAdapter(ranking, currentId));
+        binding.recyclerRanking.setAdapter(new RankingAdapter(ranking, currentId, app.getUserPrefs()));
     }
 
     /// <summary>

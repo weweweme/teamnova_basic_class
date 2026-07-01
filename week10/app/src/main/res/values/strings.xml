@@ -81,6 +81,11 @@
     <string name="ranking_review_count">리뷰 %d개</string>
     <string name="ranking_me_badge">(나)</string>
     <string name="ranking_empty">아직 유저가 없어요</string>
+    <string name="ranking_follow">팔로우</string>
+    <string name="ranking_following">팔로잉</string>
+
+    <!-- 프로필 헤더 팔로우 요약 — %1$d=팔로잉, %2$d=팔로워 -->
+    <string name="profile_follow_summary">팔로잉 %1$d · 팔로워 %2$d</string>
 
     <!-- 전체 초기화 (테스트/시연용) -->
     <string name="home_action_reset">전체 초기화 (테스트용)</string>

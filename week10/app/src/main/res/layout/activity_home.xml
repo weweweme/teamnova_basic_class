@@ -85,6 +85,16 @@
                         android:textColor="#EF6C00"
                         android:textSize="12sp"
                         tools:text="🔥 3일 연속 · 누적 12회 방문" />
+
+                    <!-- 팔로잉 · 팔로워 수 -->
+                    <TextView
+                        android:id="@+id/textViewFollowHome"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="#666666"
+                        android:textSize="12sp"
+                        tools:text="팔로잉 2 · 팔로워 3" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

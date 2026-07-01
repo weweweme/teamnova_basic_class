@@ -146,6 +146,10 @@
     <string name="review_hint">한줄평을 입력하세요</string>
     <string name="review_save">저장</string>
     <string name="review_rating_label">별점: ★ %s</string>
+    <!-- 작성 중 뒤로가기 (변경사항 확인) -->
+    <string name="review_discard_title">저장하지 않고 나가기</string>
+    <string name="review_discard_message">변경한 내용이 아직 저장되지 않았어요. 그냥 나갈까요?</string>
+    <string name="review_discard_ok">나가기</string>
 
     <!-- 게임 상세 -->
     <string name="detail_title">게임 상세</string>

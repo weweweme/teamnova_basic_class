@@ -7,6 +7,8 @@ import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.widget.SeekBar;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.week10.App;
@@ -165,6 +167,14 @@ public class ReviewWriteActivity extends AppCompatActivity {
     /// </summary>
     private int gameId;
 
+    /// <summary>
+    /// 화면에 들어올 때 "이미 저장돼 있던" 별점/한줄평 (변경 여부 판단의 기준값)
+    /// 지금 입력값이 이 값과 다르면 = 저장 안 한 변경이 있음 → 뒤로가기 때 확인 다이얼로그
+    /// (Intent로 받은 값이라 화면 회전에도 그대로 유지됨)
+    /// </summary>
+    private float originalRating;
+    private String originalReview;
+
     // ========== Lifecycle ==========
 
     /// <summary>
@@ -194,6 +204,10 @@ public class ReviewWriteActivity extends AppCompatActivity {
         // 어느 게임의 리뷰인지 + 현재 계정 저장소 확보 (초안 자동저장/복원용)
         this.gameId = gameId;
         userPrefs = ((App) getApplication()).getUserPrefs();
+
+        // 변경 여부 판단 기준값 = 들어올 때 이미 저장돼 있던 값
+        originalRating = existingRating;
+        originalReview = existingReview;
 
         // 게임 제목 표시
         binding.textViewGameTitle.setText(gameTitle);
@@ -256,6 +270,15 @@ public class ReviewWriteActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
                 // 입력이 끝난 시점의 전체 텍스트를 초안으로 저장
                 autoSaveDraft(s.toString());
+            }
+        });
+
+        // 시스템 뒤로가기(버튼/제스처)를 가로채서, 저장 안 한 변경이 있으면 먼저 확인
+        // (액션바 ← 버튼은 onOptionsItemSelected에서 따로 같은 처리로 보냄)
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                attemptExit();
             }
         });
     }
@@ -342,10 +365,51 @@ public class ReviewWriteActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            finish();
+            // ← 버튼도 시스템 뒤로가기와 똑같이: 변경 있으면 확인부터
+            attemptExit();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    // ========== 뒤로가기 (변경사항 확인) ==========
+
+    /// <summary>
+    /// 화면을 나가려 할 때 호출 — 저장 안 한 변경이 있으면 확인 다이얼로그, 없으면 바로 닫음
+    /// (시스템 뒤로가기 + 액션바 ← 둘 다 여기로 모임)
+    /// </summary>
+    private void attemptExit() {
+        if (!hasUnsavedChanges()) {
+            finish();
+            return;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.review_discard_title)
+                .setMessage(R.string.review_discard_message)
+                .setPositiveButton(R.string.review_discard_ok, (dialog, which) -> finish())
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    /// <summary>
+    /// 지금 입력값이 처음 들어올 때의 값(originalRating/originalReview)과 달라졌는지
+    /// 별점이 바뀌었거나 한줄평이 바뀌었으면 true
+    /// </summary>
+    private boolean hasUnsavedChanges() {
+        boolean ratingChanged = currentRating != originalRating;
+        String baseline = (originalReview == null) ? "" : originalReview;
+        boolean reviewChanged = !currentReviewText().equals(baseline);
+        return ratingChanged || reviewChanged;
+    }
+
+    /// <summary>
+    /// 현재 한줄평 입력칸의 텍스트 (비어 있으면 빈 문자열)
+    /// </summary>
+    private String currentReviewText() {
+        if (binding.editTextReview.getText() == null) {
+            return "";
+        }
+        return binding.editTextReview.getText().toString();
     }
 
     // ========== 초안 자동저장 ==========

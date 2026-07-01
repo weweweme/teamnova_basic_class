@@ -322,7 +322,8 @@ public class HomeActivity extends AppCompatActivity {
         final int PREVIEW_ITEM_WIDTH_DP = 120;
 
         List<Game> preview = takeRandom(gameRepository.getAllGames(), PREVIEW_MAX);
-        LibraryAdapter adapter = new LibraryAdapter(preview, this::onGameClick, null);
+        LibraryAdapter adapter = new LibraryAdapter(preview, this::onGameClick, null,
+                ((App) getApplication()).getCommunityRepository());
 
         // 가로 스크롤 미리보기 → 셀 폭을 고정해야 여러 개가 보임
         // (안 하면 셀이 match_parent라 화면 폭을 꽉 채워 1개만 보임)

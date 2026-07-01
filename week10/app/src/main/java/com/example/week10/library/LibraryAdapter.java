@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.week10.data.CommunityRepository;
 import com.example.week10.databinding.ItemLibraryGridBinding;
 import com.example.week10.model.Game;
 
@@ -40,6 +41,11 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
     private final OnGameLongClickListener longClickListener;
 
     /// <summary>
+    /// 커뮤니티 저장소 — 카드마다 그 게임의 평균 별점(모든 계정 리뷰 평균)을 조회하는 데 사용
+    /// </summary>
+    private final CommunityRepository community;
+
+    /// <summary>
     /// 셀 고정 폭(dp). 0이면 LayoutManager가 폭 결정 (그리드 = 화면 분할)
     /// 0보다 크면 셀 폭을 이 값으로 고정 → 가로 스크롤 미리보기에서 여러 개 보이게
     /// (홈 화면 가로 미리보기 전용. 보관함 그리드는 setter를 호출 안 해 0 유지)
@@ -59,10 +65,12 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
     /// </summary>
     public LibraryAdapter(List<Game> games,
                           OnGameClickListener clickListener,
-                          OnGameLongClickListener longClickListener) {
+                          OnGameLongClickListener longClickListener,
+                          CommunityRepository community) {
         this.games = new ArrayList<>(games);
         this.clickListener = clickListener;
         this.longClickListener = longClickListener;
+        this.community = community;
     }
 
     /// <summary>
@@ -104,7 +112,9 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull LibraryViewHolder holder, int position) {
         Game game = games.get(position);
-        holder.bindGameData(game, clickListener, longClickListener);
+        // 이 게임의 커뮤니티 평균 별점 (아무도 리뷰 안 했으면 0 → 셀에서 배지 숨김)
+        float communityAverage = community.getAverageRating(game.getId());
+        holder.bindGameData(game, communityAverage, clickListener, longClickListener);
     }
 
     /// <summary>

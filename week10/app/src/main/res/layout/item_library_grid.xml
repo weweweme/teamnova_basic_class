@@ -5,6 +5,7 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="6dp"
@@ -16,14 +17,38 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- 게임 표지 (그리드의 주인공 — 세로 포스터 비율) -->
-        <!-- adjustViewBounds + 고정 높이로 셀마다 표지 크기를 통일 -->
-        <ImageView
-            android:id="@+id/imageViewCover"
+        <!-- 표지 + 평균 별점 배지 (배지를 표지 위 오른쪽 코너에 얹기 위해 FrameLayout으로 겹침) -->
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="180dp"
-            android:scaleType="centerCrop"
-            android:contentDescription="@string/game_cover_description" />
+            android:layout_height="wrap_content">
+
+            <!-- 게임 표지 (그리드의 주인공 — 세로 포스터 비율) -->
+            <!-- adjustViewBounds + 고정 높이로 셀마다 표지 크기를 통일 -->
+            <ImageView
+                android:id="@+id/imageViewCover"
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/game_cover_description" />
+
+            <!-- 커뮤니티 평균 별점 배지 (리뷰가 있을 때만 코드에서 표시) -->
+            <TextView
+                android:id="@+id/textViewCommunityRating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="6dp"
+                android:background="@drawable/bg_rating_badge"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="★ 4.3" />
+        </FrameLayout>
 
         <!-- 게임 제목 (표지 아래 한 줄, 길면 말줄임) -->
         <TextView

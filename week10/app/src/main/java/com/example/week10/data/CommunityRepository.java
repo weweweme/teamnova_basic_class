@@ -103,4 +103,23 @@ public class CommunityRepository {
 
         return reviews;
     }
+
+    /// <summary>
+    /// 특정 게임의 "평균 별점"을 반환 (이 기기의 모든 계정 리뷰 평균 — 커뮤니티 평점)
+    /// 아무도 리뷰하지 않았으면 0을 반환 (호출부에서 "리뷰 없음"으로 처리)
+    /// </summary>
+    public float getAverageRating(int gameId) {
+        float sum = 0f;
+        int count = 0;
+
+        for (Account account : accountManager.getAccounts()) {
+            UserPrefs prefs = new UserPrefs(appContext, account.getId());
+            if (prefs.hasReview(gameId)) {
+                sum += prefs.getRating(gameId);
+                count++;
+            }
+        }
+
+        return count == 0 ? 0f : sum / count;
+    }
 }

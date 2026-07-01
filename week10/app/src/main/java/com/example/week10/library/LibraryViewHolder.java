@@ -1,6 +1,7 @@
 package com.example.week10.library;
 
 import android.content.Context;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -8,6 +9,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.week10.R;
 import com.example.week10.databinding.ItemLibraryGridBinding;
 import com.example.week10.model.Game;
+
+import java.util.Locale;
 
 /// <summary>
 /// 보관함 그리드 한 칸의 뷰 참조를 보관하는 ViewHolder
@@ -35,12 +38,22 @@ public class LibraryViewHolder extends RecyclerView.ViewHolder {
     /// 셀 클릭/길게 누르기 시 각 콜백을 통해 Activity에 알림
     /// </summary>
     public void bindGameData(Game game,
+                             float communityAverage,
                              OnGameClickListener clickListener,
                              OnGameLongClickListener longClickListener) {
         Context context = binding.getRoot().getContext();
 
         // 제목
         binding.textViewTitle.setText(game.getTitle());
+
+        // 커뮤니티 평균 별점 배지 (리뷰가 하나라도 있으면 표지 위에 "★ 4.3", 없으면 숨김)
+        if (communityAverage > 0f) {
+            binding.textViewCommunityRating.setText(
+                    String.format(Locale.getDefault(), "★ %.1f", communityAverage));
+            binding.textViewCommunityRating.setVisibility(View.VISIBLE);
+        } else {
+            binding.textViewCommunityRating.setVisibility(View.GONE);
+        }
 
         // 표지 이미지 (이름 문자열로 drawable 리소스 ID 조회)
         // 게임마다 이미지 이름이 다르므로 getIdentifier 사용이 불가피

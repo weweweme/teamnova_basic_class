@@ -94,6 +94,14 @@
             android:parentActivityName=".detail.GameDetailActivity"
             android:exported="false" />
 
+        <!-- 리뷰 게시판: 게임 상세의 "더 보기" → 다른 사람들 평가 전체 목록 -->
+        <!-- parentActivityName: ← 버튼 누르면 GameDetailActivity로 돌아감 -->
+        <activity
+            android:name=".detail.ReviewBoardActivity"
+            android:label="@string/detail_others_title"
+            android:parentActivityName=".detail.GameDetailActivity"
+            android:exported="false" />
+
         <!-- 스크린샷: 갤러리에서 이미지 선택 + 미리보기 -->
         <!-- parentActivityName: ← 버튼 누르면 GameDetailActivity로 돌아감 -->
         <activity

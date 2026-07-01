@@ -25,6 +25,7 @@ import com.example.week10.model.Game;
 import com.example.week10.model.GameReview;
 import com.example.week10.model.GameStatus;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -281,33 +282,63 @@ public class GameDetailActivity extends AppCompatActivity {
         App app = (App) getApplication();
         CommunityRepository community = app.getCommunityRepository();
         String currentId = app.getAccountManager().getCurrentAccountId();
+        int gameId = game.getId();
 
         // 나를 뺀 다른 계정들의 이 게임 리뷰
-        List<GameReview> others = community.getReviewsForGame(game.getId(), currentId);
+        List<GameReview> others = community.getReviewsForGame(gameId, currentId);
 
-        boolean isEmpty = others.isEmpty();
-        binding.textViewOthersEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
-        binding.textViewOthersAverage.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
-        binding.recyclerOthersReviews.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
-
-        if (isEmpty) {
-            return;
-        }
-
-        // 평균 별점 계산 (다른 사람들 것만)
-        float sum = 0f;
+        // ── 전체 평균(나 포함) 계산 ──
+        // 다른 사람들 별점 합 + (내가 평가했으면) 내 별점
+        boolean hasMine = userPrefs.hasReview(gameId);
+        int totalCount = others.size() + (hasMine ? 1 : 0);
+        float totalSum = hasMine ? userPrefs.getRating(gameId) : 0f;
         for (GameReview review : others) {
-            sum += review.getRating();
+            totalSum += review.getRating();
         }
-        float average = sum / others.size();
-        String averageText = String.format(Locale.getDefault(), "%.1f", average);
-        binding.textViewOthersAverage.setText(
-                getString(R.string.detail_others_average, averageText, others.size()));
 
-        // 목록 표시 — 바깥 ScrollView와 충돌하지 않도록 자체 스크롤 끔
-        binding.recyclerOthersReviews.setLayoutManager(new LinearLayoutManager(this));
-        binding.recyclerOthersReviews.setNestedScrollingEnabled(false);
-        binding.recyclerOthersReviews.setAdapter(new GameReviewAdapter(others));
+        // 한 명이라도 평가했으면 전체 평균 줄 표시
+        if (totalCount > 0) {
+            String averageText = String.format(Locale.getDefault(), "%.1f", totalSum / totalCount);
+            binding.textViewGameAverage.setText(
+                    getString(R.string.detail_total_average, averageText, totalCount));
+            binding.textViewGameAverage.setVisibility(View.VISIBLE);
+        } else {
+            binding.textViewGameAverage.setVisibility(View.GONE);
+        }
+
+        // ── 다른 사람들 리뷰: 미리보기 몇 개만, 나머지는 "더 보기" 게시판으로 ──
+        final int PREVIEW_MAX = 3;
+        boolean othersEmpty = others.isEmpty();
+        binding.textViewOthersEmpty.setVisibility(othersEmpty ? View.VISIBLE : View.GONE);
+        binding.recyclerOthersReviews.setVisibility(othersEmpty ? View.GONE : View.VISIBLE);
+
+        if (!othersEmpty) {
+            // 미리보기는 앞에서 최대 PREVIEW_MAX개만 (전체는 게시판에서)
+            List<GameReview> preview = others.size() > PREVIEW_MAX
+                    ? new ArrayList<>(others.subList(0, PREVIEW_MAX))
+                    : others;
+            // 바깥 ScrollView와 충돌하지 않도록 자체 스크롤 끔
+            binding.recyclerOthersReviews.setLayoutManager(new LinearLayoutManager(this));
+            binding.recyclerOthersReviews.setNestedScrollingEnabled(false);
+            binding.recyclerOthersReviews.setAdapter(new GameReviewAdapter(preview));
+        }
+
+        // 미리보기보다 리뷰가 많을 때만 "더 보기" → 게시판(전체 목록) 화면
+        boolean hasMore = others.size() > PREVIEW_MAX;
+        binding.buttonMoreReviews.setVisibility(hasMore ? View.VISIBLE : View.GONE);
+        if (hasMore) {
+            binding.buttonMoreReviews.setOnClickListener(v -> openReviewBoard());
+        }
+    }
+
+    /// <summary>
+    /// "더 보기" → 이 게임의 리뷰 게시판(다른 사람들 전체 목록) 화면으로 이동
+    /// </summary>
+    private void openReviewBoard() {
+        Intent intent = new Intent(this, ReviewBoardActivity.class);
+        intent.putExtra(ReviewBoardActivity.EXTRA_GAME_ID, game.getId());
+        intent.putExtra(ReviewBoardActivity.EXTRA_GAME_TITLE, game.getTitle());
+        startActivity(intent);
     }
 
     /// <summary>

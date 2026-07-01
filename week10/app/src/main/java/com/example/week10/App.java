@@ -79,8 +79,8 @@ public class App extends Application {
         activityLogRepository = new ActivityLogRepository();
         // this(Application)도 Context의 일종이라 SharedPreferences 파일을 열 수 있다 → 그대로 넘김
         accountManager = new AccountManager(this);
-        // 커뮤니티 저장소는 계정 관리자·게임 저장소를 통해 여러 계정/게임을 읽으므로 그 다음에 생성
-        communityRepository = new CommunityRepository(this, accountManager, gameRepository);
+        // 커뮤니티 저장소는 계정 관리자를 통해 여러 계정을 읽으므로 그 다음에 생성
+        communityRepository = new CommunityRepository(this, accountManager);
 
         // 테스트 계정을 항상 존재하게 유지 (없으면 심는다 — 시연/커뮤니티 데이터용)
         testAccountSeeder = new TestAccountSeeder(this, accountManager);

@@ -312,41 +312,6 @@
             android:layout_height="wrap_content"
             tools:listitem="@layout/item_log_completed" />
 
-        <!-- ════════ 섹션 4: 최근 리뷰(커뮤니티 피드) 미리보기 ════════ -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingStart="16dp"
-            android:paddingEnd="8dp"
-            android:paddingTop="16dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/home_section_feed"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <!-- 더 보기 → 전체 리뷰 피드 -->
-            <Button
-                android:id="@+id/buttonMoreFeed"
-                style="?attr/borderlessButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/home_more"
-                android:textSize="13sp" />
-        </LinearLayout>
-
-        <!-- 최근 리뷰 미리보기 (세로 일부, 자체 스크롤 끔) -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerReviewFeed"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            tools:listitem="@layout/item_review_feed" />
-
     </LinearLayout>
 
 </ScrollView>

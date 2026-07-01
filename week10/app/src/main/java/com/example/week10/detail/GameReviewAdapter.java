@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.week10.account.UserPrefs;
 import com.example.week10.databinding.ItemGameReviewBinding;
 import com.example.week10.model.GameReview;
 
@@ -24,10 +25,16 @@ public class GameReviewAdapter extends RecyclerView.Adapter<GameReviewViewHolder
     private final List<GameReview> reviews;
 
     /// <summary>
+    /// 지금 로그인한 내 저장소 (하트를 눌렀을 때 좋아요 저장에 사용)
+    /// </summary>
+    private final UserPrefs myPrefs;
+
+    /// <summary>
     /// 어댑터 생성
     /// </summary>
-    public GameReviewAdapter(List<GameReview> reviews) {
+    public GameReviewAdapter(List<GameReview> reviews, UserPrefs myPrefs) {
         this.reviews = new ArrayList<>(reviews);
+        this.myPrefs = myPrefs;
     }
 
     /// <summary>
@@ -46,7 +53,7 @@ public class GameReviewAdapter extends RecyclerView.Adapter<GameReviewViewHolder
     /// </summary>
     @Override
     public void onBindViewHolder(@NonNull GameReviewViewHolder holder, int position) {
-        holder.bind(reviews.get(position));
+        holder.bind(reviews.get(position), myPrefs);
     }
 
     /// <summary>

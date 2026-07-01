@@ -320,7 +320,7 @@ public class GameDetailActivity extends AppCompatActivity {
             // 바깥 ScrollView와 충돌하지 않도록 자체 스크롤 끔
             binding.recyclerOthersReviews.setLayoutManager(new LinearLayoutManager(this));
             binding.recyclerOthersReviews.setNestedScrollingEnabled(false);
-            binding.recyclerOthersReviews.setAdapter(new GameReviewAdapter(preview));
+            binding.recyclerOthersReviews.setAdapter(new GameReviewAdapter(preview, userPrefs));
         }
 
         // 미리보기보다 리뷰가 많을 때만 "더 보기" → 게시판(전체 목록) 화면

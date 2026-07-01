@@ -65,7 +65,7 @@ public class ReviewBoardActivity extends AppCompatActivity {
         binding.recyclerBoard.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
 
         binding.recyclerBoard.setLayoutManager(new LinearLayoutManager(this));
-        binding.recyclerBoard.setAdapter(new GameReviewAdapter(reviews));
+        binding.recyclerBoard.setAdapter(new GameReviewAdapter(reviews, app.getUserPrefs()));
     }
 
     /// <summary>

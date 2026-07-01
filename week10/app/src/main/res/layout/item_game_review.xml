@@ -63,6 +63,20 @@
             android:textColor="#555555"
             android:textSize="14sp"
             tools:text="엘든 링 어렵지만 결국 명작" />
+
+        <!-- 좋아요(하트) — 누르면 토글, 색은 코드에서 (누름=빨강/안누름=회색) -->
+        <TextView
+            android:id="@+id/textViewReviewLike"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="2dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="4dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:textSize="13sp"
+            tools:text="♥ 3" />
     </LinearLayout>
 
 </LinearLayout>

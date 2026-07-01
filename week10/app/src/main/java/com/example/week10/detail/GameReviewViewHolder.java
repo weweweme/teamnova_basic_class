@@ -5,6 +5,7 @@ import android.content.res.ColorStateList;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.week10.account.UserPrefs;
 import com.example.week10.databinding.ItemGameReviewBinding;
 import com.example.week10.model.GameReview;
 
@@ -30,7 +31,9 @@ public class GameReviewViewHolder extends RecyclerView.ViewHolder {
     /// <summary>
     /// 리뷰 한 개를 줄에 채운다
     /// </summary>
-    public void bind(GameReview review) {
+    /// <param name="review">표시할 리뷰</param>
+    /// <param name="myPrefs">지금 로그인한 내 저장소 — 하트를 눌렀을 때 좋아요를 저장하는 데 사용</param>
+    public void bind(GameReview review, UserPrefs myPrefs) {
         // 작성자 아바타: 색 + 별명 첫 글자
         binding.textViewReviewerAvatar.setText(initialOf(review.getNickname()));
         binding.textViewReviewerAvatar.setBackgroundTintList(
@@ -44,6 +47,30 @@ public class GameReviewViewHolder extends RecyclerView.ViewHolder {
 
         // 한줄평
         binding.textViewReviewerReview.setText(review.getReview());
+
+        // 좋아요(하트) 표시
+        updateLike(review);
+
+        // 하트 클릭 → 토글: 내 저장소에 좋아요 켜고/끄고, 이 항목 상태·화면 갱신
+        binding.textViewReviewLike.setOnClickListener(v -> {
+            if (myPrefs == null) {
+                return;
+            }
+            boolean newLiked = !review.isLikedByMe();
+            myPrefs.setLiked(review.getGameId(), review.getReviewerId(), newLiked);
+            review.toggleLike();
+            updateLike(review);
+        });
+    }
+
+    /// <summary>
+    /// 하트 아이콘/개수/색을 현재 상태로 갱신 (누름=빨강 ♥, 안 누름=회색 ♡)
+    /// </summary>
+    private void updateLike(GameReview review) {
+        String heart = review.isLikedByMe() ? "♥" : "♡";
+        binding.textViewReviewLike.setText(heart + " " + review.getLikeCount());
+        int color = review.isLikedByMe() ? 0xFFE53935 : 0xFF999999;
+        binding.textViewReviewLike.setTextColor(color);
     }
 
     /// <summary>

@@ -257,11 +257,19 @@ public class GameDetailActivity extends AppCompatActivity {
         // 게임 정보를 화면에 표시
         bindGameData();
 
-        // 다른 사람들의 평가 섹션 채우기 (다른 계정들이 이 게임에 남긴 리뷰)
-        setupOthersReviews();
-
         // 버튼 리스너 등록
         setupButtons();
+    }
+
+    /// <summary>
+    /// 화면이 다시 앞으로 올 때마다 "다른 사람들의 평가"를 새로 읽어 갱신
+    /// (다른 계정이 이 게임에 리뷰를 남겼거나, 다른 화면 다녀온 뒤 최신 상태 반영)
+    /// onResume은 첫 진입(onCreate 직후)에도 호출되므로 첫 표시도 여기서 처리됨
+    /// </summary>
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setupOthersReviews();
     }
 
     /// <summary>

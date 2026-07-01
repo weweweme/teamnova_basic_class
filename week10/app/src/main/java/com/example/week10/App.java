@@ -5,6 +5,7 @@ import android.app.Application;
 import com.example.week10.account.AccountManager;
 import com.example.week10.account.UserPrefs;
 import com.example.week10.data.ActivityLogRepository;
+import com.example.week10.data.CommunityRepository;
 import com.example.week10.data.GameRepository;
 
 /// <summary>
@@ -56,6 +57,12 @@ public class App extends Application {
     private String userPrefsAccountId;
 
     /// <summary>
+    /// 커뮤니티 저장소 (이 기기의 여러 계정을 가로질러 읽음 — "이 기기의 유저들" 등)
+    /// 사용처: ((App) getApplication()).getCommunityRepository()
+    /// </summary>
+    private CommunityRepository communityRepository;
+
+    /// <summary>
     /// 앱 프로세스 시작 시 단 한 번 호출
     /// 여기서 만든 객체들은 앱이 살아있는 동안 계속 같은 인스턴스로 유지됨
     /// </summary>
@@ -66,6 +73,8 @@ public class App extends Application {
         activityLogRepository = new ActivityLogRepository();
         // this(Application)도 Context의 일종이라 SharedPreferences 파일을 열 수 있다 → 그대로 넘김
         accountManager = new AccountManager(this);
+        // 커뮤니티 저장소는 계정 관리자를 통해 여러 계정을 읽으므로 그 다음에 생성
+        communityRepository = new CommunityRepository(this, accountManager);
     }
 
     /// <summary>
@@ -90,6 +99,13 @@ public class App extends Application {
     /// </summary>
     public AccountManager getAccountManager() {
         return accountManager;
+    }
+
+    /// <summary>
+    /// 공용 커뮤니티 저장소 반환 (이 기기의 여러 계정 읽기)
+    /// </summary>
+    public CommunityRepository getCommunityRepository() {
+        return communityRepository;
     }
 
     /// <summary>

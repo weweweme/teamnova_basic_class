@@ -77,6 +77,17 @@ public class UserPrefs {
     private static final String KEY_DRAFT_RATING_PREFIX = "draft_rating_";
 
     /// <summary>
+    /// key 앞부분: 정식 저장된 별점 (게임마다 따로) → 실제 key는 "rating_<게임id>"
+    /// draft_(작성 중 임시)와 달리, "저장" 버튼을 눌러 확정한 값. 계정마다 따로 보관됨
+    /// </summary>
+    private static final String KEY_RATING_PREFIX = "rating_";
+
+    /// <summary>
+    /// key 앞부분: 정식 저장된 한줄평 → 실제 key는 "review_<게임id>"
+    /// </summary>
+    private static final String KEY_REVIEW_PREFIX = "review_";
+
+    /// <summary>
     /// key: 보관함에서 마지막으로 보던 필터 탭 위치 (0=전체, 1부터 상태별)
     /// </summary>
     private static final String KEY_LAST_FILTER_TAB = "last_filter_tab";
@@ -300,6 +311,52 @@ public class UserPrefs {
     public void clearDraftRating(int gameId) {
         prefs.edit()
                 .remove(draftRatingKey(gameId))
+                .apply();
+    }
+
+    // ========== 정식 리뷰 (rating_<게임id> / review_<게임id>) ==========
+    // 이 계정이 그 게임에 "저장" 버튼으로 확정한 별점/한줄평.
+    // 계정마다 별도 파일(user_<id>)에 있으므로, 같은 게임이라도 계정마다 리뷰가 다르다.
+    // (CommunityRepository가 다른 계정의 UserPrefs를 열어 "다른 사람들의 평가"를 모을 때도 이 값을 읽음)
+
+    /// <summary>게임 id로 별점 key를 만든다 (예: 12 → "rating_12")</summary>
+    private String ratingKey(int gameId) {
+        return KEY_RATING_PREFIX + gameId;
+    }
+
+    /// <summary>게임 id로 한줄평 key를 만든다 (예: 12 → "review_12")</summary>
+    private String reviewKey(int gameId) {
+        return KEY_REVIEW_PREFIX + gameId;
+    }
+
+    /// <summary>
+    /// 이 계정이 그 게임에 정식 리뷰(별점/한줄평)를 남긴 적 있는지
+    /// </summary>
+    public boolean hasReview(int gameId) {
+        return prefs.contains(ratingKey(gameId)) || prefs.contains(reviewKey(gameId));
+    }
+
+    /// <summary>
+    /// 이 계정의 그 게임 별점을 반환 (없으면 0)
+    /// </summary>
+    public float getRating(int gameId) {
+        return prefs.getFloat(ratingKey(gameId), 0f);
+    }
+
+    /// <summary>
+    /// 이 계정의 그 게임 한줄평을 반환 (없으면 빈 문자열)
+    /// </summary>
+    public String getReview(int gameId) {
+        return prefs.getString(reviewKey(gameId), "");
+    }
+
+    /// <summary>
+    /// 이 계정의 그 게임 별점/한줄평을 정식 저장 ("저장" 버튼을 눌렀을 때)
+    /// </summary>
+    public void saveReview(int gameId, float rating, String review) {
+        prefs.edit()
+                .putFloat(ratingKey(gameId), rating)
+                .putString(reviewKey(gameId), review)
                 .apply();
     }
 

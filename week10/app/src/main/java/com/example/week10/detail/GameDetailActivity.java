@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.week10.App;
 import com.example.week10.R;
+import com.example.week10.account.UserPrefs;
 import com.example.week10.databinding.ActivityGameDetailBinding;
 import com.example.week10.model.Game;
 import com.example.week10.model.GameStatus;
@@ -104,6 +105,13 @@ public class GameDetailActivity extends AppCompatActivity {
     /// </summary>
     private ActivityResultLauncher<Intent> screenshotLauncher;
 
+    /// <summary>
+    /// 현재 로그인 계정의 개인 설정 저장소
+    /// 별점/한줄평은 계정마다 다르므로, "내 평가"는 전역 Game이 아니라 여기서 읽고 쓴다
+    /// (같은 게임이라도 alice의 리뷰와 bob의 리뷰가 다름)
+    /// </summary>
+    private UserPrefs userPrefs;
+
     // ========== Lifecycle ==========
 
     /// <summary>
@@ -129,6 +137,9 @@ public class GameDetailActivity extends AppCompatActivity {
             finish();
             return;
         }
+
+        // 현재 로그인 계정의 저장소 (내 별점/한줄평을 여기서 읽고 씀)
+        userPrefs = ((App) getApplication()).getUserPrefs();
 
         // ActionBar에 ← 뒤로가기 버튼 표시
         if (getSupportActionBar() != null) {
@@ -192,16 +203,16 @@ public class GameDetailActivity extends AppCompatActivity {
                     float rating = data.getFloatExtra(ReviewWriteActivity.EXTRA_RATING, 0f);
                     String review = data.getStringExtra(ReviewWriteActivity.EXTRA_REVIEW);
 
-                    // [3단계] 클래스 필드 game에 반영
+                    // [3단계] 내 계정 파일에 정식 리뷰 저장 (계정마다 다른 "내 평가")
+                    userPrefs.saveReview(game.getId(), rating, review);
+
+                    // [4단계] 전역 Game/Repository에도 반영 (보관함·홈·통계가 아직 전역 값을 읽으므로 유지)
+                    // game은 Parcelable 사본이라 여기 setRating/setReview는 사본만 갱신 → 원본도 updateGame으로 갱신
                     game.setRating(rating);
                     game.setReview(review);
-
-                    // [4단계] Repository 원본에도 반영
-                    // game은 Parcelable로 복사된 사본이라 setRating/setReview는 이 사본만 갱신됨
-                    // → MainActivity로 돌아갔을 때 리스트에 변경이 보이려면 원본을 명시적으로 갱신해야 함
                     ((App) getApplication()).getGameRepository().updateGame(game);
 
-                    // [5단계] 화면 재바인딩 → 변경된 별점/한줄평이 TextView에 표시됨
+                    // [5단계] 화면 재바인딩 → 바뀐 내 평가가 표시됨
                     bindGameData();
                 }
         );
@@ -335,8 +346,9 @@ public class GameDetailActivity extends AppCompatActivity {
         // 게임 정보를 putExtra로 전달 (ReviewWrite에서 제목 표시 + 기존 리뷰 채우기 용)
         intent.putExtra(ReviewWriteActivity.EXTRA_GAME_ID, game.getId());
         intent.putExtra(ReviewWriteActivity.EXTRA_GAME_TITLE, game.getTitle());
-        intent.putExtra(ReviewWriteActivity.EXTRA_CURRENT_RATING, game.getRating());
-        intent.putExtra(ReviewWriteActivity.EXTRA_CURRENT_REVIEW, game.getReview());
+        // 프리필은 "내 계정"의 기존 리뷰 (전역 Game이 아니라 내 UserPrefs에서)
+        intent.putExtra(ReviewWriteActivity.EXTRA_CURRENT_RATING, userPrefs.getRating(game.getId()));
+        intent.putExtra(ReviewWriteActivity.EXTRA_CURRENT_REVIEW, userPrefs.getReview(game.getId()));
 
         // ──────── launch(intent) 내부 동작 ────────
         // 이 한 줄이 트리거하는 6단계:
@@ -382,10 +394,10 @@ public class GameDetailActivity extends AppCompatActivity {
         // 공유할 텍스트 조합
         String shareText = game.getTitle();
 
-        // 리뷰가 있으면 별점 + 한줄평도 포함
-        boolean hasReview = game.getReview() != null && !game.getReview().isEmpty();
-        if (hasReview) {
-            shareText += "\n★ " + game.getRating() + " - " + game.getReview();
+        // 내 리뷰가 있으면 별점 + 한줄평도 포함 (내 계정 것)
+        int gameId = game.getId();
+        if (userPrefs.hasReview(gameId)) {
+            shareText += "\n★ " + userPrefs.getRating(gameId) + " - " + userPrefs.getReview(gameId);
         }
 
         // ACTION_SEND: "이 데이터를 보낼 수 있는 앱 목록 보여줘"
@@ -486,23 +498,27 @@ public class GameDetailActivity extends AppCompatActivity {
         binding.textViewStatus.setBackgroundTintList(
                 ColorStateList.valueOf(status.getColorArgb()));
 
-        // 별점: RatingBar로 별을 채우고 숫자도 함께 표시
-        binding.ratingBar.setRating(game.getRating());
+        // 별점/한줄평은 "내 계정" 것을 표시 (전역 Game이 아니라 내 UserPrefs에서)
+        int gameId = game.getId();
+        float myRating = userPrefs.getRating(gameId);
+        boolean hasMyReview = userPrefs.hasReview(gameId);
 
-        // 한줄평 (리뷰 유무에 따라 숫자/문구 분기)
-        boolean hasReview = game.getReview() != null && !game.getReview().isEmpty();
-        if (hasReview) {
-            binding.textViewRatingValue.setText(String.valueOf(game.getRating()));
-            binding.textViewReview.setText(game.getReview());
+        // 별점: RatingBar로 별을 채우고 숫자도 함께 표시
+        binding.ratingBar.setRating(myRating);
+
+        // 한줄평 (내 리뷰 유무에 따라 숫자/문구 분기)
+        if (hasMyReview) {
+            binding.textViewRatingValue.setText(String.valueOf(myRating));
+            binding.textViewReview.setText(userPrefs.getReview(gameId));
         } else {
-            // 리뷰가 없으면 숫자는 비우고 "리뷰 없음" 안내
+            // 내 리뷰가 없으면 숫자는 비우고 "리뷰 없음" 안내
             binding.textViewRatingValue.setText("");
             binding.textViewReview.setText("리뷰 없음");
         }
 
-        // 리뷰 버튼 텍스트: 이미 리뷰가 있으면 "수정", 없으면 "작성"
+        // 리뷰 버튼 텍스트: 내 리뷰가 이미 있으면 "수정", 없으면 "작성"
         // 같은 화면에서 같은 버튼이지만 상태에 따라 의미가 달라지므로 라벨도 맞춰줌
-        if (hasReview) {
+        if (hasMyReview) {
             binding.buttonReview.setText(R.string.detail_edit_review);
         } else {
             binding.buttonReview.setText(R.string.detail_write_review);

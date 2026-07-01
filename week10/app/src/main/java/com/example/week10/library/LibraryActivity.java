@@ -139,7 +139,7 @@ public class LibraryActivity extends AppCompatActivity {
         // RecyclerView 설정 — 보기 모드(그리드/리스트)에 맞는 LayoutManager 적용
         // 클릭 → 상세, 길게 누르기 → BottomSheet
         adapter = new LibraryAdapter(gameRepository.getAllGames(), this::onGameClick, this::onGameLongClick,
-                ((App) getApplication()).getCommunityRepository());
+                ((App) getApplication()).getUserPrefs());
         binding.recyclerViewLibrary.setAdapter(adapter);
         applyViewMode();
 

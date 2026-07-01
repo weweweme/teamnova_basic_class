@@ -6,7 +6,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.week10.data.CommunityRepository;
+import com.example.week10.account.UserPrefs;
 import com.example.week10.databinding.ItemLibraryGridBinding;
 import com.example.week10.model.Game;
 
@@ -41,9 +41,10 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
     private final OnGameLongClickListener longClickListener;
 
     /// <summary>
-    /// 커뮤니티 저장소 — 카드마다 그 게임의 평균 별점(모든 계정 리뷰 평균)을 조회하는 데 사용
+    /// 현재 로그인 계정의 저장소 — 카드마다 "내 별점"을 조회하는 데 사용
+    /// (다이어리이므로 카드엔 커뮤니티 평균이 아니라 내가 준 별점을 표시. 안 준 게임은 배지 없음)
     /// </summary>
-    private final CommunityRepository community;
+    private final UserPrefs userPrefs;
 
     /// <summary>
     /// 셀 고정 폭(dp). 0이면 LayoutManager가 폭 결정 (그리드 = 화면 분할)
@@ -66,11 +67,11 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
     public LibraryAdapter(List<Game> games,
                           OnGameClickListener clickListener,
                           OnGameLongClickListener longClickListener,
-                          CommunityRepository community) {
+                          UserPrefs userPrefs) {
         this.games = new ArrayList<>(games);
         this.clickListener = clickListener;
         this.longClickListener = longClickListener;
-        this.community = community;
+        this.userPrefs = userPrefs;
     }
 
     /// <summary>
@@ -112,9 +113,9 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull LibraryViewHolder holder, int position) {
         Game game = games.get(position);
-        // 이 게임의 커뮤니티 평균 별점 (아무도 리뷰 안 했으면 0 → 셀에서 배지 숨김)
-        float communityAverage = community.getAverageRating(game.getId());
-        holder.bindGameData(game, communityAverage, clickListener, longClickListener);
+        // 내가 이 게임에 준 별점 (안 줬으면 0 → 셀에서 배지 숨김)
+        float myRating = (userPrefs != null) ? userPrefs.getRating(game.getId()) : 0f;
+        holder.bindGameData(game, myRating, clickListener, longClickListener);
     }
 
     /// <summary>

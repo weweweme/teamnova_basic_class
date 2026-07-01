@@ -38,7 +38,7 @@ public class LibraryViewHolder extends RecyclerView.ViewHolder {
     /// 셀 클릭/길게 누르기 시 각 콜백을 통해 Activity에 알림
     /// </summary>
     public void bindGameData(Game game,
-                             float communityAverage,
+                             float myRating,
                              OnGameClickListener clickListener,
                              OnGameLongClickListener longClickListener) {
         Context context = binding.getRoot().getContext();
@@ -46,13 +46,13 @@ public class LibraryViewHolder extends RecyclerView.ViewHolder {
         // 제목
         binding.textViewTitle.setText(game.getTitle());
 
-        // 커뮤니티 평균 별점 배지 (리뷰가 하나라도 있으면 표지 위에 "★ 4.3", 없으면 숨김)
-        if (communityAverage > 0f) {
-            binding.textViewCommunityRating.setText(
-                    String.format(Locale.getDefault(), "★ %.1f", communityAverage));
-            binding.textViewCommunityRating.setVisibility(View.VISIBLE);
+        // 내 별점 배지 (내가 평가한 게임만 표지 위에 "★ 4.5", 별점 없는 게임은 배지 숨김 — 다이어리)
+        if (myRating > 0f) {
+            binding.textViewMyRating.setText(
+                    String.format(Locale.getDefault(), "★ %.1f", myRating));
+            binding.textViewMyRating.setVisibility(View.VISIBLE);
         } else {
-            binding.textViewCommunityRating.setVisibility(View.GONE);
+            binding.textViewMyRating.setVisibility(View.GONE);
         }
 
         // 표지 이미지 (이름 문자열로 drawable 리소스 ID 조회)

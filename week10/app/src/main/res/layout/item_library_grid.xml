@@ -31,9 +31,9 @@
                 android:scaleType="centerCrop"
                 android:contentDescription="@string/game_cover_description" />
 
-            <!-- 커뮤니티 평균 별점 배지 (리뷰가 있을 때만 코드에서 표시) -->
+            <!-- 내 별점 배지 (내가 평가한 게임만 코드에서 표시 — 다이어리) -->
             <TextView
-                android:id="@+id/textViewCommunityRating"
+                android:id="@+id/textViewMyRating"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="top|end"

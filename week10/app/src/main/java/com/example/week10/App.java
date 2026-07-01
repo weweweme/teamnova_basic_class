@@ -7,6 +7,7 @@ import com.example.week10.account.UserPrefs;
 import com.example.week10.data.ActivityLogRepository;
 import com.example.week10.data.CommunityRepository;
 import com.example.week10.data.GameRepository;
+import com.example.week10.data.TestAccountSeeder;
 
 /// <summary>
 /// 앱 전역 Application 클래스
@@ -63,6 +64,11 @@ public class App extends Application {
     private CommunityRepository communityRepository;
 
     /// <summary>
+    /// 테스트 계정 시더 (시연용 계정을 항상 존재하게 유지)
+    /// </summary>
+    private TestAccountSeeder testAccountSeeder;
+
+    /// <summary>
     /// 앱 프로세스 시작 시 단 한 번 호출
     /// 여기서 만든 객체들은 앱이 살아있는 동안 계속 같은 인스턴스로 유지됨
     /// </summary>
@@ -75,6 +81,19 @@ public class App extends Application {
         accountManager = new AccountManager(this);
         // 커뮤니티 저장소는 계정 관리자를 통해 여러 계정을 읽으므로 그 다음에 생성
         communityRepository = new CommunityRepository(this, accountManager);
+
+        // 테스트 계정을 항상 존재하게 유지 (없으면 심는다 — 시연/커뮤니티 데이터용)
+        testAccountSeeder = new TestAccountSeeder(this, accountManager);
+        testAccountSeeder.seedIfMissing();
+    }
+
+    /// <summary>
+    /// 전체 초기화(테스트/시연용) — 모든 계정·설정을 지운 뒤, 테스트 계정은 다시 심는다
+    /// → "초기화해도 테스트 계정은 사라지지 않음"
+    /// </summary>
+    public void resetAllData() {
+        accountManager.resetAll();
+        testAccountSeeder.seedIfMissing();
     }
 
     /// <summary>

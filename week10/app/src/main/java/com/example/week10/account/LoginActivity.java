@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.week10.App;
 import com.example.week10.R;
 import com.example.week10.databinding.ActivityLoginBinding;
+import com.example.week10.data.TestAccountSeeder;
 import com.example.week10.home.HomeActivity;
 import com.example.week10.intro.OnboardingActivity;
 import com.example.week10.model.Account;
@@ -97,9 +98,14 @@ public class LoginActivity extends AppCompatActivity {
         // Spinner에는 "계정 아이디"를 보여준다 — 로그인할 때 고르는 식별자이기 때문
         // (별명은 로그인 후 화면 표시용이라 여기엔 안 씀)
         // 계정이 없으면 목록이 비어 Spinner도 비지만, 로그인 폼은 항상 그대로 보여준다
+        // 테스트 계정은 뒤에 "(test)"를 붙여 구분 (표시만 바꿀 뿐, 로그인은 실제 id로 함)
         List<String> accountIds = new ArrayList<>();
         for (Account account : accounts) {
-            accountIds.add(account.getId());
+            String display = account.getId();
+            if (TestAccountSeeder.isTestAccount(account.getId())) {
+                display = display + " (test)";
+            }
+            accountIds.add(display);
         }
 
         // ArrayAdapter: 문자열 목록 ↔ Spinner 항목을 이어주는 다리

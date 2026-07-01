@@ -163,7 +163,8 @@ public class HomeActivity extends AppCompatActivity {
                 .setTitle(R.string.reset_confirm_title)
                 .setMessage(R.string.reset_confirm_message)
                 .setPositiveButton(R.string.reset_confirm_ok, (dialog, which) -> {
-                    accountManager.resetAll();
+                    // App이 초기화 + 테스트 계정 재심기까지 처리 (테스트 계정은 안 사라짐)
+                    ((App) getApplication()).resetAllData();
                     goToLogin();
                 })
                 .setNegativeButton(android.R.string.cancel, null)

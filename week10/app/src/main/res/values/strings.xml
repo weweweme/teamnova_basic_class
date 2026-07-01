@@ -123,7 +123,6 @@
     <string name="library_search_empty">검색 결과가 없어요</string>
     <string name="library_sort">정렬</string>
     <string name="library_view_toggle">보기 전환</string>
-    <string name="library_favorites_only">즐겨찾기만 보기</string>
 
     <!-- 홈 (허브) -->
     <string name="home_title">홈</string>
@@ -192,8 +191,6 @@
     <string name="detail_screenshot">스크린샷</string>
     <string name="detail_screenshots_label">스크린샷</string>
     <string name="detail_change_status">상태 변경</string>
-    <string name="detail_favorite_add">즐겨찾기 ♡</string>
-    <string name="detail_favorite_remove">즐겨찾기 ♥</string>
     <!-- 다른 사람들의 평가 (커뮤니티) -->
     <string name="detail_others_title">다른 사람들의 평가</string>
     <!-- 전체 평균 — %1$s=평균 별점, %2$d=참여 인원 (계산엔 내 별점도 포함) -->

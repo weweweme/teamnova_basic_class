@@ -274,12 +274,12 @@ public class GameDetailActivity extends AppCompatActivity {
     }
 
     /// <summary>
-    /// 즐겨찾기 버튼 문구를 현재 상태로 갱신 (즐겨찾기면 "♥ 해제", 아니면 "♡ 추가")
+    /// 제목 옆 즐겨찾기 하트를 현재 상태로 갱신 (즐겨찾기면 채운 ♥·빨강, 아니면 빈 ♡·회색)
     /// </summary>
-    private void updateFavoriteButton() {
+    private void updateFavoriteHeart() {
         boolean favorite = userPrefs.isFavorite(game.getId());
-        binding.buttonFavorite.setText(
-                favorite ? R.string.detail_favorite_remove : R.string.detail_favorite_add);
+        binding.textViewFavoriteToggle.setText(favorite ? "♥" : "♡");
+        binding.textViewFavoriteToggle.setTextColor(favorite ? 0xFFE53935 : 0xFF999999);
     }
 
     /// <summary>
@@ -369,12 +369,12 @@ public class GameDetailActivity extends AppCompatActivity {
     /// 각 버튼에 클릭 리스너 등록
     /// </summary>
     private void setupButtons() {
-        // 즐겨찾기 버튼 → 토글 + 버튼 문구 갱신
-        updateFavoriteButton();
-        binding.buttonFavorite.setOnClickListener(v -> {
+        // 제목 옆 즐겨찾기 하트 → 토글 + 하트 갱신
+        updateFavoriteHeart();
+        binding.textViewFavoriteToggle.setOnClickListener(v -> {
             int gameId = game.getId();
             userPrefs.setFavorite(gameId, !userPrefs.isFavorite(gameId));
-            updateFavoriteButton();
+            updateFavoriteHeart();
         });
 
         // 상태 변경 버튼 → 상태 선택 다이얼로그 표시

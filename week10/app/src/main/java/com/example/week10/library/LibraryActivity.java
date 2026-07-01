@@ -78,11 +78,6 @@ public class LibraryActivity extends AppCompatActivity {
     private UserPrefs userPrefs;
 
     /// <summary>
-    /// "즐겨찾기만 보기"가 켜져 있는지 (⋮ 메뉴 토글). 켜지면 즐겨찾기한 게임만 표시
-    /// </summary>
-    private boolean showFavoritesOnly = false;
-
-    /// <summary>
     /// 격자 셀을 그리는 어댑터
     /// </summary>
     private LibraryAdapter adapter;
@@ -204,10 +199,12 @@ public class LibraryActivity extends AppCompatActivity {
         TabLayout tabLayout = binding.tabLayoutFilter;
 
         // 탭만 먼저 추가하고, 텍스트(개수 포함)는 updateTabCounts에서 채움
+        // 순서: 전체(0) → 상태 4종(1~4) → 즐겨찾기 ♥(맨 끝)
         tabLayout.addTab(tabLayout.newTab());
         for (int i = 0; i < GameStatus.values().length; i++) {
             tabLayout.addTab(tabLayout.newTab());
         }
+        tabLayout.addTab(tabLayout.newTab());  // 즐겨찾기(♥) 탭
         updateTabCounts();
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -291,6 +288,36 @@ public class LibraryActivity extends AppCompatActivity {
                         + " " + gameRepository.countByStatus(statuses[i]));
             }
         }
+
+        // 맨 끝 탭: 즐겨찾기(개수 포함) — 계정별 fav_ 저장소를 훑어서 셈
+        TabLayout.Tab favTab = tabLayout.getTabAt(favoriteTabPosition());
+        if (favTab != null) {
+            favTab.setText("즐겨찾기 " + countFavorites());
+        }
+    }
+
+    /// <summary>
+    /// 즐겨찾기(♥) 탭의 위치 = 전체(0) 다음에 상태 4종이 오고, 그 바로 뒤
+    /// (상태 개수가 바뀌어도 자동으로 맞도록 계산으로 구함)
+    /// </summary>
+    private int favoriteTabPosition() {
+        return GameStatus.values().length + 1;
+    }
+
+    /// <summary>
+    /// 현재 계정이 즐겨찾기한 게임 개수 (탭 라벨 "♥ N"에 표시)
+    /// </summary>
+    private int countFavorites() {
+        if (userPrefs == null) {
+            return 0;
+        }
+        int count = 0;
+        for (Game game : gameRepository.getAllGames()) {
+            if (userPrefs.isFavorite(game.getId())) {
+                count++;
+            }
+        }
+        return count;
     }
 
     // ========== 장르 칩 필터 ==========
@@ -338,10 +365,17 @@ public class LibraryActivity extends AppCompatActivity {
     /// 결과가 비면 빈 상태 안내 (검색 중이면 "검색 결과 없음" 문구로 구분)
     /// </summary>
     private void applyFilter(int tabPosition) {
-        // 1) 상태 필터
+        // 1) 상태(또는 즐겨찾기) 필터
         List<Game> statusFiltered = new ArrayList<>();
         if (tabPosition == TAB_POSITION_ALL) {
             statusFiltered.addAll(gameRepository.getAllGames());
+        } else if (tabPosition == favoriteTabPosition()) {
+            // 맨 끝 ♥ 탭: 즐겨찾기한 게임만
+            for (Game game : gameRepository.getAllGames()) {
+                if (userPrefs.isFavorite(game.getId())) {
+                    statusFiltered.add(game);
+                }
+            }
         } else {
             GameStatus targetStatus = GameStatus.values()[tabPosition - 1];
             for (Game game : gameRepository.getAllGames()) {
@@ -354,11 +388,6 @@ public class LibraryActivity extends AppCompatActivity {
         // 1.5) 장르 필터 (선택된 장르가 있을 때만, OR 조건)
         if (!selectedGenres.isEmpty()) {
             statusFiltered.removeIf(game -> !selectedGenres.contains(game.getGenre()));
-        }
-
-        // 1.7) 즐겨찾기 필터 (⋮ "즐겨찾기만 보기"가 켜져 있을 때만)
-        if (showFavoritesOnly) {
-            statusFiltered.removeIf(game -> !userPrefs.isFavorite(game.getId()));
         }
 
         // 2) 제목 검색 필터 (검색어가 있을 때만)
@@ -541,14 +570,6 @@ public class LibraryActivity extends AppCompatActivity {
             item.setIcon(isGridMode
                     ? R.drawable.ic_view_list   // 그리드 모드 → "리스트로 전환" 아이콘
                     : R.drawable.ic_view_grid); // 리스트 모드 → "그리드로 전환" 아이콘
-            return true;
-        }
-
-        if (itemId == R.id.action_favorites) {
-            // "즐겨찾기만 보기" 토글 → 체크 갱신 + 현재 조건으로 다시 필터
-            showFavoritesOnly = !showFavoritesOnly;
-            item.setChecked(showFavoritesOnly);
-            applyCurrentFilter();
             return true;
         }
 

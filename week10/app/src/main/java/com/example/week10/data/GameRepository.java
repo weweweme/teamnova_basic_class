@@ -39,6 +39,17 @@ public class GameRepository {
     /// </summary>
     public GameRepository() {
         this.games = new ArrayList<>();
+        seedDefaultGames();
+    }
+
+    /// <summary>
+    /// 게임 목록을 하드코딩 초기 데이터로 (다시) 채운다
+    /// 생성자에서 처음 채울 때 + 전체 초기화로 원상복구할 때 공용으로 사용한다
+    /// 기존 목록을 비우고 20개를 처음 그대로 다시 넣으므로,
+    /// 세션 중 바뀐 상태/별점/스크린샷/추가한 게임이 모두 초기값으로 되돌아간다
+    /// </summary>
+    private void seedDefaultGames() {
+        this.games.clear();
         this.nextId = 21;  // 더미 20개가 1~20 사용하므로 21부터 시작
 
         this.games.add(new Game(
@@ -170,6 +181,20 @@ public class GameRepository {
                 Genre.ADVENTURE, Platform.STEAM,
                 "https://store.steampowered.com/app/892970/",
                 GameStatus.BACKLOG, 0f, ""));
+    }
+
+    // ========== 전체 초기화 (시연용) ==========
+
+    /// <summary>
+    /// 전체 초기화: 세션 중 바뀐 게임 상태/별점/스크린샷/추가한 게임을
+    /// 하드코딩 초기 데이터로 되돌린다
+    ///
+    /// GameRepository는 메모리 위의 더미 데이터라 SharedPreferences clear로는 안 지워진다.
+    /// (앱 프로세스를 완전히 죽여야만 생성자가 다시 불려 초기화됨)
+    /// → 프로세스를 죽이지 않고도 "새 설치" 상태를 만들기 위해 여기서 직접 다시 채운다
+    /// </summary>
+    public void resetToDefault() {
+        seedDefaultGames();
     }
 
     // ========== 조회 ==========

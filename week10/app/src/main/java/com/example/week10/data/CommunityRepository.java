@@ -179,10 +179,14 @@ public class CommunityRepository {
 
     /// <summary>
     /// 이 계정이 팔로우한 사람 수(팔로잉 수)
-    /// 그 계정 파일의 follow_ key 개수 (UserPrefs가 세어줌)
+    ///
+    /// 파일의 follow_ key 개수를 직접 세지 않고, 팔로잉 "목록"의 크기로 센다.
+    /// getFollowing이 "지금 존재하는 계정"만 골라 담으므로,
+    /// 삭제된 계정을 가리키는 죽은 follow_ key는 자연히 빠져 숫자와 목록이 항상 일치한다.
+    /// (예: 팔로우하던 상대가 계정 삭제돼도 내 팔로잉 수가 부풀지 않음)
     /// </summary>
     public int getFollowingCount(String accountId) {
-        return new UserPrefs(appContext, accountId).getFollowingCount();
+        return getFollowing(accountId).size();
     }
 
     /// <summary>

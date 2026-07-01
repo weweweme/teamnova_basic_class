@@ -494,19 +494,6 @@ public class UserPrefs {
         }
     }
 
-    /// <summary>
-    /// 이 계정이 팔로우한 사람 수 ("follow_"로 시작하는 key 개수)
-    /// </summary>
-    public int getFollowingCount() {
-        int count = 0;
-        for (String key : prefs.getAll().keySet()) {
-            if (key.startsWith(KEY_FOLLOW_PREFIX)) {
-                count++;
-            }
-        }
-        return count;
-    }
-
     // ========== 즐겨찾기 (fav_<게임id>) ==========
 
     /// <summary>게임 id로 즐겨찾기 key를 만든다 (예: 12 → "fav_12")</summary>

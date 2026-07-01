@@ -88,10 +88,15 @@ public class App extends Application {
     }
 
     /// <summary>
-    /// 전체 초기화(테스트/시연용) — 모든 계정·설정을 지운 뒤, 테스트 계정은 다시 심는다
-    /// → "초기화해도 테스트 계정은 사라지지 않음"
+    /// 전체 초기화(테스트/시연용) — "새로 설치한" 상태로 되돌린다
+    ///   ① 게임 저장소를 하드코딩 초기 데이터로 복구 (세션 중 바뀐 상태/별점/스크린샷/추가게임 원상복구)
+    ///   ② 모든 계정·설정(prefs) 삭제
+    ///   ③ 테스트 계정 다시 심기 → "초기화해도 테스트 계정은 사라지지 않음"
+    ///
+    /// 게임(①)은 메모리 데이터라 prefs clear(②)로는 안 지워지므로 따로 되돌려야 한다
     /// </summary>
     public void resetAllData() {
+        gameRepository.resetToDefault();
         accountManager.resetAll();
         testAccountSeeder.seedIfMissing();
     }

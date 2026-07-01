@@ -94,6 +94,7 @@ public class HomeActivity extends AppCompatActivity {
         recordTodayVisit();
         setupProfileHeader();
         setupStatsSummary(gameRepository);
+        setupRecentViewed(gameRepository);
         setupLibraryPreview(gameRepository);
         setupTimelinePreview(logRepository, gameRepository);
         setupMoreButtons();
@@ -125,6 +126,8 @@ public class HomeActivity extends AppCompatActivity {
         // 프로필 편집 후 돌아오면 바뀐 아바타/별명/소개를 다시 그림
         setupProfileHeader();
         setupStatsSummary(gameRepository);
+        // 방금 상세를 보고 돌아왔으면 그 게임이 "최근 본 게임" 맨 앞에 반영됨
+        setupRecentViewed(gameRepository);
         // 화면에 돌아올 때마다 미리보기를 다시 뽑음 → 매번 다른 게임이 보임
         setupLibraryPreview(gameRepository);
     }
@@ -343,6 +346,42 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     // ========== 섹션별 미리보기 세팅 ==========
+
+    /// <summary>
+    /// 최근 본 게임 미리보기 (가로 스크롤, 표지 셀)
+    /// 게임 상세를 연 순서(최신순)대로 UserPrefs에서 id 목록을 받아 실제 Game으로 바꿔 표시
+    /// 아직 본 게임이 없으면 섹션을 통째로 숨김(GONE)
+    /// </summary>
+    private void setupRecentViewed(GameRepository gameRepository) {
+        // 가로 미리보기 셀 한 칸의 고정 폭(dp) — 보관함 미리보기와 같은 값
+        final int PREVIEW_ITEM_WIDTH_DP = 120;
+
+        UserPrefs userPrefs = ((App) getApplication()).getUserPrefs();
+        List<Integer> recentIds = userPrefs.getRecentGameIds();
+
+        // id를 실제 Game으로 변환 (혹시 사라진 게임 id는 건너뜀)
+        List<Game> recentGames = new ArrayList<>();
+        for (int id : recentIds) {
+            Game game = gameRepository.findById(id);
+            if (game != null) {
+                recentGames.add(game);
+            }
+        }
+
+        // 본 게임이 하나도 없으면 섹션 자체를 숨김
+        boolean empty = recentGames.isEmpty();
+        binding.layoutRecentViewed.setVisibility(empty ? View.GONE : View.VISIBLE);
+        if (empty) {
+            return;
+        }
+
+        LibraryAdapter adapter = new LibraryAdapter(recentGames, this::onGameClick, null,
+                userPrefs);
+        adapter.setItemWidthDp(PREVIEW_ITEM_WIDTH_DP);
+        binding.recyclerRecentViewed.setLayoutManager(
+                new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        binding.recyclerRecentViewed.setAdapter(adapter);
+    }
 
     /// <summary>
     /// 보관함 미리보기 (가로 스크롤, 표지 셀)

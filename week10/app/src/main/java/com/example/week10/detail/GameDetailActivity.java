@@ -148,6 +148,9 @@ public class GameDetailActivity extends AppCompatActivity {
         // 현재 로그인 계정의 저장소 (내 별점/한줄평을 여기서 읽고 씀)
         userPrefs = ((App) getApplication()).getUserPrefs();
 
+        // 이 게임을 "방금 봤음"으로 기록 → 홈 "최근 본 게임" 섹션에 최신순으로 반영
+        userPrefs.pushRecentGame(game.getId());
+
         // ActionBar에 ← 뒤로가기 버튼 표시
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);

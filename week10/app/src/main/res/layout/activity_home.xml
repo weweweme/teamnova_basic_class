@@ -282,6 +282,34 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- ════════ 섹션 0: 최근 본 게임 ════════ -->
+        <!-- 게임 상세를 연 순서대로(최신순) 표지를 가로로 나열 -->
+        <!-- 아직 본 게임이 없으면 코드에서 이 컨테이너를 통째로 숨김(GONE) -->
+        <LinearLayout
+            android:id="@+id/layoutRecentViewed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="16dp"
+                android:paddingTop="16dp"
+                android:text="@string/home_section_recent"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerRecentViewed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:clipToPadding="false"
+                tools:listitem="@layout/item_library_grid" />
+        </LinearLayout>
+
         <!-- ════════ 섹션 1: 보관함 미리보기 ════════ -->
         <LinearLayout
             android:layout_width="match_parent"

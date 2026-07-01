@@ -117,6 +117,18 @@ public class UserPrefs {
     private static final String KEY_FAVORITE_PREFIX = "fav_";
 
     /// <summary>
+    /// key: 최근 본 게임 id 목록 (쉼표로 이어 붙인 한 문자열, 최신순)
+    /// 예: "3,6,1,9" → 방금 3번을 봤고 그 전이 6번…
+    /// 게임 상세를 열 때마다 맨 앞으로 밀어넣고, 최대 개수를 넘으면 뒤(오래된 것)를 버린다
+    /// </summary>
+    private static final String KEY_RECENT_VIEWED = "recent_viewed";
+
+    /// <summary>
+    /// 최근 본 게임을 몇 개까지 기억할지 (넘치면 가장 오래된 것부터 버림)
+    /// </summary>
+    private static final int RECENT_VIEWED_MAX = 10;
+
+    /// <summary>
     /// key: 보관함에서 마지막으로 보던 필터 탭 위치 (0=전체, 1부터 상태별)
     /// </summary>
     private static final String KEY_LAST_FILTER_TAB = "last_filter_tab";
@@ -506,6 +518,58 @@ public class UserPrefs {
         } else {
             prefs.edit().remove(favoriteKey(gameId)).apply();
         }
+    }
+
+    // ========== 최근 본 게임 (recent_viewed) ==========
+
+    /// <summary>
+    /// 이 게임을 "방금 봤음"으로 기록한다 (게임 상세를 열 때 호출)
+    ///   - 이미 목록에 있으면 그 자리를 빼고 맨 앞으로 옮김 (가장 최근으로 갱신)
+    ///   - 최대 개수를 넘으면 뒤(가장 오래된 것)를 잘라냄
+    /// 저장 형태는 "3,6,1,9" 같은 쉼표로 이은 한 문자열
+    /// </summary>
+    public void pushRecentGame(int gameId) {
+        List<Integer> ids = getRecentGameIds();
+
+        // 이미 들어있던 같은 게임은 제거 (맨 앞으로 새로 넣기 위해)
+        // Integer로 담아야 remove가 "그 값"을 지움 (int면 "그 위치"를 지워버림)
+        ids.remove(Integer.valueOf(gameId));
+
+        // 맨 앞에 추가 = 가장 최근
+        ids.add(0, gameId);
+
+        // 최대 개수 초과분은 뒤에서부터 잘라냄
+        while (ids.size() > RECENT_VIEWED_MAX) {
+            ids.remove(ids.size() - 1);
+        }
+
+        // 쉼표로 이어 붙여 한 문자열로 저장
+        StringBuilder joined = new StringBuilder();
+        for (int i = 0; i < ids.size(); i++) {
+            if (i > 0) {
+                joined.append(",");
+            }
+            joined.append(ids.get(i));
+        }
+        prefs.edit()
+                .putString(KEY_RECENT_VIEWED, joined.toString())
+                .apply();
+    }
+
+    /// <summary>
+    /// 최근 본 게임 id들을 최신순으로 반환 (없으면 빈 목록)
+    /// 저장된 "3,6,1,9" 문자열을 쉼표로 잘라 숫자 목록으로 되돌린다
+    /// </summary>
+    public List<Integer> getRecentGameIds() {
+        List<Integer> ids = new ArrayList<>();
+        String joined = prefs.getString(KEY_RECENT_VIEWED, "");
+        if (joined.isEmpty()) {
+            return ids;
+        }
+        for (String part : joined.split(",")) {
+            ids.add(Integer.parseInt(part));
+        }
+        return ids;
     }
 
     /// <summary>

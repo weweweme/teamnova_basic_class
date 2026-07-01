@@ -14,13 +14,19 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.week10.App;
 import com.example.week10.R;
 import com.example.week10.account.UserPrefs;
+import com.example.week10.data.CommunityRepository;
 import com.example.week10.databinding.ActivityGameDetailBinding;
 import com.example.week10.model.Game;
+import com.example.week10.model.GameReview;
 import com.example.week10.model.GameStatus;
+
+import java.util.List;
+import java.util.Locale;
 
 /// <summary>
 /// 게임 상세 화면
@@ -251,8 +257,49 @@ public class GameDetailActivity extends AppCompatActivity {
         // 게임 정보를 화면에 표시
         bindGameData();
 
+        // 다른 사람들의 평가 섹션 채우기 (다른 계정들이 이 게임에 남긴 리뷰)
+        setupOthersReviews();
+
         // 버튼 리스너 등록
         setupButtons();
+    }
+
+    /// <summary>
+    /// "다른 사람들의 평가" 섹션 채우기
+    /// 이 게임에 대해 다른 계정들이 남긴 리뷰를 모아 평균 별점 + 목록으로 표시
+    /// (다른 계정 리뷰가 없으면 안내 문구만)
+    /// </summary>
+    private void setupOthersReviews() {
+        App app = (App) getApplication();
+        CommunityRepository community = app.getCommunityRepository();
+        String currentId = app.getAccountManager().getCurrentAccountId();
+
+        // 나를 뺀 다른 계정들의 이 게임 리뷰
+        List<GameReview> others = community.getReviewsForGame(game.getId(), currentId);
+
+        boolean isEmpty = others.isEmpty();
+        binding.textViewOthersEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+        binding.textViewOthersAverage.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+        binding.recyclerOthersReviews.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+
+        if (isEmpty) {
+            return;
+        }
+
+        // 평균 별점 계산 (다른 사람들 것만)
+        float sum = 0f;
+        for (GameReview review : others) {
+            sum += review.getRating();
+        }
+        float average = sum / others.size();
+        String averageText = String.format(Locale.getDefault(), "%.1f", average);
+        binding.textViewOthersAverage.setText(
+                getString(R.string.detail_others_average, averageText, others.size()));
+
+        // 목록 표시 — 바깥 ScrollView와 충돌하지 않도록 자체 스크롤 끔
+        binding.recyclerOthersReviews.setLayoutManager(new LinearLayoutManager(this));
+        binding.recyclerOthersReviews.setNestedScrollingEnabled(false);
+        binding.recyclerOthersReviews.setAdapter(new GameReviewAdapter(others));
     }
 
     /// <summary>

@@ -5,6 +5,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <!-- 팔로잉 피드: 팔로우한 사람들의 리뷰 (커뮤니티) -->
+    <item
+        android:id="@+id/action_following_feed"
+        android:title="@string/home_action_following_feed"
+        app:showAsAction="never" />
+
     <!-- 유저 랭킹: 리뷰를 많이 쓴 순 (커뮤니티) -->
     <item
         android:id="@+id/action_ranking"

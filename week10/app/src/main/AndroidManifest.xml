@@ -58,6 +58,14 @@
             android:parentActivityName=".home.HomeActivity"
             android:exported="false" />
 
+        <!-- 팔로잉 피드: 팔로우한 사람들의 리뷰 최신순 (커뮤니티) -->
+        <!-- parentActivityName: ← 버튼 누르면 홈으로 돌아감 -->
+        <activity
+            android:name=".community.FollowingFeedActivity"
+            android:label="@string/following_feed_title"
+            android:parentActivityName=".home.HomeActivity"
+            android:exported="false" />
+
         <!-- 유저 랭킹: 리뷰를 많이 쓴 순 (커뮤니티) -->
         <!-- parentActivityName: ← 버튼 누르면 홈으로 돌아감 -->
         <activity

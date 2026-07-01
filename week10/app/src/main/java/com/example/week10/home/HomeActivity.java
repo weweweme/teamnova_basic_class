@@ -20,6 +20,7 @@ import com.example.week10.account.LoginActivity;
 import com.example.week10.account.ProfileEditActivity;
 import com.example.week10.account.UserPrefs;
 import com.example.week10.community.FollowListActivity;
+import com.example.week10.community.FollowingFeedActivity;
 import com.example.week10.community.RankingActivity;
 import com.example.week10.detail.GameDetailActivity;
 import com.example.week10.library.LibraryActivity;
@@ -148,6 +149,10 @@ public class HomeActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
+        if (id == R.id.action_following_feed) {
+            startActivity(new Intent(this, FollowingFeedActivity.class));
+            return true;
+        }
         if (id == R.id.action_ranking) {
             startActivity(new Intent(this, RankingActivity.class));
             return true;

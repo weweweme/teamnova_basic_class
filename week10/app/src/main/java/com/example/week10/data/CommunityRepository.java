@@ -6,7 +6,9 @@ import com.example.week10.account.AccountManager;
 import com.example.week10.account.UserPrefs;
 import com.example.week10.model.Account;
 import com.example.week10.model.AccountProfile;
+import com.example.week10.model.Game;
 import com.example.week10.model.GameReview;
+import com.example.week10.model.ReviewFeedItem;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,11 +42,18 @@ public class CommunityRepository {
     private final AccountManager accountManager;
 
     /// <summary>
+    /// 게임 저장소 — 리뷰의 게임 id로 제목을 찾을 때 사용 (피드에 "게임 제목" 표시)
+    /// </summary>
+    private final GameRepository gameRepository;
+
+    /// <summary>
     /// 저장소 생성 (App이 하나 만들어 공유)
     /// </summary>
-    public CommunityRepository(Context context, AccountManager accountManager) {
+    public CommunityRepository(Context context, AccountManager accountManager,
+                              GameRepository gameRepository) {
         this.appContext = context.getApplicationContext();
         this.accountManager = accountManager;
+        this.gameRepository = gameRepository;
     }
 
     /// <summary>
@@ -191,6 +200,45 @@ public class CommunityRepository {
             }
         }
         return result;
+    }
+
+    /// <summary>
+    /// 팔로잉 피드 — 이 계정이 팔로우한 사람들이 남긴 리뷰만 작성 시각 최신순으로 모아 반환
+    ///
+    /// 내가 팔로우한 계정만 골라, 그들이 리뷰한 게임마다 (작성자·게임제목·별점·한줄평·시각) 항목을 만든다.
+    /// 삭제된 게임(제목을 못 찾는 경우)은 건너뛴다.
+    /// </summary>
+    public List<ReviewFeedItem> getFollowingFeed(String accountId) {
+        UserPrefs myPrefs = new UserPrefs(appContext, accountId);
+        List<ReviewFeedItem> feed = new ArrayList<>();
+
+        for (Account account : accountManager.getAccounts()) {
+            String id = account.getId();
+            // 내가 팔로우한 계정만 (나 자신·팔로우 안 한 계정은 제외)
+            if (id.equals(accountId) || !myPrefs.isFollowing(id)) {
+                continue;
+            }
+
+            UserPrefs prefs = new UserPrefs(appContext, id);
+            for (int gameId : prefs.getReviewedGameIds()) {
+                Game game = gameRepository.findById(gameId);
+                if (game == null) {
+                    continue;
+                }
+                feed.add(new ReviewFeedItem(
+                        account.getNickname(),
+                        prefs.getAvatarColor(),
+                        gameId,
+                        game.getTitle(),
+                        prefs.getRating(gameId),
+                        prefs.getReview(gameId),
+                        prefs.getReviewedAt(gameId)));
+            }
+        }
+
+        // 작성 시각 내림차순 (최신 리뷰가 위로)
+        Collections.sort(feed, Comparator.comparingLong(ReviewFeedItem::getTimestamp).reversed());
+        return feed;
     }
 
     /// <summary>

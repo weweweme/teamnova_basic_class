@@ -20,6 +20,9 @@ import com.example.week10.account.LoginActivity;
 import com.example.week10.account.ProfileEditActivity;
 import com.example.week10.account.UserPrefs;
 import com.example.week10.community.RankingActivity;
+import com.example.week10.community.ReviewFeedActivity;
+import com.example.week10.community.ReviewFeedAdapter;
+import com.example.week10.model.ReviewFeedItem;
 import com.example.week10.detail.GameDetailActivity;
 import com.example.week10.library.LibraryActivity;
 import com.example.week10.stats.StatsActivity;
@@ -93,6 +96,7 @@ public class HomeActivity extends AppCompatActivity {
         setupStatsSummary(gameRepository);
         setupLibraryPreview(gameRepository);
         setupTimelinePreview(logRepository, gameRepository);
+        setupReviewFeed();
         setupMoreButtons();
 
         // 프로필 헤더 탭 → 프로필 편집 화면
@@ -118,6 +122,8 @@ public class HomeActivity extends AppCompatActivity {
         setupStatsSummary(gameRepository);
         // 화면에 돌아올 때마다 미리보기를 다시 뽑음 → 매번 다른 게임이 보임
         setupLibraryPreview(gameRepository);
+        // 리뷰를 새로 남기고 돌아오면 최근 리뷰 피드도 갱신
+        setupReviewFeed();
     }
 
     // ========== ActionBar 메뉴 (⋮ 로그아웃 / 계정 삭제) ==========
@@ -357,6 +363,32 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     /// <summary>
+    /// 최근 리뷰(커뮤니티 피드) 미리보기 — 모든 계정의 리뷰를 최신순으로 앞쪽 몇 개만
+    /// 항목을 누르면 그 게임 상세로 이동, "더 보기"로 전체 피드 화면
+    /// </summary>
+    private void setupReviewFeed() {
+        final int FEED_PREVIEW_MAX = 5;
+        List<ReviewFeedItem> feed =
+                ((App) getApplication()).getCommunityRepository().getRecentReviews();
+        List<ReviewFeedItem> preview = takeFirst(feed, FEED_PREVIEW_MAX);
+
+        binding.recyclerReviewFeed.setLayoutManager(new LinearLayoutManager(this));
+        binding.recyclerReviewFeed.setNestedScrollingEnabled(false);
+        binding.recyclerReviewFeed.setAdapter(new ReviewFeedAdapter(preview, this::openGameById));
+    }
+
+    /// <summary>
+    /// 게임 id로 그 게임 상세를 연다 (피드 항목 클릭용)
+    /// 피드는 id만 알므로 저장소에서 Game을 찾아 기존 onGameClick으로 넘긴다
+    /// </summary>
+    private void openGameById(int gameId) {
+        Game game = ((App) getApplication()).getGameRepository().findById(gameId);
+        if (game != null) {
+            onGameClick(game);
+        }
+    }
+
+    /// <summary>
     /// "더 보기" 버튼에 각 전체 화면 진입 리스너 등록
     /// </summary>
     private void setupMoreButtons() {
@@ -364,6 +396,8 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(new Intent(this, LibraryActivity.class)));
         binding.buttonMoreTimeline.setOnClickListener(v ->
                 startActivity(new Intent(this, TimelineActivity.class)));
+        binding.buttonMoreFeed.setOnClickListener(v ->
+                startActivity(new Intent(this, ReviewFeedActivity.class)));
     }
 
     // ========== 어댑터 콜백 ==========

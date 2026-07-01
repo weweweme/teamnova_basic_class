@@ -121,7 +121,12 @@
     <string name="home_section_library">내 게임 일지</string>
     <string name="home_section_timeline">최근 활동</string>
     <string name="home_section_stats">내 통계</string>
+    <string name="home_section_feed">최근 리뷰</string>
     <string name="home_more">더 보기</string>
+
+    <!-- 커뮤니티 최근 리뷰 피드 -->
+    <string name="review_feed_title">최근 리뷰</string>
+    <string name="review_feed_empty">아직 남겨진 리뷰가 없어요</string>
 
     <!-- 타임라인 (멀티 뷰타입) -->
     <string name="timeline_title">최근 활동</string>

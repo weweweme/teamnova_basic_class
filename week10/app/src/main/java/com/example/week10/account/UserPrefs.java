@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 /// <summary>
 /// 계정별 개인 설정 저장소 — "user_<id>" 파일 담당
@@ -86,6 +88,13 @@ public class UserPrefs {
     /// key 앞부분: 정식 저장된 한줄평 → 실제 key는 "review_<게임id>"
     /// </summary>
     private static final String KEY_REVIEW_PREFIX = "review_";
+
+    /// <summary>
+    /// key 앞부분: 리뷰를 저장한 시각(밀리초) → 실제 key는 "reviewed_at_<게임id>"
+    /// 커뮤니티 "최근 리뷰" 피드를 최신순으로 정렬하는 데 사용
+    /// (주의: "reviewed_at_"는 "review_"로 시작하지 않으므로 리뷰 개수 집계와 안 섞임)
+    /// </summary>
+    private static final String KEY_REVIEWED_AT_PREFIX = "reviewed_at_";
 
     /// <summary>
     /// key: 보관함에서 마지막으로 보던 필터 탭 위치 (0=전체, 1부터 상태별)
@@ -350,14 +359,43 @@ public class UserPrefs {
         return prefs.getString(reviewKey(gameId), "");
     }
 
+    /// <summary>게임 id로 리뷰 작성 시각 key를 만든다 (예: 12 → "reviewed_at_12")</summary>
+    private String reviewedAtKey(int gameId) {
+        return KEY_REVIEWED_AT_PREFIX + gameId;
+    }
+
     /// <summary>
     /// 이 계정의 그 게임 별점/한줄평을 정식 저장 ("저장" 버튼을 눌렀을 때)
+    /// 저장 시각(현재 시간)도 함께 기록 → 최근 리뷰 피드 정렬에 사용
     /// </summary>
     public void saveReview(int gameId, float rating, String review) {
         prefs.edit()
                 .putFloat(ratingKey(gameId), rating)
                 .putString(reviewKey(gameId), review)
+                .putLong(reviewedAtKey(gameId), System.currentTimeMillis())
                 .apply();
+    }
+
+    /// <summary>
+    /// 이 계정이 그 게임 리뷰를 저장한 시각(밀리초) 반환 (없으면 0)
+    /// </summary>
+    public long getReviewedAt(int gameId) {
+        return prefs.getLong(reviewedAtKey(gameId), 0L);
+    }
+
+    /// <summary>
+    /// 이 계정이 리뷰를 남긴 게임 id들을 반환 (커뮤니티 피드에서 "누가 무슨 게임을 리뷰했나" 수집용)
+    /// 저장된 key 중 "review_"로 시작하는 것에서 뒤의 숫자(게임 id)를 꺼낸다
+    /// </summary>
+    public List<Integer> getReviewedGameIds() {
+        List<Integer> gameIds = new ArrayList<>();
+        for (String key : prefs.getAll().keySet()) {
+            if (key.startsWith(KEY_REVIEW_PREFIX)) {
+                String idPart = key.substring(KEY_REVIEW_PREFIX.length());
+                gameIds.add(Integer.parseInt(idPart));
+            }
+        }
+        return gameIds;
     }
 
     /// <summary>

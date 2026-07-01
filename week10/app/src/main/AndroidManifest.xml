@@ -66,6 +66,14 @@
             android:parentActivityName=".home.HomeActivity"
             android:exported="false" />
 
+        <!-- 최근 리뷰 피드: 모든 계정 리뷰 최신순 (커뮤니티) -->
+        <!-- parentActivityName: ← 버튼 누르면 홈으로 돌아감 -->
+        <activity
+            android:name=".community.ReviewFeedActivity"
+            android:label="@string/review_feed_title"
+            android:parentActivityName=".home.HomeActivity"
+            android:exported="false" />
+
         <!-- 온보딩: 최초 실행 시 앱 소개 3페이지 -->
         <activity
             android:name=".intro.OnboardingActivity"

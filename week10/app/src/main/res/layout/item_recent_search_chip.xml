@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 최근 검색어 칩 (액션 칩 = 그냥 누르면 동작, 체크 표시 없음) -->
+<!-- 장르 칩과 달리 "선택 유지"가 아니라 "누르면 그 검색어로 검색"만 하므로 checkable 아님 -->
+<com.google.android.material.chip.Chip
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.MaterialComponents.Chip.Action"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="6dp" />

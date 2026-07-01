@@ -94,6 +94,16 @@ public class LibraryActivity extends AppCompatActivity {
     private String currentQuery = "";
 
     /// <summary>
+    /// 검색 입력창 (ActionBar의 돋보기). 최근 검색어 칩을 눌렀을 때 이 창에 검색어를 넣어야 해서 보관
+    /// </summary>
+    private SearchView searchView;
+
+    /// <summary>
+    /// 검색 메뉴 항목 (펼침/접힘 상태를 확인해 최근 검색어 표시 여부를 정함)
+    /// </summary>
+    private MenuItem searchItem;
+
+    /// <summary>
     /// 현재 정렬 기준 (FAB 다이얼로그에서 선택). 기본은 최근 추가순
     /// </summary>
     private GameSortOrder currentSort = GameSortOrder.RECENT;
@@ -531,24 +541,107 @@ public class LibraryActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
         // 검색(SearchView) 연결: 입력이 바뀔 때마다 currentQuery 갱신 + 다시 필터
-        MenuItem searchItem = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView) searchItem.getActionView();
+        searchItem = menu.findItem(R.id.action_search);
+        searchView = (SearchView) searchItem.getActionView();
         searchView.setQueryHint(getString(R.string.library_search_hint));
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                // 입력 중 onQueryTextChange로 이미 처리되므로 제출은 별도 동작 없음
-                return false;
+                // 검색을 확정(엔터/검색 버튼)한 순간 → 최근 검색어로 저장
+                userPrefs.pushSearchQuery(query);
+                // 결과가 이미 아래에 떠 있으니 최근 검색어 목록은 접는다
+                hideRecentSearches();
+                // true 반환: SearchView 기본 동작(제안 목록 등) 없이 우리가 처리 끝냈음을 알림
+                return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
                 currentQuery = newText;
                 applyCurrentFilter();
+                // 입력이 비면 최근 검색어를 다시 보여주고, 뭔가 입력하면 감춘다
+                updateRecentSearchVisibility();
                 return true;
             }
         });
+
+        // 돋보기를 눌러 검색창을 펼친 순간 (입력은 아직 비어 있음) → 최근 검색어 표시
+        searchView.setOnSearchClickListener(v -> showRecentSearches());
+
+        // 검색창을 접으면(← 또는 X) 최근 검색어 목록도 함께 숨김
+        searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(@NonNull MenuItem item) {
+                // 펼치는 순간엔 입력이 비어 있으니 최근 검색어를 바로 보여준다
+                // (collapseActionView 방식이라 setOnSearchClickListener가 안 불릴 수 있어 여기서 처리)
+                showRecentSearches();
+                return true;  // 펼침 허용
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(@NonNull MenuItem item) {
+                hideRecentSearches();
+                return true;  // 접힘 허용
+            }
+        });
+
+        // "지우기" → 검색 기록 전체 삭제 후 목록 숨김
+        binding.textViewClearRecentSearch.setOnClickListener(v -> {
+            userPrefs.clearSearchHistory();
+            hideRecentSearches();
+        });
         return true;
+    }
+
+    // ========== 최근 검색어 ==========
+
+    /// <summary>
+    /// 검색창이 펼쳐져 있고 입력이 비어 있을 때만 최근 검색어를 보여준다
+    /// (입력 도중엔 결과가 중요하므로 최근 검색어는 감춤)
+    /// </summary>
+    private void updateRecentSearchVisibility() {
+        boolean searchOpen = searchItem != null && searchItem.isActionViewExpanded();
+        boolean queryEmpty = currentQuery.isEmpty();
+        if (searchOpen && queryEmpty) {
+            showRecentSearches();
+        } else {
+            hideRecentSearches();
+        }
+    }
+
+    /// <summary>
+    /// 최근 검색어 칩들을 만들어 표시한다
+    /// 저장된 기록이 없으면 영역을 숨김(GONE)
+    /// 칩을 누르면 그 검색어로 SearchView를 채워 바로 검색되게 한다
+    /// </summary>
+    private void showRecentSearches() {
+        ChipGroup chipGroup = binding.chipGroupRecentSearch;
+        chipGroup.removeAllViews();
+
+        List<String> history = userPrefs.getSearchHistory();
+        if (history.isEmpty()) {
+            binding.layoutRecentSearch.setVisibility(View.GONE);
+            return;
+        }
+
+        for (String query : history) {
+            // 장르 칩과 달리 체크가 아닌 "누르면 검색" 액션 칩
+            Chip chip = (Chip) getLayoutInflater()
+                    .inflate(R.layout.item_recent_search_chip, chipGroup, false);
+            chip.setText(query);
+            // 칩을 누르면 그 검색어를 검색창에 넣고 곧바로 제출(true) → 결과 필터 + 기록 최신화
+            chip.setOnClickListener(v -> searchView.setQuery(query, true));
+            chipGroup.addView(chip);
+        }
+
+        binding.layoutRecentSearch.setVisibility(View.VISIBLE);
+    }
+
+    /// <summary>
+    /// 최근 검색어 영역을 숨긴다
+    /// </summary>
+    private void hideRecentSearches() {
+        binding.layoutRecentSearch.setVisibility(View.GONE);
     }
 
     /// <summary>

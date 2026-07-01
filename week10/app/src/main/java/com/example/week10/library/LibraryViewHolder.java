@@ -39,6 +39,7 @@ public class LibraryViewHolder extends RecyclerView.ViewHolder {
     /// </summary>
     public void bindGameData(Game game,
                              float myRating,
+                             boolean favorite,
                              OnGameClickListener clickListener,
                              OnGameLongClickListener longClickListener) {
         Context context = binding.getRoot().getContext();
@@ -54,6 +55,9 @@ public class LibraryViewHolder extends RecyclerView.ViewHolder {
         } else {
             binding.textViewMyRating.setVisibility(View.GONE);
         }
+
+        // 즐겨찾기 하트 (즐겨찾기한 게임만 좌상단에 표시)
+        binding.textViewFavorite.setVisibility(favorite ? View.VISIBLE : View.GONE);
 
         // 표지 이미지 (이름 문자열로 drawable 리소스 ID 조회)
         // 게임마다 이미지 이름이 다르므로 getIdentifier 사용이 불가피

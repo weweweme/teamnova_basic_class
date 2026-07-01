@@ -29,6 +29,13 @@
         android:title="@string/main_add_game"
         app:showAsAction="always" />
 
+    <!-- 즐겨찾기만 보기: 체크 켜면 즐겨찾기한 게임만 필터 -->
+    <item
+        android:id="@+id/action_favorites"
+        android:title="@string/library_favorites_only"
+        android:checkable="true"
+        app:showAsAction="never" />
+
     <!-- 앱 정보: ⋮ 오버플로우 메뉴 안에 숨김 -->
     <item
         android:id="@+id/action_about"

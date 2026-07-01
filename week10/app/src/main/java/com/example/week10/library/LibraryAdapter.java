@@ -113,9 +113,10 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull LibraryViewHolder holder, int position) {
         Game game = games.get(position);
-        // 내가 이 게임에 준 별점 (안 줬으면 0 → 셀에서 배지 숨김)
+        // 내가 이 게임에 준 별점 (안 줬으면 0 → 셀에서 배지 숨김) + 즐겨찾기 여부
         float myRating = (userPrefs != null) ? userPrefs.getRating(game.getId()) : 0f;
-        holder.bindGameData(game, myRating, clickListener, longClickListener);
+        boolean favorite = (userPrefs != null) && userPrefs.isFavorite(game.getId());
+        holder.bindGameData(game, myRating, favorite, clickListener, longClickListener);
     }
 
     /// <summary>

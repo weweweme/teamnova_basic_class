@@ -73,9 +73,14 @@ public class LibraryActivity extends AppCompatActivity {
     private GameRepository gameRepository;
 
     /// <summary>
-    /// 현재 로그인 계정의 개인 설정 저장소 (마지막 필터 탭 / 정렬 기억에 사용)
+    /// 현재 로그인 계정의 개인 설정 저장소 (마지막 필터 탭 / 정렬 / 즐겨찾기)
     /// </summary>
     private UserPrefs userPrefs;
+
+    /// <summary>
+    /// "즐겨찾기만 보기"가 켜져 있는지 (⋮ 메뉴 토글). 켜지면 즐겨찾기한 게임만 표시
+    /// </summary>
+    private boolean showFavoritesOnly = false;
 
     /// <summary>
     /// 격자 셀을 그리는 어댑터
@@ -351,6 +356,11 @@ public class LibraryActivity extends AppCompatActivity {
             statusFiltered.removeIf(game -> !selectedGenres.contains(game.getGenre()));
         }
 
+        // 1.7) 즐겨찾기 필터 (⋮ "즐겨찾기만 보기"가 켜져 있을 때만)
+        if (showFavoritesOnly) {
+            statusFiltered.removeIf(game -> !userPrefs.isFavorite(game.getId()));
+        }
+
         // 2) 제목 검색 필터 (검색어가 있을 때만)
         boolean hasQuery = currentQuery != null && !currentQuery.trim().isEmpty();
         List<Game> filtered;
@@ -531,6 +541,14 @@ public class LibraryActivity extends AppCompatActivity {
             item.setIcon(isGridMode
                     ? R.drawable.ic_view_list   // 그리드 모드 → "리스트로 전환" 아이콘
                     : R.drawable.ic_view_grid); // 리스트 모드 → "그리드로 전환" 아이콘
+            return true;
+        }
+
+        if (itemId == R.id.action_favorites) {
+            // "즐겨찾기만 보기" 토글 → 체크 갱신 + 현재 조건으로 다시 필터
+            showFavoritesOnly = !showFavoritesOnly;
+            item.setChecked(showFavoritesOnly);
+            applyCurrentFilter();
             return true;
         }
 

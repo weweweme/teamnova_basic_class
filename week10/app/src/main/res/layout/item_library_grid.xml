@@ -31,6 +31,18 @@
                 android:scaleType="centerCrop"
                 android:contentDescription="@string/game_cover_description" />
 
+            <!-- 즐겨찾기 하트 (즐겨찾기한 게임만 코드에서 표시, 표지 좌상단) -->
+            <TextView
+                android:id="@+id/textViewFavorite"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_margin="6dp"
+                android:text="♥"
+                android:textColor="#E53935"
+                android:textSize="18sp"
+                android:visibility="gone" />
+
             <!-- 내 별점 배지 (내가 평가한 게임만 코드에서 표시 — 다이어리) -->
             <TextView
                 android:id="@+id/textViewMyRating"

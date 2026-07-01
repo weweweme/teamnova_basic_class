@@ -274,6 +274,15 @@ public class GameDetailActivity extends AppCompatActivity {
     }
 
     /// <summary>
+    /// 즐겨찾기 버튼 문구를 현재 상태로 갱신 (즐겨찾기면 "♥ 해제", 아니면 "♡ 추가")
+    /// </summary>
+    private void updateFavoriteButton() {
+        boolean favorite = userPrefs.isFavorite(game.getId());
+        binding.buttonFavorite.setText(
+                favorite ? R.string.detail_favorite_remove : R.string.detail_favorite_add);
+    }
+
+    /// <summary>
     /// "다른 사람들의 평가" 섹션 채우기
     /// 이 게임에 대해 다른 계정들이 남긴 리뷰를 모아 평균 별점 + 목록으로 표시
     /// (다른 계정 리뷰가 없으면 안내 문구만)
@@ -360,6 +369,14 @@ public class GameDetailActivity extends AppCompatActivity {
     /// 각 버튼에 클릭 리스너 등록
     /// </summary>
     private void setupButtons() {
+        // 즐겨찾기 버튼 → 토글 + 버튼 문구 갱신
+        updateFavoriteButton();
+        binding.buttonFavorite.setOnClickListener(v -> {
+            int gameId = game.getId();
+            userPrefs.setFavorite(gameId, !userPrefs.isFavorite(gameId));
+            updateFavoriteButton();
+        });
+
         // 상태 변경 버튼 → 상태 선택 다이얼로그 표시
         binding.buttonChangeStatus.setOnClickListener(v -> showStatusDialog());
 

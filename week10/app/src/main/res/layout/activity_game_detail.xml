@@ -128,11 +128,19 @@
             android:layout_marginTop="24dp"
             android:orientation="vertical">
 
+            <!-- 즐겨찾기 토글 (계정별, 하트) -->
+            <Button
+                android:id="@+id/buttonFavorite"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/detail_favorite_add" />
+
             <!-- 상태 변경 (다이얼로그로 플레이중/완료/중단/백로그 선택) -->
             <Button
                 android:id="@+id/buttonChangeStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:text="@string/detail_change_status" />
 
             <!-- 리뷰 작성 (forResult) -->

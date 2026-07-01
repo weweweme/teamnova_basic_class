@@ -111,6 +111,12 @@ public class UserPrefs {
     private static final String KEY_FOLLOW_PREFIX = "follow_";
 
     /// <summary>
+    /// key 앞부분: 이 계정이 즐겨찾기한 게임 → 실제 key는 "fav_<게임id>"
+    /// 즐겨찾기는 계정마다 다르므로 각자 파일에 저장
+    /// </summary>
+    private static final String KEY_FAVORITE_PREFIX = "fav_";
+
+    /// <summary>
     /// key: 보관함에서 마지막으로 보던 필터 탭 위치 (0=전체, 1부터 상태별)
     /// </summary>
     private static final String KEY_LAST_FILTER_TAB = "last_filter_tab";
@@ -475,6 +481,31 @@ public class UserPrefs {
             }
         }
         return count;
+    }
+
+    // ========== 즐겨찾기 (fav_<게임id>) ==========
+
+    /// <summary>게임 id로 즐겨찾기 key를 만든다 (예: 12 → "fav_12")</summary>
+    private String favoriteKey(int gameId) {
+        return KEY_FAVORITE_PREFIX + gameId;
+    }
+
+    /// <summary>
+    /// 이 계정이 그 게임을 즐겨찾기했는지
+    /// </summary>
+    public boolean isFavorite(int gameId) {
+        return prefs.contains(favoriteKey(gameId));
+    }
+
+    /// <summary>
+    /// 즐겨찾기를 켜거나(true) 끈다(false) — 하트 토글에 사용
+    /// </summary>
+    public void setFavorite(int gameId, boolean favorite) {
+        if (favorite) {
+            prefs.edit().putBoolean(favoriteKey(gameId), true).apply();
+        } else {
+            prefs.edit().remove(favoriteKey(gameId)).apply();
+        }
     }
 
     /// <summary>

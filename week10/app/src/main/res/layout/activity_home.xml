@@ -86,15 +86,46 @@
                         android:textSize="12sp"
                         tools:text="🔥 3일 연속 · 누적 12회 방문" />
 
-                    <!-- 팔로잉 · 팔로워 수 -->
-                    <TextView
-                        android:id="@+id/textViewFollowHome"
-                        android:layout_width="match_parent"
+                    <!-- 팔로잉 · 팔로워 (각각 눌러 목록으로) -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:textColor="#666666"
-                        android:textSize="12sp"
-                        tools:text="팔로잉 2 · 팔로워 3" />
+                        android:layout_marginTop="4dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/textViewFollowingHome"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackground"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp"
+                            android:paddingEnd="4dp"
+                            android:textColor="#666666"
+                            android:textSize="12sp"
+                            tools:text="팔로잉 2" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp"
+                            android:text="·"
+                            android:textColor="#666666"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/textViewFollowerHome"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackground"
+                            android:paddingStart="4dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp"
+                            android:textColor="#666666"
+                            android:textSize="12sp"
+                            tools:text="팔로워 3" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

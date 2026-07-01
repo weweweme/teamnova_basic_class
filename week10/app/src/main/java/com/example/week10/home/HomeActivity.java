@@ -19,6 +19,7 @@ import com.example.week10.account.AccountManager;
 import com.example.week10.account.LoginActivity;
 import com.example.week10.account.ProfileEditActivity;
 import com.example.week10.account.UserPrefs;
+import com.example.week10.community.FollowListActivity;
 import com.example.week10.community.RankingActivity;
 import com.example.week10.detail.GameDetailActivity;
 import com.example.week10.library.LibraryActivity;
@@ -99,6 +100,12 @@ public class HomeActivity extends AppCompatActivity {
         // 프로필 헤더 탭 → 프로필 편집 화면
         binding.cardProfile.setOnClickListener(v ->
                 startActivity(new Intent(this, ProfileEditActivity.class)));
+
+        // 팔로잉/팔로워 숫자 탭 → 각각의 목록 화면
+        binding.textViewFollowingHome.setOnClickListener(v ->
+                openFollowList(FollowListActivity.MODE_FOLLOWING));
+        binding.textViewFollowerHome.setOnClickListener(v ->
+                openFollowList(FollowListActivity.MODE_FOLLOWERS));
 
         // 통계 카드 탭 또는 "더 보기" → 상세 통계 화면
         View.OnClickListener openStats = v ->
@@ -269,8 +276,8 @@ public class HomeActivity extends AppCompatActivity {
         CommunityRepository community = ((App) getApplication()).getCommunityRepository();
         int following = community.getFollowingCount(id);
         int follower = community.getFollowerCount(id);
-        binding.textViewFollowHome.setText(
-                getString(R.string.profile_follow_summary, following, follower));
+        binding.textViewFollowingHome.setText(getString(R.string.profile_following_count, following));
+        binding.textViewFollowerHome.setText(getString(R.string.profile_follower_count, follower));
     }
 
     /// <summary>
@@ -290,6 +297,15 @@ public class HomeActivity extends AppCompatActivity {
             String message = getString(R.string.attendance_toast, userPrefs.getStreak());
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /// <summary>
+    /// 팔로잉/팔로워 목록 화면을 연다 (mode로 무엇을 볼지 전달)
+    /// </summary>
+    private void openFollowList(String mode) {
+        Intent intent = new Intent(this, FollowListActivity.class);
+        intent.putExtra(FollowListActivity.EXTRA_MODE, mode);
+        startActivity(intent);
     }
 
     /// <summary>

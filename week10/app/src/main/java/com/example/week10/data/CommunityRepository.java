@@ -176,4 +176,38 @@ public class CommunityRepository {
         return new UserPrefs(appContext, accountId).getFollowingCount();
     }
 
+    /// <summary>
+    /// 이 계정이 "팔로우한 사람들"의 프로필 목록 (팔로잉 목록)
+    /// </summary>
+    public List<AccountProfile> getFollowing(String accountId) {
+        UserPrefs myPrefs = new UserPrefs(appContext, accountId);
+        List<AccountProfile> result = new ArrayList<>();
+        for (AccountProfile profile : getProfiles()) {
+            if (profile.getId().equals(accountId)) {
+                continue;
+            }
+            if (myPrefs.isFollowing(profile.getId())) {
+                result.add(profile);
+            }
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// 이 계정을 "팔로우한 사람들"의 프로필 목록 (팔로워 목록)
+    /// </summary>
+    public List<AccountProfile> getFollowers(String accountId) {
+        List<AccountProfile> result = new ArrayList<>();
+        for (AccountProfile profile : getProfiles()) {
+            if (profile.getId().equals(accountId)) {
+                continue;
+            }
+            UserPrefs theirPrefs = new UserPrefs(appContext, profile.getId());
+            if (theirPrefs.isFollowing(accountId)) {
+                result.add(profile);
+            }
+        }
+        return result;
+    }
+
 }

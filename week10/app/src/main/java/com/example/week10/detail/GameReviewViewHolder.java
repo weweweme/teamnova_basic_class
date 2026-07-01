@@ -1,11 +1,13 @@
 package com.example.week10.detail;
 
 import android.content.res.ColorStateList;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.week10.account.UserPrefs;
+import com.example.week10.community.UserProfileActivity;
 import com.example.week10.databinding.ItemGameReviewBinding;
 import com.example.week10.model.GameReview;
 
@@ -41,6 +43,12 @@ public class GameReviewViewHolder extends RecyclerView.ViewHolder {
 
         // 별명
         binding.textViewReviewerNickname.setText(review.getNickname());
+
+        // 작성자(아바타/별명) 클릭 → 그 유저의 프로필로
+        View.OnClickListener toProfile = v ->
+                UserProfileActivity.start(v.getContext(), review.getReviewerId());
+        binding.textViewReviewerAvatar.setOnClickListener(toProfile);
+        binding.textViewReviewerNickname.setOnClickListener(toProfile);
 
         // 별점 (예: "★ 4.5")
         binding.textViewReviewerRating.setText("★ " + review.getRating());

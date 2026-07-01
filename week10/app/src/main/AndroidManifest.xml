@@ -58,6 +58,13 @@
             android:parentActivityName=".home.HomeActivity"
             android:exported="false" />
 
+        <!-- 유저 프로필: 다른 유저를 눌러 진입 (커뮤니티) -->
+        <!-- parentActivityName 없음: 여러 곳에서 열리므로 ← 는 finish로 처리 -->
+        <activity
+            android:name=".community.UserProfileActivity"
+            android:label="@string/user_profile_title"
+            android:exported="false" />
+
         <!-- 팔로잉 피드: 팔로우한 사람들의 리뷰 최신순 (커뮤니티) -->
         <!-- parentActivityName: ← 버튼 누르면 홈으로 돌아감 -->
         <activity

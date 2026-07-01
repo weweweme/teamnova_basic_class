@@ -74,6 +74,13 @@
     <string name="delete_account_confirm_message">\'%s\' 계정의 모든 기록이 사라져요. 정말 삭제할까요?</string>
     <string name="delete_account_confirm_ok">삭제</string>
 
+    <!-- 유저 프로필 (커뮤니티) -->
+    <string name="user_profile_title">프로필</string>
+    <!-- %1$d=리뷰, %2$d=팔로워, %3$d=팔로잉 -->
+    <string name="user_profile_stats">리뷰 %1$d · 팔로워 %2$d · 팔로잉 %3$d</string>
+    <string name="user_profile_reviews_title">작성한 리뷰</string>
+    <string name="user_profile_no_reviews">아직 작성한 리뷰가 없어요</string>
+
     <!-- 팔로잉 피드 (커뮤니티) -->
     <string name="following_feed_title">팔로잉 피드</string>
     <string name="home_action_following_feed">팔로잉 피드</string>

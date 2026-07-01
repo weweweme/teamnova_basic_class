@@ -203,6 +203,48 @@ public class CommunityRepository {
     }
 
     /// <summary>
+    /// 한 계정의 공개 프로필 한 장 (유저 프로필 화면용)
+    /// </summary>
+    public AccountProfile getProfile(String accountId) {
+        UserPrefs prefs = new UserPrefs(appContext, accountId);
+        return new AccountProfile(
+                accountId,
+                accountManager.getNickname(accountId),
+                prefs.getAvatarColor(),
+                prefs.getBio(),
+                prefs.getStreak(),
+                prefs.getVisitCount(),
+                prefs.getReviewCount());
+    }
+
+    /// <summary>
+    /// 한 계정이 남긴 리뷰들을 최신순으로 반환 (유저 프로필의 "작성한 리뷰" 목록용)
+    /// </summary>
+    public List<ReviewFeedItem> getUserReviews(String accountId) {
+        UserPrefs prefs = new UserPrefs(appContext, accountId);
+        String nickname = accountManager.getNickname(accountId);
+        int avatarColor = prefs.getAvatarColor();
+
+        List<ReviewFeedItem> list = new ArrayList<>();
+        for (int gameId : prefs.getReviewedGameIds()) {
+            Game game = gameRepository.findById(gameId);
+            if (game == null) {
+                continue;
+            }
+            list.add(new ReviewFeedItem(
+                    nickname,
+                    avatarColor,
+                    gameId,
+                    game.getTitle(),
+                    prefs.getRating(gameId),
+                    prefs.getReview(gameId),
+                    prefs.getReviewedAt(gameId)));
+        }
+        Collections.sort(list, Comparator.comparingLong(ReviewFeedItem::getTimestamp).reversed());
+        return list;
+    }
+
+    /// <summary>
     /// 팔로잉 피드 — 이 계정이 팔로우한 사람들이 남긴 리뷰만 작성 시각 최신순으로 모아 반환
     ///
     /// 내가 팔로우한 계정만 골라, 그들이 리뷰한 게임마다 (작성자·게임제목·별점·한줄평·시각) 항목을 만든다.

@@ -60,6 +60,11 @@ public class RankingViewHolder extends RecyclerView.ViewHolder {
         binding.textViewRankReviews.setText(
                 context.getString(R.string.ranking_review_count, profile.getReviewCount()));
 
+        // 아바타/별명 클릭 → 그 유저의 프로필로
+        View.OnClickListener toProfile = v -> UserProfileActivity.start(context, profile.getId());
+        binding.textViewRankAvatar.setOnClickListener(toProfile);
+        binding.textViewRankNickname.setOnClickListener(toProfile);
+
         // 팔로우 버튼 — 내 계정 줄에는 안 보이고, 남의 줄에만 팔로우/팔로잉 토글
         if (isMe || myPrefs == null) {
             binding.buttonFollow.setVisibility(View.GONE);

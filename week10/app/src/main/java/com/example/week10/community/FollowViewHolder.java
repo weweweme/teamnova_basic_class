@@ -48,6 +48,12 @@ public class FollowViewHolder extends RecyclerView.ViewHolder {
         // 소개 (없으면 빈 줄)
         binding.textViewFollowBio.setText(profile.getBio());
 
+        // 아바타/별명 클릭 → 그 유저의 프로필로
+        View.OnClickListener toProfile = v ->
+                UserProfileActivity.start(v.getContext(), profile.getId());
+        binding.textViewFollowAvatar.setOnClickListener(toProfile);
+        binding.textViewFollowNickname.setOnClickListener(toProfile);
+
         // 팔로우 버튼 (나 자신에겐 안 보임)
         if (isMe || myPrefs == null) {
             binding.buttonFollow.setVisibility(View.GONE);

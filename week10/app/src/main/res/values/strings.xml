@@ -76,8 +76,6 @@
 
     <!-- 유저 프로필 (커뮤니티) -->
     <string name="user_profile_title">프로필</string>
-    <!-- %1$d=리뷰, %2$d=팔로워, %3$d=팔로잉 -->
-    <string name="user_profile_stats">리뷰 %1$d · 팔로워 %2$d · 팔로잉 %3$d</string>
     <string name="user_profile_reviews_title">작성한 리뷰</string>
     <string name="user_profile_no_reviews">아직 작성한 리뷰가 없어요</string>
 

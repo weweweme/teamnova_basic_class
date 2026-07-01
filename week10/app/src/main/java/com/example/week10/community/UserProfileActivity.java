@@ -57,12 +57,6 @@ public class UserProfileActivity extends AppCompatActivity {
     /// <summary>커뮤니티 저장소 (팔로워 수 등 집계)</summary>
     private CommunityRepository community;
 
-    /// <summary>이 유저의 리뷰 개수 (통계 줄 갱신용으로 보관)</summary>
-    private int reviewCount;
-
-    /// <summary>이 유저의 팔로잉 수 (통계 줄 갱신용으로 보관)</summary>
-    private int followingCount;
-
     // ========== Lifecycle ==========
 
     /// <summary>
@@ -92,15 +86,25 @@ public class UserProfileActivity extends AppCompatActivity {
 
         // ── 프로필 헤더 ──
         AccountProfile profile = community.getProfile(accountId);
-        reviewCount = profile.getReviewCount();
-        followingCount = community.getFollowingCount(accountId);
 
         binding.textViewProfileAvatar.setText(initialOf(profile.getNickname()));
         binding.textViewProfileAvatar.setBackgroundTintList(
                 ColorStateList.valueOf(profile.getAvatarColor()));
         binding.textViewProfileNickname.setText(profile.getNickname());
         binding.textViewProfileBio.setText(profile.getBio());
-        updateStats(community.getFollowerCount(accountId));
+
+        // 통계: 리뷰·팔로잉은 여기서 고정, 팔로워는 내가 팔로우/언팔로우하면 바뀌므로 헬퍼로 갱신
+        binding.textViewProfileReviews.setText(
+                getString(R.string.ranking_review_count, profile.getReviewCount()));
+        binding.textViewProfileFollowing.setText(
+                getString(R.string.profile_following_count, community.getFollowingCount(accountId)));
+        updateFollowers(community.getFollowerCount(accountId));
+
+        // 팔로워/팔로잉 탭 → 이 유저의 목록
+        binding.textViewProfileFollowers.setOnClickListener(v ->
+                openFollowList(FollowListActivity.MODE_FOLLOWERS));
+        binding.textViewProfileFollowing.setOnClickListener(v ->
+                openFollowList(FollowListActivity.MODE_FOLLOWING));
 
         // ── 팔로우 버튼 (내 프로필이면 숨김) ──
         boolean isMe = accountId.equals(currentId);
@@ -130,8 +134,8 @@ public class UserProfileActivity extends AppCompatActivity {
         boolean newFollow = !myPrefs.isFollowing(accountId);
         myPrefs.setFollowing(accountId, newFollow);
         updateFollowButton(newFollow);
-        // 내가 팔로우/언팔로우하면 이 유저의 팔로워 수가 즉시 바뀜 → 통계 줄 다시 계산
-        updateStats(community.getFollowerCount(accountId));
+        // 내가 팔로우/언팔로우하면 이 유저의 팔로워 수가 즉시 바뀜 → 팔로워 표시 갱신
+        updateFollowers(community.getFollowerCount(accountId));
     }
 
     /// <summary>
@@ -144,11 +148,21 @@ public class UserProfileActivity extends AppCompatActivity {
     }
 
     /// <summary>
-    /// 통계 줄 갱신 (리뷰·팔로워·팔로잉 수) — 팔로워 수만 바뀌므로 인자로 받음
+    /// 팔로워 수 표시 갱신 (내가 이 유저를 팔로우/언팔로우하면 바뀜)
     /// </summary>
-    private void updateStats(int followerCount) {
-        binding.textViewProfileStats.setText(
-                getString(R.string.user_profile_stats, reviewCount, followerCount, followingCount));
+    private void updateFollowers(int followerCount) {
+        binding.textViewProfileFollowers.setText(
+                getString(R.string.profile_follower_count, followerCount));
+    }
+
+    /// <summary>
+    /// 이 유저의 팔로잉/팔로워 목록 화면을 연다 (본 유저 기준)
+    /// </summary>
+    private void openFollowList(String mode) {
+        Intent intent = new Intent(this, FollowListActivity.class);
+        intent.putExtra(FollowListActivity.EXTRA_MODE, mode);
+        intent.putExtra(FollowListActivity.EXTRA_ACCOUNT_ID, accountId);
+        startActivity(intent);
     }
 
     // ========== 리뷰 클릭 ==========

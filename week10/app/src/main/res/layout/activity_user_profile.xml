@@ -53,14 +53,66 @@
                 android:textSize="13sp"
                 tools:text="인디부터 AAA까지 잡식" />
 
-            <TextView
-                android:id="@+id/textViewProfileStats"
-                android:layout_width="match_parent"
+            <!-- 통계: 리뷰(표시만) · 팔로워(탭) · 팔로잉(탭) -->
+            <LinearLayout
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:textColor="#666666"
-                android:textSize="13sp"
-                tools:text="리뷰 3 · 팔로워 2 · 팔로잉 1" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/textViewProfileReviews"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#666666"
+                    android:textSize="13sp"
+                    tools:text="리뷰 3개" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:text="·"
+                    android:textColor="#666666"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/textViewProfileFollowers"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:textColor="#666666"
+                    android:textSize="13sp"
+                    tools:text="팔로워 2" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:text="·"
+                    android:textColor="#666666"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/textViewProfileFollowing"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:textColor="#666666"
+                    android:textSize="13sp"
+                    tools:text="팔로잉 1" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- 팔로우/팔로잉 버튼 (내 프로필이면 코드에서 숨김) -->

@@ -27,6 +27,9 @@ public class FollowListActivity extends AppCompatActivity {
     /// <summary>입력: 어떤 목록을 볼지 ("following" 또는 "followers")</summary>
     public static final String EXTRA_MODE = "extra_mode";
 
+    /// <summary>입력: 누구의 목록을 볼지 (계정 id). 없으면 지금 로그인한 나</summary>
+    public static final String EXTRA_ACCOUNT_ID = "extra_account_id";
+
     /// <summary>mode 값: 팔로잉(내가 팔로우한 사람들)</summary>
     public static final String MODE_FOLLOWING = "following";
 
@@ -59,18 +62,23 @@ public class FollowListActivity extends AppCompatActivity {
         boolean followersMode = MODE_FOLLOWERS.equals(getIntent().getStringExtra(EXTRA_MODE));
 
         App app = (App) getApplication();
+        // 나(팔로우 버튼 판단·토글용)와, 목록을 볼 대상 유저(없으면 나)를 구분
         String currentId = app.getAccountManager().getCurrentAccountId();
+        String viewedId = getIntent().getStringExtra(EXTRA_ACCOUNT_ID);
+        if (viewedId == null) {
+            viewedId = currentId;
+        }
 
-        // 제목 + 목록 + 빈 안내를 모드에 맞춰 준비
+        // 제목 + 목록 + 빈 안내를 모드에 맞춰 준비 (목록은 "본 유저"의 것)
         List<AccountProfile> list;
         if (followersMode) {
             setTitle(R.string.follow_list_followers_title);
             binding.textViewFollowEmpty.setText(R.string.follow_list_followers_empty);
-            list = app.getCommunityRepository().getFollowers(currentId);
+            list = app.getCommunityRepository().getFollowers(viewedId);
         } else {
             setTitle(R.string.follow_list_following_title);
             binding.textViewFollowEmpty.setText(R.string.follow_list_following_empty);
-            list = app.getCommunityRepository().getFollowing(currentId);
+            list = app.getCommunityRepository().getFollowing(viewedId);
         }
 
         boolean isEmpty = list.isEmpty();

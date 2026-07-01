@@ -71,6 +71,12 @@ public class UserPrefs {
     private static final String KEY_DRAFT_REVIEW_PREFIX = "draft_review_";
 
     /// <summary>
+    /// key 앞부분: 작성 중인 별점 초안 (게임마다 따로) → 실제 key는 "draft_rating_<게임id>"
+    /// 한줄평 초안과 짝을 이뤄, 별점도 쓰다 말면 그대로 남아 복원됨
+    /// </summary>
+    private static final String KEY_DRAFT_RATING_PREFIX = "draft_rating_";
+
+    /// <summary>
     /// key: 보관함에서 마지막으로 보던 필터 탭 위치 (0=전체, 1부터 상태별)
     /// </summary>
     private static final String KEY_LAST_FILTER_TAB = "last_filter_tab";
@@ -253,6 +259,47 @@ public class UserPrefs {
     public void clearDraftReview(int gameId) {
         prefs.edit()
                 .remove(draftKey(gameId))
+                .apply();
+    }
+
+    // ========== 별점 초안 (draft_rating_<게임id>) ==========
+
+    /// <summary>
+    /// 게임 id로 별점 초안 key를 만든다 (예: 12 → "draft_rating_12")
+    /// </summary>
+    private String draftRatingKey(int gameId) {
+        return KEY_DRAFT_RATING_PREFIX + gameId;
+    }
+
+    /// <summary>
+    /// 이 게임에 저장된 별점 초안이 있는지 확인 (Tester)
+    /// </summary>
+    public boolean hasDraftRating(int gameId) {
+        return prefs.contains(draftRatingKey(gameId));
+    }
+
+    /// <summary>
+    /// 이 게임의 별점 초안을 반환 (없으면 0)
+    /// </summary>
+    public float getDraftRating(int gameId) {
+        return prefs.getFloat(draftRatingKey(gameId), 0f);
+    }
+
+    /// <summary>
+    /// 이 게임의 별점 초안을 저장 (별점을 바꿀 때 실시간 호출)
+    /// </summary>
+    public void saveDraftRating(int gameId, float rating) {
+        prefs.edit()
+                .putFloat(draftRatingKey(gameId), rating)
+                .apply();
+    }
+
+    /// <summary>
+    /// 이 게임의 별점 초안을 지운다 (정식 저장이 끝났을 때)
+    /// </summary>
+    public void clearDraftRating(int gameId) {
+        prefs.edit()
+                .remove(draftRatingKey(gameId))
                 .apply();
     }
 

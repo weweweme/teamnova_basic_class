@@ -224,9 +224,15 @@ public class ReviewWriteActivity extends AppCompatActivity {
 
         // 작성 중이던 초안이 남아 있으면 그 내용으로 복원 (기존 리뷰보다 우선 = 가장 최근 작성분)
         // → 앱이 갑자기 꺼졌다 다시 들어와도 쓰던 내용이 살아있음
-        boolean canRestoreDraft = userPrefs != null && gameId != -1 && userPrefs.hasDraftReview(gameId);
-        if (canRestoreDraft) {
+        boolean draftEnabled = userPrefs != null && gameId != -1;
+        if (draftEnabled && userPrefs.hasDraftReview(gameId)) {
             binding.editTextReview.setText(userPrefs.getDraftReview(gameId));
+        }
+        // 별점도 초안이 있으면 복원 (SeekBar 리스너 등록 전이라 이 setProgress는 저장을 안 부름)
+        if (draftEnabled && userPrefs.hasDraftRating(gameId)) {
+            currentRating = userPrefs.getDraftRating(gameId);
+            binding.seekBarRating.setProgress((int) (currentRating * 2));
+            updateRatingLabel();
         }
 
         // SeekBar 변경 리스너
@@ -237,6 +243,10 @@ public class ReviewWriteActivity extends AppCompatActivity {
                 // SeekBar 값(0~10)을 2로 나눠서 별점(0.0~5.0)으로 변환
                 currentRating = progress / 2.0f;
                 updateRatingLabel();
+                // 사용자가 직접 움직였을 때만 초안 저장 (프로그램적 setProgress는 제외)
+                if (fromUser) {
+                    saveDraftRating();
+                }
             }
 
             @Override
@@ -434,6 +444,18 @@ public class ReviewWriteActivity extends AppCompatActivity {
         }
     }
 
+    /// <summary>
+    /// 현재 별점을 초안으로 저장 (별점을 움직일 때마다 호출)
+    /// gameId가 없으면(-1) 어느 게임 초안인지 알 수 없으므로 아무것도 안 함
+    /// </summary>
+    private void saveDraftRating() {
+        boolean draftDisabled = userPrefs == null || gameId == -1;
+        if (draftDisabled) {
+            return;
+        }
+        userPrefs.saveDraftRating(gameId, currentRating);
+    }
+
     // ========== UI 갱신 ==========
 
     /// <summary>
@@ -501,6 +523,7 @@ public class ReviewWriteActivity extends AppCompatActivity {
         boolean draftEnabled = userPrefs != null && gameId != -1;
         if (draftEnabled) {
             userPrefs.clearDraftReview(gameId);
+            userPrefs.clearDraftRating(gameId);
         }
 
         // ──── finish() 동작 상세 ────

@@ -74,6 +74,14 @@
     <string name="delete_account_confirm_message">\'%s\' 계정의 모든 기록이 사라져요. 정말 삭제할까요?</string>
     <string name="delete_account_confirm_ok">삭제</string>
 
+    <!-- 유저 랭킹 (커뮤니티) -->
+    <string name="ranking_title">유저 랭킹</string>
+    <string name="home_action_ranking">유저 랭킹</string>
+    <!-- %d = 리뷰 개수 -->
+    <string name="ranking_review_count">리뷰 %d개</string>
+    <string name="ranking_me_badge">(나)</string>
+    <string name="ranking_empty">아직 유저가 없어요</string>
+
     <!-- 전체 초기화 (테스트/시연용) -->
     <string name="home_action_reset">전체 초기화 (테스트용)</string>
     <string name="reset_confirm_title">전체 초기화</string>

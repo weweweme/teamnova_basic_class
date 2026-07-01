@@ -360,6 +360,22 @@ public class UserPrefs {
                 .apply();
     }
 
+    /// <summary>
+    /// 이 계정이 정식으로 남긴 리뷰 개수 (랭킹 "리뷰왕" 집계에 사용)
+    ///
+    /// 저장된 key 중 "review_"로 시작하는 것의 개수를 센다.
+    /// (작성 중 초안은 "draft_review_"라 접두사가 달라 자동으로 제외됨)
+    /// </summary>
+    public int getReviewCount() {
+        int count = 0;
+        for (String key : prefs.getAll().keySet()) {
+            if (key.startsWith(KEY_REVIEW_PREFIX)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     // ========== 보관함 마지막 상태 (last_filter_tab / last_sort) ==========
 
     /// <summary>

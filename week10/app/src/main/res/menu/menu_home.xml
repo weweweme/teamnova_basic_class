@@ -5,6 +5,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <!-- 유저 랭킹: 리뷰를 많이 쓴 순 (커뮤니티) -->
+    <item
+        android:id="@+id/action_ranking"
+        android:title="@string/home_action_ranking"
+        app:showAsAction="never" />
+
     <!-- 로그아웃: 세션만 비우고 계정 데이터는 남김 -->
     <item
         android:id="@+id/action_logout"

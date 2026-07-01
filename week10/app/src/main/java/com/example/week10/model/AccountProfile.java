@@ -35,6 +35,9 @@ public class AccountProfile {
     /// <summary>누적 방문 횟수</summary>
     private final int visitCount;
 
+    /// <summary>이 계정이 남긴 리뷰 개수 (랭킹용)</summary>
+    private final int reviewCount;
+
     /// <summary>
     /// 공개 프로필 생성 (CommunityRepository가 계정 파일을 읽어 채워 만든다)
     /// </summary>
@@ -43,13 +46,15 @@ public class AccountProfile {
                           int avatarColor,
                           String bio,
                           int streak,
-                          int visitCount) {
+                          int visitCount,
+                          int reviewCount) {
         this.id = id;
         this.nickname = nickname;
         this.avatarColor = avatarColor;
         this.bio = bio;
         this.streak = streak;
         this.visitCount = visitCount;
+        this.reviewCount = reviewCount;
     }
 
     /// <summary>계정 아이디 반환</summary>
@@ -80,5 +85,10 @@ public class AccountProfile {
     /// <summary>누적 방문 횟수 반환</summary>
     public int getVisitCount() {
         return visitCount;
+    }
+
+    /// <summary>리뷰 개수 반환</summary>
+    public int getReviewCount() {
+        return reviewCount;
     }
 }

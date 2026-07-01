@@ -58,6 +58,14 @@
             android:parentActivityName=".home.HomeActivity"
             android:exported="false" />
 
+        <!-- 유저 랭킹: 리뷰를 많이 쓴 순 (커뮤니티) -->
+        <!-- parentActivityName: ← 버튼 누르면 홈으로 돌아감 -->
+        <activity
+            android:name=".community.RankingActivity"
+            android:label="@string/ranking_title"
+            android:parentActivityName=".home.HomeActivity"
+            android:exported="false" />
+
         <!-- 온보딩: 최초 실행 시 앱 소개 3페이지 -->
         <activity
             android:name=".intro.OnboardingActivity"

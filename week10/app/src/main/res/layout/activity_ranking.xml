@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "유저 랭킹" 화면 -->
+<!-- 이 기기의 계정들을 리뷰를 많이 쓴 순으로 목록 표시 (서버 있는 앱처럼) -->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".community.RankingActivity">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerRanking"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="8dp"
+        android:paddingBottom="16dp"
+        android:clipToPadding="false"
+        tools:listitem="@layout/item_ranking" />
+
+    <TextView
+        android:id="@+id/textViewRankingEmpty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/ranking_empty"
+        android:textColor="#888888"
+        android:visibility="gone" />
+
+</FrameLayout>

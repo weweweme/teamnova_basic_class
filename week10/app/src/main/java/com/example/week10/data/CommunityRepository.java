@@ -9,6 +9,8 @@ import com.example.week10.model.AccountProfile;
 import com.example.week10.model.GameReview;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /// <summary>
@@ -65,8 +67,26 @@ public class CommunityRepository {
                     prefs.getAvatarColor(),
                     prefs.getBio(),
                     prefs.getStreak(),
-                    prefs.getVisitCount()));
+                    prefs.getVisitCount(),
+                    prefs.getReviewCount()));
         }
+
+        return profiles;
+    }
+
+    /// <summary>
+    /// 유저 랭킹 — 리뷰를 많이 쓴 순으로 정렬한 프로필 목록 ("가장 활발한 리뷰어")
+    /// 리뷰 수가 같으면 연속 출석(streak)이 높은 순으로 다시 정렬
+    /// </summary>
+    public List<AccountProfile> getRanking() {
+        List<AccountProfile> profiles = getProfiles();
+
+        // 리뷰 수 내림차순 → (동점이면) 연속 출석 내림차순
+        Comparator<AccountProfile> byReviews =
+                Comparator.comparingInt(AccountProfile::getReviewCount).reversed();
+        Comparator<AccountProfile> byStreak =
+                Comparator.comparingInt(AccountProfile::getStreak).reversed();
+        Collections.sort(profiles, byReviews.thenComparing(byStreak));
 
         return profiles;
     }

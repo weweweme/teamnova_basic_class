@@ -19,6 +19,7 @@ import com.example.week10.account.AccountManager;
 import com.example.week10.account.LoginActivity;
 import com.example.week10.account.ProfileEditActivity;
 import com.example.week10.account.UserPrefs;
+import com.example.week10.community.RankingActivity;
 import com.example.week10.detail.GameDetailActivity;
 import com.example.week10.library.LibraryActivity;
 import com.example.week10.stats.StatsActivity;
@@ -139,6 +140,10 @@ public class HomeActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
+        if (id == R.id.action_ranking) {
+            startActivity(new Intent(this, RankingActivity.class));
+            return true;
+        }
         if (id == R.id.action_logout) {
             confirmLogout();
             return true;

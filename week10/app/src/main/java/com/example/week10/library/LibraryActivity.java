@@ -27,6 +27,7 @@ import java.util.Comparator;
 import com.example.week10.data.GameRepository;
 import com.example.week10.databinding.ActivityLibraryBinding;
 import com.example.week10.databinding.BottomSheetGameActionsBinding;
+import com.example.week10.model.ActivityLogType;
 import com.example.week10.model.Game;
 import com.example.week10.model.GameStatus;
 import com.example.week10.model.Genre;
@@ -183,7 +184,9 @@ public class LibraryActivity extends AppCompatActivity {
                     Platform platform = Platform.valueOf(platformName);
 
                     // 저장소에 추가 후 현재 탭 기준으로 다시 필터 (새 게임은 찜 목록 기본)
-                    gameRepository.addGame(title, genre, platform, storeUrl);
+                    Game added = gameRepository.addGame(title, genre, platform, storeUrl);
+                    // 활동 로그에 "추가함" 기록 → 최근 활동 피드에 표시
+                    userPrefs.addActivityLog(ActivityLogType.ADDED, added.getId(), "");
                     applyCurrentFilter();
                     updateTabCounts();
                 }

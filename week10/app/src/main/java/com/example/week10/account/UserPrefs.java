@@ -3,6 +3,9 @@ package com.example.week10.account;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.example.week10.model.ActivityLog;
+import com.example.week10.model.ActivityLogType;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -139,6 +142,20 @@ public class UserPrefs {
     /// 검색어를 몇 개까지 기억할지 (넘치면 가장 오래된 것부터 버림)
     /// </summary>
     private static final int SEARCH_HISTORY_MAX = 8;
+
+    /// <summary>
+    /// key: 이 계정의 활동 로그 (줄바꿈으로 이어 붙인 한 문자열, 최신순)
+    /// 로그 한 줄 형식: "종류|게임id|시각(밀리초)|부가정보"
+    ///   예: "REVIEWED|6|1720000000000|하데스 갓겜"
+    /// 종류/게임id/시각 뒤의 "부가정보"에는 리뷰 본문 등 아무 글자나 올 수 있어
+    /// 필드 구분자 |는 앞 3개만 쓰고 나머지는 통째로 부가정보로 본다(뒤에서 split 제한)
+    /// </summary>
+    private static final String KEY_ACTIVITY_LOG = "activity_log";
+
+    /// <summary>
+    /// 활동 로그를 몇 개까지 보관할지 (넘치면 가장 오래된 것부터 버림)
+    /// </summary>
+    private static final int ACTIVITY_LOG_MAX = 50;
 
     /// <summary>
     /// key: 보관함에서 마지막으로 보던 필터 탭 위치 (0=전체, 1부터 상태별)
@@ -636,6 +653,70 @@ public class UserPrefs {
         prefs.edit()
                 .remove(KEY_SEARCH_HISTORY)
                 .apply();
+    }
+
+    // ========== 활동 로그 (activity_log) ==========
+
+    /// <summary>
+    /// 활동 한 건을 기록한다 (게임 추가/완료/리뷰 등을 했을 때 호출)
+    ///   - 일어난 시각은 지금(System.currentTimeMillis)으로 자동 기록
+    ///   - 맨 앞(최신)에 넣고, 최대 개수를 넘으면 뒤(오래된 것)를 잘라냄
+    /// </summary>
+    /// <param name="type">활동 종류 (ADDED/COMPLETED/REVIEWED 등)</param>
+    /// <param name="gameId">어떤 게임에 대한 활동인지</param>
+    /// <param name="payload">부가 정보 (리뷰 본문 등, 없으면 빈 문자열)</param>
+    public void addActivityLog(ActivityLogType type, int gameId, String payload) {
+        // 한 줄로 인코딩: "종류|게임id|시각|부가정보"
+        // 부가정보의 줄바꿈은 로그 구분자(줄바꿈)와 겹치므로 공백으로 바꿔 한 줄로 만든다
+        String safePayload = payload.replace("\n", " ").replace("\r", " ");
+        String line = type.name()
+                + "|" + gameId
+                + "|" + System.currentTimeMillis()
+                + "|" + safePayload;
+
+        // 기존 로그(원본 문자열들) 앞에 새 줄을 붙이고, 최대 개수로 자른다
+        List<String> lines = new ArrayList<>();
+        String joined = prefs.getString(KEY_ACTIVITY_LOG, "");
+        if (!joined.isEmpty()) {
+            for (String part : joined.split("\n")) {
+                lines.add(part);
+            }
+        }
+        lines.add(0, line);
+        while (lines.size() > ACTIVITY_LOG_MAX) {
+            lines.remove(lines.size() - 1);
+        }
+
+        prefs.edit()
+                .putString(KEY_ACTIVITY_LOG, String.join("\n", lines))
+                .apply();
+    }
+
+    /// <summary>
+    /// 이 계정의 활동 로그를 최신순으로 반환 (없으면 빈 목록)
+    /// 저장된 각 줄("종류|게임id|시각|부가정보")을 ActivityLog로 되돌린다
+    /// </summary>
+    public List<ActivityLog> getActivityLogs() {
+        List<ActivityLog> logs = new ArrayList<>();
+        String joined = prefs.getString(KEY_ACTIVITY_LOG, "");
+        if (joined.isEmpty()) {
+            return logs;
+        }
+
+        for (String line : joined.split("\n")) {
+            // 앞 3개(종류/게임id/시각)만 |로 나누고, 4번째(부가정보)는 통째로 둔다
+            // → 부가정보 안에 |가 들어 있어도 안전
+            String[] parts = line.split("\\|", 4);
+            if (parts.length < 3) {
+                continue;  // 형식이 깨진 줄은 건너뜀
+            }
+            ActivityLogType type = ActivityLogType.valueOf(parts[0]);
+            int gameId = Integer.parseInt(parts[1]);
+            long timestamp = Long.parseLong(parts[2]);
+            String payload = (parts.length >= 4) ? parts[3] : "";
+            logs.add(new ActivityLog(type, gameId, timestamp, payload));
+        }
+        return logs;
     }
 
     /// <summary>

@@ -23,6 +23,7 @@ import com.example.week10.data.CommunityRepository;
 import com.example.week10.databinding.ActivityGameDetailBinding;
 import com.example.week10.model.Game;
 import com.example.week10.model.GameReview;
+import com.example.week10.model.ActivityLogType;
 import com.example.week10.model.GameStatus;
 
 import java.util.ArrayList;
@@ -215,6 +216,9 @@ public class GameDetailActivity extends AppCompatActivity {
 
                     // [3단계] 내 계정 파일에 정식 리뷰 저장 (계정마다 다른 "내 평가")
                     userPrefs.saveReview(game.getId(), rating, review);
+
+                    // [3.5단계] 활동 로그에 "리뷰함" 기록 → 최근 활동 피드에 표시
+                    userPrefs.addActivityLog(ActivityLogType.REVIEWED, game.getId(), review);
 
                     // [4단계] 전역 Game/Repository에도 반영 (보관함·홈·통계가 아직 전역 값을 읽으므로 유지)
                     // game은 Parcelable 사본이라 여기 setRating/setReview는 사본만 갱신 → 원본도 updateGame으로 갱신
@@ -424,10 +428,18 @@ public class GameDetailActivity extends AppCompatActivity {
                 .setSingleChoiceItems(statusNames, currentIndex, (dialog, which) -> {
                     // 선택한 위치의 상태로 변경
                     GameStatus selected = statuses[which];
+                    // "완료"로 새로 바뀌는 경우만 로그 (이미 완료였는데 다시 고르면 기록 안 함)
+                    boolean newlyCompleted = selected == GameStatus.COMPLETED
+                            && game.getStatus() != GameStatus.COMPLETED;
                     game.setStatus(selected);
 
                     // Repository 원본에도 반영 → 라이브러리 필터/리스트에 일관 반영
                     ((App) getApplication()).getGameRepository().updateGame(game);
+
+                    // 완료로 바뀌었으면 활동 로그에 "완료함" 기록
+                    if (newlyCompleted) {
+                        userPrefs.addActivityLog(ActivityLogType.COMPLETED, game.getId(), "");
+                    }
 
                     // 화면의 상태 텍스트 갱신
                     bindGameData();

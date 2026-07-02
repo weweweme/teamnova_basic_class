@@ -122,7 +122,8 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        GameRepository gameRepository = ((App) getApplication()).getGameRepository();
+        App app = (App) getApplication();
+        GameRepository gameRepository = app.getGameRepository();
         // 프로필 편집 후 돌아오면 바뀐 아바타/별명/소개를 다시 그림
         setupProfileHeader();
         setupStatsSummary(gameRepository);
@@ -130,6 +131,8 @@ public class HomeActivity extends AppCompatActivity {
         setupRecentViewed(gameRepository);
         // 화면에 돌아올 때마다 미리보기를 다시 뽑음 → 매번 다른 게임이 보임
         setupLibraryPreview(gameRepository);
+        // 방금 추가/완료/리뷰한 활동이 "최근 활동" 맨 위에 반영됨
+        setupTimelinePreview(app.getActivityLogRepository(), gameRepository);
     }
 
     // ========== ActionBar 메뉴 (⋮ 로그아웃 / 계정 삭제) ==========
@@ -417,7 +420,10 @@ public class HomeActivity extends AppCompatActivity {
     private void setupTimelinePreview(ActivityLogRepository logRepository,
                                       GameRepository gameRepository) {
         final int TIMELINE_PREVIEW_MAX = 3;
-        List<ActivityLog> preview = takeFirst(logRepository.getAllLogs(), TIMELINE_PREVIEW_MAX);
+        // 더미 + 내 실제 활동 로그를 합친 최신순 목록에서 앞쪽 몇 개만
+        UserPrefs userPrefs = ((App) getApplication()).getUserPrefs();
+        List<ActivityLog> merged = logRepository.getMergedLogs(userPrefs.getActivityLogs());
+        List<ActivityLog> preview = takeFirst(merged, TIMELINE_PREVIEW_MAX);
         TimelineAdapter adapter = new TimelineAdapter(preview, gameRepository);
         binding.recyclerTimelinePreview.setLayoutManager(new LinearLayoutManager(this));
         binding.recyclerTimelinePreview.setNestedScrollingEnabled(false);

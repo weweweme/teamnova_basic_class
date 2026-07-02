@@ -4,6 +4,9 @@ import com.example.week10.model.ActivityLog;
 import com.example.week10.model.ActivityLogType;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /// <summary>
 /// 활동 로그 저장소
@@ -118,10 +121,26 @@ public class ActivityLogRepository {
     // ========== 조회 ==========
 
     /// <summary>
-    /// 전체 활동 로그 목록 반환
+    /// 전체 활동 로그 목록 반환 (더미 데이터만)
     /// TimelineActivity에서 타임라인을 만들 때 사용
     /// </summary>
     public ArrayList<ActivityLog> getAllLogs() {
         return this.logs;
+    }
+
+    /// <summary>
+    /// 더미 로그(공용 베이스) + 이 계정이 실제로 남긴 로그를 합쳐 최신순으로 반환
+    ///
+    /// 더미는 모든 계정이 공유하는 예시 데이터이고, accountLogs는 그 계정의 진짜 활동이다.
+    /// 둘을 한 목록으로 합친 뒤 시각(timestamp) 내림차순 정렬 → 방금 한 활동이 맨 위에 온다.
+    /// </summary>
+    /// <param name="accountLogs">현재 계정이 남긴 실제 활동 로그 (UserPrefs.getActivityLogs)</param>
+    public ArrayList<ActivityLog> getMergedLogs(List<ActivityLog> accountLogs) {
+        ArrayList<ActivityLog> merged = new ArrayList<>(accountLogs);
+        merged.addAll(this.logs);
+        // 시각 내림차순 (최신이 위로)
+        Collections.sort(merged,
+                Comparator.comparingLong(ActivityLog::getTimestamp).reversed());
+        return merged;
     }
 }

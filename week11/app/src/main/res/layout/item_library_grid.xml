@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 라이브러리 그리드 아이템 레이아웃 -->
+<!-- LibraryActivity의 RecyclerView 항목으로 사용 (GridLayoutManager가 2~3열로 배치) -->
+<!-- DiaryActivity의 가로형 카드(item_game_card)와 달리, 여기는 표지 이미지 위주의 세로형 포스터 -->
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- 표지 + 평균 별점 배지 (배지를 표지 위 오른쪽 코너에 얹기 위해 FrameLayout으로 겹침) -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- 게임 표지 (그리드의 주인공 — 세로 포스터 비율) -->
+            <!-- adjustViewBounds + 고정 높이로 셀마다 표지 크기를 통일 -->
+            <ImageView
+                android:id="@+id/imageViewCover"
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/game_cover_description" />
+
+            <!-- 즐겨찾기 하트 (즐겨찾기한 게임만 코드에서 표시, 표지 좌상단) -->
+            <TextView
+                android:id="@+id/textViewFavorite"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_margin="6dp"
+                android:text="♥"
+                android:textColor="#E53935"
+                android:textSize="18sp"
+                android:visibility="gone" />
+
+            <!-- 내 별점 배지 (내가 평가한 게임만 코드에서 표시 — 다이어리) -->
+            <TextView
+                android:id="@+id/textViewMyRating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="6dp"
+                android:background="@drawable/bg_rating_badge"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="★ 4.3" />
+        </FrameLayout>
+
+        <!-- 게임 제목 (표지 아래 한 줄, 길면 말줄임) -->
+        <TextView
+            android:id="@+id/textViewTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end" />
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

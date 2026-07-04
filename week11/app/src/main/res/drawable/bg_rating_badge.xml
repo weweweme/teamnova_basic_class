@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 게임 카드 위 "평균 별점" 배지 배경 (반투명 검정 둥근 사각형) -->
+<!-- 표지 이미지 위에 얹어도 글자가 잘 보이도록 어둡게 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="8dp" />
+    <solid android:color="#CC000000" />
+</shape>

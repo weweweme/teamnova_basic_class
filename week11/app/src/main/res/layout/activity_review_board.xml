@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 리뷰 게시판 화면 (게임 상세의 "더 보기") -->
+<!-- 이 게임에 대한 다른 사람들의 평가 전체 목록 -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".detail.ReviewBoardActivity">
+
+    <!-- 어느 게임의 평가인지 (제목) -->
+    <TextView
+        android:id="@+id/textViewBoardGameTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        tools:text="엘든 링" />
+
+    <!-- 리뷰 목록 (게시판) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerBoard"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="16dp"
+        android:clipToPadding="false"
+        tools:listitem="@layout/item_game_review" />
+
+    <!-- 평가가 없을 때 안내 (평소엔 숨김) -->
+    <TextView
+        android:id="@+id/textViewBoardEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="@string/review_board_empty"
+        android:textColor="#888888"
+        android:visibility="gone" />
+
+</LinearLayout>

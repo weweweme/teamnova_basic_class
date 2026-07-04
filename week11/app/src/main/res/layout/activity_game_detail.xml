@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 게임 상세 화면 레이아웃 -->
+<!-- 게임 정보 표시 + 리뷰 작성 / 공유 / 스토어 열기 / 스크린샷 버튼 -->
+<!-- 암시적 Intent 4종이 집결하는 화면 -->
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".detail.GameDetailActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- 게임 표지 이미지 -->
+        <ImageView
+            android:id="@+id/imageViewCover"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/game_cover_description" />
+
+        <!-- 게임 제목 + 즐겨찾기 하트 (제목 오른쪽 끝) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/textViewTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <!-- 즐겨찾기 토글 (♥ 채움=즐겨찾기, ♡ 빔=아님, 색은 코드에서) -->
+            <TextView
+                android:id="@+id/textViewFavoriteToggle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="6dp"
+                android:text="♡"
+                android:textSize="30sp" />
+        </LinearLayout>
+
+        <!-- 장르 · 플랫폼 -->
+        <TextView
+            android:id="@+id/textViewGenrePlatform"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="16sp" />
+
+        <!-- 진행 상태 배지 (둥근 배경 + 상태색, 색은 코드에서 tint로 설정) -->
+        <TextView
+            android:id="@+id/textViewStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_status_badge"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <!-- 별점 (별 아이콘 + 숫자) -->
+        <!-- RatingBar: 0.5 단위로 별을 채워 별점을 시각화 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- isIndicator=true: 표시 전용 (사용자가 터치로 못 바꿈, 리뷰 화면에서만 변경) -->
+            <!-- stepSize=0.5: 반 별 표시 / numStars=5: 별 5개 -->
+            <RatingBar
+                android:id="@+id/ratingBar"
+                style="?android:attr/ratingBarStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:isIndicator="true"
+                android:numStars="5"
+                android:stepSize="0.5" />
+
+            <!-- 별점 숫자 (예: 4.5) -->
+            <TextView
+                android:id="@+id/textViewRatingValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <!-- 한줄평 -->
+        <TextView
+            android:id="@+id/textViewReview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textSize="16sp" />
+
+        <!-- 스크린샷 썸네일 (가로 스크롤) -->
+        <!-- 스크린샷이 있을 때만 표시 (없으면 라벨·스크롤뷰 모두 GONE) -->
+        <TextView
+            android:id="@+id/textViewScreenshotsLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/detail_screenshots_label"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <HorizontalScrollView
+            android:id="@+id/scrollScreenshots"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:scrollbars="none"
+            android:visibility="gone">
+
+            <!-- 썸네일 ImageView들이 코드로 추가되는 컨테이너 -->
+            <LinearLayout
+                android:id="@+id/layoutScreenshots"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+
+        <!-- 버튼 영역 -->
+        <!-- 각 버튼이 이후 단계에서 Intent 학습 포인트가 됨 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="vertical">
+
+            <!-- 상태 변경 (다이얼로그로 플레이중/완료/중단/백로그 선택) -->
+            <Button
+                android:id="@+id/buttonChangeStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/detail_change_status" />
+
+            <!-- 리뷰 작성 (forResult) -->
+            <Button
+                android:id="@+id/buttonReview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/detail_write_review" />
+
+            <!-- 공유 (ACTION_SEND chooser) -->
+            <Button
+                android:id="@+id/buttonShare"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/detail_share" />
+
+            <!-- 스토어 열기 (ACTION_VIEW) -->
+            <Button
+                android:id="@+id/buttonStore"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/detail_open_store" />
+
+            <!-- 스크린샷 (ScreenshotActivity로 이동, 갤러리에서 이미지 선택) -->
+            <Button
+                android:id="@+id/buttonScreenshot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/detail_screenshot" />
+        </LinearLayout>
+
+        <!-- ════════ 다른 사람들의 평가 (커뮤니티) ════════ -->
+        <!-- 이 기기의 다른 계정들이 이 게임에 남긴 리뷰를 모아 보여줌 (서버 있는 앱처럼) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="@string/detail_others_title"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- 전체 평균(나 포함) · 참여 인원 (한 명이라도 평가했으면 표시) -->
+        <TextView
+            android:id="@+id/textViewGameAverage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#EF6C00"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="전체 평균(나 포함) ★ 4.2 · 5명" />
+
+        <!-- 다른 사람들 리뷰 목록 -->
+        <!-- 바깥 ScrollView 안에서 자체 스크롤 끄고 wrap_content로 전부 펼쳐 표시 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerOthersReviews"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            tools:listitem="@layout/item_game_review" />
+
+        <!-- 다른 평가가 없을 때 안내 -->
+        <TextView
+            android:id="@+id/textViewOthersEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/detail_others_empty"
+            android:textColor="#888888"
+            android:textSize="14sp"
+            android:visibility="gone" />
+
+        <!-- 더 보기 → 리뷰 게시판(전체 목록) 화면. 미리보기보다 리뷰가 많을 때만 표시 -->
+        <Button
+            android:id="@+id/buttonMoreReviews"
+            style="?attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/home_more"
+            android:textSize="13sp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</ScrollView>

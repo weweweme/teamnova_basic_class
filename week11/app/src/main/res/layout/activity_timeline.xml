@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 타임라인 화면 레이아웃 -->
+<!-- 활동 로그를 RecyclerView + LinearLayoutManager로 세로 스크롤 표시 -->
+<!-- 셀 모양은 활동 종류마다 다름 (item_log_*.xml 4종), TimelineAdapter가 getItemViewType으로 분기 -->
+<androidx.recyclerview.widget.RecyclerView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/recyclerViewTimeline"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="4dp"
+    android:clipToPadding="false"
+    tools:context=".timeline.TimelineActivity"
+    tools:listitem="@layout/item_log_completed" />

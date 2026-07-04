@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 로그인 화면 레이아웃 (가상 계정 시스템) -->
+<!-- 가입된 계정을 Spinner에서 고르고, PIN을 입력해 로그인 -->
+<!-- 서버 없이 SharedPreferences(=PlayerPrefs)만으로 로그인을 흉내냄 -->
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".account.LoginActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- 화면 제목 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/login_title"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <!-- 계정 선택 라벨 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/login_account_label"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- 가입된 계정 목록 드롭다운 (별명이 들어감) -->
+        <Spinner
+            android:id="@+id/spinnerAccount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" />
+
+        <!-- PIN 입력칸 -->
+        <!-- inputType numberPassword: 숫자 키패드 + 점(•)으로 가려서 표시 -->
+        <EditText
+            android:id="@+id/editTextPin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:hint="@string/login_pin_hint"
+            android:inputType="numberPassword"
+            android:maxLength="4"
+            android:autofillHints="" />
+
+        <!-- 로그인 유지 체크박스 -->
+        <!-- 체크하고 로그인하면 다음 앱 실행 시 로그인 화면을 건너뛰고 바로 홈으로 감 -->
+        <CheckBox
+            android:id="@+id/checkBoxKeepLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/login_keep" />
+
+        <!-- 로그인 버튼 -->
+        <Button
+            android:id="@+id/buttonLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/login_button" />
+
+        <!-- 회원가입 버튼 (Phase 3에서 화면 연결) -->
+        <Button
+            android:id="@+id/buttonSignup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            style="?attr/borderlessButtonStyle"
+            android:text="@string/login_signup" />
+
+    </LinearLayout>
+</ScrollView>

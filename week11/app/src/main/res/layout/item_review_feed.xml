@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 리뷰 피드 한 줄 (팔로잉 피드) -->
+<!-- 작성자 아바타 + (닉네임 · 게임제목 · 별점) + 한줄평 + N분 전 -->
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="12dp"
+    android:layout_marginEnd="12dp"
+    android:layout_marginTop="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="14dp">
+
+        <!-- 작성자 아바타 (색은 코드에서 tint) -->
+        <TextView
+            android:id="@+id/textViewFeedAvatar"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:background="@drawable/bg_avatar_circle"
+            android:gravity="center"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            tools:text="픽" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+
+            <!-- 닉네임 · 게임제목 · 별점 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/textViewFeedNickname"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    tools:text="픽셀덕후" />
+
+                <TextView
+                    android:id="@+id/textViewFeedGame"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="#666666"
+                    android:textSize="14sp"
+                    tools:text="· 엘든 링" />
+
+                <TextView
+                    android:id="@+id/textViewFeedRating"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:textColor="#EF6C00"
+                    android:textSize="14sp"
+                    tools:text="★ 4.5" />
+            </LinearLayout>
+
+            <!-- 한줄평 -->
+            <TextView
+                android:id="@+id/textViewFeedReview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:textColor="#333333"
+                android:textSize="14sp"
+                tools:text="엘든 링 어렵지만 결국 명작" />
+
+            <!-- N분 전 -->
+            <TextView
+                android:id="@+id/textViewFeedTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="#999999"
+                android:textSize="12sp"
+                tools:text="3분 전" />
+        </LinearLayout>
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

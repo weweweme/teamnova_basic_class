@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
@@ -15,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.week11.App;
 import com.example.week11.R;
@@ -94,6 +96,52 @@ public class HomeActivity extends AppCompatActivity {
     /// </summary>
     private final Runnable resetBackRunnable = () -> backReadyToExit = false;
 
+    /// <summary>
+    /// 자동 스크롤 프레임 간격(ms) — 약 60fps
+    /// </summary>
+    private static final long AUTO_SCROLL_FRAME_MS = 16;
+
+    /// <summary>
+    /// 한 프레임에 옆으로 이동할 픽셀 수 (작을수록 느리게 흐름)
+    /// </summary>
+    private static final int AUTO_SCROLL_SPEED_PX = 3;
+
+    /// <summary>
+    /// 유저가 미리보기에서 손을 뗀 뒤, 자동 스크롤을 다시 시작하기까지 기다리는 시간(ms)
+    /// </summary>
+    private static final long AUTO_SCROLL_RESUME_DELAY_MS = 3000;
+
+    /// <summary>
+    /// 미리보기 자동 넘김용 Handler
+    /// 화면이 보일 때만(onResume) 돌리고, 안 보이면(onPause) 멈춘다 → 배터리·불필요한 스크롤 방지
+    /// </summary>
+    private final Handler autoScrollHandler = new Handler(Looper.getMainLooper());
+
+    /// <summary>
+    /// 보관함 미리보기를 매 프레임 조금씩 오른쪽으로 흘려보내는 반복 작업 (마퀴 방식)
+    /// 어댑터가 무한 순환(setLooping)이라 끝이 없어, 끝 다음에 처음이 자연스럽게 이어진다.
+    /// "위치로 점프"가 아니라 몇 px씩 연속 이동이라 부드럽게 흐른다.
+    /// </summary>
+    private final Runnable autoScrollRunnable = new Runnable() {
+        @Override
+        public void run() {
+            binding.recyclerLibraryPreview.scrollBy(AUTO_SCROLL_SPEED_PX, 0);
+            // 다음 프레임을 다시 예약 (반복)
+            autoScrollHandler.postDelayed(this, AUTO_SCROLL_FRAME_MS);
+        }
+    };
+
+    /// <summary>
+    /// 유저가 손을 뗀 뒤 잠시 있다가 자동 스크롤을 다시 켜는 작업
+    /// </summary>
+    private final Runnable autoScrollResumeRunnable = this::startAutoScroll;
+
+    /// <summary>
+    /// 미리보기가 화면 폭보다 넓어서 스크롤/순환할 만한 상태인지 (setupLibraryPreview에서 계산)
+    /// false면(내용이 다 보이면) 자동 스크롤을 아예 시작하지 않는다
+    /// </summary>
+    private boolean previewScrollable = false;
+
     // ========== Lifecycle ==========
 
     /// <summary>
@@ -140,6 +188,8 @@ public class HomeActivity extends AppCompatActivity {
         binding.buttonMoreStats.setOnClickListener(openStats);
 
         setupBackToExit();
+        // 미리보기 터치 감지 등록 (만지면 자동 스크롤 멈춤 → 손 떼면 잠시 뒤 재개)
+        setupPreviewTouchPause();
     }
 
     /// <summary>
@@ -169,12 +219,80 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     /// <summary>
-    /// 화면이 사라질 때, 뒤로가기 타이머 예약을 취소 (누수 방지)
+    /// 화면이 사라질 때, 예약해 둔 Handler 작업들을 전부 취소 (누수 방지)
     /// </summary>
     @Override
     protected void onDestroy() {
         super.onDestroy();
         backHandler.removeCallbacksAndMessages(null);
+        autoScrollHandler.removeCallbacksAndMessages(null);
+    }
+
+    /// <summary>
+    /// 화면이 가려질 때(다른 화면으로 이동 등) 자동 넘김을 멈춘다
+    /// 안 보이는 화면에서 스크롤을 계속 돌릴 이유가 없음 (배터리·불필요 동작 방지)
+    /// </summary>
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopAutoScroll();
+    }
+
+    // ========== 미리보기 자동 넘김(마퀴) ==========
+
+    /// <summary>
+    /// 자동 스크롤 시작 (예약 중복을 막고 새로 예약)
+    /// 단, 미리보기가 화면에 다 들어오면(스크롤할 게 없으면) 시작하지 않는다
+    /// </summary>
+    private void startAutoScroll() {
+        if (!previewScrollable) {
+            return;
+        }
+        autoScrollHandler.removeCallbacks(autoScrollRunnable);
+        autoScrollHandler.postDelayed(autoScrollRunnable, AUTO_SCROLL_FRAME_MS);
+    }
+
+    /// <summary>
+    /// 자동 스크롤 정지 (스크롤 반복 + 재개 예약 둘 다 취소)
+    /// </summary>
+    private void stopAutoScroll() {
+        autoScrollHandler.removeCallbacks(autoScrollRunnable);
+        autoScrollHandler.removeCallbacks(autoScrollResumeRunnable);
+    }
+
+    /// <summary>
+    /// 유저가 손을 뗀 뒤 일정 시간 후 자동 스크롤을 다시 켜도록 예약
+    /// (기다리는 동안 다시 만지면 ACTION_DOWN에서 stopAutoScroll이 이 예약을 취소함)
+    /// </summary>
+    private void scheduleAutoScrollResume() {
+        autoScrollHandler.removeCallbacks(autoScrollResumeRunnable);
+        autoScrollHandler.postDelayed(autoScrollResumeRunnable, AUTO_SCROLL_RESUME_DELAY_MS);
+    }
+
+    /// <summary>
+    /// 미리보기를 유저가 만지면 자동 스크롤을 멈추고, 손을 떼면 잠시 뒤 다시 켜지도록 터치 감지 등록
+    /// onInterceptTouchEvent는 "실제 손가락 터치"에만 불리고, 우리가 코드로 하는 scrollBy에는 안 불림
+    ///   → 자동 스크롤과 유저 조작을 깔끔하게 구분할 수 있음
+    /// return false: 터치를 가로채지 않음 → 유저가 직접 좌우로 넘기는 동작은 그대로 동작
+    /// </summary>
+    private void setupPreviewTouchPause() {
+        binding.recyclerLibraryPreview.addOnItemTouchListener(
+                new RecyclerView.SimpleOnItemTouchListener() {
+                    @Override
+                    public boolean onInterceptTouchEvent(@NonNull RecyclerView rv,
+                                                         @NonNull MotionEvent e) {
+                        switch (e.getActionMasked()) {
+                            case MotionEvent.ACTION_DOWN:
+                                stopAutoScroll();            // 만지기 시작 → 멈춤
+                                break;
+                            case MotionEvent.ACTION_UP:
+                            case MotionEvent.ACTION_CANCEL:
+                                scheduleAutoScrollResume();  // 손 뗌 → 잠시 뒤 재개
+                                break;
+                        }
+                        return false;
+                    }
+                });
     }
 
     /// <summary>
@@ -194,6 +312,9 @@ public class HomeActivity extends AppCompatActivity {
         setupLibraryPreview(gameRepository);
         // 방금 추가/완료/리뷰한 활동이 "최근 활동" 맨 위에 반영됨
         setupTimelinePreview(app.getActivityLogRepository(), gameRepository);
+
+        // 보관함 미리보기 자동 넘김(마퀴) 시작
+        startAutoScroll();
     }
 
     // ========== ActionBar 메뉴 (⋮ 로그아웃 / 계정 삭제) ==========
@@ -452,8 +573,8 @@ public class HomeActivity extends AppCompatActivity {
     /// longClickListener=null: 미리보기라 BottomSheet 메뉴 불필요
     /// </summary>
     private void setupLibraryPreview(GameRepository gameRepository) {
-        // 미리보기에 보여줄 최대 게임 수
-        final int PREVIEW_MAX = 6;
+        // 미리보기에 보여줄 최대 게임 수 (많을수록 순환이 자연스러움)
+        final int PREVIEW_MAX = 12;
         // 가로 미리보기 셀 한 칸의 고정 폭(dp)
         // (그리드는 LayoutManager가 폭을 나누지만, 가로 스크롤은 고정해야 여러 개가 보임)
         final int PREVIEW_ITEM_WIDTH_DP = 120;
@@ -465,9 +586,24 @@ public class HomeActivity extends AppCompatActivity {
         // 가로 스크롤 미리보기 → 셀 폭을 고정해야 여러 개가 보임
         // (안 하면 셀이 match_parent라 화면 폭을 꽉 채워 1개만 보임)
         adapter.setItemWidthDp(PREVIEW_ITEM_WIDTH_DP);
+
+        // 미리보기 내용이 화면 폭보다 넓을 때만(= 다 안 들어올 때만) 순환/자동 스크롤을 켠다
+        // (1~2개라 화면에 다 보이면 굳이 돌릴 필요가 없어 어색함)
+        float density = getResources().getDisplayMetrics().density;
+        int itemWidthPx = (int) (PREVIEW_ITEM_WIDTH_DP * density);   // 셀 한 칸 폭(px)
+        int screenWidthPx = getResources().getDisplayMetrics().widthPixels;
+        previewScrollable = preview.size() * itemWidthPx > screenWidthPx;
+
+        // 순환은 스크롤 가능할 때만 (다 보이면 그냥 실제 개수만 표시)
+        adapter.setLooping(previewScrollable);
         binding.recyclerLibraryPreview.setLayoutManager(
                 new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         binding.recyclerLibraryPreview.setAdapter(adapter);
+
+        // 순환할 때만 가운데에서 시작 → 좌우 어느 쪽으로 넘겨도 내용이 계속 이어짐
+        if (previewScrollable) {
+            binding.recyclerLibraryPreview.scrollToPosition(adapter.getItemCount() / 2);
+        }
     }
 
     /// <summary>

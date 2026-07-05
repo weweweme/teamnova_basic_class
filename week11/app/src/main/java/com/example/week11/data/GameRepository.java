@@ -1,5 +1,8 @@
 package com.example.week11.data;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
 import com.example.week11.model.Game;
 import com.example.week11.model.GameStatus;
 import com.example.week11.model.Genre;
@@ -7,6 +10,8 @@ import com.example.week11.model.Platform;
 import com.example.week11.model.TrashEntry;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /// <summary>
 /// 게임 저장소
@@ -32,11 +37,38 @@ public class GameRepository {
 
     /// <summary>
     /// 휴지통 보관 기간 — 이 기간이 지난 항목은 자동으로 영구삭제 (30일)
-    /// 주의: 게임 데이터는 현재 메모리에만 있어 앱을 완전히 끄면 초기화됨 →
-    ///       실제로 30일을 채우려면 앱이 그동안 살아있어야 함. 동작을 테스트하려면
-    ///       이 값을 잠깐 짧게(예: 10_000L = 10초) 낮춰 확인하면 된다.
+    /// 휴지통 상태(삭제된 id + 버린 시각)는 prefs에 저장되므로 앱을 껐다 켜도 유지된다 →
+    /// 앱 시작 시 이 기간이 지난 것이 자동 정리됨.
+    /// 동작을 빨리 테스트하려면 이 값을 잠깐 짧게(예: 10_000L = 10초) 낮춰 확인하면 된다.
     /// </summary>
     public static final long TRASH_RETENTION_MS = 30L * 24 * 60 * 60 * 1000;
+
+    /// <summary>
+    /// 휴지통/삭제 상태를 저장하는 prefs 파일 이름 (게임은 시드로 매번 새로 만들어지므로,
+    /// "무엇이 삭제됐는지"만 따로 저장해 앱을 껐다 켜도 삭제 상태가 유지되게 함)
+    /// </summary>
+    private static final String PREFS_FILE = "game_trash";
+
+    /// <summary>
+    /// 휴지통에 있는 항목들: "게임id|버린시각" 문자열 집합
+    /// </summary>
+    private static final String KEY_TRASHED = "trashed";
+
+    /// <summary>
+    /// 영구삭제된 게임 id 문자열 집합 (시드로 되살아나지 않게 시작 시 라이브러리에서 제외)
+    /// </summary>
+    private static final String KEY_DELETED = "deleted";
+
+    /// <summary>
+    /// 삭제 상태를 저장/불러오는 prefs (앱 껐다 켜도 삭제가 유지됨)
+    /// </summary>
+    private final SharedPreferences prefs;
+
+    /// <summary>
+    /// 영구삭제된 게임 id 목록 (메모리 상태 — prefs와 동기화)
+    /// 앱 시작 시 시드된 20개 중 이 id들은 라이브러리에서 빠진다
+    /// </summary>
+    private final Set<Integer> deletedIds = new HashSet<>();
 
     /// <summary>
     /// 새로 추가될 게임에 부여할 ID
@@ -53,9 +85,12 @@ public class GameRepository {
     /// 모두 Steam 게임으로 통일 (Steam CDN에서 표지 이미지 직접 가져오기 용이)
     /// 발표 데모용으로 리뷰가 있는 것(완료)과 없는 것(백로그)을 섞어둠
     /// </summary>
-    public GameRepository() {
+    public GameRepository(Context context) {
+        this.prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
         this.games = new ArrayList<>();
         seedDefaultGames();
+        // 시드 뒤, 저장돼 있던 "삭제/휴지통 상태"를 반영 (앱을 껐다 켜도 삭제가 유지됨)
+        loadTrashState();
     }
 
     /// <summary>
@@ -211,7 +246,10 @@ public class GameRepository {
     /// </summary>
     public void resetToDefault() {
         seedDefaultGames();
-        trashedEntries.clear();   // 휴지통도 함께 비운다 (완전한 "새 설치" 상태)
+        // 휴지통·영구삭제 상태도 전부 비워 "새 설치" 상태로 (저장된 것도 지움)
+        trashedEntries.clear();
+        deletedIds.clear();
+        persistTrashState();
     }
 
     // ========== 조회 ==========
@@ -405,7 +443,7 @@ public class GameRepository {
         }
     }
 
-    // ========== 휴지통 (소프트 삭제) ==========
+    // ========== 휴지통 (소프트 삭제, prefs에 영속) ==========
 
     /// <summary>
     /// 게임을 휴지통으로 이동 (영구삭제가 아니라 복원 가능한 상태)
@@ -414,6 +452,7 @@ public class GameRepository {
     /// </summary>
     public void moveToTrash(Game game, long nowMillis) {
         trashedEntries.add(new TrashEntry(game, nowMillis));
+        persistTrashState();
     }
 
     /// <summary>
@@ -431,6 +470,7 @@ public class GameRepository {
             if (trashedEntries.get(i).getGame().getId() == id) {
                 Game game = trashedEntries.remove(i).getGame();
                 games.add(game);
+                persistTrashState();
                 return game;
             }
         }
@@ -439,11 +479,14 @@ public class GameRepository {
 
     /// <summary>
     /// 휴지통의 게임 하나를 영구삭제 (완전히 제거)
+    /// id를 "영구삭제 목록"에 넣어, 다음 앱 시작 때 시드로 되살아나지 않게 한다
     /// </summary>
     public void deleteFromTrashPermanently(int id) {
         for (int i = 0; i < trashedEntries.size(); i++) {
             if (trashedEntries.get(i).getGame().getId() == id) {
                 trashedEntries.remove(i);
+                deletedIds.add(id);
+                persistTrashState();
                 return;
             }
         }
@@ -453,16 +496,124 @@ public class GameRepository {
     /// 휴지통 비우기 (전부 영구삭제)
     /// </summary>
     public void emptyTrash() {
+        for (TrashEntry entry : trashedEntries) {
+            deletedIds.add(entry.getGame().getId());
+        }
         trashedEntries.clear();
+        persistTrashState();
     }
 
     /// <summary>
     /// 보관 기간(TRASH_RETENTION_MS)이 지난 휴지통 항목을 자동으로 영구삭제
     /// nowMillis: 현재 시각 (호출자가 System.currentTimeMillis()로 넘김)
-    /// 휴지통 화면을 열 때 호출해 "30일 지난 것"을 정리한다
+    /// 앱 시작 시 / 휴지통 화면 열 때 호출해 "30일 지난 것"을 정리한다
     /// </summary>
     public void purgeExpiredTrash(long nowMillis) {
-        trashedEntries.removeIf(
-                entry -> nowMillis - entry.getTrashedAt() >= TRASH_RETENTION_MS);
+        boolean changed = false;
+        // 뒤에서부터 지우면 인덱스가 안 밀린다
+        for (int i = trashedEntries.size() - 1; i >= 0; i--) {
+            TrashEntry entry = trashedEntries.get(i);
+            if (nowMillis - entry.getTrashedAt() >= TRASH_RETENTION_MS) {
+                deletedIds.add(entry.getGame().getId());   // 만료 → 영구삭제로 확정
+                trashedEntries.remove(i);
+                changed = true;
+            }
+        }
+        if (changed) {
+            persistTrashState();
+        }
+    }
+
+    // ========== 휴지통 영속화 (prefs 저장/불러오기) ==========
+
+    /// <summary>
+    /// prefs에 저장돼 있던 삭제/휴지통 상태를 메모리에 반영 (생성자에서 시드 뒤 호출)
+    /// - 영구삭제된 id → 라이브러리에서 제거 (시드로 되살아난 것을 다시 뺌)
+    /// - 휴지통 "id|시각" → 라이브러리에서 빼서 휴지통(TrashEntry)으로 복원
+    ///   (시드에 없는 id, 예: 사용자가 추가했다 삭제한 게임은 되살릴 수 없어 건너뜀)
+    /// </summary>
+    private void loadTrashState() {
+        // 1) 영구삭제된 것 라이브러리에서 제거
+        Set<String> deletedRaw = prefs.getStringSet(KEY_DELETED, new HashSet<>());
+        for (String idStr : deletedRaw) {
+            int id = parseIntSafe(idStr, -1);
+            if (id >= 0) {
+                deletedIds.add(id);
+                removeGameFromLibrary(id);
+            }
+        }
+
+        // 2) 휴지통에 있던 것들: 라이브러리에서 빼서 TrashEntry로 되살림
+        Set<String> trashedRaw = prefs.getStringSet(KEY_TRASHED, new HashSet<>());
+        for (String token : trashedRaw) {
+            // "id|시각" 형태로 저장돼 있음
+            int sep = token.indexOf('|');
+            if (sep <= 0) {
+                continue;
+            }
+            int id = parseIntSafe(token.substring(0, sep), -1);
+            long trashedAt = parseLongSafe(token.substring(sep + 1), 0L);
+            if (id < 0) {
+                continue;
+            }
+            Game game = findById(id);   // 시드된 20개 중에서 찾음
+            if (game != null) {
+                removeGameFromLibrary(id);
+                trashedEntries.add(new TrashEntry(game, trashedAt));
+            }
+        }
+    }
+
+    /// <summary>
+    /// 현재 휴지통/영구삭제 상태를 prefs에 통째로 다시 저장 (변경이 있을 때마다 호출)
+    /// </summary>
+    private void persistTrashState() {
+        Set<String> trashedRaw = new HashSet<>();
+        for (TrashEntry entry : trashedEntries) {
+            trashedRaw.add(entry.getGame().getId() + "|" + entry.getTrashedAt());
+        }
+        Set<String> deletedRaw = new HashSet<>();
+        for (int id : deletedIds) {
+            deletedRaw.add(String.valueOf(id));
+        }
+        prefs.edit()
+                .putStringSet(KEY_TRASHED, trashedRaw)
+                .putStringSet(KEY_DELETED, deletedRaw)
+                .apply();
+    }
+
+    /// <summary>
+    /// 라이브러리 목록에서 특정 id 게임을 제거 (없으면 아무 일 안 함)
+    /// </summary>
+    private void removeGameFromLibrary(int id) {
+        for (int i = 0; i < games.size(); i++) {
+            if (games.get(i).getId() == id) {
+                games.remove(i);
+                return;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 문자열을 int로 안전 변환 (저장된 값이 손상된 경우 대비 — 실패하면 기본값)
+    /// prefs 값은 외부(파일)에서 오므로 파싱 실패를 방어한다
+    /// </summary>
+    private int parseIntSafe(String s, int fallback) {
+        try {
+            return Integer.parseInt(s.trim());
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    /// <summary>
+    /// 문자열을 long으로 안전 변환 (실패하면 기본값)
+    /// </summary>
+    private long parseLongSafe(String s, long fallback) {
+        try {
+            return Long.parseLong(s.trim());
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
     }
 }

@@ -83,11 +83,10 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        gameRepository = new GameRepository();
+        gameRepository = new GameRepository(this);
         // 앱이 켜질 때 시스템이 스스로 휴지통을 점검해 30일 지난 항목을 자동 정리
         // (사용자가 휴지통 화면을 열지 않아도 처리됨 — 서버가 백그라운드로 청소하는 것과 같은 개념)
-        // 주의: 현재 게임/휴지통은 메모리에만 있어 앱을 끄면 초기화되므로 시작 시엔 대개 비어 있음.
-        //       실제로 의미가 있으려면 휴지통을 파일/DB에 저장해 앱을 꺼도 남아야 함 (다음 단계).
+        // 휴지통 상태는 prefs에 저장되므로 앱을 껐다 켜도 유지됨 → 이 시작-시 점검이 실제로 동작함
         gameRepository.purgeExpiredTrash(System.currentTimeMillis());
         activityLogRepository = new ActivityLogRepository();
         // this(Application)도 Context의 일종이라 SharedPreferences 파일을 열 수 있다 → 그대로 넘김

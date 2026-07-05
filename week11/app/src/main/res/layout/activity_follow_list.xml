@@ -24,4 +24,12 @@
         android:textColor="#888888"
         tools:text="아직 팔로우한 사람이 없어요" />
 
+    <!-- 로딩 스피너 (목록 집계 중 중앙 표시, 평소엔 숨김) -->
+    <ProgressBar
+        android:id="@+id/progressFollow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
 </FrameLayout>

@@ -1,6 +1,8 @@
 package com.example.week11.community;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -41,6 +43,12 @@ public class FollowListActivity extends AppCompatActivity {
     /// </summary>
     private ActivityFollowListBinding binding;
 
+    /// <summary>
+    /// 목록 집계 결과를 화면(메인 스레드)에 반영할 때 쓰는 Handler
+    /// 계정마다 파일을 읽는 무거운 집계는 서브 스레드에서, 목록 표시만 메인에 넘긴다
+    /// </summary>
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
     // ========== Lifecycle ==========
 
     /// <summary>
@@ -69,24 +77,58 @@ public class FollowListActivity extends AppCompatActivity {
             viewedId = currentId;
         }
 
-        // 제목 + 목록 + 빈 안내를 모드에 맞춰 준비 (목록은 "본 유저"의 것)
-        List<AccountProfile> list;
+        // 제목 + 빈 안내 문구는 모드에 맞춰 즉시 설정 (가벼운 UI라 메인에서 바로)
         if (followersMode) {
             setTitle(R.string.follow_list_followers_title);
             binding.textViewFollowEmpty.setText(R.string.follow_list_followers_empty);
-            list = app.getCommunityRepository().getFollowers(viewedId);
         } else {
             setTitle(R.string.follow_list_following_title);
             binding.textViewFollowEmpty.setText(R.string.follow_list_following_empty);
-            list = app.getCommunityRepository().getFollowing(viewedId);
         }
 
-        boolean isEmpty = list.isEmpty();
-        binding.textViewFollowEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
-        binding.recyclerFollow.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+        // 로딩 스피너 표시, 목록/빈 안내 숨김 (아직 집계 전)
+        binding.progressFollow.setVisibility(View.VISIBLE);
+        binding.recyclerFollow.setVisibility(View.GONE);
+        binding.textViewFollowEmpty.setVisibility(View.GONE);
 
-        binding.recyclerFollow.setLayoutManager(new LinearLayoutManager(this));
-        binding.recyclerFollow.setAdapter(new FollowAdapter(list, currentId, app.getUserPrefs()));
+        // 목록 집계는 계정마다 파일을 읽는 디스크 작업 → 서브 스레드에서
+        // viewedId는 위에서 재할당될 수 있어 람다에서 쓰려면 final 복사본이 필요
+        final String targetId = viewedId;
+        new Thread(() -> {                              // 서브(백그라운드) 스레드 시작
+            // [관찰용] 스피너가 보이게 잠깐 지연 (확인 후 삭제)
+            // 주의: Thread.sleep()은 checked exception이라 try-catch 필수 (컴파일러 요구)
+            try {
+                Thread.sleep(600);
+            } catch (InterruptedException e) {
+                // 발생하지 않음 (컴파일러 요구사항)
+            }
+
+            // ⏳ 무거운 일: 팔로워/팔로잉 목록을 계정들에서 모음 (디스크 읽기)
+            List<AccountProfile> list = followersMode
+                    ? app.getCommunityRepository().getFollowers(targetId)
+                    : app.getCommunityRepository().getFollowing(targetId);
+
+            // 결과 반영만 메인 줄로
+            mainHandler.post(() -> {
+                binding.progressFollow.setVisibility(View.GONE);
+
+                boolean isEmpty = list.isEmpty();
+                binding.textViewFollowEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+                binding.recyclerFollow.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+
+                binding.recyclerFollow.setLayoutManager(new LinearLayoutManager(this));
+                binding.recyclerFollow.setAdapter(new FollowAdapter(list, currentId, app.getUserPrefs()));
+            });
+        }).start();                                     // 서브 스레드 실행
+    }
+
+    /// <summary>
+    /// 화면이 사라질 때, 아직 메인 큐에 남아있는 목록 반영 작업을 취소 (누수 방지)
+    /// </summary>
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mainHandler.removeCallbacksAndMessages(null);
     }
 
     /// <summary>

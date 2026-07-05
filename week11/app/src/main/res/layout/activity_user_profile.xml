@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 유저 프로필 화면 (다른 유저를 눌러 진입) -->
 <!-- 위: 프로필 헤더(아바타·별명·소개·통계·팔로우), 아래: 그 유저가 작성한 리뷰 목록 -->
-<LinearLayout
+<!-- FrameLayout: 내용(프로필+리뷰) 위에 로딩 스피너를 겹치기 위한 컨테이너 -->
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context=".community.UserProfileActivity">
+
+    <LinearLayout
+        android:id="@+id/layoutProfileContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
     <!-- ════════ 프로필 헤더 ════════ -->
     <LinearLayout
@@ -171,4 +177,14 @@
         android:textColor="#888888"
         android:visibility="gone" />
 
-</LinearLayout>
+    </LinearLayout>
+
+    <!-- 로딩 스피너 (프로필 집계 중 화면 중앙에 표시, 평소엔 숨김) -->
+    <ProgressBar
+        android:id="@+id/progressProfile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+</FrameLayout>

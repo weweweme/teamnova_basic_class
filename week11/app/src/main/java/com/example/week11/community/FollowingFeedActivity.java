@@ -2,6 +2,8 @@ package com.example.week11.community;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -30,6 +32,12 @@ public class FollowingFeedActivity extends AppCompatActivity {
     /// </summary>
     private ActivityFollowingFeedBinding binding;
 
+    /// <summary>
+    /// 피드 집계 결과를 화면(메인 스레드)에 반영할 때 쓰는 Handler
+    /// 계정마다 파일을 읽는 무거운 집계는 서브 스레드에서, 목록 표시만 메인에 넘긴다
+    /// </summary>
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
     // ========== Lifecycle ==========
 
     /// <summary>
@@ -49,14 +57,46 @@ public class FollowingFeedActivity extends AppCompatActivity {
 
         App app = (App) getApplication();
         String currentId = app.getAccountManager().getCurrentAccountId();
-        List<ReviewFeedItem> feed = app.getCommunityRepository().getFollowingFeed(currentId);
 
-        boolean isEmpty = feed.isEmpty();
-        binding.textViewFollowingFeedEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
-        binding.recyclerFollowingFeed.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+        // 로딩 스피너 표시, 목록/빈 안내 숨김 (아직 집계 전)
+        binding.progressFollowingFeed.setVisibility(View.VISIBLE);
+        binding.recyclerFollowingFeed.setVisibility(View.GONE);
+        binding.textViewFollowingFeedEmpty.setVisibility(View.GONE);
 
-        binding.recyclerFollowingFeed.setLayoutManager(new LinearLayoutManager(this));
-        binding.recyclerFollowingFeed.setAdapter(new ReviewFeedAdapter(feed, this::openGame));
+        // 팔로우한 사람들의 리뷰 모으기는 계정마다 파일을 읽는 디스크 작업 → 서브 스레드에서
+        new Thread(() -> {                              // 서브(백그라운드) 스레드 시작
+            // [관찰용] 스피너가 보이게 잠깐 지연 (확인 후 삭제)
+            // 주의: Thread.sleep()은 checked exception이라 try-catch 필수 (컴파일러 요구)
+            try {
+                Thread.sleep(600);
+            } catch (InterruptedException e) {
+                // 발생하지 않음 (컴파일러 요구사항)
+            }
+
+            // ⏳ 무거운 일: 팔로우한 계정들의 리뷰를 모아 최신순 정렬 (디스크 읽기)
+            List<ReviewFeedItem> feed = app.getCommunityRepository().getFollowingFeed(currentId);
+
+            // 결과 반영만 메인 줄로
+            mainHandler.post(() -> {
+                binding.progressFollowingFeed.setVisibility(View.GONE);
+
+                boolean isEmpty = feed.isEmpty();
+                binding.textViewFollowingFeedEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+                binding.recyclerFollowingFeed.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+
+                binding.recyclerFollowingFeed.setLayoutManager(new LinearLayoutManager(this));
+                binding.recyclerFollowingFeed.setAdapter(new ReviewFeedAdapter(feed, this::openGame));
+            });
+        }).start();                                     // 서브 스레드 실행
+    }
+
+    /// <summary>
+    /// 화면이 사라질 때, 아직 메인 큐에 남아있는 피드 반영 작업을 취소 (누수 방지)
+    /// </summary>
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mainHandler.removeCallbacksAndMessages(null);
     }
 
     /// <summary>

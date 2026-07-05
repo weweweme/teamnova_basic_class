@@ -3,6 +3,8 @@ package com.example.week11.community;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -57,6 +59,12 @@ public class UserProfileActivity extends AppCompatActivity {
     /// <summary>커뮤니티 저장소 (팔로워 수 등 집계)</summary>
     private CommunityRepository community;
 
+    /// <summary>
+    /// 프로필 집계 결과를 화면(메인 스레드)에 반영할 때 쓰는 Handler
+    /// 계정마다 파일을 읽는 무거운 집계는 서브 스레드에서, 화면 그리기만 메인에 넘긴다
+    /// </summary>
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
     // ========== Lifecycle ==========
 
     /// <summary>
@@ -83,22 +91,65 @@ public class UserProfileActivity extends AppCompatActivity {
         community = app.getCommunityRepository();
         myPrefs = app.getUserPrefs();
         String currentId = app.getAccountManager().getCurrentAccountId();
+        boolean isMe = accountId.equals(currentId);
 
+        // 로딩 스피너 표시, 내용(헤더+리뷰) 숨김 (아직 집계 전)
+        binding.progressProfile.setVisibility(View.VISIBLE);
+        binding.layoutProfileContent.setVisibility(View.GONE);
+
+        // 프로필·팔로워/팔로잉 수·작성 리뷰는 계정마다 파일을 읽는 디스크 작업 → 서브 스레드에서
+        new Thread(() -> {                              // 서브(백그라운드) 스레드 시작
+            // [관찰용] 스피너가 보이게 잠깐 지연 (확인 후 삭제)
+            // 주의: Thread.sleep()은 checked exception이라 try-catch 필수 (컴파일러 요구)
+            try {
+                Thread.sleep(600);
+            } catch (InterruptedException e) {
+                // 발생하지 않음 (컴파일러 요구사항)
+            }
+
+            // ⏳ 무거운 일: 프로필 + 팔로잉/팔로워 수 + 작성 리뷰 모으기 (디스크 읽기)
+            AccountProfile profile = community.getProfile(accountId);
+            int followingCount = community.getFollowingCount(accountId);
+            int followerCount = community.getFollowerCount(accountId);
+            List<ReviewFeedItem> reviews = community.getUserReviews(accountId);
+            boolean following = myPrefs != null && myPrefs.isFollowing(accountId);
+
+            // 화면 그리기는 메인 줄로 (뷰 조작은 메인에서만)
+            mainHandler.post(() -> {
+                renderProfile(profile, followingCount, followerCount, reviews, isMe, following);
+                binding.progressProfile.setVisibility(View.GONE);
+                binding.layoutProfileContent.setVisibility(View.VISIBLE);
+            });
+        }).start();                                     // 서브 스레드 실행
+    }
+
+    /// <summary>
+    /// 화면이 사라질 때, 아직 메인 큐에 남아있는 프로필 반영 작업을 취소 (누수 방지)
+    /// </summary>
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mainHandler.removeCallbacksAndMessages(null);
+    }
+
+    /// <summary>
+    /// 미리 집계한 값으로 프로필 헤더 + 리뷰 목록을 그린다 (모두 메인 스레드에서)
+    /// </summary>
+    private void renderProfile(AccountProfile profile, int followingCount, int followerCount,
+                               List<ReviewFeedItem> reviews, boolean isMe, boolean following) {
         // ── 프로필 헤더 ──
-        AccountProfile profile = community.getProfile(accountId);
-
         binding.textViewProfileAvatar.setText(initialOf(profile.getNickname()));
         binding.textViewProfileAvatar.setBackgroundTintList(
                 ColorStateList.valueOf(profile.getAvatarColor()));
         binding.textViewProfileNickname.setText(profile.getNickname());
         binding.textViewProfileBio.setText(profile.getBio());
 
-        // 통계: 리뷰·팔로잉은 여기서 고정, 팔로워는 내가 팔로우/언팔로우하면 바뀌므로 헬퍼로 갱신
+        // 통계: 리뷰·팔로잉은 고정, 팔로워는 내가 팔로우/언팔로우하면 바뀌므로 헬퍼로 갱신
         binding.textViewProfileReviews.setText(
                 getString(R.string.ranking_review_count, profile.getReviewCount()));
         binding.textViewProfileFollowing.setText(
-                getString(R.string.profile_following_count, community.getFollowingCount(accountId)));
-        updateFollowers(community.getFollowerCount(accountId));
+                getString(R.string.profile_following_count, followingCount));
+        updateFollowers(followerCount);
 
         // 팔로워/팔로잉 탭 → 이 유저의 목록
         binding.textViewProfileFollowers.setOnClickListener(v ->
@@ -107,17 +158,15 @@ public class UserProfileActivity extends AppCompatActivity {
                 openFollowList(FollowListActivity.MODE_FOLLOWING));
 
         // ── 팔로우 버튼 (내 프로필이면 숨김) ──
-        boolean isMe = accountId.equals(currentId);
         if (isMe || myPrefs == null) {
             binding.buttonProfileFollow.setVisibility(View.GONE);
         } else {
             binding.buttonProfileFollow.setVisibility(View.VISIBLE);
-            updateFollowButton(myPrefs.isFollowing(accountId));
+            updateFollowButton(following);
             binding.buttonProfileFollow.setOnClickListener(v -> onToggleFollow());
         }
 
         // ── 그 유저가 작성한 리뷰 목록 ──
-        List<ReviewFeedItem> reviews = community.getUserReviews(accountId);
         boolean noReviews = reviews.isEmpty();
         binding.textViewProfileNoReviews.setVisibility(noReviews ? View.VISIBLE : View.GONE);
         binding.recyclerProfileReviews.setVisibility(noReviews ? View.GONE : View.VISIBLE);

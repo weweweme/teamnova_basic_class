@@ -3,11 +3,14 @@ package com.example.week11.home;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -70,6 +73,27 @@ public class HomeActivity extends AppCompatActivity {
     /// </summary>
     private AccountManager accountManager;
 
+    /// <summary>
+    /// "뒤로 두 번 눌러 종료"의 대기 시간(ms) — 이 시간 안에 다시 누르면 종료
+    /// </summary>
+    private static final long BACK_EXIT_WINDOW_MS = 2000L;
+
+    /// <summary>
+    /// 뒤로가기를 한 번 눌러 "종료 대기" 상태인지 여부
+    /// </summary>
+    private boolean backReadyToExit = false;
+
+    /// <summary>
+    /// "뒤로 두 번 눌러 종료" 타이머용 Handler (일정 시간 뒤 대기 상태 해제)
+    /// </summary>
+    private final Handler backHandler = new Handler(Looper.getMainLooper());
+
+    /// <summary>
+    /// 대기 시간이 지나면 "종료 대기" 상태를 해제하는 작업
+    /// (2초 안에 다시 안 누르면 처음 상태로 되돌림)
+    /// </summary>
+    private final Runnable resetBackRunnable = () -> backReadyToExit = false;
+
     // ========== Lifecycle ==========
 
     /// <summary>
@@ -114,6 +138,43 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(new Intent(this, StatsActivity.class));
         binding.cardStats.setOnClickListener(openStats);
         binding.buttonMoreStats.setOnClickListener(openStats);
+
+        setupBackToExit();
+    }
+
+    /// <summary>
+    /// "뒤로 두 번 눌러 종료" 처리 등록
+    /// - 첫 번째 뒤로가기: 안내 토스트 + 2초 타이머 예약 (아직 종료 안 함)
+    /// - 2초 안에 두 번째 뒤로가기: 앱 종료
+    /// - 2초가 지나면 resetBackRunnable이 대기 상태를 풀어 "처음"으로 되돌림
+    /// (홈은 앱의 첫 화면이라, 실수로 뒤로가기 한 번에 앱이 꺼지는 걸 막는 흔한 폴리시)
+    /// </summary>
+    private void setupBackToExit() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // 두 번째(대기 중) → 종료
+                if (backReadyToExit) {
+                    finish();
+                    return;
+                }
+
+                // 첫 번째 → 대기 상태로 만들고 안내, 2초 뒤 자동 해제 예약
+                backReadyToExit = true;
+                Toast.makeText(HomeActivity.this, R.string.home_back_to_exit,
+                        Toast.LENGTH_SHORT).show();
+                backHandler.postDelayed(resetBackRunnable, BACK_EXIT_WINDOW_MS);
+            }
+        });
+    }
+
+    /// <summary>
+    /// 화면이 사라질 때, 뒤로가기 타이머 예약을 취소 (누수 방지)
+    /// </summary>
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        backHandler.removeCallbacksAndMessages(null);
     }
 
     /// <summary>

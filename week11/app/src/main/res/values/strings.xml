@@ -84,6 +84,9 @@
     <string name="home_action_following_feed">팔로잉 피드</string>
     <string name="following_feed_empty">팔로우한 사람의 리뷰가 아직 없어요\n랭킹에서 다른 유저를 팔로우해보세요</string>
 
+    <!-- 뒤로 두 번 눌러 종료 안내 -->
+    <string name="home_back_to_exit">한 번 더 누르면 종료됩니다</string>
+
     <!-- 유저 랭킹 (커뮤니티) -->
     <string name="ranking_title">유저 랭킹</string>
     <string name="home_action_ranking">유저 랭킹</string>

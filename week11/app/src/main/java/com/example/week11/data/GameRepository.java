@@ -9,6 +9,10 @@ import com.example.week11.model.Genre;
 import com.example.week11.model.Platform;
 import com.example.week11.model.TrashEntry;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -60,6 +64,17 @@ public class GameRepository {
     private static final String KEY_DELETED = "deleted";
 
     /// <summary>
+    /// 사용자가 추가한 게임들: 게임 하나를 JSON 문자열로 만든 것들의 집합
+    /// (시드 20개는 코드로 매번 만들지만, 추가 게임은 코드에 없으니 통째로 저장해야 살아남음)
+    /// </summary>
+    private static final String KEY_ADDED = "added_games";
+
+    /// <summary>
+    /// 다음에 부여할 게임 id — 추가 게임 id가 재시작 후에도 안 겹치게 저장
+    /// </summary>
+    private static final String KEY_NEXT_ID = "next_id";
+
+    /// <summary>
     /// 삭제 상태를 저장/불러오는 prefs (앱 껐다 켜도 삭제가 유지됨)
     /// </summary>
     private final SharedPreferences prefs;
@@ -89,8 +104,8 @@ public class GameRepository {
         this.prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
         this.games = new ArrayList<>();
         seedDefaultGames();
-        // 시드 뒤, 저장돼 있던 "삭제/휴지통 상태"를 반영 (앱을 껐다 켜도 삭제가 유지됨)
-        loadTrashState();
+        // 시드 뒤, 저장돼 있던 "추가 게임 / 삭제 / 휴지통 상태"를 반영 (앱을 껐다 켜도 유지됨)
+        loadPersistedState();
     }
 
     /// <summary>
@@ -245,11 +260,16 @@ public class GameRepository {
     /// → 프로세스를 죽이지 않고도 "새 설치" 상태를 만들기 위해 여기서 직접 다시 채운다
     /// </summary>
     public void resetToDefault() {
-        seedDefaultGames();
-        // 휴지통·영구삭제 상태도 전부 비워 "새 설치" 상태로 (저장된 것도 지움)
+        seedDefaultGames();   // games 20개 + nextId 21로 복구
+        // 추가 게임·휴지통·영구삭제 상태를 전부 비워 "새 설치" 상태로 (저장된 것도 지움)
         trashedEntries.clear();
         deletedIds.clear();
-        persistTrashState();
+        prefs.edit()
+                .remove(KEY_TRASHED)
+                .remove(KEY_DELETED)
+                .remove(KEY_ADDED)
+                .remove(KEY_NEXT_ID)
+                .apply();
     }
 
     // ========== 조회 ==========
@@ -374,6 +394,8 @@ public class GameRepository {
         newGame.setCoverUri(coverUri);
         this.games.add(newGame);
         this.nextId++;
+        // 추가 게임은 코드 시드에 없으니 통째로 저장해야 재시작 후에도 남음
+        persistAddedGame(newGame);
         return newGame;
     }
 
@@ -530,25 +552,38 @@ public class GameRepository {
     // ========== 휴지통 영속화 (prefs 저장/불러오기) ==========
 
     /// <summary>
-    /// prefs에 저장돼 있던 삭제/휴지통 상태를 메모리에 반영 (생성자에서 시드 뒤 호출)
-    /// - 영구삭제된 id → 라이브러리에서 제거 (시드로 되살아난 것을 다시 뺌)
-    /// - 휴지통 "id|시각" → 라이브러리에서 빼서 휴지통(TrashEntry)으로 복원
-    ///   (시드에 없는 id, 예: 사용자가 추가했다 삭제한 게임은 되살릴 수 없어 건너뜀)
+    /// prefs에 저장돼 있던 추가게임/삭제/휴지통 상태를 메모리에 반영 (생성자에서 시드 뒤 호출)
+    /// 순서가 중요:
+    ///   1) 영구삭제 id 로드 → 2) nextId 로드 → 3) 추가 게임 복원(삭제된 건 제외)
+    ///   → 4) 삭제된 게임을 라이브러리에서 제거 → 5) 휴지통 복원(시드+추가 게임 모두 대상)
     /// </summary>
-    private void loadTrashState() {
-        // 1) 영구삭제된 것 라이브러리에서 제거
-        Set<String> deletedRaw = prefs.getStringSet(KEY_DELETED, new HashSet<>());
-        for (String idStr : deletedRaw) {
+    private void loadPersistedState() {
+        // 1) 영구삭제된 id 집합
+        for (String idStr : prefs.getStringSet(KEY_DELETED, new HashSet<>())) {
             int id = parseIntSafe(idStr, -1);
             if (id >= 0) {
                 deletedIds.add(id);
-                removeGameFromLibrary(id);
             }
         }
 
-        // 2) 휴지통에 있던 것들: 라이브러리에서 빼서 TrashEntry로 되살림
-        Set<String> trashedRaw = prefs.getStringSet(KEY_TRASHED, new HashSet<>());
-        for (String token : trashedRaw) {
+        // 2) 다음 id 복원 (추가 게임 id가 재시작 후에도 안 겹치게). 없으면 시드가 정한 값 유지
+        nextId = prefs.getInt(KEY_NEXT_ID, nextId);
+
+        // 3) 사용자가 추가했던 게임 복원 (이미 삭제된 것은 제외)
+        for (String json : prefs.getStringSet(KEY_ADDED, new HashSet<>())) {
+            Game g = gameFromJson(json);
+            if (g != null && !deletedIds.contains(g.getId())) {
+                games.add(g);
+            }
+        }
+
+        // 4) 삭제된 게임을 라이브러리에서 제거 (시드로 되살아난 것 등)
+        for (int id : deletedIds) {
+            removeGameFromLibrary(id);
+        }
+
+        // 5) 휴지통에 있던 것들: 라이브러리에서 빼서 TrashEntry로 되살림
+        for (String token : prefs.getStringSet(KEY_TRASHED, new HashSet<>())) {
             // "id|시각" 형태로 저장돼 있음
             int sep = token.indexOf('|');
             if (sep <= 0) {
@@ -556,14 +591,89 @@ public class GameRepository {
             }
             int id = parseIntSafe(token.substring(0, sep), -1);
             long trashedAt = parseLongSafe(token.substring(sep + 1), 0L);
-            if (id < 0) {
+            if (id < 0 || deletedIds.contains(id)) {
                 continue;
             }
-            Game game = findById(id);   // 시드된 20개 중에서 찾음
+            Game game = findById(id);   // 시드 또는 복원된 추가 게임 중에서 찾음
             if (game != null) {
                 removeGameFromLibrary(id);
                 trashedEntries.add(new TrashEntry(game, trashedAt));
             }
+        }
+    }
+
+    /// <summary>
+    /// 추가한 게임 하나를 JSON으로 만들어 저장 목록(KEY_ADDED)에 넣고, nextId도 함께 저장
+    /// (StringSet은 반환된 그대로 수정하면 안 돼서 복사본을 만들어 수정 후 저장)
+    /// </summary>
+    private void persistAddedGame(Game game) {
+        String json = gameToJson(game);
+        if (json == null) {
+            return;
+        }
+        Set<String> added = new HashSet<>(prefs.getStringSet(KEY_ADDED, new HashSet<>()));
+        added.add(json);
+        prefs.edit()
+                .putStringSet(KEY_ADDED, added)
+                .putInt(KEY_NEXT_ID, nextId)
+                .apply();
+    }
+
+    /// <summary>
+    /// 게임 하나를 JSON 문자열로 직렬화 (추가 게임 저장용). 실패하면 null
+    /// </summary>
+    private String gameToJson(Game g) {
+        // JSONObject.put은 JSONException(checked)을 던질 수 있어 try 필수
+        try {
+            JSONObject o = new JSONObject();
+            o.put("id", g.getId());
+            o.put("title", g.getTitle());
+            o.put("coverAssetName", g.getCoverAssetName());
+            o.put("coverUri", g.getCoverUri() == null ? JSONObject.NULL : g.getCoverUri());
+            o.put("genre", g.getGenre().name());
+            o.put("platform", g.getPlatform().name());
+            o.put("storeUrl", g.getStoreUrl());
+            o.put("status", g.getStatus().name());
+            o.put("rating", g.getRating());
+            o.put("review", g.getReview());
+            JSONArray shots = new JSONArray();
+            for (String s : g.getScreenshots()) {
+                shots.put(s);
+            }
+            o.put("screenshots", shots);
+            return o.toString();
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// JSON 문자열을 Game으로 복원 (실패하거나 손상됐으면 null)
+    /// enum 이름이 잘못됐을 때의 IllegalArgumentException까지 잡으려고 넓게 catch
+    /// </summary>
+    private Game gameFromJson(String json) {
+        try {
+            JSONObject o = new JSONObject(json);
+            Game g = new Game(
+                    o.getInt("id"),
+                    o.getString("title"),
+                    o.optString("coverAssetName", ""),
+                    Genre.valueOf(o.getString("genre")),
+                    Platform.valueOf(o.getString("platform")),
+                    o.optString("storeUrl", ""),
+                    GameStatus.valueOf(o.getString("status")),
+                    (float) o.optDouble("rating", 0),
+                    o.optString("review", ""));
+            g.setCoverUri(o.isNull("coverUri") ? null : o.optString("coverUri", null));
+            JSONArray shots = o.optJSONArray("screenshots");
+            if (shots != null) {
+                for (int i = 0; i < shots.length(); i++) {
+                    g.addScreenshot(shots.getString(i));
+                }
+            }
+            return g;
+        } catch (Exception e) {
+            return null;
         }
     }
 

@@ -68,9 +68,11 @@ public class AddGameActivity extends AppCompatActivity {
     private String selectedCoverUri = null;
 
     /// <summary>
-    /// 갤러리에서 이미지 하나를 고르는 런처 (GetContent: "image/*" → Uri 반환)
+    /// 갤러리에서 이미지 하나를 고르는 런처
+    /// OpenDocument를 쓰는 이유: 이 방식으로 연 URI만 "영속 읽기 권한"을 받을 수 있어
+    /// 앱을 껐다 켜도 그 이미지를 계속 열 수 있음 (GetContent는 세션 동안만 유효)
     /// </summary>
-    private ActivityResultLauncher<String> pickCoverLauncher;
+    private ActivityResultLauncher<String[]> pickCoverLauncher;
 
     // ========== Lifecycle ==========
 
@@ -93,15 +95,24 @@ public class AddGameActivity extends AppCompatActivity {
 
         // 갤러리에서 표지 이미지 고르기 런처 등록 (고르면 URI 저장 + 미리보기)
         pickCoverLauncher = registerForActivityResult(
-                new ActivityResultContracts.GetContent(),
+                new ActivityResultContracts.OpenDocument(),
                 uri -> {
                     if (uri != null) {
+                        // 재시작 후에도 이 이미지를 열 수 있게 읽기 권한을 영구적으로 붙잡음
+                        // 주의: takePersistableUriPermission은 SecurityException(unchecked)을 던질 수 있어 try 필요
+                        try {
+                            getContentResolver().takePersistableUriPermission(
+                                    uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        } catch (SecurityException e) {
+                            // 일부 제공자는 영속 권한을 안 줄 수 있음 (그래도 세션 동안은 유효)
+                        }
                         selectedCoverUri = uri.toString();
                         binding.imageViewCoverPreview.setImageURI(uri);   // 미리보기
                     }
                 });
-        // "표지 선택" 버튼 → 이미지만 고르도록 요청
-        binding.buttonPickCover.setOnClickListener(v -> pickCoverLauncher.launch("image/*"));
+        // "표지 선택" 버튼 → 이미지 문서 열기 (image/* 만)
+        binding.buttonPickCover.setOnClickListener(
+                v -> pickCoverLauncher.launch(new String[]{"image/*"}));
 
         // "추가하기" 버튼 리스너
         binding.buttonAdd.setOnClickListener(v -> submitGame());

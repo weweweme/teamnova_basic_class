@@ -2,8 +2,13 @@ package com.example.week11.detail;
 
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -54,6 +59,14 @@ public class GameDetailActivity extends AppCompatActivity {
     /// ViewBinding 객체
     /// </summary>
     private ActivityGameDetailBinding binding;
+
+    /// <summary>
+    /// 표지 이미지 디코딩 결과를 화면(메인 스레드)에 반영할 때 쓰는 Handler
+    /// getMainLooper() = 메인(UI) 스레드 줄에 작업을 넣겠다는 뜻
+    /// 무거운 JPG 디코딩은 서브 스레드에서 하고, setImageBitmap(화면 갱신)만 이 Handler로 메인에 넘긴다
+    /// Unity로 비유하면: 워커 스레드에서 만든 결과를 메인 스레드 디스패처로 넘겨 UI에 반영
+    /// </summary>
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     /// <summary>
     /// Intent로 전달받은 게임 데이터
@@ -278,6 +291,18 @@ public class GameDetailActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         setupOthersReviews();
+    }
+
+    /// <summary>
+    /// 화면이 사라질 때, 아직 메인 큐에 남아있는 표지 반영 작업을 취소
+    /// 디코딩이 끝나기 전에 뒤로가기로 나가면, 남은 작업이 사라진 화면을 붙잡아 누수가 생김
+    /// removeCallbacksAndMessages(null) = 이 Handler에 걸린 예약을 전부 제거
+    /// Unity로 비유하면 OnDestroy에서 CancelInvoke를 부르는 것과 같은 안전장치
+    /// </summary>
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mainHandler.removeCallbacksAndMessages(null);
     }
 
     /// <summary>
@@ -642,20 +667,52 @@ public class GameDetailActivity extends AppCompatActivity {
             binding.buttonReview.setText(R.string.detail_write_review);
         }
 
-        // 표지 이미지
+        // 표지 이미지 (백그라운드 디코딩 → Handler로 메인 반영)
         // 주의: getIdentifier()는 이름(문자열)으로 이미지를 찾아서 느림 (비권장 표시됨)
-        // R.drawable.cover_zelda 처럼 직접 지정하면 빠르지만,
-        // 게임마다 이미지 이름이 다르므로 문자열 검색이 불가피
+        // 게임마다 이미지 이름이 달라 문자열 검색이 불가피
         int coverResId = getResources().getIdentifier(
                 game.getCoverAssetName(), "drawable", getPackageName());
-        if (coverResId != 0) {
-            binding.imageViewCover.setImageResource(coverResId);
-        } else {
-            binding.imageViewCover.setImageResource(R.mipmap.ic_launcher);
-        }
+        loadCoverAsync(coverResId);
 
         // 스크린샷 썸네일 표시
         bindScreenshots();
+    }
+
+    /// <summary>
+    /// 표지 이미지를 백그라운드에서 디코딩한 뒤, Handler로 메인 스레드에서 화면에 반영
+    /// 왜 이렇게 하나:
+    ///   setImageResource(resId)는 메인 스레드에서 JPG를 그 자리에서 디코딩한다 →
+    ///   표지가 크면 그동안 화면이 잠깐 멈출 수 있음
+    ///   그래서 무거운 디코딩(BitmapFactory.decodeResource)은 서브 스레드로 빼고,
+    ///   완성된 Bitmap을 화면에 얹는 일(setImageBitmap)만 Handler로 메인에 넘긴다
+    /// coverResId가 0이면 해당 이미지가 없다는 뜻 → 기본 아이콘 표시
+    /// </summary>
+    private void loadCoverAsync(int coverResId) {
+        // 이미지가 없으면 디코딩할 것도 없으니 기본 아이콘만 바로 표시
+        if (coverResId == 0) {
+            binding.imageViewCover.setImageResource(R.mipmap.ic_launcher);
+            return;
+        }
+
+        // [로딩 상태] 디코딩이 끝나기 전에는 회색 박스를 보여줌
+        // → 완성되면 실제 표지(컬러 이미지)로 바뀌므로, 로딩 전/후가 확연히 다르게 보임
+        binding.imageViewCover.setImageDrawable(new ColorDrawable(0xFFBDBDBD));
+
+        new Thread(() -> {                              // 서브(백그라운드) 스레드 시작
+            // [관찰용] 디코딩을 일부러 1.5초 느리게 해서 로딩 과정을 눈으로 확인 (확인 후 삭제)
+            // 주의: Thread.sleep()은 checked exception이라 try-catch 필수 (컴파일러 요구)
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                // 단일 작업이라 발생하지 않음 (컴파일러 요구사항)
+            }
+
+            // ⏳ 무거운 일: JPG를 실제 Bitmap으로 디코딩 (여기서 시간이 걸림)
+            Bitmap cover = BitmapFactory.decodeResource(getResources(), coverResId);
+
+            // 결과(화면 반영)만 메인 줄로 넘김 — setImageBitmap은 메인에서만 안전
+            mainHandler.post(() -> binding.imageViewCover.setImageBitmap(cover));
+        }).start();                                     // 서브 스레드 실행
     }
 
     /// <summary>

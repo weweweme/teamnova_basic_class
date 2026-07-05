@@ -1,10 +1,14 @@
 package com.example.week11.stats;
 
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -47,6 +51,15 @@ public class StatsActivity extends AppCompatActivity {
     /// </summary>
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
+    /// <summary>숫자·막대 애니메이션 전체 시간(ms)</summary>
+    private static final long ANIM_DURATION_MS = 700;
+
+    /// <summary>
+    /// 진행 중인 애니메이션들 — 화면이 사라질 때 한꺼번에 취소하려고 모아둔다
+    /// (사라진 뷰를 애니가 계속 붙잡지 않도록 onDestroy에서 cancel)
+    /// </summary>
+    private final List<Animator> runningAnimators = new ArrayList<>();
+
     // ========== Lifecycle ==========
 
     @Override
@@ -73,6 +86,11 @@ public class StatsActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         mainHandler.removeCallbacksAndMessages(null);
+        // 진행 중이던 애니메이션도 취소 (사라진 뷰를 붙잡지 않게)
+        for (Animator animator : runningAnimators) {
+            animator.cancel();
+        }
+        runningAnimators.clear();
     }
 
     /// <summary>
@@ -170,42 +188,74 @@ public class StatsActivity extends AppCompatActivity {
     private void addStatusRow(String label, int count) {
         View row = getLayoutInflater().inflate(
                 R.layout.item_stat_row, binding.layoutStatusSummary, false);
-        ((TextView) row.findViewById(R.id.textViewStatLabel)).setText(label);
-        animateCount((TextView) row.findViewById(R.id.textViewStatCount), count);
+        ((TextView)row.findViewById(R.id.textViewStatLabel)).setText(label);
+        animateCount(row.findViewById(R.id.textViewStatCount), count);
         binding.layoutStatusSummary.addView(row);
     }
 
     /// <summary>
-    /// 숫자를 0에서 target까지 여러 단계로 나눠 올리는 카운트업 애니메이션
-    /// Handler의 "예약/반복 실행" 용도 시연: 매 프레임마다 postDelayed로 자기 자신을 다시 예약
-    ///   → 30ms 간격 × 20프레임 = 약 0.6초 동안 숫자가 촤르륵 올라감
-    /// 화면을 나가면 onDestroy의 removeCallbacksAndMessages(null)이 예약을 취소해 줌
-    /// (참고: 실무에선 이런 값 애니메이션은 보통 ValueAnimator를 쓴다 — 여기선 Handler 학습용)
+    /// 숫자를 0 → target까지 부드럽게 올리는 카운트업 (Handler + ease-out 감속, 약 60fps)
+    /// Handler의 예약·반복 실행 용도 시연: 매 프레임 postDelayed로 자기 자신을 다시 예약
+    /// 시간 기준(경과/전체)으로 진행도를 계산 → 프레임이 밀려도 총 시간이 일정하게 유지됨
+    /// (ValueAnimator와 달리 시스템 애니 배율을 따르지 않아, 배율이 꺼져 있어도 항상 카운트업이 보인다)
     /// </summary>
     private void animateCount(TextView view, int target) {
-        final int FRAMES = 20;              // 몇 단계로 나눠 올릴지
-        final long FRAME_MS = 30;           // 프레임 간격(ms)
+        final long DURATION_MS = ANIM_DURATION_MS;   // 전체 애니 시간 (막대와 동일)
+        final long FRAME_MS = 16;                    // 프레임 간격 (약 60fps)
 
-        view.setText("0");
+        // 시작 시각을 기록해 두고, 매 프레임 "지금까지 얼마나 지났나"로 진행도를 계산한다
+        // (프레임 개수를 세는 방식과 달리, 프레임이 밀려도 총 시간이 항상 0.7초로 일정)
+        final long startTime = SystemClock.uptimeMillis();
 
-        // 익명 클래스로 만들어야 run() 안에서 this로 자기 자신을 다시 예약할 수 있음
+        view.setText("0");                  // 시작값 0으로 초기화
+
+        // tick은 이 애니 하나당 한 번 생성 (프레임마다가 아님) — run()에서 this로 자기 자신을 다시 예약
         Runnable tick = new Runnable() {
-            private int frame = 0;
-
             @Override
             public void run() {
-                frame++;
-                // 지금 프레임에 해당하는 중간값 (target * 진행비율)
-                int value = (int) Math.round((double) target * frame / FRAMES);
+                long elapsed = SystemClock.uptimeMillis() - startTime;
+                float t = Math.min(1f, elapsed / (float) DURATION_MS);   // 0~1 진행도
+                int value = Math.round(target * easeOutCubic(t));        // 감속 곡선 적용
                 view.setText(String.valueOf(value));
 
-                // 아직 목표에 못 미쳤으면 다음 프레임을 다시 예약 (반복)
-                if (frame < FRAMES) {
-                    mainHandler.postDelayed(this, FRAME_MS);
+                if (t < 1f) {
+                    mainHandler.postDelayed(this, FRAME_MS);   // 다음 프레임 예약 (반복)
+                } else {
+                    view.setText(String.valueOf(target));      // 끝에서 정확히 목표값 고정
                 }
             }
         };
-        mainHandler.postDelayed(tick, FRAME_MS);
+        mainHandler.post(tick);
+    }
+
+    /// <summary>
+    /// 막대(ProgressBar)를 0 → (count/maxCount 비율)까지 부드럽게 채우는 애니메이션 (ValueAnimator)
+    /// ProgressBar 채움은 progress/max 정수 비율이라, max가 작으면(예: 7) 중간 단계가 적어 뚝뚝 끊긴다.
+    /// → max를 크게(해상도↑) 잡아 progress가 촘촘한 정수 단계를 거치게 하면 매끄럽게 채워진다.
+    /// </summary>
+    private void animateProgress(ProgressBar bar, int count, int maxCount) {
+        final int RESOLUTION = 1000;        // 막대 내부 해상도 (progress 0~1000 → 촘촘함)
+
+        // 최종 채움 지점을 1000 기준 비율로 환산 (maxCount는 1 이상이 보장됨)
+        int targetProgress = Math.round((float) RESOLUTION * count / maxCount);
+        bar.setMax(RESOLUTION);
+        bar.setProgress(0);
+
+        ValueAnimator animator = ValueAnimator.ofInt(0, targetProgress);
+        animator.setDuration(ANIM_DURATION_MS);
+        animator.setInterpolator(new DecelerateInterpolator());
+        animator.addUpdateListener(a -> bar.setProgress((int) a.getAnimatedValue()));
+        runningAnimators.add(animator);
+        animator.start();
+    }
+
+    /// <summary>
+    /// ease-out 감속 곡선 (처음 빠르게 → 끝으로 갈수록 느리게). DOTween의 OutCubic과 같은 느낌
+    /// t: 0~1 진행도 → 0~1 사이의 보정된 진행도 (숫자 카운트업에서 사용)
+    /// </summary>
+    private static float easeOutCubic(float t) {
+        float inv = 1f - t;
+        return 1f - inv * inv * inv;
     }
 
     // ========== 별점 분포 그래프 ==========
@@ -234,8 +284,7 @@ public class StatsActivity extends AppCompatActivity {
             TextView countText = row.findViewById(R.id.textViewRatingCount);
 
             label.setText("★ " + star);
-            bar.setMax(maxCount);
-            bar.setProgress(count);
+            animateProgress(bar, count, maxCount);
             countText.setText(String.valueOf(count));
 
             binding.layoutRatingDistribution.addView(row);
@@ -248,8 +297,7 @@ public class StatsActivity extends AppCompatActivity {
         ProgressBar unratedBar = unratedRow.findViewById(R.id.progressBar);
         TextView unratedText = unratedRow.findViewById(R.id.textViewRatingCount);
         unratedLabel.setText(R.string.stats_unrated);
-        unratedBar.setMax(maxCount);
-        unratedBar.setProgress(unratedCount);
+        animateProgress(unratedBar, unratedCount, maxCount);
         unratedText.setText(String.valueOf(unratedCount));
         binding.layoutRatingDistribution.addView(unratedRow);
     }
@@ -282,8 +330,7 @@ public class StatsActivity extends AppCompatActivity {
             TextView countText = row.findViewById(R.id.textViewGenreCount);
 
             label.setText(genre.getDisplayName());
-            bar.setMax(maxCount);
-            bar.setProgress(count);
+            animateProgress(bar, count, maxCount);
             countText.setText(String.valueOf(count));
 
             binding.layoutGenreDistribution.addView(row);

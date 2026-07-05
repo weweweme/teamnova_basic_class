@@ -14,7 +14,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /// <summary>
@@ -75,9 +77,26 @@ public class GameRepository {
     private static final String KEY_NEXT_ID = "next_id";
 
     /// <summary>
+    /// 상태가 바뀐 게임들: "게임id|상태이름" 문자열 집합
+    /// (시드 게임은 매번 기본 상태로 다시 만들어지므로, 바뀐 상태만 따로 저장해 시작 시 덮어씀)
+    /// </summary>
+    private static final String KEY_STATUS = "status_overrides";
+
+    /// <summary>
+    /// 상태 변경 override (게임id → 바뀐 상태). prefs와 동기화되는 메모리 상태
+    /// 시드/추가 구분 없이, updateGame으로 상태가 바뀌면 여기에 기록하고 시작 시 다시 적용
+    /// </summary>
+    private final Map<Integer, GameStatus> statusOverrides = new HashMap<>();
+
+    /// <summary>
     /// 삭제 상태를 저장/불러오는 prefs (앱 껐다 켜도 삭제가 유지됨)
     /// </summary>
     private final SharedPreferences prefs;
+
+    /// <summary>
+    /// 앱 패키지명 — 번들된 기본 스크린샷을 android.resource:// URI로 참조할 때 사용
+    /// </summary>
+    private final String packageName;
 
     /// <summary>
     /// 영구삭제된 게임 id 목록 (메모리 상태 — prefs와 동기화)
@@ -102,10 +121,40 @@ public class GameRepository {
     /// </summary>
     public GameRepository(Context context) {
         this.prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
+        this.packageName = context.getPackageName();
         this.games = new ArrayList<>();
         seedDefaultGames();
+        // 인기 시드 게임 몇 개에 번들된 기본 스크린샷을 붙임 (데모용 — 비어 보이지 않게)
+        attachDefaultScreenshots();
         // 시드 뒤, 저장돼 있던 "추가 게임 / 삭제 / 휴지통 상태"를 반영 (앱을 껐다 켜도 유지됨)
         loadPersistedState();
+    }
+
+    /// <summary>
+    /// 일부 시드 게임에 번들된 기본 스크린샷(res/drawable의 shot_*.jpg)을 붙인다
+    /// android.resource:// URI로 넣으면 스크린샷 로더(loadUri)가 그대로 디코딩해준다
+    /// (Steam에서 받아 번들한 데모용 이미지 — 실제 사용자 스크린샷은 여기에 더해짐)
+    /// </summary>
+    private void attachDefaultScreenshots() {
+        addDefaultShots(1, "shot_eldenring_1", "shot_eldenring_2");
+        addDefaultShots(3, "shot_hollowknight_1", "shot_hollowknight_2");
+        addDefaultShots(4, "shot_celeste_1", "shot_celeste_2");
+        addDefaultShots(5, "shot_stardewvalley_1", "shot_stardewvalley_2");
+        addDefaultShots(6, "shot_hades_1", "shot_hades_2");
+        addDefaultShots(17, "shot_cuphead_1", "shot_cuphead_2");
+    }
+
+    /// <summary>
+    /// 특정 게임에 drawable 리소스 이름들을 android.resource:// URI로 스크린샷에 추가
+    /// </summary>
+    private void addDefaultShots(int gameId, String... resNames) {
+        Game game = findById(gameId);
+        if (game == null) {
+            return;
+        }
+        for (String resName : resNames) {
+            game.addScreenshot("android.resource://" + packageName + "/drawable/" + resName);
+        }
     }
 
     /// <summary>
@@ -261,14 +310,16 @@ public class GameRepository {
     /// </summary>
     public void resetToDefault() {
         seedDefaultGames();   // games 20개 + nextId 21로 복구
-        // 추가 게임·휴지통·영구삭제 상태를 전부 비워 "새 설치" 상태로 (저장된 것도 지움)
+        // 추가 게임·휴지통·영구삭제·상태변경을 전부 비워 "새 설치" 상태로 (저장된 것도 지움)
         trashedEntries.clear();
         deletedIds.clear();
+        statusOverrides.clear();
         prefs.edit()
                 .remove(KEY_TRASHED)
                 .remove(KEY_DELETED)
                 .remove(KEY_ADDED)
                 .remove(KEY_NEXT_ID)
+                .remove(KEY_STATUS)
                 .apply();
     }
 
@@ -434,6 +485,10 @@ public class GameRepository {
         original.setRating(updated.getRating());
         original.setReview(updated.getReview());
         original.replaceScreenshots(updated.getScreenshots());
+
+        // 상태 변경을 delta로 저장 → 재시작해도 유지됨 (시드 게임도 바뀐 상태로 뜸)
+        statusOverrides.put(original.getId(), original.getStatus());
+        persistStatusOverrides();
     }
 
     // ========== 삭제 ==========
@@ -569,6 +624,19 @@ public class GameRepository {
         // 2) 다음 id 복원 (추가 게임 id가 재시작 후에도 안 겹치게). 없으면 시드가 정한 값 유지
         nextId = prefs.getInt(KEY_NEXT_ID, nextId);
 
+        // 2-1) 상태 override 로드 (게임들을 다 채운 뒤 맨 마지막에 적용)
+        for (String token : prefs.getStringSet(KEY_STATUS, new HashSet<>())) {
+            int sep = token.indexOf('|');
+            if (sep <= 0) {
+                continue;
+            }
+            int id = parseIntSafe(token.substring(0, sep), -1);
+            GameStatus status = parseStatusSafe(token.substring(sep + 1));
+            if (id >= 0 && status != null) {
+                statusOverrides.put(id, status);
+            }
+        }
+
         // 3) 사용자가 추가했던 게임 복원 (이미 삭제된 것은 제외)
         for (String json : prefs.getStringSet(KEY_ADDED, new HashSet<>())) {
             Game g = gameFromJson(json);
@@ -599,6 +667,36 @@ public class GameRepository {
                 removeGameFromLibrary(id);
                 trashedEntries.add(new TrashEntry(game, trashedAt));
             }
+        }
+
+        // 6) 저장된 상태 override를 라이브러리에 남은 게임들에 적용 (시드 게임의 상태 변경 유지)
+        for (Map.Entry<Integer, GameStatus> entry : statusOverrides.entrySet()) {
+            Game game = findById(entry.getKey());
+            if (game != null) {
+                game.setStatus(entry.getValue());
+            }
+        }
+    }
+
+    /// <summary>
+    /// 현재 상태 override 목록을 prefs에 통째로 다시 저장 (updateGame에서 상태가 바뀔 때마다 호출)
+    /// </summary>
+    private void persistStatusOverrides() {
+        Set<String> raw = new HashSet<>();
+        for (Map.Entry<Integer, GameStatus> entry : statusOverrides.entrySet()) {
+            raw.add(entry.getKey() + "|" + entry.getValue().name());
+        }
+        prefs.edit().putStringSet(KEY_STATUS, raw).apply();
+    }
+
+    /// <summary>
+    /// 문자열을 GameStatus로 안전 변환 (저장된 이름이 손상된 경우 대비 — 실패하면 null)
+    /// </summary>
+    private GameStatus parseStatusSafe(String name) {
+        try {
+            return GameStatus.valueOf(name.trim());
+        } catch (IllegalArgumentException e) {
+            return null;
         }
     }
 

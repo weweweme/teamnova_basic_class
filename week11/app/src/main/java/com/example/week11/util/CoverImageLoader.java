@@ -138,6 +138,24 @@ public class CoverImageLoader {
     }
 
     /// <summary>
+    /// [프리로드] 화면에 붙이지 않고 표지를 미리 디코딩해 캐시에 담아둔다
+    /// (예: 스플래시 대기 시간에 미리 준비 → 나중에 보관함/상세에서 즉시 표시)
+    /// - 이미 캐시에 있으면 아무것도 안 함
+    /// - 관찰용 딜레이 없이 바로 디코딩 (빨리 캐시를 채우는 게 목적)
+    /// resId가 0이면(이미지 없음) 무시
+    /// </summary>
+    public void preload(Resources res, int resId) {
+        if (resId == 0 || cache.containsKey(resId)) {
+            return;
+        }
+        // 스레드 풀에 맡겨 백그라운드에서 디코딩 → 결과만 메인 줄에서 캐시에 저장
+        decodeExecutor.execute(() -> {
+            Bitmap bmp = BitmapFactory.decodeResource(res, resId);
+            mainHandler.post(() -> cache.put(resId, bmp));
+        });
+    }
+
+    /// <summary>
     /// 스피너(ProgressBar 등) 표시/숨김 — spinner가 null이면 아무것도 안 함
     /// </summary>
     private void setSpinnerVisible(View spinner, boolean show) {

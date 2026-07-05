@@ -165,13 +165,47 @@ public class StatsActivity extends AppCompatActivity {
 
     /// <summary>
     /// "라벨 ........ 숫자" 형태의 한 행을 만들어 컨테이너에 추가
+    /// 숫자는 0에서 목표값까지 촤르륵 올라가는 카운트업 연출 (animateCount)
     /// </summary>
     private void addStatusRow(String label, int count) {
         View row = getLayoutInflater().inflate(
                 R.layout.item_stat_row, binding.layoutStatusSummary, false);
         ((TextView) row.findViewById(R.id.textViewStatLabel)).setText(label);
-        ((TextView) row.findViewById(R.id.textViewStatCount)).setText(String.valueOf(count));
+        animateCount((TextView) row.findViewById(R.id.textViewStatCount), count);
         binding.layoutStatusSummary.addView(row);
+    }
+
+    /// <summary>
+    /// 숫자를 0에서 target까지 여러 단계로 나눠 올리는 카운트업 애니메이션
+    /// Handler의 "예약/반복 실행" 용도 시연: 매 프레임마다 postDelayed로 자기 자신을 다시 예약
+    ///   → 30ms 간격 × 20프레임 = 약 0.6초 동안 숫자가 촤르륵 올라감
+    /// 화면을 나가면 onDestroy의 removeCallbacksAndMessages(null)이 예약을 취소해 줌
+    /// (참고: 실무에선 이런 값 애니메이션은 보통 ValueAnimator를 쓴다 — 여기선 Handler 학습용)
+    /// </summary>
+    private void animateCount(TextView view, int target) {
+        final int FRAMES = 20;              // 몇 단계로 나눠 올릴지
+        final long FRAME_MS = 30;           // 프레임 간격(ms)
+
+        view.setText("0");
+
+        // 익명 클래스로 만들어야 run() 안에서 this로 자기 자신을 다시 예약할 수 있음
+        Runnable tick = new Runnable() {
+            private int frame = 0;
+
+            @Override
+            public void run() {
+                frame++;
+                // 지금 프레임에 해당하는 중간값 (target * 진행비율)
+                int value = (int) Math.round((double) target * frame / FRAMES);
+                view.setText(String.valueOf(value));
+
+                // 아직 목표에 못 미쳤으면 다음 프레임을 다시 예약 (반복)
+                if (frame < FRAMES) {
+                    mainHandler.postDelayed(this, FRAME_MS);
+                }
+            }
+        };
+        mainHandler.postDelayed(tick, FRAME_MS);
     }
 
     // ========== 별점 분포 그래프 ==========

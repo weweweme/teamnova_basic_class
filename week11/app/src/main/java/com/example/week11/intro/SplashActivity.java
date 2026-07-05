@@ -13,6 +13,8 @@ import com.example.week11.account.AccountManager;
 import com.example.week11.account.LoginActivity;
 import com.example.week11.databinding.ActivitySplashBinding;
 import com.example.week11.home.HomeActivity;
+import com.example.week11.model.Game;
+import com.example.week11.util.CoverImageLoader;
 
 /// <summary>
 /// 스플래시 화면 (앱 진입점)
@@ -101,9 +103,30 @@ public class SplashActivity extends AppCompatActivity {
         ActivitySplashBinding binding = ActivitySplashBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // 스플래시 대기 시간을 이용해 표지를 미리 디코딩해 캐시에 담아둔다 (백그라운드)
+        // → 로그인 후 보관함/상세에 들어갔을 때 회색 로딩 없이 바로 표지가 뜸
+        preloadCovers();
+
         // 1.5초 후 다음 화면으로 이동 예약
         final int SPLASH_DELAY_MS = 1500;
         handler.postDelayed(navigateRunnable, SPLASH_DELAY_MS);
+    }
+
+    /// <summary>
+    /// 게임 표지들을 미리 디코딩해 공용 캐시에 담아둠 (스플래시 대기 시간 활용)
+    /// 실제 디코딩은 로더가 백그라운드 스레드 풀에서 처리 → 스플래시 화면은 안 멈춤
+    /// </summary>
+    private void preloadCovers() {
+        App app = (App) getApplication();
+        CoverImageLoader loader = app.getCoverImageLoader();
+        String packageName = getPackageName();
+
+        for (Game game : app.getGameRepository().getAllGames()) {
+            // 표지 이름(문자열)으로 drawable 리소스 id를 찾아 미리 로드
+            int coverResId = getResources().getIdentifier(
+                    game.getCoverAssetName(), "drawable", packageName);
+            loader.preload(getResources(), coverResId);
+        }
     }
 
     /// <summary>

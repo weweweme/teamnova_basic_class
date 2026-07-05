@@ -799,8 +799,9 @@ public class LibraryActivity extends AppCompatActivity {
                     @Override
                     public void onDismissed(Snackbar sb, int event) {
                         // 실행취소가 아닌 이유로 닫힘(시간초과·스와이프·다른 스낵바로 교체 등) → 휴지통으로
+                        // 버린 시각을 함께 넘겨 30일 자동 삭제 판정에 사용
                         if (event != DISMISS_EVENT_ACTION) {
-                            gameRepository.moveToTrash(game);
+                            gameRepository.moveToTrash(game, System.currentTimeMillis());
                         }
                     }
                 })

@@ -4,6 +4,7 @@ import com.example.week11.model.Game;
 import com.example.week11.model.GameStatus;
 import com.example.week11.model.Genre;
 import com.example.week11.model.Platform;
+import com.example.week11.model.TrashEntry;
 
 import java.util.ArrayList;
 
@@ -25,8 +26,17 @@ public class GameRepository {
     /// <summary>
     /// 휴지통 — 삭제됐지만 아직 영구삭제되지 않은 게임들 (복원 가능)
     /// 짧은 실행취소 창이 지나면 여기로 옮겨지고, 휴지통 화면에서 복원/영구삭제한다
+    /// 각 항목에 "버려진 시각"을 함께 저장해 30일 지난 것은 자동으로 정리한다
     /// </summary>
-    private final ArrayList<Game> trashedGames = new ArrayList<>();
+    private final ArrayList<TrashEntry> trashedEntries = new ArrayList<>();
+
+    /// <summary>
+    /// 휴지통 보관 기간 — 이 기간이 지난 항목은 자동으로 영구삭제 (30일)
+    /// 주의: 게임 데이터는 현재 메모리에만 있어 앱을 완전히 끄면 초기화됨 →
+    ///       실제로 30일을 채우려면 앱이 그동안 살아있어야 함. 동작을 테스트하려면
+    ///       이 값을 잠깐 짧게(예: 10_000L = 10초) 낮춰 확인하면 된다.
+    /// </summary>
+    public static final long TRASH_RETENTION_MS = 30L * 24 * 60 * 60 * 1000;
 
     /// <summary>
     /// 새로 추가될 게임에 부여할 ID
@@ -201,7 +211,7 @@ public class GameRepository {
     /// </summary>
     public void resetToDefault() {
         seedDefaultGames();
-        trashedGames.clear();   // 휴지통도 함께 비운다 (완전한 "새 설치" 상태)
+        trashedEntries.clear();   // 휴지통도 함께 비운다 (완전한 "새 설치" 상태)
     }
 
     // ========== 조회 ==========
@@ -400,25 +410,26 @@ public class GameRepository {
     /// <summary>
     /// 게임을 휴지통으로 이동 (영구삭제가 아니라 복원 가능한 상태)
     /// 삭제 스낵바가 실행취소 없이 닫힐 때 호출됨
+    /// nowMillis: 버린 시각 (호출자가 System.currentTimeMillis()로 넘김 — 저장소는 시계에 직접 의존 안 함)
     /// </summary>
-    public void moveToTrash(Game game) {
-        trashedGames.add(game);
+    public void moveToTrash(Game game, long nowMillis) {
+        trashedEntries.add(new TrashEntry(game, nowMillis));
     }
 
     /// <summary>
-    /// 휴지통에 있는 게임 목록 반환 (휴지통 화면 표시용)
+    /// 휴지통 항목 목록 반환 (게임 + 버린 시각) — 휴지통 화면 표시용
     /// </summary>
-    public ArrayList<Game> getTrashedGames() {
-        return this.trashedGames;
+    public ArrayList<TrashEntry> getTrashedEntries() {
+        return this.trashedEntries;
     }
 
     /// <summary>
     /// 휴지통의 게임을 보관함으로 복원 (맨 뒤에 추가) — 성공 시 그 Game, 없으면 null
     /// </summary>
     public Game restoreFromTrash(int id) {
-        for (int i = 0; i < trashedGames.size(); i++) {
-            if (trashedGames.get(i).getId() == id) {
-                Game game = trashedGames.remove(i);
+        for (int i = 0; i < trashedEntries.size(); i++) {
+            if (trashedEntries.get(i).getGame().getId() == id) {
+                Game game = trashedEntries.remove(i).getGame();
                 games.add(game);
                 return game;
             }
@@ -430,9 +441,9 @@ public class GameRepository {
     /// 휴지통의 게임 하나를 영구삭제 (완전히 제거)
     /// </summary>
     public void deleteFromTrashPermanently(int id) {
-        for (int i = 0; i < trashedGames.size(); i++) {
-            if (trashedGames.get(i).getId() == id) {
-                trashedGames.remove(i);
+        for (int i = 0; i < trashedEntries.size(); i++) {
+            if (trashedEntries.get(i).getGame().getId() == id) {
+                trashedEntries.remove(i);
                 return;
             }
         }
@@ -442,6 +453,16 @@ public class GameRepository {
     /// 휴지통 비우기 (전부 영구삭제)
     /// </summary>
     public void emptyTrash() {
-        trashedGames.clear();
+        trashedEntries.clear();
+    }
+
+    /// <summary>
+    /// 보관 기간(TRASH_RETENTION_MS)이 지난 휴지통 항목을 자동으로 영구삭제
+    /// nowMillis: 현재 시각 (호출자가 System.currentTimeMillis()로 넘김)
+    /// 휴지통 화면을 열 때 호출해 "30일 지난 것"을 정리한다
+    /// </summary>
+    public void purgeExpiredTrash(long nowMillis) {
+        trashedEntries.removeIf(
+                entry -> nowMillis - entry.getTrashedAt() >= TRASH_RETENTION_MS);
     }
 }

@@ -7,8 +7,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.week11.App;
 import com.example.week11.R;
+import com.example.week11.data.GameRepository;
 import com.example.week11.databinding.ItemTrashBinding;
 import com.example.week11.model.Game;
+import com.example.week11.model.TrashEntry;
 import com.example.week11.util.CoverImageLoader;
 
 /// <summary>
@@ -31,13 +33,23 @@ public class TrashViewHolder extends RecyclerView.ViewHolder {
     }
 
     /// <summary>
-    /// Game 데이터를 한 줄에 채움 (표지 + 제목 + 버튼 리스너)
+    /// 휴지통 항목을 한 줄에 채움 (표지 + 제목 + 남은 일수 + 버튼 리스너)
+    /// nowMillis: 현재 시각 — 버린 시각과 비교해 "N일 후 삭제"를 계산
     /// </summary>
-    public void bindGameData(Game game, OnTrashActionListener listener) {
+    public void bindEntry(TrashEntry entry, long nowMillis, OnTrashActionListener listener) {
         Context context = binding.getRoot().getContext();
+        Game game = entry.getGame();
 
         // 제목
         binding.textViewTrashTitle.setText(game.getTitle());
+
+        // 남은 일수 = (보관기간 - 이미 지난 시간)을 하루 단위로 올림 (최소 1일로 표시)
+        long elapsed = nowMillis - entry.getTrashedAt();
+        long remainingMs = GameRepository.TRASH_RETENTION_MS - elapsed;
+        long dayMs = 24L * 60 * 60 * 1000;
+        int daysLeft = (int) Math.max(1, Math.ceil(remainingMs / (double) dayMs));
+        binding.textViewTrashDaysLeft.setText(
+                context.getString(R.string.trash_days_left, daysLeft));
 
         // 표지 (공용 로더: 백그라운드 디코딩 + 캐시)
         // 게임마다 이미지 이름이 달라 getIdentifier 사용 (리소스 없으면 0 → 기본 아이콘)

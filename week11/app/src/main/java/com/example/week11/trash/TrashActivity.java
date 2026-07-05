@@ -54,7 +54,8 @@ public class TrashActivity extends AppCompatActivity implements OnTrashActionLis
 
         gameRepository = ((App) getApplication()).getGameRepository();
 
-        adapter = new TrashAdapter(gameRepository.getTrashedGames(), this);
+        adapter = new TrashAdapter(
+                gameRepository.getTrashedEntries(), System.currentTimeMillis(), this);
         binding.recyclerTrash.setLayoutManager(new LinearLayoutManager(this));
         binding.recyclerTrash.setAdapter(adapter);
 
@@ -63,11 +64,15 @@ public class TrashActivity extends AppCompatActivity implements OnTrashActionLis
 
     /// <summary>
     /// 휴지통 목록을 다시 읽어 어댑터에 반영하고, 빈 상태 안내를 갱신
+    /// 표시 전에 보관 기간(30일)이 지난 항목을 먼저 자동 정리한다
     /// </summary>
     private void refresh() {
-        adapter.updateItems(gameRepository.getTrashedGames());
+        long now = System.currentTimeMillis();
+        gameRepository.purgeExpiredTrash(now);   // 30일 지난 것 자동 영구삭제
 
-        boolean isEmpty = gameRepository.getTrashedGames().isEmpty();
+        adapter.updateItems(gameRepository.getTrashedEntries(), now);
+
+        boolean isEmpty = gameRepository.getTrashedEntries().isEmpty();
         binding.textViewTrashEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
         binding.recyclerTrash.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
     }

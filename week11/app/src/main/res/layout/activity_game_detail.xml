@@ -15,13 +15,27 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- 게임 표지 이미지 -->
-        <ImageView
-            android:id="@+id/imageViewCover"
+        <!-- 게임 표지 이미지 (로딩 중엔 스피너를 위에 겹쳐 표시) -->
+        <!-- FrameLayout: 자식들을 겹쳐 쌓는 레이아웃 → ImageView 위에 ProgressBar를 올림 -->
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:scaleType="centerCrop"
-            android:contentDescription="@string/game_cover_description" />
+            android:layout_height="200dp">
+
+            <ImageView
+                android:id="@+id/imageViewCover"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/game_cover_description" />
+
+            <!-- 로딩 스피너 (표지 중앙에 겹침, 평소엔 숨김 → 로딩 중에만 표시) -->
+            <ProgressBar
+                android:id="@+id/progressCover"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+        </FrameLayout>
 
         <!-- 게임 제목 + 즐겨찾기 하트 (제목 오른쪽 끝) -->
         <LinearLayout

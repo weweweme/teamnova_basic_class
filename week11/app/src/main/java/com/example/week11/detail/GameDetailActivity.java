@@ -648,7 +648,7 @@ public class GameDetailActivity extends AppCompatActivity {
         int coverResId = getResources().getIdentifier(
                 game.getCoverAssetName(), "drawable", getPackageName());
         ((App) getApplication()).getCoverImageLoader()
-                .loadCover(binding.imageViewCover, coverResId, R.mipmap.ic_launcher);
+                .loadCover(binding.imageViewCover, binding.progressCover, coverResId, R.mipmap.ic_launcher);
 
         // 스크린샷 썸네일 표시
         bindScreenshots();

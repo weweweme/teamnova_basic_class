@@ -2,6 +2,8 @@ package com.example.week11.library;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -93,6 +95,24 @@ public class LibraryActivity extends AppCompatActivity {
     /// 상태 탭 필터 결과 안에서 제목으로 한 번 더 거르는 데 사용
     /// </summary>
     private String currentQuery = "";
+
+    /// <summary>
+    /// 검색 디바운스가 지난 뒤 대기하는 시간(ms) — 이 시간만큼 입력이 멈추면 한 번만 필터
+    /// </summary>
+    private static final long SEARCH_DEBOUNCE_MS = 300L;
+
+    /// <summary>
+    /// 검색 디바운스용 Handler (메인 줄에 "잠시 뒤 필터" 작업을 예약)
+    /// 타이핑마다 즉시 필터링하면 글자마다 목록을 다시 그려 렉이 생김 →
+    /// 입력이 멈춘 뒤 SEARCH_DEBOUNCE_MS 후에 딱 한 번만 필터하도록 미룬다
+    /// </summary>
+    private final Handler searchHandler = new Handler(Looper.getMainLooper());
+
+    /// <summary>
+    /// 디바운스가 실제로 실행할 작업 (필터링)
+    /// removeCallbacks로 취소하려면 항상 "같은 인스턴스"여야 하므로 필드로 보관
+    /// </summary>
+    private final Runnable searchFilterRunnable = this::applyCurrentFilter;
 
     /// <summary>
     /// 검색 입력창 (ActionBar의 돋보기). 최근 검색어 칩을 눌렀을 때 이 창에 검색어를 넣어야 해서 보관
@@ -201,6 +221,15 @@ public class LibraryActivity extends AppCompatActivity {
         super.onResume();
         applyCurrentFilter();
         updateTabCounts();
+    }
+
+    /// <summary>
+    /// 화면이 사라질 때, 아직 예약돼 있던 검색 디바운스 작업을 취소 (누수 방지)
+    /// </summary>
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        searchHandler.removeCallbacksAndMessages(null);
     }
 
     // ========== 필터 탭 ==========
@@ -561,8 +590,14 @@ public class LibraryActivity extends AppCompatActivity {
             @Override
             public boolean onQueryTextChange(String newText) {
                 currentQuery = newText;
-                applyCurrentFilter();
-                // 입력이 비면 최근 검색어를 다시 보여주고, 뭔가 입력하면 감춘다
+
+                // 디바운스: 직전에 예약한 필터를 취소하고, 300ms 뒤에 한 번만 실행
+                // → 사용자가 빠르게 타이핑하는 동안에는 필터가 계속 미뤄지다가,
+                //   입력이 멈춘 순간 딱 한 번만 목록을 다시 그림 (글자마다 렉 제거)
+                searchHandler.removeCallbacks(searchFilterRunnable);
+                searchHandler.postDelayed(searchFilterRunnable, SEARCH_DEBOUNCE_MS);
+
+                // 최근 검색어 표시 여부는 힌트라 즉시 갱신 (가벼움)
                 updateRecentSearchVisibility();
                 return true;
             }

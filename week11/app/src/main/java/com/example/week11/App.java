@@ -8,6 +8,7 @@ import com.example.week11.data.ActivityLogRepository;
 import com.example.week11.data.CommunityRepository;
 import com.example.week11.data.GameRepository;
 import com.example.week11.data.TestAccountSeeder;
+import com.example.week11.util.CoverImageLoader;
 
 /// <summary>
 /// 앱 전역 Application 클래스
@@ -69,6 +70,13 @@ public class App extends Application {
     private TestAccountSeeder testAccountSeeder;
 
     /// <summary>
+    /// 앱 전역 표지 이미지 로더 (백그라운드 디코딩 + 메모리 캐시)
+    /// App이 하나만 보유해야 모든 화면이 같은 캐시를 공유함 → 한 번 로드한 표지는 재사용
+    /// 사용처: ((App) getApplication()).getCoverImageLoader()
+    /// </summary>
+    private CoverImageLoader coverImageLoader;
+
+    /// <summary>
     /// 앱 프로세스 시작 시 단 한 번 호출
     /// 여기서 만든 객체들은 앱이 살아있는 동안 계속 같은 인스턴스로 유지됨
     /// </summary>
@@ -85,6 +93,9 @@ public class App extends Application {
         // 테스트 계정을 항상 존재하게 유지 (없으면 심는다 — 시연/커뮤니티 데이터용)
         testAccountSeeder = new TestAccountSeeder(this, accountManager);
         testAccountSeeder.seedIfMissing();
+
+        // 표지 이미지 로더 (전역 하나 → 화면 간 캐시 공유)
+        coverImageLoader = new CoverImageLoader();
     }
 
     /// <summary>
@@ -130,6 +141,14 @@ public class App extends Application {
     /// </summary>
     public CommunityRepository getCommunityRepository() {
         return communityRepository;
+    }
+
+    /// <summary>
+    /// 공용 표지 이미지 로더 반환 (백그라운드 디코딩 + 캐시)
+    /// Activity/Adapter에서 ((App) getApplication()).getCoverImageLoader() 형태로 접근
+    /// </summary>
+    public CoverImageLoader getCoverImageLoader() {
+        return coverImageLoader;
     }
 
     /// <summary>

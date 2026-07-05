@@ -6,9 +6,11 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.week11.App;
 import com.example.week11.R;
 import com.example.week11.databinding.ItemLibraryGridBinding;
 import com.example.week11.model.Game;
+import com.example.week11.util.CoverImageLoader;
 
 import java.util.Locale;
 
@@ -59,16 +61,13 @@ public class LibraryViewHolder extends RecyclerView.ViewHolder {
         // 즐겨찾기 하트 (즐겨찾기한 게임만 좌상단에 표시)
         binding.textViewFavorite.setVisibility(favorite ? View.VISIBLE : View.GONE);
 
-        // 표지 이미지 (이름 문자열로 drawable 리소스 ID 조회)
-        // 게임마다 이미지 이름이 다르므로 getIdentifier 사용이 불가피
-        // 리소스가 없으면 기본 아이콘으로 대체
+        // 표지 이미지 (공용 로더: 백그라운드 디코딩 + 캐시 → Handler로 메인 반영)
+        // 게임마다 이미지 이름이 다르므로 getIdentifier 사용이 불가피 (리소스 없으면 0)
+        // 그리드는 셀이 재활용되므로, 로더가 setTag로 "엉뚱한 표지 덮어쓰기"를 막아줌
         int coverResId = context.getResources().getIdentifier(
                 game.getCoverAssetName(), "drawable", context.getPackageName());
-        if (coverResId != 0) {
-            binding.imageViewCover.setImageResource(coverResId);
-        } else {
-            binding.imageViewCover.setImageResource(R.mipmap.ic_launcher);
-        }
+        CoverImageLoader loader = ((App) context.getApplicationContext()).getCoverImageLoader();
+        loader.loadCover(binding.imageViewCover, coverResId, R.mipmap.ic_launcher);
 
         // 셀 클릭 리스너 (Activity 측 콜백 호출)
         binding.getRoot().setOnClickListener(v -> {

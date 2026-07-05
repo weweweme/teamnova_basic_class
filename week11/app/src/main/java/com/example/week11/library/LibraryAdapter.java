@@ -61,6 +61,25 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
     }
 
     /// <summary>
+    /// 무한 순환(루프) 표시 여부 — true면 목록이 끝없이 반복되어 "끝 다음에 처음"이 이어짐
+    /// (홈 가로 미리보기 전용. 보관함 그리드는 끄고 실제 개수만 표시)
+    /// </summary>
+    private boolean looping = false;
+
+    /// <summary>
+    /// 루프 모드에서 실제 목록을 몇 번 반복해 "사실상 무한"으로 보이게 할지
+    /// (진짜 무한대는 스크롤 좌표가 넘칠 수 있어, 충분히 큰 유한 배수로 대신함)
+    /// </summary>
+    private static final int LOOP_REPEATS = 1000;
+
+    /// <summary>
+    /// 무한 순환 표시 켜기/끄기
+    /// </summary>
+    public void setLooping(boolean looping) {
+        this.looping = looping;
+    }
+
+    /// <summary>
     /// 어댑터 생성
     /// 넘어온 리스트를 그대로 참조하지 않고 복사 → updateItems로 교체해도 원본 보호
     /// </summary>
@@ -112,7 +131,9 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
     /// </summary>
     @Override
     public void onBindViewHolder(@NonNull LibraryViewHolder holder, int position) {
-        Game game = games.get(position);
+        // 루프 모드면 position이 실제 개수를 넘어가므로 나머지(%)로 실제 항목을 찾는다
+        // (루프가 아니면 position < 개수라 position % 개수 == position → 그대로 동작)
+        Game game = games.get(position % games.size());
         // 내가 이 게임에 준 별점 (안 줬으면 0 → 셀에서 배지 숨김) + 즐겨찾기 여부
         float myRating = (userPrefs != null) ? userPrefs.getRating(game.getId()) : 0f;
         boolean favorite = (userPrefs != null) && userPrefs.isFavorite(game.getId());
@@ -121,9 +142,13 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryViewHolder> {
 
     /// <summary>
     /// 전체 항목 개수 반환
+    /// 루프 모드면 실제 개수를 여러 번 반복한 값 → 끝이 없어 무한 순환처럼 보인다
     /// </summary>
     @Override
     public int getItemCount() {
-        return games.size();
+        if (games.isEmpty()) {
+            return 0;
+        }
+        return looping ? games.size() * LOOP_REPEATS : games.size();
     }
 }

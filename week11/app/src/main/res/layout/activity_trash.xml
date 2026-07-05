@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 휴지통 화면 -->
+<!-- 삭제됐지만 아직 영구삭제되지 않은 게임 목록 (복원 / 영구삭제) -->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".trash.TrashActivity">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerTrash"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="8dp"
+        android:paddingBottom="16dp"
+        android:clipToPadding="false"
+        tools:listitem="@layout/item_trash" />
+
+    <!-- 비어 있을 때 안내 (평소엔 숨김) -->
+    <TextView
+        android:id="@+id/textViewTrashEmpty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/trash_empty"
+        android:textColor="#888888"
+        android:visibility="gone" />
+
+</FrameLayout>

@@ -23,6 +23,12 @@ public class GameRepository {
     private final ArrayList<Game> games;
 
     /// <summary>
+    /// 휴지통 — 삭제됐지만 아직 영구삭제되지 않은 게임들 (복원 가능)
+    /// 짧은 실행취소 창이 지나면 여기로 옮겨지고, 휴지통 화면에서 복원/영구삭제한다
+    /// </summary>
+    private final ArrayList<Game> trashedGames = new ArrayList<>();
+
+    /// <summary>
     /// 새로 추가될 게임에 부여할 ID
     /// 초기 더미 4개가 1~4를 쓰므로 5부터 시작
     /// 게임 추가 시마다 1씩 증가 (간단한 자동 증가 방식)
@@ -195,6 +201,7 @@ public class GameRepository {
     /// </summary>
     public void resetToDefault() {
         seedDefaultGames();
+        trashedGames.clear();   // 휴지통도 함께 비운다 (완전한 "새 설치" 상태)
     }
 
     // ========== 조회 ==========
@@ -374,5 +381,67 @@ public class GameRepository {
             }
         }
         return -1;
+    }
+
+    /// <summary>
+    /// 게임을 원래 위치(index)에 다시 끼워 넣는다 (삭제 → 실행취소 복원용)
+    /// index가 범위를 벗어나면 맨 뒤에 붙인다 → 항상 안전
+    /// </summary>
+    public void insertGame(int index, Game game) {
+        if (index < 0 || index > games.size()) {
+            games.add(game);
+        } else {
+            games.add(index, game);
+        }
+    }
+
+    // ========== 휴지통 (소프트 삭제) ==========
+
+    /// <summary>
+    /// 게임을 휴지통으로 이동 (영구삭제가 아니라 복원 가능한 상태)
+    /// 삭제 스낵바가 실행취소 없이 닫힐 때 호출됨
+    /// </summary>
+    public void moveToTrash(Game game) {
+        trashedGames.add(game);
+    }
+
+    /// <summary>
+    /// 휴지통에 있는 게임 목록 반환 (휴지통 화면 표시용)
+    /// </summary>
+    public ArrayList<Game> getTrashedGames() {
+        return this.trashedGames;
+    }
+
+    /// <summary>
+    /// 휴지통의 게임을 보관함으로 복원 (맨 뒤에 추가) — 성공 시 그 Game, 없으면 null
+    /// </summary>
+    public Game restoreFromTrash(int id) {
+        for (int i = 0; i < trashedGames.size(); i++) {
+            if (trashedGames.get(i).getId() == id) {
+                Game game = trashedGames.remove(i);
+                games.add(game);
+                return game;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// 휴지통의 게임 하나를 영구삭제 (완전히 제거)
+    /// </summary>
+    public void deleteFromTrashPermanently(int id) {
+        for (int i = 0; i < trashedGames.size(); i++) {
+            if (trashedGames.get(i).getId() == id) {
+                trashedGames.remove(i);
+                return;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 휴지통 비우기 (전부 영구삭제)
+    /// </summary>
+    public void emptyTrash() {
+        trashedGames.clear();
     }
 }

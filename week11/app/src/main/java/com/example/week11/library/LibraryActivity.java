@@ -23,6 +23,7 @@ import com.example.week11.about.AboutActivity;
 import com.example.week11.account.UserPrefs;
 import com.example.week11.addgame.AddGameActivity;
 import com.example.week11.detail.GameDetailActivity;
+import com.example.week11.trash.TrashActivity;
 
 import java.util.Comparator;
 
@@ -35,6 +36,7 @@ import com.example.week11.model.GameStatus;
 import com.example.week11.model.Genre;
 import com.example.week11.model.Platform;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.tabs.TabLayout;
@@ -113,6 +115,7 @@ public class LibraryActivity extends AppCompatActivity {
     /// removeCallbacks로 취소하려면 항상 "같은 인스턴스"여야 하므로 필드로 보관
     /// </summary>
     private final Runnable searchFilterRunnable = this::applyCurrentFilter;
+
 
     /// <summary>
     /// 검색 입력창 (ActionBar의 돋보기). 최근 검색어 칩을 눌렀을 때 이 창에 검색어를 넣어야 해서 보관
@@ -716,6 +719,12 @@ public class LibraryActivity extends AppCompatActivity {
             return true;
         }
 
+        if (itemId == R.id.action_trash) {
+            // 휴지통 → TrashActivity
+            startActivity(new Intent(this, TrashActivity.class));
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -740,10 +749,10 @@ public class LibraryActivity extends AppCompatActivity {
 
         sheetBinding.textViewSheetTitle.setText(game.getTitle());
 
-        // 삭제: 실수 방지를 위해 확인 다이얼로그를 거친 뒤 제거
+        // 삭제: 즉시 제거하되 "실행취소" 스낵바로 몇 초간 되돌릴 기회를 준다
         sheetBinding.actionDelete.setOnClickListener(v -> {
             dialog.dismiss();
-            confirmDelete(game);
+            deleteWithUndo(game);
         });
 
         // 공유: ACTION_SEND chooser
@@ -763,19 +772,38 @@ public class LibraryActivity extends AppCompatActivity {
     }
 
     /// <summary>
-    /// 삭제 확인 다이얼로그 → 확인 시에만 실제 삭제
-    /// (그리드는 필터된 목록이라 position 직접 계산 대신 재필터가 안전)
+    /// 삭제 → 즉시 목록에서 제거하되, 짧게 "실행취소" 기회를 준다.
+    /// - 실행취소를 누르면 원래 위치로 복원
+    /// - 실행취소 없이 스낵바가 닫히면 휴지통으로 이동 (영구삭제 아님 → 휴지통에서 복구 가능)
+    ///
+    /// 커밋 판정은 스낵바의 onDismissed(왜 닫혔나)로 한다:
+    ///   실행취소를 누르면 event가 DISMISS_EVENT_ACTION → 그 경우만 휴지통행에서 제외
+    /// removedIndex·game은 이 스낵바 하나에만 필요하므로 지역 변수로 캡처 (별도 필드 불필요)
     /// </summary>
-    private void confirmDelete(Game game) {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.delete_confirm_title)
-                .setMessage(getString(R.string.delete_confirm_message, game.getTitle()))
-                .setPositiveButton(R.string.delete_confirm_ok, (dialog, which) -> {
-                    gameRepository.removeGame(game.getId());
+    private void deleteWithUndo(Game game) {
+        // 즉시 제거 → 목록/탭 개수 바로 반영. 제거된 위치는 실행취소 복원용으로 보관
+        int removedIndex = gameRepository.removeGame(game.getId());
+        applyCurrentFilter();
+        updateTabCounts();
+
+        Snackbar.make(binding.getRoot(),
+                        getString(R.string.delete_undo_message, game.getTitle()),
+                        Snackbar.LENGTH_LONG)
+                .setAction(R.string.delete_undo_action, v -> {
+                    // 실행취소 → 원래 위치로 복원 (휴지통으로 안 감)
+                    gameRepository.insertGame(removedIndex, game);
                     applyCurrentFilter();
                     updateTabCounts();
                 })
-                .setNegativeButton(android.R.string.cancel, null)
+                .addCallback(new Snackbar.Callback() {
+                    @Override
+                    public void onDismissed(Snackbar sb, int event) {
+                        // 실행취소가 아닌 이유로 닫힘(시간초과·스와이프·다른 스낵바로 교체 등) → 휴지통으로
+                        if (event != DISMISS_EVENT_ACTION) {
+                            gameRepository.moveToTrash(game);
+                        }
+                    }
+                })
                 .show();
     }
 

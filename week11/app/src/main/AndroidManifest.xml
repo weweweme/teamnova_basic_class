@@ -81,6 +81,14 @@
             android:parentActivityName=".home.HomeActivity"
             android:exported="false" />
 
+        <!-- 휴지통: 삭제된(영구삭제 전) 게임 목록 -->
+        <!-- parentActivityName: ← 버튼 누르면 보관함으로 돌아감 -->
+        <activity
+            android:name=".trash.TrashActivity"
+            android:label="@string/trash_title"
+            android:parentActivityName=".library.LibraryActivity"
+            android:exported="false" />
+
         <!-- 팔로우 목록: 팔로잉/팔로워 (커뮤니티) -->
         <!-- 제목은 코드에서 mode에 따라 설정. parentActivityName: ← 홈으로 -->
         <activity

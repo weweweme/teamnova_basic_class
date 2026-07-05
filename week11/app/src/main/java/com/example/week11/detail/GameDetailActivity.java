@@ -21,6 +21,7 @@ import com.example.week11.R;
 import com.example.week11.account.UserPrefs;
 import com.example.week11.data.CommunityRepository;
 import com.example.week11.databinding.ActivityGameDetailBinding;
+import com.example.week11.util.CoverImageLoader;
 import com.example.week11.model.Game;
 import com.example.week11.model.GameReview;
 import com.example.week11.model.ActivityLogType;
@@ -678,13 +679,15 @@ public class GameDetailActivity extends AppCompatActivity {
         int heightPx = (int) (70 * density);
         int marginPx = (int) (8 * density);
 
+        CoverImageLoader loader = ((App) getApplication()).getCoverImageLoader();
         for (String uriString : screenshots) {
             ImageView thumbnail = new ImageView(this);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(widthPx, heightPx);
             lp.setMarginEnd(marginPx);
             thumbnail.setLayoutParams(lp);
             thumbnail.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            thumbnail.setImageURI(Uri.parse(uriString));
+            // 썸네일 디코딩을 백그라운드로 (메인에서 setImageURI로 디코딩하면 화면이 잠깐 멈출 수 있음)
+            loader.loadUri(thumbnail, uriString);
             binding.layoutScreenshots.addView(thumbnail);
         }
     }

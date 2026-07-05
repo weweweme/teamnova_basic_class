@@ -1,14 +1,17 @@
 package com.example.week11.util;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.widget.ImageView;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -65,6 +68,11 @@ public class CoverImageLoader {
     /// 읽기(loadCover)·쓰기(post 콜백) 모두 메인 스레드에서만 일어나므로 별도 동기화가 필요 없음
     /// </summary>
     private final Map<Integer, Bitmap> cache = new HashMap<>();
+
+    /// <summary>
+    /// 메모리 캐시: content:// URI 문자열 → 디코딩한 Bitmap (스크린샷 썸네일용)
+    /// </summary>
+    private final Map<String, Bitmap> uriCache = new HashMap<>();
 
     /// <summary>
     /// 표지 이미지를 target ImageView에 표시 (로딩 스피너 없이 — 그리드처럼 스피너가 필요 없는 곳용)
@@ -153,6 +161,62 @@ public class CoverImageLoader {
             Bitmap bmp = BitmapFactory.decodeResource(res, resId);
             mainHandler.post(() -> cache.put(resId, bmp));
         });
+    }
+
+    /// <summary>
+    /// content:// URI 이미지(예: 갤러리 스크린샷)를 백그라운드에서 디코딩해 ImageView에 반영
+    /// 표지(loadCover)와 같은 원리지만, 리소스 id 대신 URI에서 스트림을 열어 디코딩한다
+    /// - 캐시에 있으면 즉시 표시
+    /// - 없으면 회색 표시 → 스레드 풀에서 디코딩 → Handler로 메인에 반영 + 캐시
+    /// </summary>
+    public void loadUri(ImageView target, String uriString) {
+        if (uriString == null) {
+            return;
+        }
+
+        // 캐시 히트: 바로 표시
+        Bitmap cached = uriCache.get(uriString);
+        if (cached != null) {
+            target.setImageBitmap(cached);
+            return;
+        }
+
+        // 캐시 미스: 로딩(회색) + 이 ImageView가 지금 기다리는 URI 표식
+        target.setImageDrawable(new ColorDrawable(LOADING_COLOR));
+        target.setTag(uriString);
+
+        // ContentResolver는 어느 스레드에서 써도 안전. Activity가 사라져도 안전하게 앱 컨텍스트 사용
+        Context appContext = target.getContext().getApplicationContext();
+
+        decodeExecutor.execute(() -> {
+            Bitmap bmp = decodeUri(appContext, uriString);   // ⏳ 무거운 일: URI 열어 디코딩
+
+            mainHandler.post(() -> {
+                if (bmp == null) {
+                    return;   // 디코딩 실패(파일 없음 등) → 회색 그대로 둠
+                }
+                uriCache.put(uriString, bmp);
+
+                // 이 ImageView가 여전히 같은 URI를 기다릴 때만 반영
+                Object wanted = target.getTag();
+                if (uriString.equals(wanted)) {
+                    target.setImageBitmap(bmp);
+                }
+            });
+        });
+    }
+
+    /// <summary>
+    /// content:// URI에서 이미지를 열어 Bitmap으로 디코딩 (실패하면 null)
+    /// </summary>
+    private Bitmap decodeUri(Context context, String uriString) {
+        // 파일 열기/디코딩은 IOException 등이 날 수 있어 try 필수. try-with-resources로 스트림 자동 닫기
+        // (외부 URI라 권한 문제 등 다양한 예외가 가능해 넓게 잡음)
+        try (InputStream input = context.getContentResolver().openInputStream(Uri.parse(uriString))) {
+            return BitmapFactory.decodeStream(input);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /// <summary>

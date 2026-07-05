@@ -193,6 +193,7 @@
     <string name="add_game_hint_store_url">스토어 URL (선택)</string>
     <string name="add_game_button">추가하기</string>
     <string name="add_game_title_required">게임 제목을 입력해주세요</string>
+    <string name="add_game_pick_cover">표지 선택</string>
 
     <!-- 리뷰 작성 -->
     <string name="review_title">리뷰 작성</string>

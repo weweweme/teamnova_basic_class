@@ -15,6 +15,26 @@
         android:orientation="vertical"
         android:padding="24dp">
 
+        <!-- 표지 이미지 미리보기 (선택 사항) -->
+        <ImageView
+            android:id="@+id/imageViewCoverPreview"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:layout_marginBottom="8dp"
+            android:background="#EEEEEE"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/ic_launcher"
+            android:contentDescription="@string/game_cover_description" />
+
+        <!-- 표지 선택 버튼 → 갤러리에서 이미지 하나 고름 -->
+        <Button
+            android:id="@+id/buttonPickCover"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/add_game_pick_cover" />
+
         <!-- 게임 제목 입력 -->
         <EditText
             android:id="@+id/editTextTitle"

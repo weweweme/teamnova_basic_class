@@ -644,12 +644,20 @@ public class GameDetailActivity extends AppCompatActivity {
         }
 
         // 표지 이미지 (공용 로더: 백그라운드 디코딩 + 캐시 → Handler로 메인 반영)
-        // 주의: getIdentifier()는 이름(문자열)으로 이미지를 찾아서 느림 (비권장 표시됨)
-        // 게임마다 이미지 이름이 달라 문자열 검색이 불가피
-        int coverResId = getResources().getIdentifier(
-                game.getCoverAssetName(), "drawable", getPackageName());
-        ((App) getApplication()).getCoverImageLoader()
-                .loadCover(binding.imageViewCover, binding.progressCover, coverResId, R.mipmap.ic_launcher);
+        // 사용자가 고른 표지(coverUri)가 있으면 그걸 우선, 없으면 번들 drawable(coverAssetName)
+        CoverImageLoader loader = ((App) getApplication()).getCoverImageLoader();
+        String coverUri = game.getCoverUri();
+        boolean hasCoverUri = coverUri != null && !coverUri.isEmpty();
+        if (hasCoverUri) {
+            binding.progressCover.setVisibility(View.GONE);   // URI 로더는 자체 회색 표시를 씀
+            loader.loadUri(binding.imageViewCover, coverUri);
+        } else {
+            // getIdentifier()는 이름(문자열)으로 이미지를 찾음 (게임마다 이름이 달라 불가피)
+            int coverResId = getResources().getIdentifier(
+                    game.getCoverAssetName(), "drawable", getPackageName());
+            loader.loadCover(binding.imageViewCover, binding.progressCover,
+                    coverResId, R.mipmap.ic_launcher);
+        }
 
         // 스크린샷 썸네일 표시
         bindScreenshots();

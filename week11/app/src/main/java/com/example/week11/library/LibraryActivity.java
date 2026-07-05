@@ -201,13 +201,14 @@ public class LibraryActivity extends AppCompatActivity {
                     String genreName = data.getStringExtra(AddGameActivity.EXTRA_GENRE);
                     String platformName = data.getStringExtra(AddGameActivity.EXTRA_PLATFORM);
                     String storeUrl = data.getStringExtra(AddGameActivity.EXTRA_STORE_URL);
+                    String coverUri = data.getStringExtra(AddGameActivity.EXTRA_COVER_URI);
 
                     // enum은 name() 문자열로 건너왔으므로 valueOf로 복원
                     Genre genre = Genre.valueOf(genreName);
                     Platform platform = Platform.valueOf(platformName);
 
                     // 저장소에 추가 후 현재 탭 기준으로 다시 필터 (새 게임은 찜 목록 기본)
-                    Game added = gameRepository.addGame(title, genre, platform, storeUrl);
+                    Game added = gameRepository.addGame(title, genre, platform, storeUrl, coverUri);
                     // 활동 로그에 "추가함" 기록 → 최근 활동 피드에 표시
                     userPrefs.addActivityLog(ActivityLogType.ADDED, added.getId(), "");
                     applyCurrentFilter();

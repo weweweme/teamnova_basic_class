@@ -357,11 +357,12 @@ public class GameRepository {
     /// 현재(8주차)는 메모리에만 저장되므로 앱 재시작 시 사라짐
     /// → 10주차에 Room DB 도입하면 영속 저장으로 교체 예정
     /// </summary>
-    public Game addGame(String title, Genre genre, Platform platform, String storeUrl) {
+    public Game addGame(String title, Genre genre, Platform platform, String storeUrl,
+                        String coverUri) {
         Game newGame = new Game(
                 this.nextId,
                 title,
-                "",                 // coverAssetName — 아직 없음, 기본 아이콘 사용
+                "",                 // coverAssetName — 번들 표지는 없음 (coverUri를 대신 씀)
                 genre,
                 platform,
                 storeUrl == null ? "" : storeUrl,
@@ -369,6 +370,8 @@ public class GameRepository {
                 0f,                 // 초기 별점
                 ""                  // 초기 한줄평
         );
+        // 사용자가 표지 이미지를 골랐으면 URI 설정 (없으면 null → 기본 아이콘)
+        newGame.setCoverUri(coverUri);
         this.games.add(newGame);
         this.nextId++;
         return newGame;

@@ -1,11 +1,14 @@
 package com.example.week11.addgame;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.week11.R;
@@ -50,9 +53,24 @@ public class AddGameActivity extends AppCompatActivity {
     public static final String EXTRA_STORE_URL = "extra_store_url";
 
     /// <summary>
+    /// 결과 Intent 키: 사용자가 고른 표지 이미지 URI (선택 안 했으면 null)
+    /// </summary>
+    public static final String EXTRA_COVER_URI = "extra_cover_uri";
+
+    /// <summary>
     /// ViewBinding 객체
     /// </summary>
     private ActivityAddGameBinding binding;
+
+    /// <summary>
+    /// 사용자가 고른 표지 이미지 URI 문자열 (안 골랐으면 null)
+    /// </summary>
+    private String selectedCoverUri = null;
+
+    /// <summary>
+    /// 갤러리에서 이미지 하나를 고르는 런처 (GetContent: "image/*" → Uri 반환)
+    /// </summary>
+    private ActivityResultLauncher<String> pickCoverLauncher;
 
     // ========== Lifecycle ==========
 
@@ -72,6 +90,18 @@ public class AddGameActivity extends AppCompatActivity {
         // Spinner에 enum 표시 이름 채우기
         setupGenreSpinner();
         setupPlatformSpinner();
+
+        // 갤러리에서 표지 이미지 고르기 런처 등록 (고르면 URI 저장 + 미리보기)
+        pickCoverLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null) {
+                        selectedCoverUri = uri.toString();
+                        binding.imageViewCoverPreview.setImageURI(uri);   // 미리보기
+                    }
+                });
+        // "표지 선택" 버튼 → 이미지만 고르도록 요청
+        binding.buttonPickCover.setOnClickListener(v -> pickCoverLauncher.launch("image/*"));
 
         // "추가하기" 버튼 리스너
         binding.buttonAdd.setOnClickListener(v -> submitGame());
@@ -169,6 +199,8 @@ public class AddGameActivity extends AppCompatActivity {
         resultIntent.putExtra(EXTRA_GENRE, selectedGenre.name());
         resultIntent.putExtra(EXTRA_PLATFORM, selectedPlatform.name());
         resultIntent.putExtra(EXTRA_STORE_URL, storeUrl);
+        // 고른 표지 URI (안 골랐으면 null) — 받는 쪽에서 null이면 기본 아이콘 사용
+        resultIntent.putExtra(EXTRA_COVER_URI, selectedCoverUri);
 
         setResult(RESULT_OK, resultIntent);
         finish();

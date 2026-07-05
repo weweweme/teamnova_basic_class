@@ -50,6 +50,13 @@ public class Game implements Parcelable {
     private final String coverAssetName;
 
     /// <summary>
+    /// 사용자가 직접 고른 표지 이미지 주소 (content:// URI 문자열). 없으면 null.
+    /// 수동 추가 게임에서만 채워지며, 값이 있으면 coverAssetName(번들 drawable)보다 우선 표시
+    /// (시드 게임은 null이라 기존 drawable 로직 그대로)
+    /// </summary>
+    private String coverUri;
+
+    /// <summary>
     /// 장르 (Genre 열거형으로 고정 분류)
     /// </summary>
     private final Genre genre;
@@ -147,6 +154,8 @@ public class Game implements Parcelable {
         // createStringArrayList: writeStringList로 쓴 데이터를 통째로 ArrayList<String>으로 복원
         // 비어있게 저장됐다면 빈 ArrayList가 돌아옴 (null 아님)
         this.screenshots = in.createStringArrayList();
+        // 사용자가 고른 표지 URI (없으면 null) — writeToParcel 맨 끝에서 쓴 것을 여기서 읽음
+        this.coverUri = in.readString();
     }
 
     // ========== Parcelable 구현 ==========
@@ -172,6 +181,8 @@ public class Game implements Parcelable {
         // 스크린샷 Uri 문자열 목록을 Parcel에 그대로 직렬화
         // writeStringList: List<String>을 한 번에 기록 (createStringArrayList로 복원)
         dest.writeStringList(screenshots);
+        // 사용자가 고른 표지 URI (없으면 null) — 맨 끝에 붙임 (읽는 쪽도 맨 끝에서 읽음)
+        dest.writeString(coverUri);
     }
 
     /// <summary>
@@ -227,6 +238,20 @@ public class Game implements Parcelable {
     /// </summary>
     public String getCoverAssetName() {
         return coverAssetName;
+    }
+
+    /// <summary>
+    /// 사용자가 고른 표지 이미지 URI 문자열 반환 (없으면 null)
+    /// </summary>
+    public String getCoverUri() {
+        return coverUri;
+    }
+
+    /// <summary>
+    /// 사용자가 고른 표지 이미지 URI 설정 (게임 추가 시 사용)
+    /// </summary>
+    public void setCoverUri(String coverUri) {
+        this.coverUri = coverUri;
     }
 
     /// <summary>

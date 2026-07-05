@@ -10,6 +10,8 @@ import android.widget.ImageView;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /// <summary>
 /// 표지 이미지를 백그라운드에서 디코딩해 ImageView에 반영하는 재사용 로더
@@ -35,10 +37,25 @@ public class CoverImageLoader {
     private static final long OBSERVE_DELAY_MS = 1500L;
 
     /// <summary>
+    /// 동시에 돌릴 디코딩 스레드 개수 (스레드 풀 크기)
+    /// 셀마다 new Thread를 만들면 스레드가 폭발하므로, 몇 개만 만들어 재사용한다
+    /// 그리드 표지를 병렬로 몇 장씩 디코딩하기에 4개면 충분
+    /// </summary>
+    private static final int POOL_SIZE = 4;
+
+    /// <summary>
     /// 디코딩 결과를 화면(메인 스레드)에 반영할 때 쓰는 Handler
     /// getMainLooper() = 메인(UI) 스레드 줄에 작업을 넣겠다는 뜻
     /// </summary>
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
+    /// <summary>
+    /// 백그라운드 디코딩을 맡는 스레드 풀 (스레드 POOL_SIZE개를 만들어 재사용)
+    /// 요청이 스레드 개수보다 많으면 대기했다가 빈 스레드가 생기면 처리 → 스레드 폭발 방지
+    /// Unity 비유: 매번 워커를 새로 만드는 대신, 워커 몇 명을 두고 일감을 나눠 주는 것
+    /// (앱이 하나만 보유하므로 종료 처리 없이 앱 생명주기 동안 그대로 사용)
+    /// </summary>
+    private final ExecutorService decodeExecutor = Executors.newFixedThreadPool(POOL_SIZE);
 
     /// <summary>
     /// 메모리 캐시: 리소스 id → 이미 디코딩해 둔 Bitmap
@@ -72,7 +89,8 @@ public class CoverImageLoader {
         // getResources()는 어느 스레드에서 불러도 안전 → 서브 스레드에 넘기려고 미리 확보
         Resources res = target.getResources();
 
-        new Thread(() -> {                              // 서브(백그라운드) 스레드 시작
+        // 스레드 풀에 디코딩 작업을 맡김 (빈 스레드가 처리, 없으면 대기)
+        decodeExecutor.execute(() -> {                  // 백그라운드 스레드에서 실행
             // [관찰용] 디코딩을 일부러 느리게 (실무의 느린 디코딩/디스크 읽기를 흉내)
             if (OBSERVE_DELAY_MS > 0) {
                 // 주의: Thread.sleep()은 checked exception이라 try-catch 필수 (컴파일러 요구)
@@ -98,6 +116,6 @@ public class CoverImageLoader {
                     target.setImageBitmap(bmp);
                 }
             });
-        }).start();                                     // 서브 스레드 실행
+        });                                             // 스레드 풀에 작업 제출
     }
 }

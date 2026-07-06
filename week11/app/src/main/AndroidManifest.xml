@@ -55,7 +55,7 @@
         <activity
             android:name=".account.ProfileEditActivity"
             android:label="@string/profile_edit_title"
-            android:parentActivityName=".home.HomeActivity"
+            android:parentActivityName=".main.MainActivity"
             android:exported="false" />
 
         <!-- 유저 프로필: 다른 유저를 눌러 진입 (커뮤니티) -->
@@ -70,7 +70,7 @@
         <activity
             android:name=".community.FollowingFeedActivity"
             android:label="@string/following_feed_title"
-            android:parentActivityName=".home.HomeActivity"
+            android:parentActivityName=".main.MainActivity"
             android:exported="false" />
 
         <!-- 유저 랭킹: 리뷰를 많이 쓴 순 (커뮤니티) -->
@@ -78,7 +78,7 @@
         <activity
             android:name=".community.RankingActivity"
             android:label="@string/ranking_title"
-            android:parentActivityName=".home.HomeActivity"
+            android:parentActivityName=".main.MainActivity"
             android:exported="false" />
 
         <!-- 휴지통: 삭제된(영구삭제 전) 게임 목록 -->
@@ -93,7 +93,7 @@
         <!-- 제목은 코드에서 mode에 따라 설정. parentActivityName: ← 홈으로 -->
         <activity
             android:name=".community.FollowListActivity"
-            android:parentActivityName=".home.HomeActivity"
+            android:parentActivityName=".main.MainActivity"
             android:exported="false" />
 
 
@@ -107,13 +107,6 @@
         <activity
             android:name=".main.MainActivity"
             android:label="@string/app_name"
-            android:exported="false" />
-
-        <!-- 홈: 허브 화면 (Diary/Library/Timeline 미리보기) -->
-        <!-- Onboarding 완료 후 진입하는 최상위 화면 -->
-        <activity
-            android:name=".home.HomeActivity"
-            android:label="@string/home_title"
             android:exported="false" />
 
         <!-- 게임 상세: 암시적 Intent 4종 집결지 -->
@@ -161,7 +154,7 @@
         <activity
             android:name=".library.LibraryActivity"
             android:label="@string/library_title"
-            android:parentActivityName=".home.HomeActivity"
+            android:parentActivityName=".main.MainActivity"
             android:exported="false" />
 
         <!-- 통계: 상태별 게임 수 + 별점 분포 -->
@@ -169,7 +162,7 @@
         <activity
             android:name=".stats.StatsActivity"
             android:label="@string/stats_title"
-            android:parentActivityName=".home.HomeActivity"
+            android:parentActivityName=".main.MainActivity"
             android:exported="false" />
 
         <!-- 타임라인: 활동 피드 (멀티 뷰타입) -->
@@ -177,7 +170,7 @@
         <activity
             android:name=".timeline.TimelineActivity"
             android:label="@string/timeline_title"
-            android:parentActivityName=".home.HomeActivity"
+            android:parentActivityName=".main.MainActivity"
             android:exported="false" />
 
         <!-- 게임 추가: 사용자가 수동으로 새 게임을 보관함에 등록 -->

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 팔로우 목록 화면 (팔로잉 또는 팔로워) -->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".community.FollowListActivity">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerFollow"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="8dp"
+        android:paddingBottom="16dp"
+        android:clipToPadding="false"
+        tools:listitem="@layout/item_follow" />
+
+    <TextView
+        android:id="@+id/textViewFollowEmpty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textColor="#888888"
+        tools:text="아직 팔로우한 사람이 없어요" />
+
+    <!-- 로딩 스피너 (목록 집계 중 중앙 표시, 평소엔 숨김) -->
+    <ProgressBar
+        android:id="@+id/progressFollow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+</FrameLayout>

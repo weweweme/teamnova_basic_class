@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 휴지통 한 줄 (게임 하나) -->
+<!-- 표지 + 제목 + 복원 / 영구삭제 버튼 -->
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="12dp"
+    android:layout_marginEnd="12dp"
+    android:layout_marginTop="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="12dp">
+
+        <!-- 표지 (백그라운드 디코딩 로더로 채움) -->
+        <ImageView
+            android:id="@+id/imageViewTrashCover"
+            android:layout_width="44dp"
+            android:layout_height="60dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/game_cover_description" />
+
+        <!-- 제목 + "N일 후 삭제" -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/textViewTrashTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="엘든 링" />
+
+            <!-- 30일 자동 삭제까지 남은 일수 -->
+            <TextView
+                android:id="@+id/textViewTrashDaysLeft"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="#888888"
+                android:textSize="12sp"
+                tools:text="30일 후 삭제" />
+        </LinearLayout>
+
+        <!-- 복원 -->
+        <Button
+            android:id="@+id/buttonTrashRestore"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="@string/trash_restore"
+            android:textSize="12sp" />
+
+        <!-- 영구삭제 -->
+        <Button
+            android:id="@+id/buttonTrashDelete"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="@string/trash_delete"
+            android:textColor="#E53935"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

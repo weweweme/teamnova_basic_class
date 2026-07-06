@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- HomeActivity의 ActionBar 메뉴 (가상 계정) -->
+<!-- ⋮ 오버플로우에는 자주 쓰지 않는 '관리' 기능만 둔다 (로그아웃/계정삭제/초기화) -->
+<!-- 커뮤니티(팔로잉 피드·랭킹)는 홈 본문 카드로 올렸으므로 여기서 제외 -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- 로그아웃: 세션만 비우고 계정 데이터는 남김 -->
+    <item
+        android:id="@+id/action_logout"
+        android:title="@string/home_action_logout"
+        app:showAsAction="never" />
+
+    <!-- 계정 삭제: 그 계정의 모든 기록을 통째로 지움 (되돌릴 수 없음) -->
+    <item
+        android:id="@+id/action_delete_account"
+        android:title="@string/home_action_delete_account"
+        app:showAsAction="never" />
+
+    <!-- 전체 초기화: 모든 계정과 prefs를 비워 "새 설치" 상태로 (테스트/시연용) -->
+    <item
+        android:id="@+id/action_reset_all"
+        android:title="@string/home_action_reset"
+        app:showAsAction="never" />
+
+</menu>

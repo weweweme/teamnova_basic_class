@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 통계 화면 -->
+<!-- 상태별 게임 수 + 별점 분포 그래프 -->
+<!-- 행들은 StatsActivity가 코드로 채움 (상태/별점 단계가 데이터 기반이라) -->
+<!-- FrameLayout: 내용(ScrollView) 위에 로딩 스피너를 겹치기 위한 컨테이너 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".stats.StatsActivity">
+
+    <ScrollView
+        android:id="@+id/scrollStatsContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- 상태별 게임 수 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/stats_summary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/layoutStatusSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="8dp" />
+
+        <!-- 별점 분포 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/home_rating_distribution"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/layoutRatingDistribution"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="8dp" />
+
+        <!-- 장르 분포 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/stats_genre_distribution"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/layoutGenreDistribution"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="8dp" />
+
+    </LinearLayout>
+
+    </ScrollView>
+
+    <!-- 로딩 스피너 (통계 집계 중 화면 중앙에 표시, 평소엔 숨김) -->
+    <ProgressBar
+        android:id="@+id/progressStats"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+</FrameLayout>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 스크린샷 확대 보기 (전체화면 어두운 배경 + 큰 이미지) -->
+<!-- 아무 곳이나 탭하면 닫힘 → 루트가 클릭 대상 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootScreenshotZoom"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E6000000"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- 확대된 스크린샷 (화면에 맞춰 비율 유지) -->
+    <ImageView
+        android:id="@+id/imageZoom"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="12dp"
+        android:contentDescription="@string/detail_screenshots_label"
+        android:scaleType="fitCenter" />
+
+    <!-- 닫기 안내 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="24dp"
+        android:text="@string/screenshot_zoom_hint"
+        android:textColor="#CCFFFFFF"
+        android:textSize="13sp" />
+
+</FrameLayout>

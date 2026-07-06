@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 회원가입 화면 레이아웃 (가상 계정 시스템) -->
+<!-- 계정 아이디 / 별명 / PIN / PIN 확인을 입력해 새 계정을 만든다 -->
+<!-- 가입에 성공하면 그 계정으로 새 SharedPreferences 파일(user_<id>)이 생긴다 -->
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".account.SignupActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- 화면 제목 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/signup_title"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <!-- 계정 아이디 입력 (로그인용 식별자 + user_<id> 파일 이름이 됨) -->
+        <EditText
+            android:id="@+id/editTextId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:hint="@string/signup_id_hint"
+            android:inputType="text"
+            android:maxLength="20"
+            android:autofillHints="" />
+
+        <!-- 별명 입력 (화면에 보여줄 표시 이름, 한글 가능) -->
+        <EditText
+            android:id="@+id/editTextNickname"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="@string/signup_nickname_hint"
+            android:inputType="text"
+            android:maxLength="20"
+            android:autofillHints="" />
+
+        <!-- PIN 입력 (numberPassword: 숫자 키패드 + 점으로 가림) -->
+        <EditText
+            android:id="@+id/editTextPin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="@string/signup_pin_hint"
+            android:inputType="numberPassword"
+            android:maxLength="4"
+            android:autofillHints="" />
+
+        <!-- PIN 확인 입력 (위 PIN과 같아야 가입 — 오타 방지) -->
+        <EditText
+            android:id="@+id/editTextPinConfirm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="@string/signup_pin_confirm_hint"
+            android:inputType="numberPassword"
+            android:maxLength="4"
+            android:autofillHints="" />
+
+        <!-- 가입하기 버튼 -->
+        <Button
+            android:id="@+id/buttonSignup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/signup_button" />
+
+    </LinearLayout>
+</ScrollView>

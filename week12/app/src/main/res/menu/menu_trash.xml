@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 휴지통 화면 메뉴 -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- 비우기: 휴지통 전체를 영구삭제 (확인 다이얼로그를 거침) -->
+    <item
+        android:id="@+id/action_empty_trash"
+        android:title="@string/trash_empty_action"
+        app:showAsAction="never" />
+
+</menu>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 프로필 편집 화면 레이아웃 (계정별) -->
+<!-- 아바타 색 / 별명 / 한 줄 소개를 고쳐서 현재 계정의 user_<id> 파일에 저장 -->
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".account.ProfileEditActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- 아바타 미리보기 (색 + 별명 첫 글자) -->
+        <!-- 배경은 원형 drawable, 색은 코드에서 backgroundTintList로 칠함 -->
+        <!-- 별명/색을 바꾸면 코드에서 이 미리보기를 실시간으로 갱신 -->
+        <TextView
+            android:id="@+id/textViewAvatarPreview"
+            android:layout_width="88dp"
+            android:layout_height="88dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_avatar_circle"
+            android:gravity="center"
+            android:textColor="#FFFFFF"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            tools:text="A" />
+
+        <!-- 별명 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/profile_nickname_label"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/editTextNickname"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/profile_nickname_hint"
+            android:inputType="text"
+            android:maxLength="20"
+            android:autofillHints="" />
+
+        <!-- 한 줄 소개 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/profile_bio_label"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/editTextBio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/profile_bio_hint"
+            android:inputType="textMultiLine"
+            android:maxLength="60"
+            android:maxLines="3"
+            android:autofillHints="" />
+
+        <!-- 아바타 색 선택 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/profile_avatar_label"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- 색 동그라미들을 코드에서 하나씩 채워 넣는 가로 줄 -->
+        <LinearLayout
+            android:id="@+id/layoutColorSwatches"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal" />
+
+        <!-- 저장 버튼 -->
+        <Button
+            android:id="@+id/buttonSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/profile_save" />
+
+    </LinearLayout>
+</ScrollView>

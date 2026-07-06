@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 하단 탭 컨테이너 화면 -->
+<!-- 위: 프래그먼트가 갈아 끼워지는 칸(내 일지/커뮤니티) / 아래: 탭 바 -->
+<!-- Unity 비유: 하나의 Canvas 위에서 화면 패널만 Show/Hide로 바꾸고, 아래 탭 바는 고정 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".main.MainActivity">
+
+    <!-- 프래그먼트가 표시되는 칸 -->
+    <!-- height=0dp + weight=1 → 탭 바를 뺀 나머지 공간을 전부 차지 -->
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/mainFragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- 하단 탭 바 -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        app:itemIconTint="@color/bottom_nav_item_color"
+        app:itemTextColor="@color/bottom_nav_item_color"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu" />
+
+</LinearLayout>

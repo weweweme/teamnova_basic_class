@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 보관함 장르 필터 칩 (필터 칩 = 선택 가능 + 체크마크) -->
+<!-- 코드로 new Chip()을 쓰면 Bridge 테마에서 Filter 스타일이 안 붙어 체크가 동작 안 함 -->
+<!-- → XML에서 명시적으로 Filter 스타일을 지정하고 inflate해서 사용 -->
+<com.google.android.material.chip.Chip
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.MaterialComponents.Chip.Filter"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="6dp"
+    android:checkable="true" />

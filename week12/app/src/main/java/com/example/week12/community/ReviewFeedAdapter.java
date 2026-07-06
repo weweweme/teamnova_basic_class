@@ -1,0 +1,87 @@
+package com.example.week12.community;
+
+import android.view.LayoutInflater;
+import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.week12.databinding.ItemReviewFeedBinding;
+import com.example.week12.model.ReviewFeedItem;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/// <summary>
+/// 리뷰 피드 RecyclerView 어댑터
+/// 피드 항목 목록(ReviewFeedItem)과 한 줄 뷰(ReviewFeedViewHolder)를 연결 (단일 뷰타입)
+/// 항목 클릭은 콜백으로 화면에 위임 → 그 게임 상세로 이동
+/// </summary>
+public class ReviewFeedAdapter extends RecyclerView.Adapter<ReviewFeedViewHolder> {
+
+    /// <summary>
+    /// 화면에 보여줄 피드 항목 목록 (넘어온 리스트를 복사해 보관)
+    /// </summary>
+    private final List<ReviewFeedItem> items;
+
+    /// <summary>
+    /// 항목 클릭 콜백 (게임 id 전달)
+    /// </summary>
+    private final OnReviewFeedClickListener clickListener;
+
+    /// <summary>
+    /// 좋아요(하트) 토글 콜백 (토글된 항목 전달 → 화면이 저장)
+    /// </summary>
+    private final OnReviewLikeToggleListener likeListener;
+
+    /// <summary>
+    /// 어댑터 생성
+    /// </summary>
+    public ReviewFeedAdapter(List<ReviewFeedItem> items,
+                             OnReviewFeedClickListener clickListener,
+                             OnReviewLikeToggleListener likeListener) {
+        this.items = new ArrayList<>(items);
+        this.clickListener = clickListener;
+        this.likeListener = likeListener;
+    }
+
+    /// <summary>
+    /// 한 줄 뷰 생성 (item_review_feed.xml inflate)
+    /// </summary>
+    @NonNull
+    @Override
+    public ReviewFeedViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        ItemReviewFeedBinding binding = ItemReviewFeedBinding.inflate(
+                LayoutInflater.from(parent.getContext()), parent, false);
+        return new ReviewFeedViewHolder(binding);
+    }
+
+    /// <summary>
+    /// 특정 위치의 피드 항목을 줄에 채움
+    /// </summary>
+    @Override
+    public void onBindViewHolder(@NonNull ReviewFeedViewHolder holder, int position) {
+        holder.bind(items.get(position), clickListener, likeListener);
+    }
+
+    /// <summary>
+    /// 전체 항목 개수 반환
+    /// </summary>
+    @Override
+    public int getItemCount() {
+        return items.size();
+    }
+
+    /// <summary>
+    /// 새 리뷰들을 목록 맨 위에 끼워넣는다 (실시간 피드용)
+    /// notifyItemRangeInserted → RecyclerView 기본 애니메이터가 "새로 추가된 줄"을 자연스럽게 등장시킴
+    /// newItems는 최신순(맨 앞이 가장 새 리뷰)이라고 가정
+    /// </summary>
+    public void prependItems(List<ReviewFeedItem> newItems) {
+        if (newItems.isEmpty()) {
+            return;
+        }
+        items.addAll(0, newItems);
+        notifyItemRangeInserted(0, newItems.size());
+    }
+}

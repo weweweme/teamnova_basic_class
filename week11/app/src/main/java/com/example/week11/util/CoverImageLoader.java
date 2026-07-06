@@ -35,6 +35,11 @@ public class CoverImageLoader {
     private static final int LOADING_COLOR = 0xFFBDBDBD;
 
     /// <summary>
+    /// 백그라운드 디코딩이 끝난 이미지를 "딱" 바꾸지 않고 서서히 나타나게(alpha 0→1) 하는 시간(ms)
+    /// </summary>
+    private static final long FADE_IN_MS = 250L;
+
+    /// <summary>
     /// [관찰용] 로딩을 일부러 느리게 해 과정을 눈에 보이게 하는 지연 시간 범위(ms)
     /// 매번 MIN~MAX 사이 무작위 값을 써서, 인터넷 속도처럼 로딩 시간이 들쭉날쭉한 걸 흉내 낸다
     /// 확인이 끝나면 MAX를 0으로 바꿔 끈다
@@ -92,14 +97,16 @@ public class CoverImageLoader {
         // 이미지가 없으면 디코딩할 것도 없으니 기본 아이콘만 바로 표시 (스피너 숨김)
         if (resId == 0) {
             setSpinnerVisible(spinner, false);
+            ensureOpaque(target);
             target.setImageResource(placeholderResId);
             return;
         }
 
-        // ① 캐시 히트: 이미 디코딩해 둔 게 있으면 백그라운드 없이 즉시 표시 (스피너 불필요)
+        // ① 캐시 히트: 이미 디코딩해 둔 게 있으면 백그라운드 없이 즉시 표시 (스피너 불필요, 페이드 없이)
         Bitmap cached = cache.get(resId);
         if (cached != null) {
             setSpinnerVisible(spinner, false);
+            ensureOpaque(target);
             target.setImageBitmap(cached);
             return;
         }
@@ -107,6 +114,7 @@ public class CoverImageLoader {
         // ② 캐시 미스: 스피너 표시 + 로딩(회색) + 이 ImageView가 지금 기다리는 이미지 표식
         //    (그리드에서 셀이 재활용될 때 엉뚱한 표지가 덮이지 않게 하는 표식)
         setSpinnerVisible(spinner, true);
+        ensureOpaque(target);   // 회색 로딩 박스는 또렷하게 (이후 표지가 페이드인)
         target.setImageDrawable(new ColorDrawable(LOADING_COLOR));
         target.setTag(resId);
 
@@ -138,7 +146,7 @@ public class CoverImageLoader {
                 Object wanted = target.getTag();
                 boolean stillWaiting = wanted != null && (int) wanted == resId;
                 if (stillWaiting) {
-                    target.setImageBitmap(bmp);
+                    showBitmapFadeIn(target, bmp);       // 표지를 부드럽게 등장
                     setSpinnerVisible(spinner, false);   // 표지가 떴으니 스피너 숨김
                 }
             });
@@ -174,14 +182,16 @@ public class CoverImageLoader {
             return;
         }
 
-        // 캐시 히트: 바로 표시
+        // 캐시 히트: 바로 표시 (페이드 없이)
         Bitmap cached = uriCache.get(uriString);
         if (cached != null) {
+            ensureOpaque(target);
             target.setImageBitmap(cached);
             return;
         }
 
         // 캐시 미스: 로딩(회색) + 이 ImageView가 지금 기다리는 URI 표식
+        ensureOpaque(target);   // 회색 로딩 박스는 또렷하게 (이후 이미지가 페이드인)
         target.setImageDrawable(new ColorDrawable(LOADING_COLOR));
         target.setTag(uriString);
 
@@ -200,7 +210,7 @@ public class CoverImageLoader {
                 // 이 ImageView가 여전히 같은 URI를 기다릴 때만 반영
                 Object wanted = target.getTag();
                 if (uriString.equals(wanted)) {
-                    target.setImageBitmap(bmp);
+                    showBitmapFadeIn(target, bmp);   // 이미지를 부드럽게 등장
                 }
             });
         });
@@ -217,6 +227,26 @@ public class CoverImageLoader {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /// <summary>
+    /// 디코딩이 끝난 비트맵을 서서히 나타나게(투명→불투명) 넣는다
+    /// (백그라운드에서 방금 만든 이미지를 부드럽게 등장시켜 로딩 티를 자연스럽게)
+    /// </summary>
+    private void showBitmapFadeIn(ImageView target, Bitmap bmp) {
+        target.animate().cancel();      // 재활용 뷰에 돌던 이전 페이드 취소
+        target.setAlpha(0f);
+        target.setImageBitmap(bmp);
+        target.animate().alpha(1f).setDuration(FADE_IN_MS).start();
+    }
+
+    /// <summary>
+    /// 캐시 히트/플레이스홀더 등 "즉시 표시" 경로에서 페이드 없이 불투명(alpha=1)을 보장
+    /// (재활용 뷰가 이전 페이드 도중이었어도 확실히 또렷하게 보이도록)
+    /// </summary>
+    private void ensureOpaque(ImageView target) {
+        target.animate().cancel();
+        target.setAlpha(1f);
     }
 
     /// <summary>

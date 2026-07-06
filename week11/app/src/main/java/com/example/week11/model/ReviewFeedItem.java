@@ -40,6 +40,12 @@ public class ReviewFeedItem {
     private boolean likedByMe;
 
     /// <summary>
+    /// 방금 실시간으로 목록에 끼워넣은 항목인지 (등장 애니메이션을 한 번 재생할지 판단)
+    /// 화면 표시용 임시 값이라 저장/전달 대상이 아님
+    /// </summary>
+    private boolean justAdded = false;
+
+    /// <summary>
     /// 피드 항목 생성
     /// </summary>
     public ReviewFeedItem(String nickname, int avatarColor, int gameId, String gameTitle,
@@ -79,6 +85,16 @@ public class ReviewFeedItem {
     public void toggleLikedByMe() {
         likedByMe = !likedByMe;
         likeCount += likedByMe ? 1 : -1;
+    }
+
+    /// <summary>방금 실시간 삽입된 항목인지 반환</summary>
+    public boolean isJustAdded() {
+        return justAdded;
+    }
+
+    /// <summary>방금 삽입됨 표시 설정 (등장 애니메이션을 한 번 재생한 뒤 false로 끈다)</summary>
+    public void setJustAdded(boolean justAdded) {
+        this.justAdded = justAdded;
     }
 
     /// <summary>작성자 별명 반환</summary>

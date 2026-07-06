@@ -71,4 +71,17 @@ public class ReviewFeedAdapter extends RecyclerView.Adapter<ReviewFeedViewHolder
     public int getItemCount() {
         return items.size();
     }
+
+    /// <summary>
+    /// 새 리뷰들을 목록 맨 위에 끼워넣는다 (실시간 피드용)
+    /// notifyItemRangeInserted → RecyclerView 기본 애니메이터가 "새로 추가된 줄"을 자연스럽게 등장시킴
+    /// newItems는 최신순(맨 앞이 가장 새 리뷰)이라고 가정
+    /// </summary>
+    public void prependItems(List<ReviewFeedItem> newItems) {
+        if (newItems.isEmpty()) {
+            return;
+        }
+        items.addAll(0, newItems);
+        notifyItemRangeInserted(0, newItems.size());
+    }
 }

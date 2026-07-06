@@ -50,6 +50,11 @@ public class ReviewFeedViewHolder extends RecyclerView.ViewHolder {
         binding.imageViewFeedLike.setScaleX(1f);
         binding.imageViewFeedLike.setScaleY(1f);
 
+        // 재활용 뷰 초기화 — 이전 등장 애니메이션 잔상(투명/이동) 제거
+        binding.getRoot().animate().cancel();
+        binding.getRoot().setAlpha(1f);
+        binding.getRoot().setTranslationY(0f);
+
         // 작성자 아바타: 색 + 별명 첫 글자
         binding.textViewFeedAvatar.setText(initialOf(item.getNickname()));
         binding.textViewFeedAvatar.setBackgroundTintList(
@@ -91,6 +96,26 @@ public class ReviewFeedViewHolder extends RecyclerView.ViewHolder {
                 clickListener.onReviewFeedClick(item.getGameId());
             }
         });
+
+        // 방금 실시간으로 끼워넣은 항목이면 "위에서 슬라이드+페이드" 등장 애니메이션을 한 번 재생
+        if (item.isJustAdded()) {
+            playEntrance(binding.getRoot());
+            item.setJustAdded(false);   // 한 번만 재생 (재활용/재바인딩 때 반복 방지)
+        }
+    }
+
+    /// <summary>
+    /// 새로 등장하는 카드를 위쪽에서 스르륵 내려오며(translationY) 서서히 나타나게(alpha) 한다
+    /// </summary>
+    private void playEntrance(View card) {
+        float offsetPx = 48f * card.getResources().getDisplayMetrics().density;   // 위로 48dp
+        card.setAlpha(0f);
+        card.setTranslationY(-offsetPx);
+        card.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(380)
+                .start();
     }
 
     /// <summary>

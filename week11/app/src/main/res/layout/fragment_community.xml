@@ -87,12 +87,22 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="top|center_horizontal"
-            android:layout_marginTop="8dp"
-            android:textSize="13sp"
+            android:layout_marginTop="2dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:paddingTop="11dp"
+            android:paddingBottom="11dp"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
             android:visibility="gone"
-            app:cornerRadius="20dp"
-            app:elevation="4dp"
-            tools:text="새 리뷰 2개 ↑" />
+            app:backgroundTint="#1565C0"
+            app:cornerRadius="26dp"
+            app:elevation="6dp"
+            tools:text="새 리뷰 2개 ↑"
+            tools:visibility="visible" />
 
     </FrameLayout>
 

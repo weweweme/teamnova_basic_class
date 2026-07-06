@@ -142,6 +142,11 @@ public class GameDetailActivity extends AppCompatActivity {
     /// </summary>
     private final Handler autoSlideHandler = new Handler(Looper.getMainLooper());
 
+    /// <summary>
+    /// "다른 사람들의 평가"(모든 계정 파일을 훑는 디스크 작업) 집계 결과를 메인 스레드에 반영하는 Handler
+    /// </summary>
+    private final Handler reviewsHandler = new Handler(Looper.getMainLooper());
+
     /// <summary>스크린샷이 화면 폭을 넘겨 무한 스크롤을 돌릴 만한 상태인지 (안 넘치면 안 켬)</summary>
     private boolean screenshotsScrollable = false;
 
@@ -376,6 +381,7 @@ public class GameDetailActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         autoSlideHandler.removeCallbacksAndMessages(null);
+        reviewsHandler.removeCallbacksAndMessages(null);
     }
 
     /// <summary>스크린샷 자동 슬라이드 시작 (중복 예약 방지 후 새로 예약, 스크린샷 없으면 안 켬)</summary>
@@ -419,9 +425,19 @@ public class GameDetailActivity extends AppCompatActivity {
         String currentId = app.getAccountManager().getCurrentAccountId();
         int gameId = game.getId();
 
-        // 나를 뺀 다른 계정들의 이 게임 리뷰
-        List<GameReview> others = community.getReviewsForGame(gameId, currentId);
+        // 나를 뺀 다른 계정들의 이 게임 리뷰 모으기 = 모든 계정 파일을 훑는 디스크 작업 → 서브 스레드에서
+        new Thread(() -> {                              // 서브(백그라운드) 스레드 시작
+            List<GameReview> others = community.getReviewsForGame(gameId, currentId);
+            // 집계 결과 표시는 메인 줄로 (화면 갱신은 메인 스레드에서만 가능)
+            reviewsHandler.post(() -> renderOthersReviews(others, gameId));
+        }).start();
+    }
 
+    /// <summary>
+    /// 백그라운드로 모은 "다른 사람들의 평가"를 화면에 반영한다 (전체 평균 + 미리보기 + 더보기)
+    /// 여기서 읽는 내 별점(userPrefs)은 내 계정 파일 1개라 메인에서 읽어도 빠름
+    /// </summary>
+    private void renderOthersReviews(List<GameReview> others, int gameId) {
         // ── 전체 평균(나 포함) 계산 ──
         // 다른 사람들 별점 합 + (내가 평가했으면) 내 별점
         boolean hasMine = userPrefs.hasReview(gameId);

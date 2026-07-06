@@ -1,7 +1,10 @@
 package com.example.week11.timeline;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.MenuItem;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,6 +13,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.week11.App;
 import com.example.week11.account.UserPrefs;
 import com.example.week11.databinding.ActivityTimelineBinding;
+import com.example.week11.model.ActivityLog;
+
+import java.util.List;
 
 /// <summary>
 /// 타임라인 화면 (활동 피드 — 멀티 뷰타입)
@@ -36,6 +42,12 @@ public class TimelineActivity extends AppCompatActivity {
     /// 타임라인 셀을 그리는 멀티 뷰타입 어댑터
     /// </summary>
     private TimelineAdapter adapter;
+
+    /// <summary>
+    /// 활동 로그 집계 결과를 화면(메인 스레드)에 반영할 때 쓰는 Handler
+    /// 더미 + 내 실제 로그를 합쳐 최신순 정렬하는 건 계정 파일을 읽는 디스크 작업 → 서브 스레드에서
+    /// </summary>
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     // ========== Lifecycle ==========
 
@@ -73,15 +85,44 @@ public class TimelineActivity extends AppCompatActivity {
 
     /// <summary>
     /// 더미 + 내 실제 활동 로그를 합친 최신순 목록으로 어댑터를 새로 세팅
-    /// 어댑터에 로그 목록 + 게임 제목 조회용 GameRepository를 함께 주입
+    /// 로그 모으기(계정 파일 읽기 + 병합 정렬)는 서브 스레드에서, 화면 반영만 메인 줄로
     /// </summary>
     private void loadTimeline() {
         App app = (App) getApplication();
         UserPrefs userPrefs = app.getUserPrefs();
-        adapter = new TimelineAdapter(
-                app.getActivityLogRepository().getMergedLogs(userPrefs.getActivityLogs()),
-                app.getGameRepository());
-        binding.recyclerViewTimeline.setAdapter(adapter);
+
+        // 로딩 스피너 표시 (기존 목록은 그대로 뒤에 둔 채 위에 스피너만 얹음)
+        binding.progressTimeline.setVisibility(View.VISIBLE);
+
+        new Thread(() -> {                              // 서브(백그라운드) 스레드 시작
+            // [관찰용] 스피너가 보이게 잠깐 지연 (확인 후 삭제)
+            // 주의: Thread.sleep()은 checked exception이라 try-catch 필수 (컴파일러 요구)
+            try {
+                Thread.sleep(600);
+            } catch (InterruptedException e) {
+                // 발생하지 않음 (컴파일러 요구사항)
+            }
+
+            // ⏳ 무거운 일: 더미 + 내 실제 로그를 합쳐 최신순 정렬 (계정 파일 읽기)
+            List<ActivityLog> logs =
+                    app.getActivityLogRepository().getMergedLogs(userPrefs.getActivityLogs());
+
+            // 결과 반영만 메인 줄로 (어댑터 생성·setAdapter는 메인에서)
+            mainHandler.post(() -> {
+                binding.progressTimeline.setVisibility(View.GONE);
+                adapter = new TimelineAdapter(logs, app.getGameRepository());
+                binding.recyclerViewTimeline.setAdapter(adapter);
+            });
+        }).start();                                     // 서브 스레드 실행
+    }
+
+    /// <summary>
+    /// 화면이 사라질 때, 아직 메인 큐에 남아있는 반영 작업을 취소 (누수 방지)
+    /// </summary>
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mainHandler.removeCallbacksAndMessages(null);
     }
 
     /// <summary>

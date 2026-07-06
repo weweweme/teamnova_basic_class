@@ -103,7 +103,8 @@ public class TimelineActivity extends AppCompatActivity {
                 // 발생하지 않음 (컴파일러 요구사항)
             }
 
-            // ⏳ 무거운 일: 더미 + 내 실제 로그를 합쳐 최신순 정렬 (계정 파일 읽기)
+            // 무거운 일: 더미 + 내 실제 로그를 합쳐 최신순 정렬 (계정 파일 읽기)
+            // 서버에서 데이터를 가져오는 것과 같음
             List<ActivityLog> logs =
                     app.getActivityLogRepository().getMergedLogs(userPrefs.getActivityLogs());
 

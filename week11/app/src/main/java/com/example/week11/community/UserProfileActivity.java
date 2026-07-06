@@ -107,7 +107,8 @@ public class UserProfileActivity extends AppCompatActivity {
                 // 발생하지 않음 (컴파일러 요구사항)
             }
 
-            // ⏳ 무거운 일: 프로필 + 팔로잉/팔로워 수 + 작성 리뷰 모으기 (디스크 읽기)
+            // 무거운 일: 프로필 + 팔로잉/팔로워 수 + 작성 리뷰 모으기 (디스크 읽기)
+            // 서버에서 데이터를 가져오는 것과 같음
             AccountProfile profile = community.getProfile(accountId);
             int followingCount = community.getFollowingCount(accountId);
             int followerCount = community.getFollowerCount(accountId);

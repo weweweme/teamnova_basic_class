@@ -81,7 +81,8 @@ public class ReviewBoardActivity extends AppCompatActivity {
                 // 발생하지 않음 (컴파일러 요구사항)
             }
 
-            // ⏳ 무거운 일: 나를 뺀 다른 계정들의 이 게임 리뷰 전체 모으기 (디스크 읽기)
+            // 무거운 일: 나를 뺀 다른 계정들의 이 게임 리뷰 전체 모으기 (디스크 읽기)
+            // 서버에서 데이터를 가져오는 것과 같음
             List<GameReview> reviews = app.getCommunityRepository().getReviewsForGame(gameId, currentId);
 
             // 결과 반영만 메인 줄로

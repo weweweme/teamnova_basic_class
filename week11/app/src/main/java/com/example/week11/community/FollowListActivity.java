@@ -103,7 +103,8 @@ public class FollowListActivity extends AppCompatActivity {
                 // 발생하지 않음 (컴파일러 요구사항)
             }
 
-            // ⏳ 무거운 일: 팔로워/팔로잉 목록을 계정들에서 모음 (디스크 읽기)
+            // 무거운 일: 팔로워/팔로잉 목록을 계정들에서 모음 (디스크 읽기)
+            // 서버에서 데이터를 가져오는 것과 같음
             List<AccountProfile> list = followersMode
                     ? app.getCommunityRepository().getFollowers(targetId)
                     : app.getCommunityRepository().getFollowing(targetId);

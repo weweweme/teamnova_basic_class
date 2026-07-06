@@ -209,7 +209,6 @@ public class StatsActivity extends AppCompatActivity {
 
         view.setText("0");                  // 시작값 0으로 초기화
 
-        // tick은 이 애니 하나당 한 번 생성 (프레임마다가 아님) — run()에서 this로 자기 자신을 다시 예약
         Runnable tick = new Runnable() {
             @Override
             public void run() {

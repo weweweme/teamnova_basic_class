@@ -1,6 +1,8 @@
 package com.example.week11.community;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -8,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.week11.App;
+import com.example.week11.account.UserPrefs;
 import com.example.week11.databinding.ActivityRankingBinding;
 import com.example.week11.model.AccountProfile;
 
@@ -30,10 +33,16 @@ public class RankingActivity extends AppCompatActivity {
     /// </summary>
     private ActivityRankingBinding binding;
 
+    /// <summary>
+    /// 랭킹 집계 결과를 화면(메인 스레드)에 반영할 때 쓰는 Handler
+    /// 모든 계정 파일(user_<id>)을 훑어 리뷰 수를 세는 건 디스크 작업 → 서브 스레드에서, 표시만 메인에서
+    /// </summary>
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
     // ========== Lifecycle ==========
 
     /// <summary>
-    /// 화면 생성 — 랭킹 목록을 받아 RecyclerView에 채운다
+    /// 화면 생성 — 랭킹을 백그라운드로 집계해 RecyclerView에 채운다
     /// </summary>
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,17 +56,52 @@ public class RankingActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        App app = (App) getApplication();
-        List<AccountProfile> ranking = app.getCommunityRepository().getRanking();
-        // 내 계정에 "(나)" 표시를 붙이기 위해 현재 로그인 아이디를 넘긴다
-        String currentId = app.getAccountManager().getCurrentAccountId();
-
-        boolean isEmpty = ranking.isEmpty();
-        binding.textViewRankingEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
-        binding.recyclerRanking.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
-
         binding.recyclerRanking.setLayoutManager(new LinearLayoutManager(this));
-        binding.recyclerRanking.setAdapter(new RankingAdapter(ranking, currentId, app.getUserPrefs()));
+
+        App app = (App) getApplication();
+        // 내 계정에 "(나)" 표시 + 팔로우 버튼 상태에 필요한 값들 (가벼운 조회라 메인에서 미리 확보)
+        String currentId = app.getAccountManager().getCurrentAccountId();
+        UserPrefs userPrefs = app.getUserPrefs();
+
+        // 로딩 스피너 표시, 목록/빈 안내 숨김 (아직 집계 전)
+        binding.progressRanking.setVisibility(View.VISIBLE);
+        binding.recyclerRanking.setVisibility(View.GONE);
+        binding.textViewRankingEmpty.setVisibility(View.GONE);
+
+        // 모든 계정을 훑어 리뷰 수로 정렬하는 무거운 집계 → 서브 스레드에서
+        new Thread(() -> {                              // 서브(백그라운드) 스레드 시작
+            // [관찰용] 스피너가 보이게 잠깐 지연 (확인 후 삭제)
+            // 주의: Thread.sleep()은 checked exception이라 try-catch 필수 (컴파일러 요구)
+            try {
+                Thread.sleep(600);
+            } catch (InterruptedException e) {
+                // 발생하지 않음 (컴파일러 요구사항)
+            }
+
+            // ⏳ 무거운 일: 계정마다 리뷰 수를 세어 내림차순 정렬 (디스크 읽기)
+            List<AccountProfile> ranking = app.getCommunityRepository().getRanking();
+
+            // 결과 반영만 메인 줄로
+            mainHandler.post(() -> {
+                binding.progressRanking.setVisibility(View.GONE);
+
+                boolean isEmpty = ranking.isEmpty();
+                binding.textViewRankingEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+                binding.recyclerRanking.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+
+                binding.recyclerRanking.setAdapter(
+                        new RankingAdapter(ranking, currentId, userPrefs));
+            });
+        }).start();                                     // 서브 스레드 실행
+    }
+
+    /// <summary>
+    /// 화면이 사라질 때, 아직 메인 큐에 남아있는 랭킹 반영 작업을 취소 (누수 방지)
+    /// </summary>
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mainHandler.removeCallbacksAndMessages(null);
     }
 
     /// <summary>

@@ -26,4 +26,12 @@
         android:textColor="#888888"
         android:visibility="gone" />
 
+    <!-- 로딩 스피너 (모든 계정 파일을 훑어 순위 집계하는 동안 중앙 표시, 평소엔 숨김) -->
+    <ProgressBar
+        android:id="@+id/progressRanking"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
 </FrameLayout>

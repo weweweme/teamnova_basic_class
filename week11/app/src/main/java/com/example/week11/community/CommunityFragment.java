@@ -278,7 +278,8 @@ public class CommunityFragment extends Fragment {
         boolean isEmpty = feed.isEmpty();
         binding.textViewCommunityFeedEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
         binding.recyclerCommunityFeed.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
-        binding.recyclerCommunityFeed.setAdapter(new ReviewFeedAdapter(feed, this::openGame));
+        binding.recyclerCommunityFeed.setAdapter(
+                new ReviewFeedAdapter(feed, this::openGame, this::onLikeToggle));
 
         // 피드는 최신순 정렬이므로 맨 앞 항목이 "가장 최신" → 그 시각을 기준선으로 저장
         newestShownTimestamp = isEmpty ? 0L : feed.get(0).getTimestamp();
@@ -286,6 +287,15 @@ public class CommunityFragment extends Fragment {
         // 방금 최신을 반영했으니 새 글 알림은 숨기고 대기 피드도 비운다
         binding.buttonNewReviews.setVisibility(View.GONE);
         pendingFeed = null;
+    }
+
+    /// <summary>
+    /// 하트 토글 결과를 내(현재 로그인) 계정 파일에 저장
+    /// (ViewHolder가 항목을 이미 토글했으므로 item.isLikedByMe()가 새 상태)
+    /// </summary>
+    private void onLikeToggle(ReviewFeedItem item) {
+        App app = (App) requireActivity().getApplication();
+        app.getUserPrefs().setLiked(item.getGameId(), item.getReviewerId(), item.isLikedByMe());
     }
 
     /// <summary>

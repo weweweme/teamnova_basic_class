@@ -171,7 +171,16 @@ public class UserProfileActivity extends AppCompatActivity {
         binding.textViewProfileNoReviews.setVisibility(noReviews ? View.VISIBLE : View.GONE);
         binding.recyclerProfileReviews.setVisibility(noReviews ? View.GONE : View.VISIBLE);
         binding.recyclerProfileReviews.setLayoutManager(new LinearLayoutManager(this));
-        binding.recyclerProfileReviews.setAdapter(new ReviewFeedAdapter(reviews, this::openGame));
+        binding.recyclerProfileReviews.setAdapter(
+                new ReviewFeedAdapter(reviews, this::openGame, this::onLikeToggle));
+    }
+
+    /// <summary>
+    /// 하트 토글 결과를 내(현재 로그인) 계정 파일에 저장
+    /// (ViewHolder가 항목을 이미 토글했으므로 item.isLikedByMe()가 새 상태)
+    /// </summary>
+    private void onLikeToggle(ReviewFeedItem item) {
+        myPrefs.setLiked(item.getGameId(), item.getReviewerId(), item.isLikedByMe());
     }
 
     // ========== 팔로우 ==========

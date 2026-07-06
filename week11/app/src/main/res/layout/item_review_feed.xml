@@ -90,15 +90,45 @@
                 android:textSize="14sp"
                 tools:text="엘든 링 어렵지만 결국 명작" />
 
-            <!-- N분 전 -->
-            <TextView
-                android:id="@+id/textViewFeedTime"
-                android:layout_width="wrap_content"
+            <!-- 하단: N분 전 + 좋아요(하트) -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textColor="#999999"
-                android:textSize="12sp"
-                tools:text="3분 전" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/textViewFeedTime"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="#999999"
+                    android:textSize="12sp"
+                    tools:text="3분 전" />
+
+                <!-- 좋아요 하트 (탭하면 토글 + 팝 애니메이션). 카드 클릭과 별개로 동작 -->
+                <ImageView
+                    android:id="@+id/imageViewFeedLike"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:padding="2dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="@string/feed_like_desc"
+                    android:src="@drawable/ic_heart_outline" />
+
+                <TextView
+                    android:id="@+id/textViewFeedLikeCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:minWidth="14dp"
+                    android:textColor="#999999"
+                    android:textSize="12sp"
+                    tools:text="3" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 

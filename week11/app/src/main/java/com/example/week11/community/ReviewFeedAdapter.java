@@ -30,11 +30,19 @@ public class ReviewFeedAdapter extends RecyclerView.Adapter<ReviewFeedViewHolder
     private final OnReviewFeedClickListener clickListener;
 
     /// <summary>
+    /// 좋아요(하트) 토글 콜백 (토글된 항목 전달 → 화면이 저장)
+    /// </summary>
+    private final OnReviewLikeToggleListener likeListener;
+
+    /// <summary>
     /// 어댑터 생성
     /// </summary>
-    public ReviewFeedAdapter(List<ReviewFeedItem> items, OnReviewFeedClickListener clickListener) {
+    public ReviewFeedAdapter(List<ReviewFeedItem> items,
+                             OnReviewFeedClickListener clickListener,
+                             OnReviewLikeToggleListener likeListener) {
         this.items = new ArrayList<>(items);
         this.clickListener = clickListener;
+        this.likeListener = likeListener;
     }
 
     /// <summary>
@@ -53,7 +61,7 @@ public class ReviewFeedAdapter extends RecyclerView.Adapter<ReviewFeedViewHolder
     /// </summary>
     @Override
     public void onBindViewHolder(@NonNull ReviewFeedViewHolder holder, int position) {
-        holder.bind(items.get(position), clickListener);
+        holder.bind(items.get(position), clickListener, likeListener);
     }
 
     /// <summary>

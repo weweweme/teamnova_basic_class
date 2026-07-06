@@ -338,12 +338,17 @@ public class CommunityRepository {
         String nickname = accountManager.getNickname(accountId);
         int avatarColor = prefs.getAvatarColor();
 
+        // 좋아요 "내가 눌렀는지"는 지금 로그인한 나(뷰어) 기준으로 판단
+        String viewerId = accountManager.getCurrentAccountId();
+        UserPrefs viewerPrefs = viewerId != null ? new UserPrefs(appContext, viewerId) : null;
+
         List<ReviewFeedItem> list = new ArrayList<>();
         for (int gameId : prefs.getReviewedGameIds()) {
             Game game = gameRepository.findById(gameId);
             if (game == null) {
                 continue;
             }
+            boolean likedByMe = viewerPrefs != null && viewerPrefs.hasLiked(gameId, accountId);
             list.add(new ReviewFeedItem(
                     nickname,
                     avatarColor,
@@ -351,7 +356,10 @@ public class CommunityRepository {
                     game.getTitle(),
                     prefs.getRating(gameId),
                     prefs.getReview(gameId),
-                    prefs.getReviewedAt(gameId)));
+                    prefs.getReviewedAt(gameId),
+                    accountId,                          // 작성자 id
+                    getLikeCount(gameId, accountId),    // 이 리뷰의 총 좋아요 수
+                    likedByMe));                        // 내가 눌렀는지
         }
         Collections.sort(list, Comparator.comparingLong(ReviewFeedItem::getTimestamp).reversed());
         return list;
@@ -387,7 +395,10 @@ public class CommunityRepository {
                         game.getTitle(),
                         prefs.getRating(gameId),
                         prefs.getReview(gameId),
-                        prefs.getReviewedAt(gameId)));
+                        prefs.getReviewedAt(gameId),
+                        id,                                 // 작성자 id
+                        getLikeCount(gameId, id),           // 이 리뷰의 총 좋아요 수
+                        myPrefs.hasLiked(gameId, id)));     // 내가 눌렀는지
             }
         }
 

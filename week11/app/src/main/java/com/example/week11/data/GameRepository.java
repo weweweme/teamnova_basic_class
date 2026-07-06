@@ -159,12 +159,18 @@ public class GameRepository {
     /// (Steam에서 받아 번들한 데모용 이미지 — 실제 사용자 스크린샷은 여기에 더해짐)
     /// </summary>
     private void attachDefaultScreenshots() {
-        addDefaultShots(1, "shot_eldenring_1", "shot_eldenring_2");
-        addDefaultShots(3, "shot_hollowknight_1", "shot_hollowknight_2");
-        addDefaultShots(4, "shot_celeste_1", "shot_celeste_2");
-        addDefaultShots(5, "shot_stardewvalley_1", "shot_stardewvalley_2");
-        addDefaultShots(6, "shot_hades_1", "shot_hades_2");
-        addDefaultShots(17, "shot_cuphead_1", "shot_cuphead_2");
+        addDefaultShots(1, "shot_eldenring_1", "shot_eldenring_2", "shot_eldenring_3",
+                "shot_eldenring_4", "shot_eldenring_5", "shot_eldenring_6");
+        addDefaultShots(3, "shot_hollowknight_1", "shot_hollowknight_2", "shot_hollowknight_3",
+                "shot_hollowknight_4", "shot_hollowknight_5", "shot_hollowknight_6");
+        addDefaultShots(4, "shot_celeste_1", "shot_celeste_2", "shot_celeste_3",
+                "shot_celeste_4", "shot_celeste_5", "shot_celeste_6");
+        addDefaultShots(5, "shot_stardewvalley_1", "shot_stardewvalley_2", "shot_stardewvalley_3",
+                "shot_stardewvalley_4", "shot_stardewvalley_5", "shot_stardewvalley_6");
+        addDefaultShots(6, "shot_hades_1", "shot_hades_2", "shot_hades_3",
+                "shot_hades_4", "shot_hades_5", "shot_hades_6");
+        addDefaultShots(17, "shot_cuphead_1", "shot_cuphead_2", "shot_cuphead_3",
+                "shot_cuphead_4", "shot_cuphead_5", "shot_cuphead_6");
     }
 
     /// <summary>

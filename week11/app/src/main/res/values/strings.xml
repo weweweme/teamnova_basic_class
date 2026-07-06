@@ -86,6 +86,7 @@
     <!-- 실시간 피드: 새 리뷰가 올라오면 상단에 뜨는 알림 (%d = 새 글 수) -->
     <string name="community_new_reviews">새 리뷰 %d개 ↑</string>
     <string name="feed_like_desc">좋아요</string>
+    <string name="screenshot_zoom_hint">탭하여 닫기</string>
 
     <!-- 뒤로 두 번 눌러 종료 안내 -->
     <string name="home_back_to_exit">한 번 더 누르면 종료됩니다</string>

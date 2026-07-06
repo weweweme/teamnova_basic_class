@@ -3,6 +3,7 @@ package com.example.week11.detail;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.net.Uri;
+import android.app.Dialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -24,6 +25,7 @@ import com.example.week11.R;
 import com.example.week11.account.UserPrefs;
 import com.example.week11.data.CommunityRepository;
 import com.example.week11.databinding.ActivityGameDetailBinding;
+import com.example.week11.databinding.DialogScreenshotZoomBinding;
 import com.example.week11.util.CoverImageLoader;
 import com.example.week11.model.Game;
 import com.example.week11.model.GameReview;
@@ -832,6 +834,9 @@ public class GameDetailActivity extends AppCompatActivity {
             thumbnail.setScaleType(ImageView.ScaleType.CENTER_CROP);
             // 썸네일 디코딩을 백그라운드로 (메인에서 setImageURI로 디코딩하면 화면이 잠깐 멈출 수 있음)
             loader.loadUri(thumbnail, uriString);
+            // 썸네일 탭 → 전체화면 확대 보기 (각 썸네일이 자기 URI를 기억하도록 지역 변수로 고정)
+            final String shotUri = uriString;
+            thumbnail.setOnClickListener(v -> showScreenshotZoom(shotUri));
             binding.layoutScreenshots.addView(thumbnail);
         }
 
@@ -839,5 +844,27 @@ public class GameDetailActivity extends AppCompatActivity {
         // (여기선 아직 뷰 폭 측정 전이라, slideRunnable이 매 프레임 폭을 확인해 넘칠 때부터 흐른다)
         screenshotsScrollable = true;
         startAutoSlide();
+    }
+
+    /// <summary>
+    /// 스크린샷을 전체화면으로 확대해 보여주는 다이얼로그 (아무 곳이나 탭하면 닫힘)
+    /// 로더가 URI를 풀 해상도로 디코딩·캐시하므로 그대로 재사용해 선명하게 표시
+    /// </summary>
+    private void showScreenshotZoom(String uriString) {
+        Dialog dialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        DialogScreenshotZoomBinding zoomBinding =
+                DialogScreenshotZoomBinding.inflate(getLayoutInflater());
+        dialog.setContentView(zoomBinding.getRoot());
+
+        // 썸네일과 같은 로더로 로드 → 이미 캐시된 풀 해상도 비트맵을 바로 크게 보여줌
+        ((App) getApplication()).getCoverImageLoader().loadUri(zoomBinding.imageZoom, uriString);
+
+        // 아무 곳이나 탭하면 닫기
+        zoomBinding.getRoot().setOnClickListener(v -> dialog.dismiss());
+
+        // 확대 보는 동안은 뒤에서 자동 슬라이드를 멈췄다가, 닫으면 다시 켠다
+        stopAutoSlide();
+        dialog.setOnDismissListener(d -> startAutoSlide());
+        dialog.show();
     }
 }

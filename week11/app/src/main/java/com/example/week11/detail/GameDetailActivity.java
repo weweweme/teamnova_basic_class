@@ -142,31 +142,28 @@ public class GameDetailActivity extends AppCompatActivity {
     /// </summary>
     private final Handler autoSlideHandler = new Handler(Looper.getMainLooper());
 
-    /// <summary>현재 슬라이드 방향 (1: 오른쪽, -1: 왼쪽) — 양 끝에 닿으면 뒤집는다</summary>
-    private int slideDirection = 1;
-
-    /// <summary>스크린샷이 있어 자동 슬라이드를 돌릴 만한 상태인지 (스크린샷 없으면 안 켬)</summary>
+    /// <summary>스크린샷이 화면 폭을 넘겨 무한 스크롤을 돌릴 만한 상태인지 (안 넘치면 안 켬)</summary>
     private boolean screenshotsScrollable = false;
 
     /// <summary>
-    /// 스크린샷 스트립을 매 프레임 조금씩 옆으로 밀고, 양 끝에서 방향을 바꿔 왕복시킨다
-    /// HorizontalScrollView는 무한 순환이 없어 "끝→처음 점프" 대신 좌우 왕복(ping-pong)으로 처리
+    /// 스크린샷 스트립을 매 프레임 한 방향으로 조금씩 밀어 무한 스크롤(마퀴)시킨다
+    /// HorizontalScrollView는 무한 순환이 없어, 같은 목록을 두 벌 이어 붙이고(bindScreenshots)
+    /// 한 벌 끝을 지나면 조용히 한 벌만큼 되돌려 끊김 없이 계속 한 방향으로 흐르게 한다
+    /// (홈 캐러셀의 무한 순환과 같은 결과 — 방식만 ScrollView에 맞춤)
     /// </summary>
     private final Runnable slideRunnable = new Runnable() {
         @Override
         public void run() {
-            // 내용 너비 - 보이는 너비 = 스크롤 가능한 최대 거리 (0 이하면 넘칠 게 없음)
-            int maxScroll = binding.layoutScreenshots.getWidth() - binding.scrollScreenshots.getWidth();
-            if (maxScroll > 0) {
-                int x = binding.scrollScreenshots.getScrollX();
-                if (x >= maxScroll) {
-                    slideDirection = -1;     // 오른쪽 끝 → 왼쪽으로
-                } else if (x <= 0) {
-                    slideDirection = 1;      // 왼쪽 끝 → 오른쪽으로
+            // 두 벌을 이어 붙였으므로 전체 폭의 절반 = 한 벌의 폭
+            int oneSet = binding.layoutScreenshots.getWidth() / 2;
+            if (oneSet > 0) {
+                binding.scrollScreenshots.scrollBy(SLIDE_SPEED_PX, 0);   // 한 방향(오른쪽)으로만
+                // 한 벌 끝을 지나면 한 벌만큼 되돌림 → 같은 내용이라 티 없이 이어짐
+                if (binding.scrollScreenshots.getScrollX() >= oneSet) {
+                    binding.scrollScreenshots.scrollBy(-oneSet, 0);
                 }
-                binding.scrollScreenshots.scrollBy(SLIDE_SPEED_PX * slideDirection, 0);
             }
-            // 다음 프레임 예약 (아직 측정 전이라 maxScroll이 0이어도 계속 확인)
+            // 다음 프레임 예약 (아직 측정 전이라 oneSet이 0이어도 계속 확인)
             autoSlideHandler.postDelayed(this, SLIDE_FRAME_MS);
         }
     };
@@ -825,24 +822,33 @@ public class GameDetailActivity extends AppCompatActivity {
         int heightPx = (int) (70 * density);
         int marginPx = (int) (8 * density);
 
+        // 내용이 화면 폭을 넘칠 때(=한 줄에 다 안 보일 때)만 무한 스크롤을 켠다 (홈 미리보기와 같은 기준)
+        int itemWidthPx = widthPx + marginPx;                 // 셀 한 칸 폭(여백 포함)
+        int screenWidthPx = getResources().getDisplayMetrics().widthPixels;
+        boolean overflow = screenshots.size() * itemWidthPx > screenWidthPx;
+
+        // 넘칠 때만 목록을 "두 벌" 이어 붙임 → 한 방향 무한 스크롤(마퀴)이 끊김 없이 이어짐
+        // 안 넘치면 한 벌만 두고 스크롤 안 함 (다 보이는데 굴리면 어색 + 중복 노출 방지)
+        int copies = overflow ? 2 : 1;
         CoverImageLoader loader = ((App) getApplication()).getCoverImageLoader();
-        for (String uriString : screenshots) {
-            ImageView thumbnail = new ImageView(this);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(widthPx, heightPx);
-            lp.setMarginEnd(marginPx);
-            thumbnail.setLayoutParams(lp);
-            thumbnail.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            // 썸네일 디코딩을 백그라운드로 (메인에서 setImageURI로 디코딩하면 화면이 잠깐 멈출 수 있음)
-            loader.loadUri(thumbnail, uriString);
-            // 썸네일 탭 → 전체화면 확대 보기 (각 썸네일이 자기 URI를 기억하도록 지역 변수로 고정)
-            final String shotUri = uriString;
-            thumbnail.setOnClickListener(v -> showScreenshotZoom(shotUri));
-            binding.layoutScreenshots.addView(thumbnail);
+        for (int copy = 0; copy < copies; copy++) {
+            for (String uriString : screenshots) {
+                ImageView thumbnail = new ImageView(this);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(widthPx, heightPx);
+                lp.setMarginEnd(marginPx);
+                thumbnail.setLayoutParams(lp);
+                thumbnail.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                // 썸네일 디코딩을 백그라운드로 (메인에서 setImageURI로 디코딩하면 화면이 잠깐 멈출 수 있음)
+                loader.loadUri(thumbnail, uriString);
+                // 썸네일 탭 → 전체화면 확대 보기 (각 썸네일이 자기 URI를 기억하도록 지역 변수로 고정)
+                final String shotUri = uriString;
+                thumbnail.setOnClickListener(v -> showScreenshotZoom(shotUri));
+                binding.layoutScreenshots.addView(thumbnail);
+            }
         }
 
-        // 스크린샷이 채워졌으니 자동 슬라이드 대상 → (다시) 시작
-        // (여기선 아직 뷰 폭 측정 전이라, slideRunnable이 매 프레임 폭을 확인해 넘칠 때부터 흐른다)
-        screenshotsScrollable = true;
+        // 넘칠 때만 자동 스크롤 시작 (안 넘치면 가만히 둔다)
+        screenshotsScrollable = overflow;
         startAutoSlide();
     }
 

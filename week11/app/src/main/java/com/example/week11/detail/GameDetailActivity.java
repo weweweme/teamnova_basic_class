@@ -4,7 +4,10 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -119,6 +122,55 @@ public class GameDetailActivity extends AppCompatActivity {
     /// OpenDocument: 이 방식으로 연 URI만 영속 읽기 권한을 받아 재시작 후에도 열 수 있음
     /// </summary>
     private ActivityResultLauncher<String[]> pickCoverLauncher;
+
+    // ========== 스크린샷 자동 슬라이드 (Handler 마퀴) ==========
+
+    /// <summary>자동 슬라이드 프레임 간격(ms) — 약 60fps</summary>
+    private static final long SLIDE_FRAME_MS = 16;
+
+    /// <summary>한 프레임에 옆으로 이동할 픽셀 수 (작을수록 천천히 흐름)</summary>
+    private static final int SLIDE_SPEED_PX = 2;
+
+    /// <summary>유저가 스크린샷을 만졌다 뗀 뒤, 자동 슬라이드를 다시 켜기까지 기다리는 시간(ms)</summary>
+    private static final long SLIDE_RESUME_DELAY_MS = 2500;
+
+    /// <summary>
+    /// 스크린샷 가로 스트립을 좌우로 왕복시키는 자동 슬라이드용 Handler
+    /// 화면이 보일 때만(onResume) 돌리고 안 보이면(onPause) 멈춘다 → 배터리·누수 방지
+    /// </summary>
+    private final Handler autoSlideHandler = new Handler(Looper.getMainLooper());
+
+    /// <summary>현재 슬라이드 방향 (1: 오른쪽, -1: 왼쪽) — 양 끝에 닿으면 뒤집는다</summary>
+    private int slideDirection = 1;
+
+    /// <summary>스크린샷이 있어 자동 슬라이드를 돌릴 만한 상태인지 (스크린샷 없으면 안 켬)</summary>
+    private boolean screenshotsScrollable = false;
+
+    /// <summary>
+    /// 스크린샷 스트립을 매 프레임 조금씩 옆으로 밀고, 양 끝에서 방향을 바꿔 왕복시킨다
+    /// HorizontalScrollView는 무한 순환이 없어 "끝→처음 점프" 대신 좌우 왕복(ping-pong)으로 처리
+    /// </summary>
+    private final Runnable slideRunnable = new Runnable() {
+        @Override
+        public void run() {
+            // 내용 너비 - 보이는 너비 = 스크롤 가능한 최대 거리 (0 이하면 넘칠 게 없음)
+            int maxScroll = binding.layoutScreenshots.getWidth() - binding.scrollScreenshots.getWidth();
+            if (maxScroll > 0) {
+                int x = binding.scrollScreenshots.getScrollX();
+                if (x >= maxScroll) {
+                    slideDirection = -1;     // 오른쪽 끝 → 왼쪽으로
+                } else if (x <= 0) {
+                    slideDirection = 1;      // 왼쪽 끝 → 오른쪽으로
+                }
+                binding.scrollScreenshots.scrollBy(SLIDE_SPEED_PX * slideDirection, 0);
+            }
+            // 다음 프레임 예약 (아직 측정 전이라 maxScroll이 0이어도 계속 확인)
+            autoSlideHandler.postDelayed(this, SLIDE_FRAME_MS);
+        }
+    };
+
+    /// <summary>유저가 손을 뗀 뒤 잠시 있다가 자동 슬라이드를 다시 켜는 작업</summary>
+    private final Runnable slideResumeRunnable = this::startAutoSlide;
 
     /// <summary>
     /// 현재 로그인 계정의 개인 설정 저장소
@@ -309,6 +361,43 @@ public class GameDetailActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         setupOthersReviews();
+        // 화면이 앞으로 오면 스크린샷 자동 슬라이드 시작 (스크린샷이 있을 때만)
+        startAutoSlide();
+    }
+
+    /// <summary>화면이 가려지면 자동 슬라이드를 멈춘다 (안 보이는데 돌릴 이유 없음)</summary>
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopAutoSlide();
+    }
+
+    /// <summary>화면이 사라질 때 예약된 슬라이드 작업을 전부 취소 (누수 방지)</summary>
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        autoSlideHandler.removeCallbacksAndMessages(null);
+    }
+
+    /// <summary>스크린샷 자동 슬라이드 시작 (중복 예약 방지 후 새로 예약, 스크린샷 없으면 안 켬)</summary>
+    private void startAutoSlide() {
+        if (!screenshotsScrollable) {
+            return;
+        }
+        autoSlideHandler.removeCallbacks(slideRunnable);
+        autoSlideHandler.postDelayed(slideRunnable, SLIDE_FRAME_MS);
+    }
+
+    /// <summary>자동 슬라이드 정지 (슬라이드 반복 + 재개 예약 둘 다 취소)</summary>
+    private void stopAutoSlide() {
+        autoSlideHandler.removeCallbacks(slideRunnable);
+        autoSlideHandler.removeCallbacks(slideResumeRunnable);
+    }
+
+    /// <summary>유저가 손을 뗀 뒤 일정 시간 후 자동 슬라이드를 다시 켜도록 예약</summary>
+    private void scheduleSlideResume() {
+        autoSlideHandler.removeCallbacks(slideResumeRunnable);
+        autoSlideHandler.postDelayed(slideResumeRunnable, SLIDE_RESUME_DELAY_MS);
     }
 
     /// <summary>
@@ -429,6 +518,21 @@ public class GameDetailActivity extends AppCompatActivity {
 
         // 스크린샷 버튼 → ScreenshotActivity로 이동
         binding.buttonScreenshot.setOnClickListener(v -> openScreenshot());
+
+        // 스크린샷을 만지면 자동 슬라이드를 멈추고, 손 떼면 잠시 뒤 다시 켠다
+        // return false: 스크롤뷰가 유저의 좌우 스크롤을 그대로 처리하게 둠
+        binding.scrollScreenshots.setOnTouchListener((v, e) -> {
+            switch (e.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    stopAutoSlide();            // 만지기 시작 → 멈춤
+                    break;
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                    scheduleSlideResume();      // 손 뗌 → 잠시 뒤 재개
+                    break;
+            }
+            return false;
+        });
     }
 
     // ========== 상태 변경 ==========
@@ -706,6 +810,8 @@ public class GameDetailActivity extends AppCompatActivity {
         binding.textViewScreenshotsLabel.setVisibility(hasScreenshots ? View.VISIBLE : View.GONE);
         binding.scrollScreenshots.setVisibility(hasScreenshots ? View.VISIBLE : View.GONE);
         if (!hasScreenshots) {
+            screenshotsScrollable = false;   // 슬라이드할 게 없음
+            stopAutoSlide();
             return;
         }
 
@@ -728,5 +834,10 @@ public class GameDetailActivity extends AppCompatActivity {
             loader.loadUri(thumbnail, uriString);
             binding.layoutScreenshots.addView(thumbnail);
         }
+
+        // 스크린샷이 채워졌으니 자동 슬라이드 대상 → (다시) 시작
+        // (여기선 아직 뷰 폭 측정 전이라, slideRunnable이 매 프레임 폭을 확인해 넘칠 때부터 흐른다)
+        screenshotsScrollable = true;
+        startAutoSlide();
     }
 }

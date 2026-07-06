@@ -48,6 +48,28 @@ public class CommunityRepository {
     private final GameRepository gameRepository;
 
     /// <summary>
+    /// 무작위 판정용 난수 생성기 (새로고침 시 확률적으로 새 리뷰를 만들 때 사용)
+    /// </summary>
+    private final Random random = new Random();
+
+    /// <summary>
+    /// 자동 생성 리뷰 문구 후보 (%s = 게임 제목) — 어떤 게임에 붙여도 자연스럽게 읽히는 한 줄들
+    /// </summary>
+    private static final String[] AUTO_REVIEW_TEMPLATES = {
+            "%s 요즘 다시 잡았어요",
+            "%s 역시 믿고 하는 게임",
+            "%s 생각보다 제 취향이네요",
+            "%s 이제야 해봤는데 좋아요",
+            "%s 계속 손이 가네요",
+            "%s 추천받아 해봤는데 만족"
+    };
+
+    /// <summary>
+    /// 자동 생성 리뷰의 별점 후보 (0.5 단위, 후하게 3.5~5.0)
+    /// </summary>
+    private static final float[] AUTO_REVIEW_RATINGS = {3.5f, 4.0f, 4.5f, 5.0f};
+
+    /// <summary>
     /// 저장소 생성 (App이 하나 만들어 공유)
     /// </summary>
     public CommunityRepository(Context context, AccountManager accountManager,
@@ -242,6 +264,55 @@ public class CommunityRepository {
         for (int i = 0; i < followCount; i++) {
             myPrefs.setFollowing(candidates.get(i).getId(), true);
         }
+    }
+
+    /// <summary>
+    /// 확률적으로 "내가 팔로우한 테스트 계정 한 명"이 새 리뷰를 쓰게 한다 (새로고침 연출용).
+    /// 팔로잉 피드에 방금 올라온 듯한 새 항목이 생겨 "살아있는 커뮤니티" 느낌을 준다.
+    /// chancePercent(0~100)% 확률로 실행하며, 실제로 리뷰를 썼으면 true를 돌려준다.
+    /// </summary>
+    public boolean maybePostRandomReview(String viewerId, int chancePercent) {
+        // 확률 판정 — 통과 못 하면 아무 일도 하지 않음
+        boolean rolled = random.nextInt(100) < chancePercent;
+        if (!rolled) {
+            return false;
+        }
+
+        // 후보 = 내가 팔로우한 계정 중 '테스트 계정'만 (피드에 뜨려면 내가 팔로우한 사람이어야 함)
+        List<AccountProfile> candidates = new ArrayList<>();
+        for (AccountProfile profile : getFollowing(viewerId)) {
+            if (TestAccountSeeder.isTestAccount(profile.getId())) {
+                candidates.add(profile);
+            }
+        }
+        if (candidates.isEmpty()) {
+            return false;
+        }
+
+        // 무작위로 한 명 고른다
+        AccountProfile poster = candidates.get(random.nextInt(candidates.size()));
+        UserPrefs posterPrefs = new UserPrefs(appContext, poster.getId());
+
+        // 그 계정이 아직 리뷰하지 않은 게임들만 후보로 (새 리뷰 = 새 피드 항목)
+        List<Integer> alreadyReviewed = posterPrefs.getReviewedGameIds();
+        List<Game> notYetReviewed = new ArrayList<>();
+        for (Game game : gameRepository.getAllGames()) {
+            if (!alreadyReviewed.contains(game.getId())) {
+                notYetReviewed.add(game);
+            }
+        }
+        // 이미 모든 게임을 리뷰했다면 더 쓸 게 없음
+        if (notYetReviewed.isEmpty()) {
+            return false;
+        }
+
+        // 무작위 게임 + 무작위 문구 + 무작위 별점으로 리뷰 작성 (작성 시각 = 지금 → 피드 맨 위)
+        Game target = notYetReviewed.get(random.nextInt(notYetReviewed.size()));
+        String template = AUTO_REVIEW_TEMPLATES[random.nextInt(AUTO_REVIEW_TEMPLATES.length)];
+        String text = String.format(template, target.getTitle());
+        float rating = AUTO_REVIEW_RATINGS[random.nextInt(AUTO_REVIEW_RATINGS.length)];
+        posterPrefs.saveReview(target.getId(), rating, text);
+        return true;
     }
 
     /// <summary>

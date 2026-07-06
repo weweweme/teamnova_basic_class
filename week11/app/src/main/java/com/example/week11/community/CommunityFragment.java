@@ -101,6 +101,13 @@ public class CommunityFragment extends Fragment {
                 // 발생하지 않음 (컴파일러 요구사항)
             }
 
+            // 당겨서 새로고침이면 50% 확률로 팔로우 중인 테스트 계정이 새 리뷰를 올림
+            // → 새로고침할 때마다 가끔 새 항목이 맨 위에 뜨는 "살아있는 피드" 느낌
+            if (isRefresh) {
+                final int NEW_REVIEW_CHANCE_PERCENT = 50;
+                app.getCommunityRepository().maybePostRandomReview(currentId, NEW_REVIEW_CHANCE_PERCENT);
+            }
+
             // ⏳ 무거운 일: 팔로우한 계정들의 리뷰를 모아 최신순 정렬 (디스크 읽기)
             List<ReviewFeedItem> feed = app.getCommunityRepository().getFollowingFeed(currentId);
 

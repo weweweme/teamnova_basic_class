@@ -430,10 +430,19 @@ public class UserPrefs {
     /// 저장 시각(현재 시간)도 함께 기록 → 팔로잉 피드 정렬에 사용
     /// </summary>
     public void saveReview(int gameId, float rating, String review) {
+        // 작성 시각은 "지금"으로 (일반 리뷰 작성 경로)
+        saveReview(gameId, rating, review, System.currentTimeMillis());
+    }
+
+    /// <summary>
+    /// 작성 시각(reviewedAt)을 명시해 리뷰를 저장한다
+    /// 테스트 시드가 리뷰마다 서로 다른 과거 시각을 심을 때 사용 (피드가 자연스럽게 섞이도록)
+    /// </summary>
+    public void saveReview(int gameId, float rating, String review, long reviewedAt) {
         prefs.edit()
                 .putFloat(ratingKey(gameId), rating)
                 .putString(reviewKey(gameId), review)
-                .putLong(reviewedAtKey(gameId), System.currentTimeMillis())
+                .putLong(reviewedAtKey(gameId), reviewedAt)
                 .apply();
     }
 

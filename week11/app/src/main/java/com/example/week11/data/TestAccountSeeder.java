@@ -5,6 +5,8 @@ import android.content.Context;
 import com.example.week11.account.AccountManager;
 import com.example.week11.account.UserPrefs;
 
+import java.util.Random;
+
 /// <summary>
 /// 테스트/시연용 계정을 "항상 존재하도록" 심어두는 도우미 (미니 커뮤니티 만들기)
 ///
@@ -29,6 +31,18 @@ public class TestAccountSeeder {
 
     /// <summary>테스트 계정 공통 비밀번호(PIN) — 시연 편의상 0000</summary>
     private static final String TEST_PIN = "0000";
+
+    /// <summary>1시간(ms) — 리뷰 작성 시각을 과거로 흩뿌릴 때 쓰는 단위</summary>
+    private static final long HOUR_MS = 60L * 60L * 1000L;
+
+    /// <summary>시드 리뷰의 최대 나이(ms) — 최대 이만큼 과거까지 흩뿌린다 (2주)</summary>
+    private static final long MAX_REVIEW_AGE_MS = 14L * 24L * HOUR_MS;
+
+    /// <summary>
+    /// 리뷰 작성 시각을 무작위 과거로 흩뿌리기 위한 난수 생성기
+    /// (모두 같은 시각이면 피드가 계정별로 뭉쳐 보이므로, 리뷰마다 다른 과거 시각을 준다)
+    /// </summary>
+    private final Random random = new Random();
 
     /// <summary>
     /// 계정 파일(user_<id>)을 열기 위한 앱 컨텍스트
@@ -128,8 +142,12 @@ public class TestAccountSeeder {
         UserPrefs prefs = new UserPrefs(appContext, id);
         prefs.setAvatarColor(color);
         prefs.setBio(bio);
+        long now = System.currentTimeMillis();
         for (int i = 0; i < gameIds.length; i++) {
-            prefs.saveReview(gameIds[i], ratings[i], reviews[i]);
+            // 리뷰마다 1시간 ~ 2주 전 사이의 무작위 시각 → 피드가 계정 구분 없이 자연스럽게 섞임
+            long ageMs = HOUR_MS + (long) (random.nextDouble() * (MAX_REVIEW_AGE_MS - HOUR_MS));
+            long reviewedAt = now - ageMs;
+            prefs.saveReview(gameIds[i], ratings[i], reviews[i], reviewedAt);
         }
     }
 }

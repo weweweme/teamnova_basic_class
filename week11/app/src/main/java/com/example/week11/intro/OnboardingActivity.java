@@ -190,7 +190,7 @@ public class OnboardingActivity extends AppCompatActivity {
 
     /// <summary>
     /// 온보딩(튜토리얼) 완료 처리
-    /// 현재 계정이 "튜토리얼을 봤다"고 기록한 뒤 HomeActivity(허브)로 이동
+    /// 현재 계정이 "튜토리얼을 봤다"고 기록한 뒤 MainActivity(하단 탭)로 이동
     /// → 다음부터 이 계정으로 로그인하면 튜토리얼을 건너뛰고 바로 홈으로 감
     /// (10주차에서 전역 온보딩 → 계정별 튜토리얼로 의미 변경: tutorial_seen 기준)
     /// </summary>

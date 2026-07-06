@@ -142,7 +142,7 @@
             android:exported="false" />
 
         <!-- 보관함: 게임 표지 격자 + 상태 필터 (앱의 메인 컬렉션 화면) -->
-        <!-- parentActivityName: ← 버튼 누르면 HomeActivity로 돌아감 -->
+        <!-- parentActivityName: ← 버튼 누르면 메인(내 일지 탭)으로 돌아감 -->
         <activity
             android:name=".library.LibraryActivity"
             android:label="@string/library_title"
@@ -150,7 +150,7 @@
             android:exported="false" />
 
         <!-- 통계: 상태별 게임 수 + 별점 분포 -->
-        <!-- parentActivityName: ← 버튼 누르면 HomeActivity로 돌아감 -->
+        <!-- parentActivityName: ← 버튼 누르면 메인(내 일지 탭)으로 돌아감 -->
         <activity
             android:name=".stats.StatsActivity"
             android:label="@string/stats_title"
@@ -158,7 +158,7 @@
             android:exported="false" />
 
         <!-- 타임라인: 활동 피드 (멀티 뷰타입) -->
-        <!-- parentActivityName: ← 버튼 누르면 HomeActivity로 돌아감 -->
+        <!-- parentActivityName: ← 버튼 누르면 메인(내 일지 탭)으로 돌아감 -->
         <activity
             android:name=".timeline.TimelineActivity"
             android:label="@string/timeline_title"

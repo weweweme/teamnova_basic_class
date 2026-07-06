@@ -81,7 +81,6 @@
 
     <!-- 팔로잉 피드 (커뮤니티) -->
     <string name="following_feed_title">팔로잉 피드</string>
-    <string name="home_action_following_feed">팔로잉 피드</string>
     <string name="following_feed_empty">팔로우한 사람의 리뷰가 아직 없어요\n랭킹에서 다른 유저를 팔로우해보세요</string>
     <string name="community_ranking_button">🏆 랭킹</string>
 
@@ -90,7 +89,6 @@
 
     <!-- 유저 랭킹 (커뮤니티) -->
     <string name="ranking_title">유저 랭킹</string>
-    <string name="home_action_ranking">유저 랭킹</string>
     <!-- %d = 리뷰 개수 -->
     <string name="ranking_review_count">리뷰 %d개</string>
     <string name="ranking_me_badge">(나)</string>
@@ -131,7 +129,6 @@
     <string name="library_view_toggle">보기 전환</string>
 
     <!-- 홈 (허브) -->
-    <string name="home_title">홈</string>
     <!-- 통계 요약 카드 라벨 -->
     <string name="home_stat_total">전체</string>
     <string name="home_stat_completed">완료</string>
@@ -150,7 +147,6 @@
     <string name="home_section_library">내 게임 일지</string>
     <string name="home_section_timeline">최근 활동</string>
     <string name="home_section_stats">내 통계</string>
-    <string name="home_section_community">커뮤니티</string>
 
     <!-- 하단 탭 이름 -->
     <string name="tab_diary">내 일지</string>

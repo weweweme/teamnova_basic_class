@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 
 /// <summary>
 /// 커뮤니티(이 기기 안의 여러 계정) 데이터를 모으는 저장소
@@ -204,6 +205,43 @@ public class CommunityRepository {
             }
         }
         return result;
+    }
+
+    /// <summary>
+    /// 새로 가입한 계정이 기존 계정들 중 무작위로 minCount명 이상을 팔로우하게 한다.
+    /// 팔로잉 피드가 처음부터 비어 있지 않도록 하는 시연/테스트 편의 기능.
+    /// 후보(나를 뺀 모든 계정 = 주로 테스트 계정)를 섞어 앞에서 몇 명을 골라 팔로우한다.
+    /// </summary>
+    public void autoFollowRandom(String newAccountId, int minCount) {
+        // 후보 = 나를 뺀 모든 계정
+        List<AccountProfile> candidates = new ArrayList<>();
+        for (AccountProfile profile : getProfiles()) {
+            boolean isMyself = profile.getId().equals(newAccountId);
+            if (!isMyself) {
+                candidates.add(profile);
+            }
+        }
+
+        // 팔로우할 상대가 아무도 없으면 아무것도 하지 않음
+        if (candidates.isEmpty()) {
+            return;
+        }
+
+        // 무작위로 섞는다 → 앞에서 잘라 쓰면 "무작위 선택"이 됨
+        Collections.shuffle(candidates);
+
+        // 팔로우할 인원수: 최소 minCount명, 단 후보가 그보다 적으면 있는 만큼만
+        // 후보가 넉넉하면 minCount ~ 후보수 사이의 무작위 인원 (매번 조금씩 다르게)
+        int available = candidates.size();
+        int floor = Math.min(minCount, available);      // 최소 인원 (후보가 적으면 그만큼 낮춤)
+        int extra = available - floor;                  // 더 팔로우할 여지
+        int followCount = floor + new Random().nextInt(extra + 1);   // floor ~ available 무작위
+
+        // 새 계정의 개인 파일에 follow_<상대id>를 기록 (팔로잉 관계 저장)
+        UserPrefs myPrefs = new UserPrefs(appContext, newAccountId);
+        for (int i = 0; i < followCount; i++) {
+            myPrefs.setFollowing(candidates.get(i).getId(), true);
+        }
     }
 
     /// <summary>

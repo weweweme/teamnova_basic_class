@@ -17,7 +17,7 @@ import com.example.week11.intro.OnboardingActivity;
 ///
 /// ──── 무엇을 하나 ────
 /// 계정 아이디 / 별명 / PIN / PIN 확인을 입력받아 새 계정을 만든다.
-/// 가입에 성공하면 그 계정으로 바로 로그인된 상태로 HomeActivity에 들어간다.
+/// 가입에 성공하면 그 계정으로 바로 로그인된 상태로 MainActivity(하단 탭)에 들어간다.
 ///
 /// ──── 흐름 ────
 /// Login → [회원가입] → SignupActivity → (가입 성공) 자동 로그인 → Home
@@ -140,8 +140,14 @@ public class SignupActivity extends AppCompatActivity {
         // ──── 실제 가입 (아이디·별명 중복까지 위에서 모두 검증했으므로 성공) ────
         accountManager.register(id, nickname, pin);
 
-        // 방금 만든 계정으로 바로 로그인 상태로 만든 뒤 다음 화면으로
+        // 방금 만든 계정으로 바로 로그인 상태로 만든다
         accountManager.setCurrentAccount(id);
+
+        // 팔로잉 피드가 처음부터 비어 있지 않도록, 기존 계정 중 무작위로 최소 7명을 팔로우
+        // (테스트/시연 편의 — 갓 가입한 계정도 커뮤니티 탭에 볼 리뷰가 생김)
+        final int MIN_AUTO_FOLLOW = 7;
+        ((App) getApplication()).getCommunityRepository().autoFollowRandom(id, MIN_AUTO_FOLLOW);
+
         showToast(getString(R.string.signup_success, nickname));
         proceedAfterAuth();
     }

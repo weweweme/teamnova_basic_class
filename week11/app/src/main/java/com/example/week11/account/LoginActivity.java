@@ -26,7 +26,7 @@ import java.util.List;
 /// 서버 없이 SharedPreferences(=PlayerPrefs)에 저장된 PIN과 비교하는 "흉내내기 로그인".
 ///
 /// ──── 흐름 ────
-/// Splash → LoginActivity → (PIN 맞으면) HomeActivity
+/// Splash → LoginActivity → (PIN 맞으면) MainActivity(하단 탭)
 ///
 /// ──── 누가 데이터를 다루나 ────
 /// 모든 검증/세션 처리는 AccountManager(App이 보유하는 단일 인스턴스)에 맡긴다.

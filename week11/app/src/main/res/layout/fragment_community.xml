@@ -80,6 +80,20 @@
             android:layout_gravity="center"
             android:visibility="gone" />
 
+        <!-- "새 리뷰 N개 ↑" 알림 pill (상단 가운데에 떠 있음, 평소엔 숨김) -->
+        <!-- 폴링으로 새 글을 발견하면 화면을 확 바꾸지 않고 이 pill만 띄운다 → 탭하면 맨 위로 로드 -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonNewReviews"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="8dp"
+            android:textSize="13sp"
+            android:visibility="gone"
+            app:cornerRadius="20dp"
+            app:elevation="4dp"
+            tools:text="새 리뷰 2개 ↑" />
+
     </FrameLayout>
 
 </LinearLayout>

@@ -300,13 +300,14 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
+            <!-- clipToPadding=true: 스크롤해도 카드가 좌우 패딩 안쪽에서 잘려 양쪽 끝 여백 유지 -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerRecentViewed"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
-                android:clipToPadding="false"
+                android:clipToPadding="true"
                 tools:listitem="@layout/item_library_grid" />
         </LinearLayout>
 

@@ -115,6 +115,11 @@ public class HomeFragment extends Fragment {
     /// </summary>
     private boolean previewScrollable = false;
 
+    /// <summary>
+    /// 팔로잉/팔로워 집계(모든 계정 파일을 훑는 디스크 작업) 결과를 메인 스레드에 반영하는 Handler
+    /// </summary>
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
     // ========== 생명주기 ==========
 
     /// <summary>
@@ -207,6 +212,7 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDestroyView() {
         autoScrollHandler.removeCallbacksAndMessages(null);
+        mainHandler.removeCallbacksAndMessages(null);
         super.onDestroyView();
         binding = null;
     }
@@ -303,13 +309,25 @@ public class HomeFragment extends Fragment {
         binding.textViewAttendanceHome.setText(
                 getString(R.string.attendance_summary, streak, visitCount));
 
-        // 팔로잉 · 팔로워 수 (커뮤니티 저장소가 계정들을 훑어 집계)
+        // 팔로잉 · 팔로워 수: 모든 계정 파일을 훑어 세는 디스크 작업 → 서브 스레드에서 집계
+        // (내 프로필 1개만 읽는 위쪽 값들과 달리, 계정이 많아질수록 느려질 수 있어 메인 스레드에서 뺀다)
         CommunityRepository community =
                 ((App) requireActivity().getApplication()).getCommunityRepository();
-        int following = community.getFollowingCount(id);
-        int follower = community.getFollowerCount(id);
-        binding.textViewFollowingHome.setText(getString(R.string.profile_following_count, following));
-        binding.textViewFollowerHome.setText(getString(R.string.profile_follower_count, follower));
+        new Thread(() -> {                              // 서브(백그라운드) 스레드 시작
+            int following = community.getFollowingCount(id);
+            int follower = community.getFollowerCount(id);
+
+            // 결과 반영만 메인 줄로 (집계가 끝났을 때 화면이 이미 사라졌으면 무시)
+            mainHandler.post(() -> {
+                if (binding == null) {
+                    return;
+                }
+                binding.textViewFollowingHome.setText(
+                        getString(R.string.profile_following_count, following));
+                binding.textViewFollowerHome.setText(
+                        getString(R.string.profile_follower_count, follower));
+            });
+        }).start();                                     // 서브 스레드 실행
     }
 
     /// <summary>

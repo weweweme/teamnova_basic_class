@@ -16,6 +16,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -87,6 +89,27 @@ public class GameRepository {
     /// 시드/추가 구분 없이, updateGame으로 상태가 바뀌면 여기에 기록하고 시작 시 다시 적용
     /// </summary>
     private final Map<Integer, GameStatus> statusOverrides = new HashMap<>();
+
+    /// <summary>
+    /// 스크린샷 변경을 저장하는 prefs 키 (하나의 JSON 문자열: {게임id: [uri...]})
+    /// </summary>
+    private static final String KEY_SCREENSHOTS = "screenshot_overrides";
+
+    /// <summary>
+    /// 스크린샷 override (게임id → uri 목록). updateGame으로 스크린샷이 바뀌면 기록하고 시작 시 적용
+    /// 저장된 목록은 기본 스크린샷 + 사용자가 더한 것을 통째로 담음 (그대로 덮어씀)
+    /// </summary>
+    private final Map<Integer, List<String>> screenshotOverrides = new HashMap<>();
+
+    /// <summary>
+    /// 표지 URI 변경을 저장하는 prefs 키 (하나의 JSON 문자열: {게임id: "uri"})
+    /// </summary>
+    private static final String KEY_COVER = "cover_overrides";
+
+    /// <summary>
+    /// 표지 URI override (게임id → 새 표지 uri). 시드/추가 구분 없이 표지를 바꾸면 기록·적용
+    /// </summary>
+    private final Map<Integer, String> coverUriOverrides = new HashMap<>();
 
     /// <summary>
     /// 삭제 상태를 저장/불러오는 prefs (앱 껐다 켜도 삭제가 유지됨)
@@ -314,12 +337,16 @@ public class GameRepository {
         trashedEntries.clear();
         deletedIds.clear();
         statusOverrides.clear();
+        screenshotOverrides.clear();
+        coverUriOverrides.clear();
         prefs.edit()
                 .remove(KEY_TRASHED)
                 .remove(KEY_DELETED)
                 .remove(KEY_ADDED)
                 .remove(KEY_NEXT_ID)
                 .remove(KEY_STATUS)
+                .remove(KEY_SCREENSHOTS)
+                .remove(KEY_COVER)
                 .apply();
     }
 
@@ -489,6 +516,18 @@ public class GameRepository {
         // 상태 변경을 delta로 저장 → 재시작해도 유지됨 (시드 게임도 바뀐 상태로 뜸)
         statusOverrides.put(original.getId(), original.getStatus());
         persistStatusOverrides();
+
+        // 스크린샷 변경도 delta로 저장 (사용자가 추가/삭제한 스크린샷이 재시작해도 유지)
+        screenshotOverrides.put(original.getId(), new ArrayList<>(original.getScreenshots()));
+        persistScreenshots();
+
+        // 표지 변경(새 URI가 있을 때만)도 delta로 저장 → 재시작해도 바뀐 표지 유지
+        original.setCoverUri(updated.getCoverUri());
+        String newCover = updated.getCoverUri();
+        if (newCover != null && !newCover.isEmpty()) {
+            coverUriOverrides.put(original.getId(), newCover);
+            persistCoverOverrides();
+        }
     }
 
     // ========== 삭제 ==========
@@ -676,6 +715,114 @@ public class GameRepository {
                 game.setStatus(entry.getValue());
             }
         }
+
+        // 7) 저장된 스크린샷 override 로드 + 적용 (기본 스크린샷을 덮어씀 = 사용자 변경 유지)
+        loadScreenshotOverrides();
+        for (Map.Entry<Integer, List<String>> entry : screenshotOverrides.entrySet()) {
+            Game game = findById(entry.getKey());
+            if (game != null) {
+                game.replaceScreenshots(entry.getValue());
+            }
+        }
+
+        // 8) 저장된 표지 override 로드 + 적용 (사용자가 바꾼 표지 유지)
+        loadCoverOverrides();
+        for (Map.Entry<Integer, String> entry : coverUriOverrides.entrySet()) {
+            Game game = findById(entry.getKey());
+            if (game != null) {
+                game.setCoverUri(entry.getValue());
+            }
+        }
+    }
+
+    /// <summary>
+    /// prefs에 저장된 표지 override(JSON {"게임id":"uri"})를 메모리 맵으로 읽어옴
+    /// </summary>
+    private void loadCoverOverrides() {
+        String json = prefs.getString(KEY_COVER, null);
+        if (json == null) {
+            return;
+        }
+        try {
+            JSONObject root = new JSONObject(json);
+            Iterator<String> keys = root.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                int id = parseIntSafe(key, -1);
+                if (id >= 0) {
+                    coverUriOverrides.put(id, root.getString(key));
+                }
+            }
+        } catch (Exception e) {
+            // 손상된 데이터는 무시
+        }
+    }
+
+    /// <summary>
+    /// 현재 표지 override 전체를 하나의 JSON 문자열로 prefs에 저장
+    /// </summary>
+    private void persistCoverOverrides() {
+        JSONObject root = new JSONObject();
+        try {
+            for (Map.Entry<Integer, String> entry : coverUriOverrides.entrySet()) {
+                root.put(String.valueOf(entry.getKey()), entry.getValue());
+            }
+        } catch (JSONException e) {
+            // 직렬화 실패는 무시
+        }
+        prefs.edit().putString(KEY_COVER, root.toString()).apply();
+    }
+
+    /// <summary>
+    /// prefs에 저장된 스크린샷 override(JSON)를 메모리 맵으로 읽어옴
+    /// 형식: {"게임id": ["uri1","uri2",...], ...}
+    /// </summary>
+    private void loadScreenshotOverrides() {
+        String json = prefs.getString(KEY_SCREENSHOTS, null);
+        if (json == null) {
+            return;
+        }
+        // 저장된 JSON이 손상됐을 수 있어 넓게 catch
+        try {
+            JSONObject root = new JSONObject(json);
+            Iterator<String> keys = root.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                int id = parseIntSafe(key, -1);
+                if (id < 0) {
+                    continue;
+                }
+                JSONArray arr = root.optJSONArray(key);
+                List<String> list = new ArrayList<>();
+                if (arr != null) {
+                    for (int i = 0; i < arr.length(); i++) {
+                        list.add(arr.getString(i));
+                    }
+                }
+                screenshotOverrides.put(id, list);
+            }
+        } catch (Exception e) {
+            // 손상된 데이터는 무시
+        }
+    }
+
+    /// <summary>
+    /// 현재 스크린샷 override 전체를 하나의 JSON 문자열로 prefs에 저장 (변경 시마다 호출)
+    /// </summary>
+    private void persistScreenshots() {
+        JSONObject root = new JSONObject();
+        try {
+            for (Map.Entry<Integer, List<String>> entry : screenshotOverrides.entrySet()) {
+                JSONArray arr = new JSONArray();
+                for (String uri : entry.getValue()) {
+                    arr.put(uri);
+                }
+                root.put(String.valueOf(entry.getKey()), arr);
+            }
+        } catch (JSONException e) {
+            // 직렬화 실패는 무시 (거의 없음)
+        }
+        prefs.edit().putString(KEY_SCREENSHOTS, root.toString()).apply();
     }
 
     /// <summary>

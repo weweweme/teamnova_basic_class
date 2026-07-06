@@ -11,7 +11,7 @@ import com.example.week11.App;
 import com.example.week11.R;
 import com.example.week11.databinding.ActivityLoginBinding;
 import com.example.week11.data.TestAccountSeeder;
-import com.example.week11.home.HomeActivity;
+import com.example.week11.main.MainActivity;
 import com.example.week11.intro.OnboardingActivity;
 import com.example.week11.model.Account;
 
@@ -189,7 +189,7 @@ public class LoginActivity extends AppCompatActivity {
         UserPrefs userPrefs = app.getUserPrefs();
         boolean seenTutorial = userPrefs.hasSeenTutorial();
 
-        Class<?> target = seenTutorial ? HomeActivity.class : OnboardingActivity.class;
+        Class<?> target = seenTutorial ? MainActivity.class : OnboardingActivity.class;
         Intent intent = new Intent(this, target);
 
         // setFlags: 이 화면을 "어떻게" 띄울지 옵션을 건다

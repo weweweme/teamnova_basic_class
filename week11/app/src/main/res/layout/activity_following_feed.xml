@@ -7,14 +7,21 @@
     android:layout_height="match_parent"
     tools:context=".community.FollowingFeedActivity">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerFollowingFeed"
+    <!-- 당겨서 새로고침: RecyclerView를 감싸면 위로 당길 때 새로고침 스피너가 나옴 -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeFollowingFeed"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingTop="8dp"
-        android:paddingBottom="16dp"
-        android:clipToPadding="false"
-        tools:listitem="@layout/item_review_feed" />
+        android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerFollowingFeed"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingTop="8dp"
+            android:paddingBottom="16dp"
+            android:clipToPadding="false"
+            tools:listitem="@layout/item_review_feed" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <TextView
         android:id="@+id/textViewFollowingFeedEmpty"

@@ -187,6 +187,12 @@ public class HomeActivity extends AppCompatActivity {
         binding.cardStats.setOnClickListener(openStats);
         binding.buttonMoreStats.setOnClickListener(openStats);
 
+        // 커뮤니티 진입 (홈 본문 카드 — 예전엔 ⋮ 메뉴에 있던 것을 본문으로 올림)
+        binding.rowFollowingFeed.setOnClickListener(v ->
+                startActivity(new Intent(this, FollowingFeedActivity.class)));
+        binding.rowRanking.setOnClickListener(v ->
+                startActivity(new Intent(this, RankingActivity.class)));
+
         setupBackToExit();
         // 미리보기 터치 감지 등록 (만지면 자동 스크롤 멈춤 → 손 떼면 잠시 뒤 재개)
         setupPreviewTouchPause();
@@ -337,14 +343,6 @@ public class HomeActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_following_feed) {
-            startActivity(new Intent(this, FollowingFeedActivity.class));
-            return true;
-        }
-        if (id == R.id.action_ranking) {
-            startActivity(new Intent(this, RankingActivity.class));
-            return true;
-        }
         if (id == R.id.action_logout) {
             confirmLogout();
             return true;

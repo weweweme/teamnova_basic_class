@@ -55,13 +55,27 @@ public class FollowingFeedActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
+        binding.recyclerFollowingFeed.setLayoutManager(new LinearLayoutManager(this));
+        // 당겨서 새로고침 → 피드 다시 로드 (SwipeRefreshLayout이 자체 스피너를 보여줌)
+        binding.swipeFollowingFeed.setOnRefreshListener(() -> loadFeed(true));
+
+        loadFeed(false);   // 최초 로딩 (가운데 스피너)
+    }
+
+    /// <summary>
+    /// 팔로우한 사람들의 리뷰를 백그라운드로 모아 목록에 채운다
+    /// isRefresh=false(최초): 가운데 스피너 / true(당겨서 새로고침): SwipeRefreshLayout 자체 스피너
+    /// </summary>
+    private void loadFeed(boolean isRefresh) {
         App app = (App) getApplication();
         String currentId = app.getAccountManager().getCurrentAccountId();
 
-        // 로딩 스피너 표시, 목록/빈 안내 숨김 (아직 집계 전)
-        binding.progressFollowingFeed.setVisibility(View.VISIBLE);
-        binding.recyclerFollowingFeed.setVisibility(View.GONE);
-        binding.textViewFollowingFeedEmpty.setVisibility(View.GONE);
+        if (!isRefresh) {
+            // 최초 로딩만 가운데 스피너 표시 (새로고침은 위쪽 자체 스피너로 충분)
+            binding.progressFollowingFeed.setVisibility(View.VISIBLE);
+            binding.recyclerFollowingFeed.setVisibility(View.GONE);
+            binding.textViewFollowingFeedEmpty.setVisibility(View.GONE);
+        }
 
         // 팔로우한 사람들의 리뷰 모으기는 계정마다 파일을 읽는 디스크 작업 → 서브 스레드에서
         new Thread(() -> {                              // 서브(백그라운드) 스레드 시작
@@ -79,12 +93,12 @@ public class FollowingFeedActivity extends AppCompatActivity {
             // 결과 반영만 메인 줄로
             mainHandler.post(() -> {
                 binding.progressFollowingFeed.setVisibility(View.GONE);
+                binding.swipeFollowingFeed.setRefreshing(false);   // 새로고침 스피너 끄기
 
                 boolean isEmpty = feed.isEmpty();
                 binding.textViewFollowingFeedEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
                 binding.recyclerFollowingFeed.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
 
-                binding.recyclerFollowingFeed.setLayoutManager(new LinearLayoutManager(this));
                 binding.recyclerFollowingFeed.setAdapter(new ReviewFeedAdapter(feed, this::openGame));
             });
         }).start();                                     // 서브 스레드 실행

@@ -12,7 +12,7 @@ import com.example.week11.App;
 import com.example.week11.account.AccountManager;
 import com.example.week11.account.LoginActivity;
 import com.example.week11.databinding.ActivitySplashBinding;
-import com.example.week11.home.HomeActivity;
+import com.example.week11.main.MainActivity;
 import com.example.week11.model.Game;
 import com.example.week11.util.CoverImageLoader;
 
@@ -158,7 +158,7 @@ public class SplashActivity extends AppCompatActivity {
         boolean canAutoLogin = keepLogin && hasAccount;
 
         // 갈 화면을 먼저 고른다 (Home 또는 Login)
-        Class<?> target = canAutoLogin ? HomeActivity.class : LoginActivity.class;
+        Class<?> target = canAutoLogin ? MainActivity.class : LoginActivity.class;
         Intent intent = new Intent(this, target);
 
         // FLAG_ACTIVITY_NEW_TASK: 새 태스크에서 시작

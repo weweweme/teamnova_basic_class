@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.week11.App;
 import com.example.week11.account.UserPrefs;
-import com.example.week11.home.HomeActivity;
+import com.example.week11.main.MainActivity;
 import com.example.week11.R;
 import com.example.week11.databinding.ActivityOnboardingBinding;
 
@@ -200,8 +200,8 @@ public class OnboardingActivity extends AppCompatActivity {
         UserPrefs userPrefs = ((App) getApplication()).getUserPrefs();
         userPrefs.setTutorialSeen(true);
 
-        // HomeActivity로 이동
-        Intent intent = new Intent(this, HomeActivity.class);
+        // MainActivity(하단 탭 컨테이너)로 이동
+        Intent intent = new Intent(this, MainActivity.class);
 
         // FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK
         // → Onboarding을 백스택에서 제거 (뒤로가기로 돌아올 수 없게)

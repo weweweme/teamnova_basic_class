@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.week11.App;
 import com.example.week11.R;
 import com.example.week11.databinding.ActivitySignupBinding;
-import com.example.week11.home.HomeActivity;
+import com.example.week11.main.MainActivity;
 import com.example.week11.intro.OnboardingActivity;
 
 /// <summary>
@@ -162,7 +162,7 @@ public class SignupActivity extends AppCompatActivity {
         UserPrefs userPrefs = app.getUserPrefs();
         boolean seenTutorial = userPrefs.hasSeenTutorial();
 
-        Class<?> target = seenTutorial ? HomeActivity.class : OnboardingActivity.class;
+        Class<?> target = seenTutorial ? MainActivity.class : OnboardingActivity.class;
         Intent intent = new Intent(this, target);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);

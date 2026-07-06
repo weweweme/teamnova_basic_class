@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 하단 탭의 아이콘/글자 색 (선택 상태에 따라 자동으로 바뀜) -->
+<!-- state_checked=true → 지금 선택된 탭(파란색), 아니면 → 회색 -->
+<!-- Unity 비유: 버튼의 Normal/Highlighted 색을 상태별로 지정하는 것과 같음 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="#1565C0" android:state_checked="true" />
+    <item android:color="#9E9E9E" />
+</selector>

@@ -115,6 +115,12 @@ public class GameDetailActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> screenshotLauncher;
 
     /// <summary>
+    /// 표지 이미지를 갤러리에서 골라 바꾸는 런처
+    /// OpenDocument: 이 방식으로 연 URI만 영속 읽기 권한을 받아 재시작 후에도 열 수 있음
+    /// </summary>
+    private ActivityResultLauncher<String[]> pickCoverLauncher;
+
+    /// <summary>
     /// 현재 로그인 계정의 개인 설정 저장소
     /// 별점/한줄평은 계정마다 다르므로, "내 평가"는 전역 Game이 아니라 여기서 읽고 쓴다
     /// (같은 게임이라도 alice의 리뷰와 bob의 리뷰가 다름)
@@ -262,6 +268,30 @@ public class GameDetailActivity extends AppCompatActivity {
                     bindGameData();
                 }
         );
+
+        // 표지 변경 런처 등록 (표지를 탭하면 갤러리에서 이미지를 골라 바꿈)
+        pickCoverLauncher = registerForActivityResult(
+                new ActivityResultContracts.OpenDocument(),
+                uri -> {
+                    if (uri == null) {
+                        return;
+                    }
+                    // 재시작 후에도 열 수 있게 읽기 권한을 영구적으로 붙잡음
+                    try {
+                        getContentResolver().takePersistableUriPermission(
+                                uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    } catch (SecurityException e) {
+                        // 일부 제공자는 영속 권한을 안 줌 (세션 동안은 유효)
+                    }
+                    // 사본 game에 반영 + Repository 원본에도 저장 → 재시작해도 유지
+                    game.setCoverUri(uri.toString());
+                    ((App) getApplication()).getGameRepository().updateGame(game);
+                    bindGameData();   // 바뀐 표지로 다시 그림
+                });
+
+        // 표지를 탭하면 표지 변경 (이미지 선택)
+        binding.imageViewCover.setOnClickListener(
+                v -> pickCoverLauncher.launch(new String[]{"image/*"}));
 
         // 게임 정보를 화면에 표시
         bindGameData();

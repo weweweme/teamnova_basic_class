@@ -102,6 +102,13 @@
             android:name=".intro.OnboardingActivity"
             android:exported="false" />
 
+        <!-- 메인: 하단 탭 컨테이너 (내 일지 / 커뮤니티) -->
+        <!-- 로그인/온보딩 완료 후 진입하는 최상위 화면 -->
+        <activity
+            android:name=".main.MainActivity"
+            android:label="@string/app_name"
+            android:exported="false" />
+
         <!-- 홈: 허브 화면 (Diary/Library/Timeline 미리보기) -->
         <!-- Onboarding 완료 후 진입하는 최상위 화면 -->
         <activity

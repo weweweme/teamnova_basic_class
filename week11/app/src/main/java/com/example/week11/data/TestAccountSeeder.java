@@ -1,9 +1,11 @@
 package com.example.week11.data;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
 import com.example.week11.account.AccountManager;
 import com.example.week11.account.UserPrefs;
+import com.example.week11.model.Account;
 
 import java.util.Random;
 
@@ -31,6 +33,19 @@ public class TestAccountSeeder {
 
     /// <summary>테스트 계정 공통 비밀번호(PIN) — 시연 편의상 0000</summary>
     private static final String TEST_PIN = "0000";
+
+    /// <summary>
+    /// 시드 내용의 버전. 시드 데이터(리뷰 개수/문구/시각 규칙 등)를 바꿀 때마다 +1 한다.
+    /// 앱 시작 시 저장된 버전과 다르면 기존 테스트 계정을 지우고 새로 심는다
+    /// → 수동 초기화 없이도 바뀐 시드가 자동 반영됨
+    /// </summary>
+    private static final int SEED_VERSION = 2;
+
+    /// <summary>시드 버전을 저장하는 전용 prefs 파일 이름</summary>
+    private static final String SEED_PREFS_FILE = "test_seed";
+
+    /// <summary>시드 버전 저장 key</summary>
+    private static final String KEY_SEED_VERSION = "seed_version";
 
     /// <summary>1시간(ms) — 리뷰 작성 시각을 과거로 흩뿌릴 때 쓰는 단위</summary>
     private static final long HOUR_MS = 60L * 60L * 1000L;
@@ -80,6 +95,17 @@ public class TestAccountSeeder {
     ///          10위쳐3 11사펑 12다크소울3 13림월드 15슬더스 16언더테일 18오리 19데드셀)
     /// </summary>
     public void seedIfMissing() {
+        // 시드 버전이 바뀌었으면(=시드 내용을 수정했으면) 기존 테스트 계정을 싹 지운다
+        // → 아래 seedUser들이 "없으니까" 새로 심게 되어, 수동 초기화 없이 바뀐 시드가 반영됨
+        SharedPreferences seedPrefs =
+                appContext.getSharedPreferences(SEED_PREFS_FILE, Context.MODE_PRIVATE);
+        int storedVersion = seedPrefs.getInt(KEY_SEED_VERSION, 0);
+        boolean seedChanged = storedVersion != SEED_VERSION;
+        if (seedChanged) {
+            wipeTestAccounts();
+            seedPrefs.edit().putInt(KEY_SEED_VERSION, SEED_VERSION).apply();
+        }
+
         // 계정마다 리뷰 개수를 1~5개로 다르게 둔다 (실제 유저처럼 활동량이 제각각으로 보이게)
         // t1=5, t2=3, t3=2, t4=4, t5=1, t6=3, t7=5, t8=2, t9=4
         seedUser("tester1", "픽셀덕후", 0xFFFB8C00, "인디부터 AAA까지 잡식",
@@ -130,6 +156,24 @@ public class TestAccountSeeder {
                 new float[]{5.0f, 4.5f, 4.0f, 4.5f},
                 new String[]{"언더테일 감성 최고", "포탈2 시대를 앞선 클래식", "엘든 링 대작은 대작",
                         "셀레스테 도트 감성 최고"});
+    }
+
+    /// <summary>
+    /// 기존 테스트 계정(tester*)을 전부 지운다 (시드 버전이 바뀌었을 때 재시드용)
+    /// 지금 로그인 중인 계정은 세션이 끊기지 않도록 건너뛴다
+    /// (테스트 계정 삭제는 그 계정의 user_ 파일을 통째로 지우므로, 옛 리뷰/시각이 깨끗이 사라진다)
+    /// </summary>
+    private void wipeTestAccounts() {
+        String currentId = accountManager.getCurrentAccountId();
+        // getAccounts()가 복사본을 주므로 도는 중에 지워도 안전
+        for (Account account : accountManager.getAccounts()) {
+            String id = account.getId();
+            boolean isTest = isTestAccount(id);
+            boolean isCurrent = id.equals(currentId);
+            if (isTest && !isCurrent) {
+                accountManager.deleteAccount(id);
+            }
+        }
     }
 
     /// <summary>

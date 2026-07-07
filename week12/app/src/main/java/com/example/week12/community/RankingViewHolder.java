@@ -1,7 +1,6 @@
 package com.example.week12.community;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -106,15 +105,5 @@ public class RankingViewHolder extends RecyclerView.ViewHolder {
             return "🥉";
         }
         return String.valueOf(rank);
-    }
-
-    /// <summary>
-    /// 별명 첫 글자(대문자)를 반환, 비어 있으면 물음표
-    /// </summary>
-    private String initialOf(String nickname) {
-        if (nickname.isEmpty()) {
-            return "?";
-        }
-        return String.valueOf(Character.toUpperCase(nickname.charAt(0)));
     }
 }

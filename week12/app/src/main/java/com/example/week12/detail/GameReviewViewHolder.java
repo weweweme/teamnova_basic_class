@@ -1,6 +1,5 @@
 package com.example.week12.detail;
 
-import android.content.res.ColorStateList;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -84,15 +83,5 @@ public class GameReviewViewHolder extends RecyclerView.ViewHolder {
         binding.textViewReviewLike.setText(heart + " " + review.getLikeCount());
         int color = review.isLikedByMe() ? 0xFFE53935 : 0xFF999999;
         binding.textViewReviewLike.setTextColor(color);
-    }
-
-    /// <summary>
-    /// 별명 첫 글자(대문자)를 반환, 비어 있으면 물음표
-    /// </summary>
-    private String initialOf(String nickname) {
-        if (nickname.isEmpty()) {
-            return "?";
-        }
-        return String.valueOf(Character.toUpperCase(nickname.charAt(0)));
     }
 }

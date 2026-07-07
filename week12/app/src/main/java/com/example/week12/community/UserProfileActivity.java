@@ -1,7 +1,6 @@
 package com.example.week12.community;
 
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -243,14 +242,6 @@ public class UserProfileActivity extends AppCompatActivity {
     }
 
     // ========== 헬퍼 ==========
-
-    /// <summary>별명 첫 글자(대문자), 비어 있으면 물음표</summary>
-    private String initialOf(String nickname) {
-        if (nickname.isEmpty()) {
-            return "?";
-        }
-        return String.valueOf(Character.toUpperCase(nickname.charAt(0)));
-    }
 
     /// <summary>
     /// ActionBar ← 버튼 → 화면 닫기

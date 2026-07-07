@@ -1,6 +1,5 @@
 package com.example.week12.community;
 
-import android.content.res.ColorStateList;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -79,15 +78,5 @@ public class FollowViewHolder extends RecyclerView.ViewHolder {
     private void updateFollowButton(boolean following) {
         binding.buttonFollow.setText(following ? R.string.ranking_following : R.string.ranking_follow);
         binding.buttonFollow.setAlpha(following ? 0.5f : 1.0f);
-    }
-
-    /// <summary>
-    /// 별명 첫 글자(대문자)를 반환, 비어 있으면 물음표
-    /// </summary>
-    private String initialOf(String nickname) {
-        if (nickname.isEmpty()) {
-            return "?";
-        }
-        return String.valueOf(Character.toUpperCase(nickname.charAt(0)));
     }
 }

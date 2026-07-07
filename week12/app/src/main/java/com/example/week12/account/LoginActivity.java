@@ -175,7 +175,8 @@ public class LoginActivity extends AppCompatActivity {
     private void linkKakaoAndProceed(long kakaoId, String nickname, String imageUrl) {
         String accountId = KAKAO_ACCOUNT_PREFIX + kakaoId;
 
-        if (!accountManager.isRegistered(accountId)) {
+        boolean isNewAccount = !accountManager.isRegistered(accountId);
+        if (isNewAccount) {
             accountManager.register(accountId, nickname, "");
         } else {
             accountManager.updateNickname(accountId, nickname);
@@ -187,10 +188,29 @@ public class LoginActivity extends AppCompatActivity {
 
         // 카카오 프로필 사진 주소를 이 계정의 UserPrefs에 저장 (현재 계정이 정해진 뒤라야 올바른 파일에 씀)
         // → 홈/프로필 아바타가 색깔 원 대신 이 사진을 보여줌 (있을 때만)
-        ((App) getApplication()).getUserPrefs().setAvatarImageUrl(imageUrl);
+        UserPrefs userPrefs = ((App) getApplication()).getUserPrefs();
+        userPrefs.setAvatarImageUrl(imageUrl);
+
+        // 새로 만든 카카오 계정이면 커뮤니티가 비어 보이지 않게 테스트 계정들을 자동 팔로우
+        // → 팔로잉 피드에 그 계정들의 리뷰가 바로 뜬다 (시연용 임시 데이터)
+        if (isNewAccount) {
+            seedNewKakaoFollows(userPrefs);
+        }
 
         showToast(getString(R.string.login_success, nickname));
         proceedAfterAuth();
+    }
+
+    /// <summary>
+    /// 새로 만든 카카오 계정이 곧바로 커뮤니티를 즐길 수 있게, 이 기기의 테스트 계정들을 자동 팔로우한다
+    /// (팔로잉 피드 빈 화면 방지 — 테스트 계정들은 이미 리뷰를 갖고 있어 피드가 바로 채워진다)
+    /// </summary>
+    private void seedNewKakaoFollows(UserPrefs userPrefs) {
+        for (Account account : accountManager.getAccounts()) {
+            if (TestAccountSeeder.isTestAccount(account.getId())) {
+                userPrefs.setFollowing(account.getId(), true);
+            }
+        }
     }
 
     // ========== 계정 목록 표시 ==========

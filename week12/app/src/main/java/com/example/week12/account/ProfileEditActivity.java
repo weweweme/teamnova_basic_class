@@ -1,5 +1,6 @@
 package com.example.week12.account;
 
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.text.Editable;
@@ -8,11 +9,15 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.week12.App;
 import com.example.week12.R;
 import com.example.week12.databinding.ActivityProfileEditBinding;
+import com.example.week12.util.AvatarBinder;
+import com.example.week12.util.CoverImageLoader;
 
 /// <summary>
 /// 프로필 편집 화면 (계정별)
@@ -69,6 +74,19 @@ public class ProfileEditActivity extends AppCompatActivity {
     /// </summary>
     private int selectedColor;
 
+    /// <summary>
+    /// 현재 고른 프로필 사진 주소 (있으면 사진, 없으면 빈 문자열 → 색 원만 보임)
+    /// 갤러리에서 고른 content:// 주소이거나, 카카오 로그인으로 받은 https 주소일 수 있음
+    /// </summary>
+    private String avatarImageUrl;
+
+    /// <summary>
+    /// 갤러리에서 사진 한 장을 고르는 런처
+    /// 버튼을 누르면 시스템 사진 선택 화면을 띄우고, 고른 결과를 콜백으로 돌려받는다
+    /// (Unity에서 파일 선택 다이얼로그를 열고 콜백으로 경로를 받는 것과 같은 흐름)
+    /// </summary>
+    private ActivityResultLauncher<String[]> pickPhotoLauncher;
+
     // ========== Lifecycle ==========
 
     /// <summary>
@@ -98,9 +116,13 @@ public class ProfileEditActivity extends AppCompatActivity {
         binding.editTextNickname.setText(accountManager.getNickname(accountId));
         binding.editTextBio.setText(userPrefs.getBio());
         selectedColor = userPrefs.getAvatarColor();
+        avatarImageUrl = userPrefs.getAvatarImageUrl();
 
         // 색 팔레트 동그라미들을 만들어 가로 줄에 채운다
         buildColorSwatches();
+
+        // 사진 선택/제거 기능 연결
+        setupPhotoPicker();
 
         // 별명을 고치면 미리보기의 첫 글자도 바로 바뀌도록 감시
         binding.editTextNickname.addTextChangedListener(new TextWatcher() {
@@ -125,6 +147,42 @@ public class ProfileEditActivity extends AppCompatActivity {
         updateAvatarPreview();
 
         binding.buttonSave.setOnClickListener(v -> onSaveClicked());
+    }
+
+    // ========== 사진 선택 ==========
+
+    /// <summary>
+    /// 사진 선택/제거 기능을 준비한다
+    ///   - "사진 선택" 버튼 → 갤러리에서 이미지 한 장을 고름
+    ///   - "사진 제거" 버튼 → 골라둔 사진을 지워 색 원으로 되돌림
+    /// </summary>
+    private void setupPhotoPicker() {
+        // 시스템 사진 선택 화면을 열고, 고른 결과(uri)를 콜백으로 받는 런처를 등록
+        // OpenDocument: 고른 파일을 앱이 계속 열 수 있는 "지속 권한"까지 받을 수 있는 방식
+        pickPhotoLauncher = registerForActivityResult(
+                new ActivityResultContracts.OpenDocument(),
+                uri -> {
+                    // 아무것도 안 고르고 취소하면 uri가 null → 그냥 무시
+                    if (uri == null) {
+                        return;
+                    }
+                    // 앱을 껐다 켜도 이 사진을 계속 열 수 있게 읽기 권한을 영구적으로 붙잡아둔다
+                    // (이 권한을 안 잡으면 다음 실행 때 사진이 안 열림)
+                    getContentResolver().takePersistableUriPermission(
+                            uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    avatarImageUrl = uri.toString();
+                    updateAvatarPreview();
+                });
+
+        // "사진 선택" → 이미지 종류만 고를 수 있게 필터를 걸어 갤러리를 연다
+        binding.buttonPickPhoto.setOnClickListener(
+                v -> pickPhotoLauncher.launch(new String[]{"image/*"}));
+
+        // "사진 제거" → 사진 주소를 비우면 미리보기가 색 원으로 되돌아감
+        binding.buttonRemovePhoto.setOnClickListener(v -> {
+            avatarImageUrl = "";
+            updateAvatarPreview();
+        });
     }
 
     // ========== 색 팔레트 ==========
@@ -191,26 +249,15 @@ public class ProfileEditActivity extends AppCompatActivity {
     // ========== 미리보기 ==========
 
     /// <summary>
-    /// 위쪽 큰 동그라미(미리보기)를 현재 별명/색으로 갱신
-    /// 색은 고른 색으로 칠하고, 글자는 별명 첫 글자(없으면 물음표)를 보여줌
+    /// 위쪽 큰 동그라미(미리보기)를 현재 별명/색/사진으로 갱신
+    /// 사진이 있으면 사진을 원형으로 얹고, 없으면 고른 색 + 별명 첫 글자를 보여줌
+    /// (홈·랭킹 등 다른 화면과 똑같은 방식으로 그리도록 AvatarBinder를 재사용)
     /// </summary>
     private void updateAvatarPreview() {
-        binding.textViewAvatarPreview.setBackgroundTintList(
-                ColorStateList.valueOf(selectedColor));
-        binding.textViewAvatarPreview.setText(currentInitial());
-    }
-
-    /// <summary>
-    /// 지금 입력된 별명의 첫 글자(대문자)를 반환, 비어 있으면 물음표
-    /// </summary>
-    private String currentInitial() {
         String nickname = binding.editTextNickname.getText().toString().trim();
-        if (nickname.isEmpty()) {
-            return getString(R.string.profile_avatar_placeholder);
-        }
-        // 첫 글자만 잘라 대문자로 (한글은 대문자 변환이 없어 그대로 나옴)
-        char first = Character.toUpperCase(nickname.charAt(0));
-        return String.valueOf(first);
+        CoverImageLoader loader = ((App) getApplication()).getCoverImageLoader();
+        AvatarBinder.bind(binding.textViewAvatarPreview, binding.imageViewAvatarPreview,
+                nickname, selectedColor, avatarImageUrl, loader);
     }
 
     // ========== 저장 ==========
@@ -229,10 +276,11 @@ public class ProfileEditActivity extends AppCompatActivity {
             return;
         }
 
-        // 별명은 AccountManager, 소개/색은 UserPrefs에 각각 저장 (소유 역할대로)
+        // 별명은 AccountManager, 소개/색/사진은 UserPrefs에 각각 저장 (소유 역할대로)
         accountManager.updateNickname(accountId, nickname);
         userPrefs.setBio(bio);
         userPrefs.setAvatarColor(selectedColor);
+        userPrefs.setAvatarImageUrl(avatarImageUrl);
 
         showToast(getString(R.string.profile_saved));
         // 화면을 닫으면 돌아간 Home이 onResume에서 새 프로필을 다시 그림

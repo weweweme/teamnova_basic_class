@@ -14,20 +14,57 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <!-- 아바타 미리보기 (색 + 별명 첫 글자) -->
-        <!-- 배경은 원형 drawable, 색은 코드에서 backgroundTintList로 칠함 -->
-        <!-- 별명/색을 바꾸면 코드에서 이 미리보기를 실시간으로 갱신 -->
-        <TextView
-            android:id="@+id/textViewAvatarPreview"
+        <!-- 아바타 미리보기 (사진 있으면 사진, 없으면 색 + 별명 첫 글자) -->
+        <!-- 별명/색/사진을 바꾸면 코드에서 이 미리보기를 실시간으로 갱신 -->
+        <FrameLayout
             android:layout_width="88dp"
             android:layout_height="88dp"
+            android:layout_gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/textViewAvatarPreview"
+                android:layout_width="88dp"
+                android:layout_height="88dp"
+                android:background="@drawable/bg_avatar_circle"
+                android:gravity="center"
+                android:textColor="#FFFFFF"
+                android:textSize="36sp"
+                android:textStyle="bold"
+                tools:text="A" />
+
+            <!-- 프로필 사진 (있을 때만 코드에서 표시, 원형으로 클립) -->
+            <ImageView
+                android:id="@+id/imageViewAvatarPreview"
+                android:layout_width="88dp"
+                android:layout_height="88dp"
+                android:background="@drawable/bg_avatar_circle"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/profile_avatar_placeholder"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <!-- 사진 선택 / 제거 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:background="@drawable/bg_avatar_circle"
-            android:gravity="center"
-            android:textColor="#FFFFFF"
-            android:textSize="36sp"
-            android:textStyle="bold"
-            tools:text="A" />
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/buttonPickPhoto"
+                style="?attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="사진 선택" />
+
+            <Button
+                android:id="@+id/buttonRemovePhoto"
+                style="?attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="사진 제거" />
+        </LinearLayout>
 
         <!-- 별명 -->
         <TextView

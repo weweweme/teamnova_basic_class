@@ -118,12 +118,14 @@ public class AuthRepository {
         accountManager.setCurrentAccount(accountId);
         accountManager.setAutoLogin(keepLogin);
 
-        // 프로필 사진 저장 (현재 계정이 정해진 뒤라야 올바른 계정 파일에 씀)
         UserPrefs userPrefs = new UserPrefs(appContext, accountId);
-        userPrefs.setAvatarImageUrl(imageUrl);
 
-        // 새 계정이면 커뮤니티가 비어 보이지 않게 테스트 계정 자동 팔로우
+        // 프로필 사진은 "처음 가입할 때만" 카카오 사진으로 채운다
+        // (재로그인 때도 덮으면, 사용자가 프로필 편집에서 직접 바꾼 사진이 매번 카카오 사진으로 되돌아감)
         if (isNew) {
+            // 현재 계정이 정해진 뒤라야 올바른 계정 파일에 씀
+            userPrefs.setAvatarImageUrl(imageUrl);
+            // 새 계정이면 커뮤니티가 비어 보이지 않게 테스트 계정 자동 팔로우
             seedNewAccountFollows(userPrefs);
         }
 

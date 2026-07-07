@@ -11,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.week12.data.RawgApi;
-import com.example.week12.data.RawgSearchCallback;
+import com.example.week12.data.RawgPageCallback;
 import com.example.week12.databinding.ActivityRawgSearchBinding;
 import com.example.week12.model.RawgGame;
 
@@ -20,17 +20,15 @@ import java.util.List;
 
 /// <summary>
 /// RAWG 게임 검색 화면
-/// 검색어를 입력하면 RAWG에 물어보고, 결과를 리스트로 보여준다.
+/// 검색어를 입력하면 RAWG에 물어보고, 결과를 리스트로 보여준다. 바닥까지 스크롤하면 다음 페이지를 이어 붙인다(무한 스크롤).
 ///
 /// ──── 화면 상태 3가지 (같은 자리에 겹쳐 두고 하나만 보여줌) ────
-/// 로딩:    검색 중 → 스피너만
-/// 결과:    성공 + 결과 있음 → 리스트만
+/// 로딩:    첫 검색 중 → 스피너만
+/// 결과:    성공 + 결과 있음 → 리스트만 (다음 페이지는 리스트 아래에 조용히 이어붙임)
 /// 빈 상태: 검색 전 안내 / 결과 없음 / 실패 → 안내 문구만
 ///
-/// 검색 자체는 RawgApi가 서브 스레드에서 처리하고, 결과 콜백은 메인 스레드로 온다(11주차)
-/// → 콜백 안에서 바로 화면(리스트/스피너)을 만져도 안전
-///
-/// 현재(P2)는 결과를 "보여주기"까지만. 항목을 탭하면 보관함에 추가하는 건 P4에서 연결.
+/// 통신은 RawgApi가 서브 스레드에서 처리하고 결과 콜백은 메인 스레드로 온다(11주차)
+/// → 콜백 안에서 바로 화면을 만져도 안전. 항목 탭 → 상태 선택 후 보관함 추가(RawgGameAdder).
 /// </summary>
 public class RawgSearchActivity extends AppCompatActivity {
 
@@ -45,9 +43,34 @@ public class RawgSearchActivity extends AppCompatActivity {
     private final RawgApi rawgApi = new RawgApi();
 
     /// <summary>
-    /// 결과 리스트 어댑터 (처음엔 빈 목록 → 검색 성공 시 updateItems로 채움)
+    /// 결과 리스트 어댑터 (첫 페이지는 updateItems로 교체, 다음 페이지는 appendItems로 이어붙임)
     /// </summary>
     private RawgResultAdapter adapter;
+
+    /// <summary>
+    /// 스크롤 위치 계산용 (무한 스크롤 리스너가 사용)
+    /// </summary>
+    private LinearLayoutManager layoutManager;
+
+    /// <summary>
+    /// 지금 보고 있는 검색어 (다음 페이지도 같은 검색어로 이어서 불러오기 위해 기억)
+    /// </summary>
+    private String currentQuery = "";
+
+    /// <summary>
+    /// 다음에 불러올 페이지 번호 (1부터 시작, 페이지를 성공적으로 받을 때마다 +1)
+    /// </summary>
+    private int nextPage = 1;
+
+    /// <summary>
+    /// 지금 페이지를 불러오는 중인지 (중복 요청 방지 — 스크롤 중 여러 번 안 부르게)
+    /// </summary>
+    private boolean isLoading = false;
+
+    /// <summary>
+    /// 다음 페이지가 더 있는지 (RAWG 응답의 next 유무). false면 더 안 불러온다
+    /// </summary>
+    private boolean hasNext = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,8 +86,13 @@ public class RawgSearchActivity extends AppCompatActivity {
 
         // 결과 RecyclerView: 세로 리스트 + 빈 어댑터로 시작
         adapter = new RawgResultAdapter(new ArrayList<>(), this::onResultClick);
-        binding.recyclerViewResults.setLayoutManager(new LinearLayoutManager(this));
+        layoutManager = new LinearLayoutManager(this);
+        binding.recyclerViewResults.setLayoutManager(layoutManager);
         binding.recyclerViewResults.setAdapter(adapter);
+
+        // 바닥 근처까지 스크롤하면 다음 페이지 요청 (무한 스크롤)
+        binding.recyclerViewResults.addOnScrollListener(
+                new InfiniteScrollListener(layoutManager, this::loadMore));
 
         // 검색 버튼 클릭 → 검색 실행
         binding.buttonSearch.setOnClickListener(v -> doSearch());
@@ -97,7 +125,7 @@ public class RawgSearchActivity extends AppCompatActivity {
     // ========== 검색 ==========
 
     /// <summary>
-    /// 입력한 검색어로 RAWG 검색을 실행
+    /// 입력한 검색어로 새 검색을 시작한다 (첫 페이지부터)
     /// 검색어가 비어있으면 안내만 하고 실행하지 않는다
     /// </summary>
     private void doSearch() {
@@ -111,26 +139,59 @@ public class RawgSearchActivity extends AppCompatActivity {
             return;
         }
 
-        // 로딩 상태로 전환 (스피너만 보이게)
-        showLoading();
+        // 새 검색 → 페이지 상태 초기화
+        currentQuery = query;
+        nextPage = 1;
+        hasNext = false;
 
-        // 서브 스레드에서 검색 → 결과는 메인 스레드로 콜백 (11주차)
-        rawgApi.search(query, new RawgSearchCallback() {
+        showLoading();
+        loadPage(true);   // 첫 페이지
+    }
+
+    /// <summary>
+    /// 바닥 근처에서 호출됨 — 다음 페이지를 이어서 불러온다
+    /// 이미 불러오는 중이거나 다음 페이지가 없으면 아무것도 안 함 (중복/헛요청 방지)
+    /// </summary>
+    private void loadMore() {
+        if (isLoading || !hasNext || currentQuery.isEmpty()) {
+            return;
+        }
+        loadPage(false);   // 다음 페이지 (이어붙이기)
+    }
+
+    /// <summary>
+    /// 현재 검색어의 nextPage 페이지를 불러온다
+    /// firstPage=true면 결과로 목록을 "교체"하고, false면 기존 목록 뒤에 "이어붙인다"
+    /// </summary>
+    private void loadPage(boolean firstPage) {
+        isLoading = true;
+
+        rawgApi.search(currentQuery, nextPage, new RawgPageCallback() {
             @Override
-            public void onSuccess(List<RawgGame> results) {
-                if (results.isEmpty()) {
-                    showEmpty("검색 결과가 없어요");
-                    return;
+            public void onSuccess(List<RawgGame> results, boolean more) {
+                isLoading = false;
+                hasNext = more;
+                nextPage++;
+
+                if (firstPage) {
+                    if (results.isEmpty()) {
+                        showEmpty("검색 결과가 없어요");
+                        return;
+                    }
+                    adapter.updateItems(results);
+                    showResults();
+                } else {
+                    adapter.appendItems(results);   // 다음 페이지를 리스트 아래에 이어붙임
                 }
-                // 결과 표시 (리스트만 보이게)
-                adapter.updateItems(results);
-                showResults();
             }
 
             @Override
             public void onError(String message) {
-                // 실패 — 03 주의점 (인터넷/서버 문제). 안내 문구 + 토스트
-                showEmpty("불러오지 못했어요");
+                isLoading = false;
+                // 첫 페이지 실패면 빈 상태로, 다음 페이지 실패면 리스트는 유지하고 안내만
+                if (firstPage) {
+                    showEmpty("불러오지 못했어요");
+                }
                 Toast.makeText(RawgSearchActivity.this, message, Toast.LENGTH_SHORT).show();
             }
         });
@@ -147,7 +208,7 @@ public class RawgSearchActivity extends AppCompatActivity {
     // ========== 화면 상태 전환 (셋 중 하나만 표시) ==========
 
     /// <summary>
-    /// 로딩 상태 — 스피너만 표시
+    /// 로딩 상태 — 스피너만 표시 (첫 페이지 검색 중)
     /// </summary>
     private void showLoading() {
         binding.progressBar.setVisibility(View.VISIBLE);

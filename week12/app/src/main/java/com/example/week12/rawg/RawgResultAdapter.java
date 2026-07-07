@@ -53,6 +53,23 @@ public class RawgResultAdapter extends RecyclerView.Adapter<RawgResultViewHolder
     }
 
     /// <summary>
+    /// 다음 페이지 결과를 기존 목록 "뒤에 이어붙인다" (무한 스크롤용)
+    /// 전체 갱신(notifyDataSetChanged) 대신 추가된 범위만 알려 → 이미 보이는 항목은 다시 안 그림
+    /// </summary>
+    public void appendItems(List<RawgGame> moreItems) {
+        int start = results.size();
+        results.addAll(moreItems);
+        notifyItemRangeInserted(start, moreItems.size());
+    }
+
+    /// <summary>
+    /// 현재 표시 중인 결과 개수 (무한 스크롤에서 "비어있나?" 판단 등에 사용)
+    /// </summary>
+    public int getCurrentCount() {
+        return results.size();
+    }
+
+    /// <summary>
     /// 결과 한 줄 뷰를 새로 생성 (item_rawg_result.xml inflate)
     /// </summary>
     @NonNull

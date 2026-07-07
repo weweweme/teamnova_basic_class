@@ -7,11 +7,13 @@ import android.app.Dialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -27,6 +29,7 @@ import com.example.week12.data.CommunityRepository;
 import com.example.week12.data.RawgApi;
 import com.example.week12.data.RawgDetailCallback;
 import com.example.week12.data.RawgScreenshotsCallback;
+import com.example.week12.data.RawgSearchCallback;
 import com.example.week12.data.RawgStoreCallback;
 import com.example.week12.databinding.ActivityGameDetailBinding;
 import com.example.week12.databinding.DialogScreenshotZoomBinding;
@@ -37,7 +40,9 @@ import com.example.week12.model.ActivityLogType;
 import com.example.week12.model.GameStatus;
 import com.example.week12.model.Genre;
 import com.example.week12.model.Platform;
+import com.example.week12.model.RawgGame;
 import com.example.week12.model.RawgGameDetail;
+import com.example.week12.rawg.RawgGameAdder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -385,6 +390,95 @@ public class GameDetailActivity extends AppCompatActivity {
 
         // 사용자가 넣은 스크린샷이 없으면 RAWG 스크린샷을 불러와 대신 보여준다
         loadRawgScreenshotsIfNeeded();
+
+        // 같은 시리즈 게임 불러오기 (rawgId가 있는 게임만)
+        loadSeriesIfNeeded();
+    }
+
+    /// <summary>
+    /// 같은 시리즈 게임을 RAWG에서 불러와 "같은 시리즈" 스트립에 보여준다 (rawgId가 있을 때만)
+    /// 실패하거나 없으면 섹션을 숨긴 채로 둔다 (부가 정보라 화면이 깨지면 안 됨)
+    /// </summary>
+    private void loadSeriesIfNeeded() {
+        if (game.getRawgId() <= 0) {
+            binding.textViewSeriesLabel.setVisibility(View.GONE);
+            binding.scrollSeries.setVisibility(View.GONE);
+            return;
+        }
+        rawgApi.getSeries(game.getRawgId(), new RawgSearchCallback() {
+            @Override
+            public void onSuccess(java.util.List<RawgGame> results) {
+                bindSeries(results);
+            }
+
+            @Override
+            public void onError(String message) {
+                binding.textViewSeriesLabel.setVisibility(View.GONE);
+                binding.scrollSeries.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    /// <summary>
+    /// 같은 시리즈 게임들을 표지+제목 카드로 만들어 가로 스트립에 채운다 (탭 → 보관함 추가)
+    /// 시리즈가 없으면 라벨·스트립을 숨긴다
+    /// </summary>
+    private void bindSeries(java.util.List<RawgGame> series) {
+        boolean hasSeries = series != null && !series.isEmpty();
+        binding.textViewSeriesLabel.setVisibility(hasSeries ? View.VISIBLE : View.GONE);
+        binding.scrollSeries.setVisibility(hasSeries ? View.VISIBLE : View.GONE);
+        if (!hasSeries) {
+            return;
+        }
+
+        binding.layoutSeries.removeAllViews();
+
+        float density = getResources().getDisplayMetrics().density;
+        int cardWidthPx = (int) (110 * density);
+        int coverHeightPx = (int) (150 * density);
+        int marginPx = (int) (8 * density);
+        CoverImageLoader loader = ((App) getApplication()).getCoverImageLoader();
+
+        for (RawgGame seriesGame : series) {
+            // 세로 카드: 표지(위) + 제목(아래)
+            LinearLayout card = new LinearLayout(this);
+            card.setOrientation(LinearLayout.VERTICAL);
+            LinearLayout.LayoutParams cardLp = new LinearLayout.LayoutParams(
+                    cardWidthPx, LinearLayout.LayoutParams.WRAP_CONTENT);
+            cardLp.setMarginEnd(marginPx);
+            card.setLayoutParams(cardLp);
+
+            // 표지 (원격 https 이미지 → 공용 로더가 백그라운드 로딩)
+            ImageView cover = new ImageView(this);
+            cover.setLayoutParams(new LinearLayout.LayoutParams(cardWidthPx, coverHeightPx));
+            cover.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            String coverUrl = seriesGame.getCoverImageUrl();
+            if (coverUrl != null && !coverUrl.isEmpty()) {
+                loader.loadUri(cover, coverUrl);
+            } else {
+                cover.setTag(null);
+                cover.setImageResource(R.mipmap.ic_launcher);
+            }
+            card.addView(cover);
+
+            // 제목 (두 줄까지, 넘치면 말줄임)
+            TextView title = new TextView(this);
+            title.setText(seriesGame.getName());
+            title.setTextSize(12);
+            title.setMaxLines(2);
+            title.setEllipsize(TextUtils.TruncateAt.END);
+            LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(
+                    cardWidthPx, LinearLayout.LayoutParams.WRAP_CONTENT);
+            titleLp.topMargin = (int) (4 * density);
+            title.setLayoutParams(titleLp);
+            card.addView(title);
+
+            // 카드 탭 → 상태 선택 후 보관함 추가 (이미 있으면 헬퍼가 '이미 있음' 안내)
+            final RawgGame clicked = seriesGame;
+            card.setOnClickListener(v -> RawgGameAdder.promptAddToLibrary(this, clicked, null));
+
+            binding.layoutSeries.addView(card);
+        }
     }
 
     /// <summary>

@@ -60,69 +60,62 @@ public class RawgApi {
     ///
     /// 흐름(06 슬라이드 그대로): 주소 완성 → GET → 응답 글자 읽기 → JSON 파싱 → Handler로 결과 전달
     /// </summary>
-    public void search(String query, RawgSearchCallback callback) {
+    public void search(String query, int page, RawgPageCallback callback) {
         // 검색어에 공백·한글이 있을 수 있어 URL에 안전한 형태로 변환(인코딩)한다
-        // 예: "hollow knight" → "hollow%20knight" (공백을 %20으로)
         // (Charset 버전 encode는 checked 예외를 안 던짐 — minSdk 33이라 사용 가능)
         String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
-        // 실제 통신·파싱은 공용 fetchList가 담당 (인기/신작/장르별도 같은 걸 재사용)
-        fetchList("search=" + encodedQuery, callback);
+        // page: 몇 번째 페이지(1부터). 통신·파싱은 공용 fetchPage가 담당(인기/신작/장르별도 재사용)
+        fetchPage("search=" + encodedQuery + "&page_size=20&page=" + page, callback);
     }
 
     /// <summary>
-    /// 인기 게임 목록 (많이 담긴 순 = ordering=-added), 20개
-    /// 검색과 응답 구조가 같아 같은 파싱·콜백을 그대로 쓴다 (주소의 "주문"만 다름)
+    /// 인기 게임 목록 한 페이지 (많이 담긴 순 = ordering=-added)
     /// </summary>
-    public void discoverPopular(RawgSearchCallback callback) {
-        fetchList("ordering=-added&page_size=20", callback);
+    public void discoverPopular(int page, RawgPageCallback callback) {
+        fetchPage("ordering=-added&page_size=20&page=" + page, callback);
     }
 
     /// <summary>
-    /// 신작 게임 목록 (최근 6개월~오늘 출시, 최신순), 20개
+    /// 신작 게임 목록 한 페이지 (최근 6개월~오늘 출시, 최신순)
     /// dates=시작,끝 으로 기간을 지정 — "오늘"은 실행 시점 날짜라 앱에서 계산한다
     /// </summary>
-    public void discoverNew(RawgSearchCallback callback) {
+    public void discoverNew(int page, RawgPageCallback callback) {
         LocalDate today = LocalDate.now();
         LocalDate from = today.minusMonths(6);
         String dates = from + "," + today;   // "yyyy-MM-dd,yyyy-MM-dd" 형식
-        fetchList("dates=" + dates + "&ordering=-released&page_size=20", callback);
+        fetchPage("dates=" + dates + "&ordering=-released&page_size=20&page=" + page, callback);
     }
 
     /// <summary>
-    /// 장르별 게임 목록 (해당 장르 + 평점 높은 순), 20개
+    /// 장르별 게임 목록 한 페이지 (해당 장르 + 평점 높은 순)
     /// genreSlug: RAWG 장르 코드 (예: "action", "role-playing-games-rpg")
     /// </summary>
-    public void discoverByGenre(String genreSlug, RawgSearchCallback callback) {
-        fetchList("genres=" + genreSlug + "&ordering=-rating&page_size=20", callback);
+    public void discoverByGenre(String genreSlug, int page, RawgPageCallback callback) {
+        fetchPage("genres=" + genreSlug + "&ordering=-rating&page_size=20&page=" + page, callback);
     }
 
     /// <summary>
-    /// 게임 목록을 가져오는 공용 통신 메서드 (검색·인기·신작·장르별이 모두 이걸 재사용)
+    /// 게임 목록 "한 페이지"를 가져오는 공용 통신 메서드 (검색·인기·신작·장르별이 모두 재사용)
     ///
-    /// queryParams: 주소의 "?" 뒤에 붙일 주문 (예: "search=zelda", "ordering=-added&page_size=20").
-    ///   여기에 &key=... 를 붙여 완성한다.
-    /// 흐름(06 슬라이드 그대로): 주소 완성 → GET → 응답 글자 읽기 → JSON 파싱 → Handler로 결과 전달.
-    /// 응답 구조가 검색과 동일(결과 배열)하므로 parseResults를 그대로 쓴다.
+    /// queryParams: 주소의 "?" 뒤에 붙일 주문 (page 번호 포함). 여기에 &key=... 를 붙여 완성한다.
+    /// 응답의 "next"(다음 페이지 주소) 유무로 "다음 페이지 있음(hasNext)"을 정해, 결과와 함께 콜백으로 준다.
     /// </summary>
-    private void fetchList(String queryParams, RawgSearchCallback callback) {
+    private void fetchPage(String queryParams, RawgPageCallback callback) {
         new Thread(() -> {                              // 오래 걸리는 일은 서브 스레드 (11주차)
             HttpURLConnection conn = null;              // finally에서 정리하려고 try 밖에 선언
             try {
-                // 주소 완성: 기본 주소 + 주문 + 열쇠
                 URL url = new URL(BASE_URL + "?" + queryParams + "&key=" + API_KEY);
 
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");           // GET = 읽기 (Read)
 
-                // 서버 응답 코드 확인 (200 OK가 정상 — 401 키 문제, 404 없는 주소 등)
                 int responseCode = conn.getResponseCode();
                 boolean isOk = responseCode == HttpURLConnection.HTTP_OK;
                 if (!isOk) {
-                    postError(callback, "서버 오류 (코드 " + responseCode + ")");
+                    postPageError(callback, "서버 오류 (코드 " + responseCode + ")");
                     return;
                 }
 
-                // 응답(JSON 글자)을 한 줄씩 읽어 이어붙임
                 BufferedReader reader = new BufferedReader(
                         new InputStreamReader(conn.getInputStream()));
                 StringBuilder builder = new StringBuilder();
@@ -132,19 +125,29 @@ public class RawgApi {
                 }
                 reader.close();
 
-                // JSON 글자 → RawgGame 목록 → 성공 콜백(메인 스레드)
-                List<RawgGame> results = parseResults(builder.toString());
-                mainHandler.post(() -> callback.onSuccess(results));
+                // 응답을 한 번만 파싱해 결과 목록 + "다음 페이지 있음"(next가 null이 아님)을 함께 꺼낸다
+                JSONObject root = new JSONObject(builder.toString());
+                List<RawgGame> results = parseResults(root);
+                boolean hasNext = !root.isNull("next");
+
+                mainHandler.post(() -> callback.onSuccess(results, hasNext));
 
             } catch (IOException | JSONException e) {
                 // 03 주의점 — 인터넷 없음/서버 오류(IOException) 또는 형태가 예상과 다름(JSONException)
-                postError(callback, "불러오기 실패: " + e.getMessage());
+                postPageError(callback, "불러오기 실패: " + e.getMessage());
             } finally {
                 if (conn != null) {
                     conn.disconnect();
                 }
             }
         }).start();
+    }
+
+    /// <summary>
+    /// 페이지 조회 실패 사유를 메인 스레드에서 콜백(onError)으로 전달
+    /// </summary>
+    private void postPageError(RawgPageCallback callback, String message) {
+        mainHandler.post(() -> callback.onError(message));
     }
 
     /// <summary>
@@ -269,6 +272,49 @@ public class RawgApi {
     }
 
     /// <summary>
+    /// rawgId로 이 게임과 "같은 시리즈"의 게임들을 가져온다 (/games/{id}/game-series) — 서브 스레드
+    ///
+    /// 응답이 검색·탐색과 똑같은 "results 배열" 구조라, 파싱(parseResults)·콜백(RawgSearchCallback)을 그대로 쓴다.
+    /// 예: 위쳐3 → 위쳐1·2·Gwent 등
+    /// </summary>
+    public void getSeries(int rawgId, RawgSearchCallback callback) {
+        new Thread(() -> {
+            HttpURLConnection conn = null;
+            try {
+                URL url = new URL(BASE_URL + "/" + rawgId + "/game-series?key=" + API_KEY);
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+
+                int responseCode = conn.getResponseCode();
+                if (responseCode != HttpURLConnection.HTTP_OK) {
+                    postError(callback, "서버 오류 (코드 " + responseCode + ")");
+                    return;
+                }
+
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(conn.getInputStream()));
+                StringBuilder builder = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    builder.append(line);
+                }
+                reader.close();
+
+                // game-series도 results[] 구조라 검색 파싱을 그대로 재사용
+                List<RawgGame> results = parseResults(new JSONObject(builder.toString()));
+                mainHandler.post(() -> callback.onSuccess(results));
+
+            } catch (IOException | JSONException e) {
+                postError(callback, "불러오기 실패: " + e.getMessage());
+            } finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
+            }
+        }).start();
+    }
+
+    /// <summary>
     /// rawgId로 이 게임의 스크린샷 이미지 주소들을 가져온다 (/games/{id}/screenshots) — 서브 스레드
     /// 부가 기능이라 어떤 예외든 조용히 무시하고 빈 목록으로 넘어간다
     /// </summary>
@@ -369,10 +415,9 @@ public class RawgApi {
     ///
     /// 형태가 예상과 다르면 JSONException을 던짐 → 호출부(search)의 catch가 실패로 처리
     /// </summary>
-    private List<RawgGame> parseResults(String json) throws JSONException {
+    private List<RawgGame> parseResults(JSONObject root) throws JSONException {
         List<RawgGame> list = new ArrayList<>();
 
-        JSONObject root = new JSONObject(json);
         JSONArray results = root.getJSONArray("results");   // 게임들이 담긴 배열
 
         for (int i = 0; i < results.length(); i++) {

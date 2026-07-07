@@ -318,6 +318,17 @@
       return list;
   }
   ```
+- **새로 만들어 돌려주는 메서드는 이름으로 드러낸다**: 메서드가 호출할 때마다 **새 인스턴스(리스트·배열·객체)를 만들어 돌려주면** 이름에 "만든다"는 뜻을 담는다. 반대로 `get`/`find`는 **이미 들고 있던 것을 그대로** 돌려줄 때만 쓴다(새로 만들지 않음). 이렇게 하면 호출자가 "이건 내 것(마음대로 고쳐도 됨) vs 공유물(고치면 원본이 바뀜)"을 이름만 보고 구분한다.
+  - 새로 만들어 반환(호출자 소유): `create…` / `build…` / `parse…` / `to…` / `copy…` / `…Snapshot`
+  - 들고 있던 것 반환(공유 가능): `get…` / `find…`
+  - 같은 데이터에 두 종류가 다 필요하면 접미사로 구분: `getScreenshots()`(공유 원본) vs `copyScreenshots()` 또는 `getScreenshotsSnapshot()`(새 복사본)
+  ```java
+  // 새 리스트를 만들어 돌려줌 → 이름에 드러냄 (parse/build/copy…)
+  private List<RawgGame> parseResults(String json) { /* ... */ return new ArrayList<>(); }
+
+  // 들고 있던 원본을 그대로 돌려줌 → get (호출자가 고치면 원본도 바뀜)
+  public ArrayList<Game> getAllGames() { return this.games; }
+  ```
 
 ## 학습 방식
 - 가이드를 주면 사용자가 직접 구현하며 익히는 방식

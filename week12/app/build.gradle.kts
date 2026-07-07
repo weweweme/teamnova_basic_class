@@ -45,6 +45,8 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.recyclerview)
     implementation(libs.swiperefreshlayout)
+    // 카카오 로그인 SDK (사용자 모듈) — 카카오 계정으로 로그인
+    implementation("com.kakao.sdk:v2-user:2.20.6")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

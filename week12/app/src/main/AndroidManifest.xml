@@ -194,6 +194,23 @@
             android:label="@string/explore_title"
             android:parentActivityName=".library.LibraryActivity"
             android:exported="false" />
+
+        <!-- 카카오 로그인 리다이렉트 처리 액티비티 (SDK 제공) -->
+        <!-- 카카오 로그인/계정 인증 후 kakao{네이티브키}://oauth 로 앱에 돌아오는 통로 -->
+        <!-- Android 12(API 31)+ 타깃이면 exported="true" 필수 (외부 브라우저→앱 복귀) -->
+        <activity
+            android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- 콘솔 네이티브 앱 키 기반 스킴 (kakao + 네이티브키) -->
+                <data
+                    android:host="oauth"
+                    android:scheme="kakao273f1b25dbcaf75b1264b6616d3f1187" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

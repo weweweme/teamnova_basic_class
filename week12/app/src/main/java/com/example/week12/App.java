@@ -2,6 +2,8 @@ package com.example.week12;
 
 import android.app.Application;
 
+import com.kakao.sdk.common.KakaoSdk;
+
 import com.example.week12.account.AccountManager;
 import com.example.week12.account.UserPrefs;
 import com.example.week12.data.ActivityLogRepository;
@@ -83,6 +85,12 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        // 카카오 로그인 SDK 초기화 (앱 시작 시 한 번) — 네이티브 앱 키로 SDK를 켠다
+        // 이 키는 카카오 개발자 콘솔에서 발급한 "네이티브 앱 키" (RAWG 키처럼 앱 신분증)
+        // 주의: 공개 저장소에 올릴 거면 숨기는 게 안전 (학습용이라 코드에 둠)
+        KakaoSdk.init(this, "273f1b25dbcaf75b1264b6616d3f1187");
+
         gameRepository = new GameRepository(this);
         // 앱이 켜질 때 시스템이 스스로 휴지통을 점검해 30일 지난 항목을 자동 정리
         // (사용자가 휴지통 화면을 열지 않아도 처리됨 — 서버가 백그라운드로 청소하는 것과 같은 개념)

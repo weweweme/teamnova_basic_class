@@ -112,9 +112,8 @@ public class LoginActivity extends AppCompatActivity {
         NaverIdLoginSDK.INSTANCE.authenticate(this, new NidOAuthCallback() {
             @Override
             public void onSuccess() {
-                // 로그인 성공 → SDK가 보관한 접근 토큰을 꺼내 "서버 역할" 계층에 넘긴다
-                String accessToken = NaverIdLoginSDK.INSTANCE.getAccessToken();
-                authRepository.loginWithNaver(accessToken, binding.checkBoxKeepLogin.isChecked(),
+                // 로그인 성공(토큰이 SDK에 저장됨) → 검증·세션 발급을 "서버 역할" 계층에 맡긴다
+                authRepository.loginWithNaver(binding.checkBoxKeepLogin.isChecked(),
                         new AuthResultCallback() {
                             @Override
                             public void onSuccess(String nickname, boolean isNewAccount) {
@@ -151,8 +150,9 @@ public class LoginActivity extends AppCompatActivity {
             if (error != null) {
                 showToast("카카오 로그인 실패");
             } else if (token != null) {
-                // 받은 토큰을 "서버 역할" 계층에 넘겨 검증·세션 발급을 맡긴다
-                authRepository.loginWithKakao(token, binding.checkBoxKeepLogin.isChecked(),
+                // 로그인 성공(토큰이 SDK에 저장됨) → 검증·세션 발급을 "서버 역할" 계층에 맡긴다
+                // (토큰 검증은 provider가 SDK에 저장된 토큰으로 하므로 여기서 토큰을 넘길 필요 없음)
+                authRepository.loginWithKakao(binding.checkBoxKeepLogin.isChecked(),
                         new AuthResultCallback() {
                             @Override
                             public void onSuccess(String nickname, boolean isNewAccount) {

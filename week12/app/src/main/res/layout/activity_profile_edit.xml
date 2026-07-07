@@ -15,11 +15,16 @@
         android:padding="24dp">
 
         <!-- 아바타 미리보기 (사진 있으면 사진, 없으면 색 + 별명 첫 글자) -->
+        <!-- 이 동그라미 자체를 누르면 갤러리가 열려 사진을 고를 수 있음 (구글 프로필 방식) -->
         <!-- 별명/색/사진을 바꾸면 코드에서 이 미리보기를 실시간으로 갱신 -->
         <FrameLayout
+            android:id="@+id/frameAvatarPreview"
             android:layout_width="88dp"
             android:layout_height="88dp"
-            android:layout_gravity="center_horizontal">
+            android:layout_gravity="center_horizontal"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless">
 
             <TextView
                 android:id="@+id/textViewAvatarPreview"
@@ -43,28 +48,25 @@
                 android:visibility="gone" />
         </FrameLayout>
 
-        <!-- 사진 선택 / 제거 -->
-        <LinearLayout
+        <!-- 아바타를 눌러 사진을 고를 수 있다는 안내 -->
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="8dp"
-            android:orientation="horizontal">
+            android:text="아바타를 눌러 사진 변경"
+            android:textColor="#888888"
+            android:textSize="13sp" />
 
-            <Button
-                android:id="@+id/buttonPickPhoto"
-                style="?attr/borderlessButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="사진 선택" />
-
-            <Button
-                android:id="@+id/buttonRemovePhoto"
-                style="?attr/borderlessButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="사진 제거" />
-        </LinearLayout>
+        <!-- 사진 제거 (사진이 있을 때만 코드에서 보여줌 → 없을 땐 버튼이 아예 안 보임) -->
+        <Button
+            android:id="@+id/buttonRemovePhoto"
+            style="?attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="사진 제거"
+            android:visibility="gone" />
 
         <!-- 별명 -->
         <TextView
@@ -105,8 +107,9 @@
             android:maxLines="3"
             android:autofillHints="" />
 
-        <!-- 아바타 색 선택 -->
+        <!-- 아바타 색 선택 (사진이 있으면 색이 가려지므로 코드에서 이 라벨과 색 줄을 숨김) -->
         <TextView
+            android:id="@+id/textViewAvatarColorLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"

@@ -174,8 +174,8 @@ public class ProfileEditActivity extends AppCompatActivity {
                     updateAvatarPreview();
                 });
 
-        // "사진 선택" → 이미지 종류만 고를 수 있게 필터를 걸어 갤러리를 연다
-        binding.buttonPickPhoto.setOnClickListener(
+        // 아바타 동그라미를 누르면 → 이미지 종류만 고를 수 있게 필터를 걸어 갤러리를 연다
+        binding.frameAvatarPreview.setOnClickListener(
                 v -> pickPhotoLauncher.launch(new String[]{"image/*"}));
 
         // "사진 제거" → 사진 주소를 비우면 미리보기가 색 원으로 되돌아감
@@ -258,6 +258,17 @@ public class ProfileEditActivity extends AppCompatActivity {
         CoverImageLoader loader = ((App) getApplication()).getCoverImageLoader();
         AvatarBinder.bind(binding.textViewAvatarPreview, binding.imageViewAvatarPreview,
                 nickname, selectedColor, avatarImageUrl, loader);
+
+        boolean hasPhoto = avatarImageUrl != null && !avatarImageUrl.isEmpty();
+
+        // "사진 제거" 버튼은 사진이 있을 때만 보여준다 (없을 땐 지울 게 없으니 숨김)
+        binding.buttonRemovePhoto.setVisibility(hasPhoto ? View.VISIBLE : View.GONE);
+
+        // 아바타 색 선택은 사진이 없을 때만 의미가 있다 (사진이 색 원을 가리므로)
+        // → 사진이 있으면 색 라벨과 색 동그라미 줄을 함께 숨김
+        int colorSectionVisibility = hasPhoto ? View.GONE : View.VISIBLE;
+        binding.textViewAvatarColorLabel.setVisibility(colorSectionVisibility);
+        binding.layoutColorSwatches.setVisibility(colorSectionVisibility);
     }
 
     // ========== 저장 ==========

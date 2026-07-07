@@ -31,6 +31,8 @@ import com.example.week12.data.RawgDetailCallback;
 import com.example.week12.data.RawgScreenshotsCallback;
 import com.example.week12.data.RawgSearchCallback;
 import com.example.week12.data.RawgStoreCallback;
+import com.example.week12.data.TranslateCallback;
+import com.example.week12.data.Translator;
 import com.example.week12.databinding.ActivityGameDetailBinding;
 import com.example.week12.databinding.DialogScreenshotZoomBinding;
 import com.example.week12.util.CoverImageLoader;
@@ -92,6 +94,26 @@ public class GameDetailActivity extends AppCompatActivity {
     /// RAWG에서 불러온 스크린샷 주소들 (사용자가 직접 넣은 스크린샷이 없을 때 대신 보여줌)
     /// </summary>
     private java.util.List<String> rawgScreenshots = new java.util.ArrayList<>();
+
+    /// <summary>
+    /// 영어 → 한국어 번역기 (제목·설명을 "번역 보기"로 한글화)
+    /// </summary>
+    private final Translator translator = new Translator();
+
+    /// <summary>영어 원문 제목 (번역 토글에서 원문으로 되돌릴 때 사용)</summary>
+    private String originalTitle = "";
+
+    /// <summary>영어 원문 설명 (RAWG 제공) — 번역 토글에서 원문으로 되돌릴 때 사용</summary>
+    private String originalDescription = "";
+
+    /// <summary>한 번 번역해둔 한국어 제목 (아직 번역 안 했으면 null → 재번역 안 하고 캐시 재사용)</summary>
+    private String translatedTitle = null;
+
+    /// <summary>한 번 번역해둔 한국어 설명 (아직 번역 안 했으면 null)</summary>
+    private String translatedDescription = null;
+
+    /// <summary>지금 화면이 번역문을 보여주는 중인지 (true=한국어, false=영어 원문)</summary>
+    private boolean showingTranslation = false;
 
     /// <summary>
     /// ReviewWriteActivity를 실행하고 결과(별점/한줄평)를 받는 런처
@@ -575,15 +597,121 @@ public class GameDetailActivity extends AppCompatActivity {
 
         // 설명
         if (hasDescription) {
-            binding.textViewDescription.setText(detail.getDescription());
+            // 영어 원문을 보관해두고(번역 토글에서 되돌릴 때 사용) 화면에 표시
+            originalDescription = detail.getDescription();
+            binding.textViewDescription.setText(originalDescription);
             binding.textViewDescription.setVisibility(View.VISIBLE);
+            // 설명이 있을 때만 "번역 보기" 토글을 켠다 (번역할 대상이 생겼으므로)
+            setupTranslateToggle();
         } else {
             binding.textViewDescription.setVisibility(View.GONE);
+            binding.textViewTranslateToggle.setVisibility(View.GONE);
         }
 
         // 하나라도 있으면 영역 표시, 셋 다 없으면 숨김
         boolean anyInfo = hasDeveloper || hasMetacritic || hasDescription;
         binding.layoutRawgInfo.setVisibility(anyInfo ? View.VISIBLE : View.GONE);
+    }
+
+    // ========== 번역 보기 (제목 + 설명 → 한국어) ==========
+
+    /// <summary>
+    /// "번역 보기" 토글을 켜고 클릭 리스너를 건다 (설명이 로드된 뒤 호출됨)
+    /// </summary>
+    private void setupTranslateToggle() {
+        binding.textViewTranslateToggle.setVisibility(View.VISIBLE);
+        updateTranslateToggleText();
+        binding.textViewTranslateToggle.setOnClickListener(v -> onTranslateToggleClicked());
+    }
+
+    /// <summary>
+    /// 번역 토글 클릭 처리
+    ///   - 지금 번역문을 보고 있으면 → 영어 원문으로 되돌림
+    ///   - 원문을 보고 있으면 → (처음이면 서버로 번역, 이미 번역해뒀으면 캐시로) 한국어로 전환
+    /// </summary>
+    private void onTranslateToggleClicked() {
+        // 번역문 → 원문으로 되돌리기
+        if (showingTranslation) {
+            showingTranslation = false;
+            binding.textViewTitle.setText(originalTitle);
+            binding.textViewDescription.setText(originalDescription);
+            updateTranslateToggleText();
+            return;
+        }
+
+        // 한 번 번역해둔 게 있으면 서버를 다시 부르지 않고 캐시로 바로 전환 (연타·낭비 방지)
+        boolean alreadyTranslated = translatedDescription != null;
+        if (alreadyTranslated) {
+            showingTranslation = true;
+            applyTranslation();
+            updateTranslateToggleText();
+            return;
+        }
+
+        // 처음 번역 — 서버에 다녀오는 동안 버튼을 잠그고 "번역 중" 표시
+        binding.textViewTranslateToggle.setEnabled(false);
+        binding.textViewTranslateToggle.setText(R.string.detail_translate_loading);
+
+        // 설명을 먼저 번역하고, 성공하면 이어서 제목까지 번역한 뒤 화면을 바꾼다
+        translator.translateToKorean(originalDescription, new TranslateCallback() {
+            @Override
+            public void onSuccess(String translatedDesc) {
+                translatedDescription = translatedDesc;
+                // 제목도 번역 (짧아서 금방 옴)
+                translator.translateToKorean(originalTitle, new TranslateCallback() {
+                    @Override
+                    public void onSuccess(String translatedName) {
+                        translatedTitle = translatedName;
+                        finishTranslation();
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        // 제목 번역만 실패하면 제목은 원문 그대로 두고 설명만 한국어로 보여준다
+                        translatedTitle = originalTitle;
+                        finishTranslation();
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String message) {
+                // 설명 번역 실패 → 원상복구 + 안내
+                binding.textViewTranslateToggle.setEnabled(true);
+                updateTranslateToggleText();
+                Toast.makeText(GameDetailActivity.this,
+                        R.string.detail_translate_failed, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /// <summary>
+    /// 번역이 다 준비된 뒤 화면을 한국어로 바꾸고 버튼을 다시 켠다
+    /// </summary>
+    private void finishTranslation() {
+        showingTranslation = true;
+        applyTranslation();
+        binding.textViewTranslateToggle.setEnabled(true);
+        updateTranslateToggleText();
+    }
+
+    /// <summary>
+    /// 보관해둔 한국어 번역문을 제목·설명에 실제로 적용 (없으면 원문 유지)
+    /// </summary>
+    private void applyTranslation() {
+        String title = translatedTitle != null ? translatedTitle : originalTitle;
+        String description = translatedDescription != null ? translatedDescription : originalDescription;
+        binding.textViewTitle.setText(title);
+        binding.textViewDescription.setText(description);
+    }
+
+    /// <summary>
+    /// 토글 버튼 글자를 현재 상태에 맞게 갱신 (번역 중이면 "원문 보기", 아니면 "번역 보기")
+    /// </summary>
+    private void updateTranslateToggleText() {
+        binding.textViewTranslateToggle.setText(showingTranslation
+                ? R.string.detail_translate_original
+                : R.string.detail_translate_show);
     }
 
     /// <summary>
@@ -985,8 +1113,11 @@ public class GameDetailActivity extends AppCompatActivity {
     /// Unity로 비유하면 UI 텍스트에 데이터를 세팅하는 것
     /// </summary>
     private void bindGameData() {
-        // 제목
-        binding.textViewTitle.setText(game.getTitle());
+        // 제목 (영어 원문을 보관 — 번역 토글에서 원문으로 되돌릴 때 사용)
+        originalTitle = game.getTitle();
+        // 번역문을 보는 중이면(상태 변경 등으로 재바인딩돼도) 한글 제목을 유지, 아니면 원문
+        boolean keepTranslatedTitle = showingTranslation && translatedTitle != null;
+        binding.textViewTitle.setText(keepTranslatedTitle ? translatedTitle : originalTitle);
 
         // 장르 · 플랫폼 (둘 중 "기타"인 칸은 정보가 없으므로 숨겨서 군더더기 제거)
         //   둘 다 있음 → "어드벤처 · PC" / 한쪽만 기타 → 나머지만 / 둘 다 기타 → "기타"

@@ -174,6 +174,20 @@
                 android:lineSpacingExtra="2dp"
                 android:maxLines="12"
                 android:textSize="14sp" />
+
+            <!-- 번역 보기/원문 보기 토글 (제목+설명을 한국어로 바꿔 보여줌) -->
+            <!-- 기본은 숨김 → 설명이 로드되면 코드에서 VISIBLE -->
+            <TextView
+                android:id="@+id/textViewTranslateToggle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:padding="4dp"
+                android:text="@string/detail_translate_show"
+                android:textColor="#1976D2"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
         </LinearLayout>
 
         <!-- 스크린샷 썸네일 (가로 스크롤) -->

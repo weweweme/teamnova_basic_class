@@ -233,6 +233,11 @@
     <string name="detail_screenshot">스크린샷</string>
     <string name="detail_screenshots_label">스크린샷</string>
     <string name="detail_change_status">상태 변경</string>
+    <!-- 번역 보기 토글 (제목+설명을 한국어로) -->
+    <string name="detail_translate_show">🌐 번역 보기</string>
+    <string name="detail_translate_original">🌐 원문 보기</string>
+    <string name="detail_translate_loading">번역 중…</string>
+    <string name="detail_translate_failed">번역에 실패했어요</string>
     <!-- 다른 사람들의 평가 (커뮤니티) -->
     <string name="detail_others_title">다른 사람들의 평가</string>
     <!-- 전체 평균 — %1$s=평균 별점, %2$d=참여 인원 (계산엔 내 별점도 포함) -->

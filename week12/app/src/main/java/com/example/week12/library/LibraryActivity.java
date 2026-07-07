@@ -29,7 +29,9 @@ import java.util.Comparator;
 
 import com.example.week12.data.GameRepository;
 import com.example.week12.databinding.ActivityLibraryBinding;
+import com.example.week12.databinding.BottomSheetAddGameBinding;
 import com.example.week12.databinding.BottomSheetGameActionsBinding;
+import com.example.week12.rawg.RawgSearchActivity;
 import com.example.week12.model.ActivityLogType;
 import com.example.week12.model.Game;
 import com.example.week12.model.GameStatus;
@@ -709,12 +711,8 @@ public class LibraryActivity extends AppCompatActivity {
         }
 
         if (itemId == R.id.action_add_game) {
-            // [임시 P2 테스트] + 아이콘 → RAWG 검색 화면 열기 (검색 UI 확인용)
-            // 정식으로는 P4에서 "검색으로 추가 / 직접 입력" 선택 창을 띄우고,
-            // 아래 수동 추가(addGameLauncher)와 병존시킬 예정
-            startActivity(new Intent(this, com.example.week12.rawg.RawgSearchActivity.class));
-            // + 아이콘 → AddGameActivity를 런처로 실행 (결과로 새 게임 정보 받음)
-            // addGameLauncher.launch(new Intent(this, AddGameActivity.class));
+            // + 아이콘 → 추가 방법 선택 (검색으로 추가 / 직접 입력)
+            showAddGameChooser();
             return true;
         }
 
@@ -742,6 +740,32 @@ public class LibraryActivity extends AppCompatActivity {
         Intent intent = new Intent(this, GameDetailActivity.class);
         intent.putExtra(GameDetailActivity.EXTRA_GAME, game);
         startActivity(intent);
+    }
+
+    /// <summary>
+    /// "+ 게임 추가" → 추가 방법 선택 BottomSheet (검색으로 추가 / 직접 입력)
+    /// - 검색으로 추가: RAWG 검색 화면에서 API로 제목·표지·장르 자동 채움
+    /// - 직접 입력: 기존 수동 입력 폼 (둘을 병존시켜, API 실패 시 대비책도 됨)
+    /// </summary>
+    private void showAddGameChooser() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        BottomSheetAddGameBinding sheetBinding =
+                BottomSheetAddGameBinding.inflate(getLayoutInflater());
+
+        // 검색으로 추가 → RAWG 검색 화면 (결과 탭 시 스스로 보관함에 추가하고 돌아옴)
+        sheetBinding.actionSearchAdd.setOnClickListener(v -> {
+            dialog.dismiss();
+            startActivity(new Intent(this, RawgSearchActivity.class));
+        });
+
+        // 직접 입력 → 기존 수동 추가 폼 (결과 Intent는 addGameLauncher가 받아 처리)
+        sheetBinding.actionManualAdd.setOnClickListener(v -> {
+            dialog.dismiss();
+            addGameLauncher.launch(new Intent(this, AddGameActivity.class));
+        });
+
+        dialog.setContentView(sheetBinding.getRoot());
+        dialog.show();
     }
 
     /// <summary>

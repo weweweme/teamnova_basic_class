@@ -31,6 +31,8 @@ import com.example.week12.model.Game;
 import com.example.week12.model.GameReview;
 import com.example.week12.model.ActivityLogType;
 import com.example.week12.model.GameStatus;
+import com.example.week12.model.Genre;
+import com.example.week12.model.Platform;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -754,9 +756,24 @@ public class GameDetailActivity extends AppCompatActivity {
         // 제목
         binding.textViewTitle.setText(game.getTitle());
 
-        // 장르 · 플랫폼
-        String genrePlatform = game.getGenre().getDisplayName()
-                + " · " + game.getPlatform().getDisplayName();
+        // 장르 · 플랫폼 (둘 중 "기타"인 칸은 정보가 없으므로 숨겨서 군더더기 제거)
+        //   둘 다 있음 → "어드벤처 · PC" / 한쪽만 기타 → 나머지만 / 둘 다 기타 → "기타"
+        boolean genreKnown = game.getGenre() != Genre.ETC;
+        boolean platformKnown = game.getPlatform() != Platform.ETC;
+        String genreName = game.getGenre().getDisplayName();
+        String platformName = game.getPlatform().getDisplayName();
+
+        String genrePlatform;
+        if (genreKnown && platformKnown) {
+            genrePlatform = genreName + " · " + platformName;
+        } else if (genreKnown) {
+            genrePlatform = genreName;
+        } else if (platformKnown) {
+            genrePlatform = platformName;
+        } else {
+            // 둘 다 기타 → 빈 줄이 되지 않게 "기타" 하나만 (genreName이 "기타")
+            genrePlatform = genreName;
+        }
         binding.textViewGenrePlatform.setText(genrePlatform);
 
         // 진행 상태 배지 (이름 + 상태색 배경)

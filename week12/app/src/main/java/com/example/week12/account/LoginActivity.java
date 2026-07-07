@@ -194,12 +194,11 @@ public class LoginActivity extends AppCompatActivity {
         int selectedPosition = binding.spinnerAccount.getSelectedItemPosition();
         Account selected = accounts.get(selectedPosition);
 
-        // 검증 + 세션 세팅을 한 번에 (성공 시 내부에서 current_account가 지정됨)
-        boolean success = accountManager.login(selected.getId(), pin);
+        // 검증 + 세션 발급을 "서버 역할" 계층에 맡긴다 (카카오와 같은 경계 — 모든 로그인이 여길 통과)
+        boolean success = authRepository.loginWithPin(
+                selected.getId(), pin, binding.checkBoxKeepLogin.isChecked());
 
         if (success) {
-            // 체크 상태를 저장 → 켜져 있으면 다음 앱 실행 때 Splash가 로그인을 건너뛰고 바로 홈으로 보냄
-            accountManager.setAutoLogin(binding.checkBoxKeepLogin.isChecked());
             showToast(getString(R.string.login_success, selected.getNickname()));
             proceedAfterAuth();
         } else {

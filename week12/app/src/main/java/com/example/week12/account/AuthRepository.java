@@ -84,6 +84,21 @@ public class AuthRepository {
     }
 
     /// <summary>
+    /// PIN(가상 계정)으로 로그인 처리 — 검증 → 세션 발급 (카카오와 같은 "서버 역할" 경계)
+    ///
+    /// PIN 검증은 로컬(파일)이라 결과가 바로 나오므로, 카카오와 달리 콜백 없이 즉시 true/false를 돌려준다.
+    /// 성공하면 현재 계정 지정 + 로그인 유지 반영까지 여기서 끝낸다.
+    /// (진짜 서버라면 비밀번호 로그인도, 소셜 로그인도 모두 이 서버 계층을 통과한다)
+    /// </summary>
+    public boolean loginWithPin(String id, String pin, boolean keepLogin) {
+        boolean ok = accountManager.login(id, pin);   // 검증(verifyPin) + 현재 계정 지정
+        if (ok) {
+            accountManager.setAutoLogin(keepLogin);
+        }
+        return ok;
+    }
+
+    /// <summary>
     /// 검증을 통과한 카카오 신원으로 우리 앱 세션을 발급한다 (원래 서버가 하는 "세션 만들기")
     ///   - 계정이 없으면 만들고(PIN 없음), 있으면 닉네임만 갱신
     ///   - 현재 로그인 계정으로 지정 + 로그인 유지 반영 + 프로필 사진 저장

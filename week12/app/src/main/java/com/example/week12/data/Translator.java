@@ -17,9 +17,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /// <summary>
-/// 영어 → 한국어 번역 담당 클래스
+/// 언어 간 번역 담당 클래스 (영↔한)
 ///
-/// 하는 일 하나: 영어 글을 받아 번역 서버에 물어보고, 한국어 결과를 콜백으로 돌려준다.
+/// 하는 일: 글과 방향(원문/목표 언어)을 받아 번역 서버에 물어보고, 결과를 콜백으로 돌려준다.
+///   - 영어 → 한국어: 상세 화면 "번역 보기"
+///   - 한국어 → 영어: 한글 검색어를 영어로 바꿔 RAWG(영어 전용)에 검색
 /// RAWG(RawgApi)와 완전히 같은 흐름 — 주소 만들기 → GET → 응답 파싱 → Handler로 결과 전달.
 ///
 /// ──── 어떤 번역 서버를 쓰나 ────
@@ -42,16 +44,6 @@ public class Translator {
     private static final String BASE_URL = "https://translate.googleapis.com/translate_a/single";
 
     /// <summary>
-    /// 원문 언어 코드 (en = 영어). RAWG가 주는 게임 이름·설명이 영어라 고정
-    /// </summary>
-    private static final String SOURCE_LANG = "en";
-
-    /// <summary>
-    /// 목표 언어 코드 (ko = 한국어)
-    /// </summary>
-    private static final String TARGET_LANG = "ko";
-
-    /// <summary>
     /// 한 번에 보낼 최대 글자 수 (주소가 너무 길어지지 않게 이 길이로 잘라 보냄)
     /// 이보다 긴 글은 여러 조각으로 나눠 각각 번역한 뒤 이어붙인다
     /// </summary>
@@ -64,18 +56,35 @@ public class Translator {
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     /// <summary>
-    /// 영어 글을 한국어로 번역한다 (오래 걸리므로 서브 스레드에서 실행)
+    /// 영어 글을 한국어로 번역한다 (상세 화면 "번역 보기"에서 사용)
+    /// </summary>
+    public void translateToKorean(String englishText, TranslateCallback callback) {
+        translate(englishText, "en", "ko", callback);
+    }
+
+    /// <summary>
+    /// 한국어 글을 영어로 번역한다 (한글 검색어 → 영어로 바꿔 RAWG 검색에 사용)
+    /// 예: "엘든링" → "Elden Ring", "위쳐" → "witcher"
+    /// </summary>
+    public void translateToEnglish(String koreanText, TranslateCallback callback) {
+        translate(koreanText, "ko", "en", callback);
+    }
+
+    /// <summary>
+    /// 공통 번역 처리 (오래 걸리므로 서브 스레드에서 실행)
     ///
-    /// englishText: 번역할 영어 글 (게임 이름 + 설명 등)
+    /// text: 번역할 글
+    /// sourceLang/targetLang: 원문/목표 언어 코드 (en, ko …)
     /// callback: 결과를 돌려받을 통로 (성공/실패) — 메인 스레드에서 불린다
     ///
     /// 흐름: 긴 글이면 조각으로 나눔 → 각 조각을 GET으로 번역 → 이어붙임 → Handler로 결과 전달
     /// </summary>
-    public void translateToKorean(String englishText, TranslateCallback callback) {
+    private void translate(String text, String sourceLang, String targetLang,
+                           TranslateCallback callback) {
         // 빈 글은 번역할 게 없으니 통신 없이 그대로 돌려준다 (서버 낭비 방지)
-        boolean nothingToTranslate = englishText == null || englishText.trim().isEmpty();
+        boolean nothingToTranslate = text == null || text.trim().isEmpty();
         if (nothingToTranslate) {
-            String passthrough = englishText == null ? "" : englishText;
+            String passthrough = text == null ? "" : text;
             mainHandler.post(() -> callback.onSuccess(passthrough));
             return;
         }
@@ -83,10 +92,10 @@ public class Translator {
         new Thread(() -> {                              // 오래 걸리는 일은 서브 스레드
             try {
                 // 긴 글은 조각으로 나눠 각각 번역한 뒤 순서대로 이어붙인다
-                List<String> chunks = splitIntoChunks(englishText, MAX_CHUNK_CHARS);
+                List<String> chunks = splitIntoChunks(text, MAX_CHUNK_CHARS);
                 StringBuilder result = new StringBuilder();
                 for (String chunk : chunks) {
-                    result.append(translateChunk(chunk));
+                    result.append(translateChunk(chunk, sourceLang, targetLang));
                 }
                 String translated = result.toString();
                 mainHandler.post(() -> callback.onSuccess(translated));
@@ -99,10 +108,11 @@ public class Translator {
     }
 
     /// <summary>
-    /// 조각 하나(짧은 영어 글)를 번역 서버에 보내 한국어로 돌려받는다
+    /// 조각 하나(짧은 글)를 번역 서버에 보내 번역문으로 돌려받는다
     /// (서브 스레드에서 불림 — 통신·파싱만 담당)
     /// </summary>
-    private String translateChunk(String text) throws IOException, JSONException {
+    private String translateChunk(String text, String sourceLang, String targetLang)
+            throws IOException, JSONException {
         HttpURLConnection conn = null;                  // finally에서 정리하려고 try 밖에 선언
         try {
             // 글에 공백·기호가 있어 주소에 안전한 형태로 변환(인코딩)한다
@@ -110,8 +120,8 @@ public class Translator {
             String encoded = URLEncoder.encode(text, StandardCharsets.UTF_8);
             // client=gtx: 비공식 주소가 요구하는 고정 값, dt=t: "번역문을 달라"는 뜻
             String query = "?client=gtx"
-                    + "&sl=" + SOURCE_LANG
-                    + "&tl=" + TARGET_LANG
+                    + "&sl=" + sourceLang
+                    + "&tl=" + targetLang
                     + "&dt=t&q=" + encoded;
             URL url = new URL(BASE_URL + query);
 
@@ -149,11 +159,11 @@ public class Translator {
     }
 
     /// <summary>
-    /// 번역 서버 응답에서 한국어 번역문만 꺼내 이어붙인다
+    /// 번역 서버 응답에서 번역문만 꺼내 이어붙인다
     ///
     /// 응답 생김새(중첩 배열): [ [ ["번역문","원문",...], ["번역문2","원문2",...] ], ... ]
     ///   - 루트[0] = "문장 조각들의 목록"
-    ///   - 각 조각의 [0] = 번역된 한국어 (조각의 [1]은 원문 영어라 안 씀)
+    ///   - 각 조각의 [0] = 번역문 (조각의 [1]은 원문이라 안 씀)
     /// → 조각들의 [0]을 순서대로 이어붙이면 전체 번역문이 된다
     /// </summary>
     private String parseTranslation(String body) throws JSONException {

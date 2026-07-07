@@ -101,6 +101,12 @@ public class App extends Application {
                 "uG7w8DXzJF",             // Client Secret
                 "게임 다이어리");           // 로그인 동의창에 표시될 이름
 
+        // 네이버 로그인 시 항상 "아이디/비번부터" 다시 입력받도록 강제 (auth_type=reauthenticate)
+        // 안 켜면 브라우저(Custom Tabs)에 남은 네이버 로그인 쿠키 때문에 로그인 단계가 생략돼,
+        // 계정 삭제 후 다시 로그인해도 동의 화면부터 뜬다 → "처음부터 로그인"이 안 보임.
+        // 데모/학습용이라 매번 전체 로그인 흐름이 보이게 켠다 (실서비스라면 편의를 위해 꺼둘 수 있음)
+        NaverIdLoginSDK.INSTANCE.setRequiredCustomTabsReAuth(true);
+
         gameRepository = new GameRepository(this);
         // 앱이 켜질 때 시스템이 스스로 휴지통을 점검해 30일 지난 항목을 자동 정리
         // (사용자가 휴지통 화면을 열지 않아도 처리됨 — 서버가 백그라운드로 청소하는 것과 같은 개념)

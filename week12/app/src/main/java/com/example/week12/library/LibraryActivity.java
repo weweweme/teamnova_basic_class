@@ -758,6 +758,12 @@ public class LibraryActivity extends AppCompatActivity {
             startActivity(new Intent(this, RawgSearchActivity.class));
         });
 
+        // 둘러보기 → RAWG 탐색 화면 (인기/신작/장르별로 구경하다 골라서 추가)
+        sheetBinding.actionExplore.setOnClickListener(v -> {
+            dialog.dismiss();
+            startActivity(new Intent(this, com.example.week12.rawg.ExploreActivity.class));
+        });
+
         // 직접 입력 → 기존 수동 추가 폼 (결과 Intent는 addGameLauncher가 받아 처리)
         sheetBinding.actionManualAdd.setOnClickListener(v -> {
             dialog.dismiss();

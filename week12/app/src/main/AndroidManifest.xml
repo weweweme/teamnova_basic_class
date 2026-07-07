@@ -186,6 +186,14 @@
             android:label="@string/rawg_search_title"
             android:parentActivityName=".library.LibraryActivity"
             android:exported="false" />
+
+        <!-- RAWG 탐색: 인기/신작/장르별로 둘러보기 (12주차) -->
+        <!-- parentActivityName: ← 버튼 누르면 보관함으로 돌아감 -->
+        <activity
+            android:name=".rawg.ExploreActivity"
+            android:label="@string/explore_title"
+            android:parentActivityName=".library.LibraryActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

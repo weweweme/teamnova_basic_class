@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 탐색 화면: 위에 모드 탭(인기/신작/장르), 아래 결과 리스트 -->
+<!-- 결과 리스트는 검색 화면과 같은 item_rawg_result + RawgResultAdapter 재사용 -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF">
+
+    <!-- 모드 탭 (인기 / 신작 / 액션 / RPG ... — 코드에서 addTab으로 채움) -->
+    <!-- tabMode=scrollable: 탭이 많아 화면을 넘으면 가로로 스크롤 -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayoutMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabMode="scrollable" />
+
+    <!-- 결과 영역: RecyclerView 위에 로딩/빈 상태를 겹쳐 둠 -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- 결과 리스트 (세로 스크롤) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewResults"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp" />
+
+        <!-- 로딩 스피너 (조회 중에만) -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+        <!-- 빈 상태/실패 안내 -->
+        <TextView
+            android:id="@+id/textViewEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textColor="#757575"
+            android:textSize="14sp"
+            tools:text="결과가 없어요" />
+    </FrameLayout>
+
+</LinearLayout>

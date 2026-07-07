@@ -491,6 +491,24 @@ public class GameRepository {
         return null;
     }
 
+    /// <summary>
+    /// RAWG 정식 id로 보관함에서 같은 게임을 찾는다 (중복 추가 방지용)
+    /// rawgId가 0(정식 등록 없는 수동 게임)이면 이 방식으로 매칭하지 않으므로 항상 null
+    /// (수동 게임끼리는 rawgId가 모두 0이라 이걸로 묶으면 서로 다른 게임이 같아져 버림)
+    /// 없으면 null
+    /// </summary>
+    public Game findByRawgId(int rawgId) {
+        if (rawgId <= 0) {
+            return null;
+        }
+        for (Game game : this.games) {
+            if (game.getRawgId() == rawgId) {
+                return game;
+            }
+        }
+        return null;
+    }
+
     // ========== 추가 ==========
 
     /// <summary>

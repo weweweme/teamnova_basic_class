@@ -69,6 +69,18 @@
                 android:layout_marginTop="2dp"
                 android:textSize="12sp"
                 tools:text="★ 4.4" />
+
+            <!-- "이미 보관함에 있음" 배지 (같은 rawgId가 보관함에 있으면 코드에서 표시) -->
+            <TextView
+                android:id="@+id/textViewInLibrary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="✓ 보관함에 있음"
+                android:textColor="#2E7D32"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
         </LinearLayout>
 
     </LinearLayout>

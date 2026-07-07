@@ -16,6 +16,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,31 +61,68 @@ public class RawgApi {
     /// 흐름(06 슬라이드 그대로): 주소 완성 → GET → 응답 글자 읽기 → JSON 파싱 → Handler로 결과 전달
     /// </summary>
     public void search(String query, RawgSearchCallback callback) {
+        // 검색어에 공백·한글이 있을 수 있어 URL에 안전한 형태로 변환(인코딩)한다
+        // 예: "hollow knight" → "hollow%20knight" (공백을 %20으로)
+        // (Charset 버전 encode는 checked 예외를 안 던짐 — minSdk 33이라 사용 가능)
+        String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
+        // 실제 통신·파싱은 공용 fetchList가 담당 (인기/신작/장르별도 같은 걸 재사용)
+        fetchList("search=" + encodedQuery, callback);
+    }
+
+    /// <summary>
+    /// 인기 게임 목록 (많이 담긴 순 = ordering=-added), 20개
+    /// 검색과 응답 구조가 같아 같은 파싱·콜백을 그대로 쓴다 (주소의 "주문"만 다름)
+    /// </summary>
+    public void discoverPopular(RawgSearchCallback callback) {
+        fetchList("ordering=-added&page_size=20", callback);
+    }
+
+    /// <summary>
+    /// 신작 게임 목록 (최근 6개월~오늘 출시, 최신순), 20개
+    /// dates=시작,끝 으로 기간을 지정 — "오늘"은 실행 시점 날짜라 앱에서 계산한다
+    /// </summary>
+    public void discoverNew(RawgSearchCallback callback) {
+        LocalDate today = LocalDate.now();
+        LocalDate from = today.minusMonths(6);
+        String dates = from + "," + today;   // "yyyy-MM-dd,yyyy-MM-dd" 형식
+        fetchList("dates=" + dates + "&ordering=-released&page_size=20", callback);
+    }
+
+    /// <summary>
+    /// 장르별 게임 목록 (해당 장르 + 평점 높은 순), 20개
+    /// genreSlug: RAWG 장르 코드 (예: "action", "role-playing-games-rpg")
+    /// </summary>
+    public void discoverByGenre(String genreSlug, RawgSearchCallback callback) {
+        fetchList("genres=" + genreSlug + "&ordering=-rating&page_size=20", callback);
+    }
+
+    /// <summary>
+    /// 게임 목록을 가져오는 공용 통신 메서드 (검색·인기·신작·장르별이 모두 이걸 재사용)
+    ///
+    /// queryParams: 주소의 "?" 뒤에 붙일 주문 (예: "search=zelda", "ordering=-added&page_size=20").
+    ///   여기에 &key=... 를 붙여 완성한다.
+    /// 흐름(06 슬라이드 그대로): 주소 완성 → GET → 응답 글자 읽기 → JSON 파싱 → Handler로 결과 전달.
+    /// 응답 구조가 검색과 동일(결과 배열)하므로 parseResults를 그대로 쓴다.
+    /// </summary>
+    private void fetchList(String queryParams, RawgSearchCallback callback) {
         new Thread(() -> {                              // 오래 걸리는 일은 서브 스레드 (11주차)
-            // 연결 객체를 finally에서 정리하려고 try 밖에 미리 선언 (실패해도 끊어주기 위함)
-            HttpURLConnection conn = null;
+            HttpURLConnection conn = null;              // finally에서 정리하려고 try 밖에 선언
             try {
-                // ① 주소 완성
-                //    검색어에 공백·한글이 있을 수 있어 URL에 안전한 형태로 변환(인코딩)한다
-                //    예: "hollow knight" → "hollow%20knight" (공백을 %20으로)
-                String encodedQuery = URLEncoder.encode(query, "UTF-8");
-                String urlString = BASE_URL + "?search=" + encodedQuery + "&key=" + API_KEY;
-                URL url = new URL(urlString);
+                // 주소 완성: 기본 주소 + 주문 + 열쇠
+                URL url = new URL(BASE_URL + "?" + queryParams + "&key=" + API_KEY);
 
-                // ② GET = "읽어서 줘" (RESTful 동사, CRUD의 Read)
                 conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
+                conn.setRequestMethod("GET");           // GET = 읽기 (Read)
 
-                // ②-1 서버 응답 코드 확인 (200 OK가 정상 — 401은 키 문제, 404는 없는 주소 등)
+                // 서버 응답 코드 확인 (200 OK가 정상 — 401 키 문제, 404 없는 주소 등)
                 int responseCode = conn.getResponseCode();
                 boolean isOk = responseCode == HttpURLConnection.HTTP_OK;
                 if (!isOk) {
-                    // 03 주의점 — 서버가 정상 응답이 아니면 실패로 처리
                     postError(callback, "서버 오류 (코드 " + responseCode + ")");
-                    return;   // 이 스레드 종료 (아래 파싱으로 안 감)
+                    return;
                 }
 
-                // ③ 응답(JSON 글자)을 한 줄씩 읽어 이어붙임
+                // 응답(JSON 글자)을 한 줄씩 읽어 이어붙임
                 BufferedReader reader = new BufferedReader(
                         new InputStreamReader(conn.getInputStream()));
                 StringBuilder builder = new StringBuilder();
@@ -93,17 +132,14 @@ public class RawgApi {
                 }
                 reader.close();
 
-                // ④ JSON 글자 → RawgGame 목록으로 꺼내기 (파싱은 아래 헬퍼로 분리)
+                // JSON 글자 → RawgGame 목록 → 성공 콜백(메인 스레드)
                 List<RawgGame> results = parseResults(builder.toString());
-
-                // ⑤ 성공 — 결과를 메인 스레드에서 콜백으로 전달
                 mainHandler.post(() -> callback.onSuccess(results));
 
             } catch (IOException | JSONException e) {
                 // 03 주의점 — 인터넷 없음/서버 오류(IOException) 또는 형태가 예상과 다름(JSONException)
                 postError(callback, "불러오기 실패: " + e.getMessage());
             } finally {
-                // 성공이든 실패든 연결은 정리 (열어둔 연결을 끊음)
                 if (conn != null) {
                     conn.disconnect();
                 }

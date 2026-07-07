@@ -7,21 +7,12 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.example.week12.App;
-import com.example.week12.account.UserPrefs;
-import com.example.week12.data.GameRepository;
 import com.example.week12.data.RawgApi;
 import com.example.week12.data.RawgSearchCallback;
 import com.example.week12.databinding.ActivityRawgSearchBinding;
-import com.example.week12.model.ActivityLogType;
-import com.example.week12.model.Game;
-import com.example.week12.model.GameStatus;
-import com.example.week12.model.Genre;
-import com.example.week12.model.Platform;
 import com.example.week12.model.RawgGame;
 
 import java.util.ArrayList;
@@ -146,56 +137,11 @@ public class RawgSearchActivity extends AppCompatActivity {
     }
 
     /// <summary>
-    /// 결과 항목 클릭 처리 — 어떤 상태로 담을지 먼저 물어본다
-    ///
-    /// 검색으로 추가하는 게임은 이미 플레이했을 수도 있어 "찜 목록"으로 단정하지 않는다.
-    /// 상태 목록(플레이중/완료/중단/찜 목록)을 보여주고, 고른 상태로 addGameWithStatus 진행.
+    /// 결과 항목 클릭 → 공용 헬퍼로 "상태 선택 → 보관함 추가"
+    /// 추가가 끝나면 finish로 보관함에 복귀 (onResume에서 목록 새로고침 → 추가된 게임이 보임)
     /// </summary>
     private void onResultClick(RawgGame game) {
-        // 상태 목록의 표시 이름들을 뽑아 선택지로 (enum 순서 그대로 → 고른 index로 상태를 되찾음)
-        GameStatus[] statuses = GameStatus.values();
-        String[] labels = new String[statuses.length];
-        for (int i = 0; i < statuses.length; i++) {
-            labels[i] = statuses[i].getDisplayName();
-        }
-
-        new AlertDialog.Builder(this)
-                .setTitle("어떤 상태로 추가할까요?")
-                .setItems(labels, (dialog, which) -> addGameWithStatus(game, statuses[which]))
-                .setNegativeButton("취소", null)
-                .show();
-    }
-
-    /// <summary>
-    /// 고른 상태로 게임을 보관함에 추가하고 복귀
-    ///
-    /// 흐름: RawgGame → (장르/플랫폼 매핑) → repository.addGame(상태 지정) → 최근 활동 기록 → 토스트 → finish
-    /// finish 후 보관함(LibraryActivity)의 onResume이 목록을 새로고침해 추가된 게임이 보인다.
-    /// </summary>
-    private void addGameWithStatus(RawgGame game, GameStatus status) {
-        App app = (App) getApplication();
-        GameRepository repository = app.getGameRepository();
-
-        // RAWG 슬러그 목록 → 우리 enum (매핑되는 첫 항목, 없으면 기타)
-        Genre genre = RawgGameMapper.toGenre(game.getGenreSlugs());
-        Platform platform = RawgGameMapper.toPlatform(game.getPlatformSlugs());
-
-        // 보관함에 추가: 제목·장르·플랫폼·표지·상태 + RAWG 정식 id를 채움 (수동 입력 대체)
-        // storeUrl은 RAWG 검색 목록에 없어 빈 값. 표지는 https 원격 주소를 coverUri로 저장 →
-        // 보관함 그리드가 loadUri로 표시(P3에서 원격 로딩 지원). 표지 없는 게임이면 null → 기본 아이콘
-        // rawgId: 나중에 서버/소셜에서 "같은 게임"을 사용자 간에 맞추는 공통 키로 심어둔다
-        Game added = repository.addGame(
-                game.getName(), genre, platform, "", game.getCoverImageUrl(), status,
-                game.getRawgId());
-
-        // 최근 활동 피드에 "추가함" 기록 (수동 추가와 동일 — 로그인 상태에서만 userPrefs 존재)
-        UserPrefs userPrefs = app.getUserPrefs();
-        if (userPrefs != null) {
-            userPrefs.addActivityLog(ActivityLogType.ADDED, added.getId(), "");
-        }
-
-        Toast.makeText(this, "보관함에 추가됨: " + added.getTitle(), Toast.LENGTH_SHORT).show();
-        finish();   // 보관함으로 복귀 → onResume에서 목록 새로고침
+        RawgGameAdder.promptAddToLibrary(this, game, this::finish);
     }
 
     // ========== 화면 상태 전환 (셋 중 하나만 표시) ==========

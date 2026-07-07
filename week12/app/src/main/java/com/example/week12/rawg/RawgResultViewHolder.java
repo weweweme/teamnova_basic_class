@@ -1,12 +1,14 @@
 package com.example.week12.rawg;
 
 import android.content.Context;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.week12.App;
 import com.example.week12.R;
+import com.example.week12.data.GameRepository;
 import com.example.week12.databinding.ItemRawgResultBinding;
 import com.example.week12.model.RawgGame;
 import com.example.week12.util.CoverImageLoader;
@@ -70,6 +72,11 @@ public class RawgResultViewHolder extends RecyclerView.ViewHolder {
             binding.imageViewCover.setTag(null);
             binding.imageViewCover.setImageResource(R.mipmap.ic_launcher);
         }
+
+        // 이미 보관함에 같은 게임(rawgId)이 있으면 "✓ 보관함에 있음" 배지 표시 (누르기 전에 미리 알림)
+        GameRepository repository = ((App) context.getApplicationContext()).getGameRepository();
+        boolean inLibrary = repository.findByRawgId(game.getRawgId()) != null;
+        binding.textViewInLibrary.setVisibility(inLibrary ? View.VISIBLE : View.GONE);
 
         // 항목 클릭 리스너 (Activity 측 콜백 호출 — 이 게임을 보관함에 추가 등)
         binding.getRoot().setOnClickListener(v -> {

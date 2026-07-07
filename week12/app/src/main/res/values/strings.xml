@@ -129,6 +129,10 @@
     <string name="library_recent_search_label">최근 검색</string>
     <string name="library_recent_search_clear">지우기</string>
     <string name="library_search_empty">검색 결과가 없어요</string>
+    <!-- 한글 입력 중: 제목이 영어라 바로 안 걸리니 엔터로 검색하라고 안내 -->
+    <string name="library_search_press_enter">한글은 검색(→) 또는 엔터로 검색하세요</string>
+    <!-- 엔터 후 AI가 한글→영어로 바꾸는 동안 -->
+    <string name="library_searching">검색 중…</string>
     <string name="library_sort">정렬</string>
     <string name="library_view_toggle">보기 전환</string>
 

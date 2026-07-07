@@ -331,6 +331,15 @@ public class LibraryActivity extends AppCompatActivity {
     }
 
     /// <summary>
+    /// 엔터로 한글 검색을 확정한 뒤, AI가 영어로 바꾸는 동안 "검색 중…"을 보여준다
+    /// (보정이 끝나면 applyResolvedQuery → applyCurrentFilter가 결과/빈 상태로 덮어씀)
+    /// </summary>
+    private void showSearching() {
+        binding.textViewEmpty.setText(R.string.library_searching);
+        binding.textViewEmpty.setVisibility(View.VISIBLE);
+    }
+
+    /// <summary>
     /// 각 탭 라벨에 게임 개수를 붙여 표시 ("전체 20", "완료 7" 등)
     /// 데이터가 바뀔 때(추가/삭제/상태변경) 호출해서 개수를 최신으로 유지
     /// (검색/정렬은 개수를 바꾸지 않으므로 호출 불필요)
@@ -477,11 +486,21 @@ public class LibraryActivity extends AppCompatActivity {
 
         adapter.updateItems(filtered);
 
-        // 빈 상태: 검색 중이면 "검색 결과 없음", 아니면 "이 상태의 게임 없음"
+        // 빈 상태 안내 문구 결정
+        //   한글 검색어(아직 영어로 확정 전) → "엔터/검색 버튼으로 검색하세요" (제목이 영어라 로컬에선 안 걸림)
+        //   그 외 검색어 → "검색 결과 없음"
+        //   검색어 없음 → "이 상태의 게임 없음"
         boolean isEmpty = filtered.isEmpty();
-        binding.textViewEmpty.setText(hasQuery
-                ? R.string.library_search_empty
-                : R.string.library_empty);
+        boolean koreanQuery = hasQuery && KoreanQueryResolver.hasKorean(currentQuery);
+        int emptyMessage;
+        if (koreanQuery) {
+            emptyMessage = R.string.library_search_press_enter;
+        } else if (hasQuery) {
+            emptyMessage = R.string.library_search_empty;
+        } else {
+            emptyMessage = R.string.library_empty;
+        }
+        binding.textViewEmpty.setText(emptyMessage);
         binding.textViewEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
         binding.recyclerViewLibrary.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
     }
@@ -600,6 +619,9 @@ public class LibraryActivity extends AppCompatActivity {
         searchItem = menu.findItem(R.id.action_search);
         searchView = (SearchView) searchItem.getActionView();
         searchView.setQueryHint(getString(R.string.library_search_hint));
+        // 제출(→) 버튼 표시 → 사용자가 엔터를 몰라도 이 버튼으로 검색을 확정할 수 있음
+        // (한글 검색은 '확정'해야 AI 보정이 도니, 눈에 보이는 버튼이 필요)
+        searchView.setSubmitButtonEnabled(true);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -610,6 +632,7 @@ public class LibraryActivity extends AppCompatActivity {
                 // 한글이면(제목은 영어라 안 걸림) 엔터 시 영어로 보정한 뒤 그 결과로 필터한다
                 // (타이핑 중엔 로컬 필터라 한글이면 결과가 없다가, 엔터로 확정하면 영어로 바뀌어 잡힘)
                 if (KoreanQueryResolver.hasKorean(query)) {
+                    showSearching();   // AI가 한글→영어로 바꾸는 동안 "검색 중…" 표시
                     queryResolver.toEnglish(query, LibraryActivity.this::applyResolvedQuery);
                 }
                 // true 반환: SearchView 기본 동작(제안 목록 등) 없이 우리가 처리 끝냈음을 알림

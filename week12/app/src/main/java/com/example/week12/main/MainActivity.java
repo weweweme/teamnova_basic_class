@@ -14,10 +14,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
-import com.kakao.sdk.user.UserApiClient;
-
-import kotlin.Unit;
-
 import com.example.week12.App;
 import com.example.week12.R;
 import com.example.week12.account.AccountManager;
@@ -48,9 +44,15 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
 
     /// <summary>
-    /// 전역 계정 관리자 (로그아웃 / 계정 삭제 메뉴 처리에 사용)
+    /// 전역 계정 관리자 (계정 존재 여부 확인 등에 사용)
     /// </summary>
     private AccountManager accountManager;
+
+    /// <summary>
+    /// "서버 역할" 인증 계층 — 로그아웃/계정삭제 시 소셜 세션 정리까지 여기서 담당
+    /// (화면은 "로그아웃해줘"만 요청하고, 어떤 SDK를 어떻게 정리할지는 이 계층이 안다)
+    /// </summary>
+    private AuthRepository authRepository;
 
     /// <summary>
     /// '내 일지' 탭 프래그먼트 (한 번 만들어 재사용 → 탭 오갈 때마다 새로 만들지 않음)
@@ -93,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         accountManager = ((App) getApplication()).getAccountManager();
+        authRepository = new AuthRepository(this, accountManager);
 
         // 화면이 처음 만들어질 때만 기본 탭(내 일지)을 세팅
         // (savedInstanceState != null = 회전 등으로 재생성 → 프래그먼트는 시스템이 복원하므로 다시 안 넣음)
@@ -223,52 +226,12 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle(R.string.logout_confirm_title)
                 .setMessage(R.string.logout_confirm_message)
                 .setPositiveButton(R.string.logout_confirm_ok, (dialog, which) -> {
-                    logoutKakaoIfNeeded();   // 카카오 계정이면 카카오 세션도 끊기 (우리 로그아웃 전에)
-                    accountManager.logout();
+                    // 소셜 세션 정리 + 우리 세션 비우기를 인증 계층에 맡긴다 (화면은 SDK를 몰라도 됨)
+                    authRepository.logout();
                     goToLogin();
                 })
                 .setNegativeButton(android.R.string.cancel, null)
                 .show();
-    }
-
-    /// <summary>
-    /// 현재 로그인 계정이 카카오 계정이면 카카오 세션도 함께 끊는다 (진짜 로그아웃)
-    ///
-    /// 안 그러면 카카오 토큰이 남아, 로그아웃 후 다시 "카카오로 로그인" 하면
-    /// 재동의 없이 곧바로 같은 계정으로 들어가버린다 (다른 계정으로 못 바꾸는 느낌).
-    /// 주의: accountManager.logout()이 현재 계정을 비우기 전에 호출해야 카카오 계정인지 판별 가능.
-    /// </summary>
-    private void logoutKakaoIfNeeded() {
-        String currentId = accountManager.getCurrentAccountId();
-        boolean isKakao = currentId != null
-                && currentId.startsWith(AuthRepository.KAKAO_ACCOUNT_PREFIX);
-        if (isKakao) {
-            UserApiClient.getInstance().logout(error -> {
-                // 카카오 세션 끊기 (토큰 만료). 실패해도 우리 로그아웃은 계속 진행.
-                // 콜백이 코틀린 함수 타입(반환형 Unit)이라 자바에선 Unit.INSTANCE를 돌려줘야 함
-                return Unit.INSTANCE;
-            });
-        }
-    }
-
-    /// <summary>
-    /// 현재 로그인 계정이 카카오 계정이면 카카오 "연결 끊기"(unlink)까지 한다 (계정 삭제용)
-    ///
-    /// 로그아웃(logout)은 토큰만 만료시키고 앱↔카카오 연결·동의는 남긴다.
-    /// unlink는 그 연결·동의까지 완전히 해제 → 다음 카카오 로그인 때 "처음처럼" 동의 화면부터 뜨고
-    /// 새 계정으로 다시 만들어진다. 계정을 통째로 지우는 상황엔 이게 맞다.
-    /// (accountManager.deleteAccount() 전에 호출해야 현재 계정이 카카오인지 판별 가능)
-    /// </summary>
-    private void unlinkKakaoIfNeeded() {
-        String currentId = accountManager.getCurrentAccountId();
-        boolean isKakao = currentId != null
-                && currentId.startsWith(AuthRepository.KAKAO_ACCOUNT_PREFIX);
-        if (isKakao) {
-            UserApiClient.getInstance().unlink(error -> {
-                // 연결 끊기 (앱↔카카오 완전 해제). 실패해도 로컬 계정 삭제는 계속 진행.
-                return Unit.INSTANCE;
-            });
-        }
     }
 
     /// <summary>
@@ -287,10 +250,9 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle(R.string.delete_account_confirm_title)
                 .setMessage(getString(R.string.delete_account_confirm_message, nickname))
                 .setPositiveButton(R.string.delete_account_confirm_ok, (dialog, which) -> {
-                    // 계정 삭제는 완전히 관계를 끊는 것 → 카카오는 로그아웃이 아니라 "연결 끊기"(unlink)
-                    // → 다음에 다시 카카오 로그인하면 처음처럼 동의 화면부터 뜨고 새 계정으로 생성됨
-                    unlinkKakaoIfNeeded();
-                    accountManager.deleteAccount(currentId);
+                    // 소셜 연동 해제 + 로컬 계정 삭제를 인증 계층에 맡긴다
+                    // (소셜은 로그아웃이 아니라 "연동 해제" → 다음 로그인 때 처음처럼 동의부터)
+                    authRepository.deleteCurrentAccount();
                     goToLogin();
                 })
                 .setNegativeButton(android.R.string.cancel, null)

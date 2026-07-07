@@ -7,7 +7,9 @@ import com.example.week12.model.Account;
 import com.kakao.sdk.auth.model.OAuthToken;
 import com.kakao.sdk.user.UserApiClient;
 import com.kakao.sdk.user.model.User;
+import com.navercorp.nid.NaverIdLoginSDK;
 import com.navercorp.nid.oauth.NidOAuthLogin;
+import com.navercorp.nid.oauth.util.NidOAuthCallback;
 import com.navercorp.nid.profile.domain.vo.NidProfile;
 import com.navercorp.nid.profile.domain.vo.NidProfileDetail;
 import com.navercorp.nid.profile.util.NidProfileCallback;
@@ -149,6 +151,91 @@ public class AuthRepository {
             accountManager.setAutoLogin(keepLogin);
         }
         return ok;
+    }
+
+    /// <summary>
+    /// 로그아웃 — 로그인의 짝. 현재 계정이 소셜(카카오/네이버)이면 그 SDK 세션(토큰)도 지운 뒤,
+    /// 우리 세션(current_account)을 비운다.
+    ///
+    /// 소셜 토큰을 안 지우면, 로그아웃 후 다시 소셜 로그인할 때 로그인 창 없이 곧바로 같은 계정으로
+    /// 들어가버린다. "어떤 SDK를 어떻게 정리하나"는 화면이 아니라 이 인증 계층이 알아야 할 일이다.
+    /// (accountManager.logout()이 현재 계정을 비우기 전에 소셜 정리를 먼저 해야 provider 판별 가능)
+    /// </summary>
+    public void logout() {
+        String currentId = accountManager.getCurrentAccountId();
+        clearSocialSession(currentId);
+        accountManager.logout();
+    }
+
+    /// <summary>
+    /// 현재 계정 삭제 — 현재 계정이 소셜이면 연동까지 완전히 해제한 뒤, 로컬 계정을 통째로 지운다.
+    ///
+    /// 로그아웃은 토큰만 지우지만, 삭제는 앱↔소셜 "연동·동의"까지 끊는다 → 다음 소셜 로그인 때
+    /// 처음처럼 동의 화면부터 뜨고 새 계정으로 다시 만들어진다.
+    /// (deleteAccount 전에 소셜 연동 해제를 먼저 해야 provider 판별 가능)
+    /// </summary>
+    public void deleteCurrentAccount() {
+        String currentId = accountManager.getCurrentAccountId();
+        if (currentId == null) {
+            return;
+        }
+        unlinkSocial(currentId);
+        accountManager.deleteAccount(currentId);
+    }
+
+    /// <summary>
+    /// 계정 provider를 보고 소셜 세션(토큰)을 지운다 (로그아웃용). 소셜이 아니면 아무 일 안 함.
+    ///   - 카카오: UserApiClient.logout (토큰 만료)
+    ///   - 네이버: NaverIdLoginSDK.logout (토큰 제거)
+    /// 결과와 무관하게 우리 로그아웃은 진행하므로, 콜백은 비워둔다.
+    /// </summary>
+    private void clearSocialSession(String accountId) {
+        if (accountId == null) {
+            return;
+        }
+        if (accountId.startsWith(KAKAO_ACCOUNT_PREFIX)) {
+            // 콜백이 코틀린 함수 타입(반환형 Unit)이라 자바에선 Unit.INSTANCE를 돌려줘야 함
+            UserApiClient.getInstance().logout(error -> Unit.INSTANCE);
+        } else if (accountId.startsWith(NAVER_ACCOUNT_PREFIX)) {
+            NaverIdLoginSDK.INSTANCE.logout(new NidOAuthCallback() {
+                @Override
+                public void onSuccess() {
+                    // 토큰 제거 성공 — 따로 할 일 없음
+                }
+
+                @Override
+                public void onFailure(String httpStatus, String message) {
+                    // 실패해도 우리 로그아웃은 계속 진행
+                }
+            });
+        }
+    }
+
+    /// <summary>
+    /// 계정 provider를 보고 소셜 "연동 해제"까지 한다 (계정 삭제용). 소셜이 아니면 아무 일 안 함.
+    ///   - 카카오: UserApiClient.unlink (앱↔카카오 완전 해제)
+    ///   - 네이버: NidOAuthLogin.callDeleteTokenApi (서버에서 토큰 삭제 = 연동 해제)
+    /// 결과와 무관하게 로컬 계정 삭제는 진행하므로, 콜백은 비워둔다.
+    /// </summary>
+    private void unlinkSocial(String accountId) {
+        if (accountId == null) {
+            return;
+        }
+        if (accountId.startsWith(KAKAO_ACCOUNT_PREFIX)) {
+            UserApiClient.getInstance().unlink(error -> Unit.INSTANCE);
+        } else if (accountId.startsWith(NAVER_ACCOUNT_PREFIX)) {
+            new NidOAuthLogin().callDeleteTokenApi(new NidOAuthCallback() {
+                @Override
+                public void onSuccess() {
+                    // 연동 해제 성공 — 따로 할 일 없음
+                }
+
+                @Override
+                public void onFailure(String httpStatus, String message) {
+                    // 실패해도 로컬 계정 삭제는 계속 진행
+                }
+            });
+        }
     }
 
     /// <summary>

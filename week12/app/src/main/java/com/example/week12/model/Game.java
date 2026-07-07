@@ -34,8 +34,17 @@ public class Game implements Parcelable {
 
     /// <summary>
     /// 게임 고유 ID (더미 데이터에서 1, 2, 3... 순서로 부여)
+    /// 주의: 이건 "이 기기 안에서만" 통하는 로컬 번호(반 출석번호 같은 것)라, 타인과 매칭엔 못 쓴다
     /// </summary>
     private final int id;
+
+    /// <summary>
+    /// RAWG 정식 게임 번호 (전 세계 공통 신분증 — 주민등록번호 같은 것). 없으면 0.
+    /// 검색으로 추가한 게임만 값이 있고(그 게임의 RAWG id), 시드·수동 추가 게임은 0(정식 등록 없음).
+    /// 나중에 서버/소셜을 붙일 때 "이 게임 == 저 사람의 그 게임"을 맞추는 크로스 유저 공통 키로 쓴다.
+    /// coverUri처럼 생성 직후 setRawgId로 심으므로 final이 아님 (기본 0)
+    /// </summary>
+    private int rawgId;
 
     /// <summary>
     /// 게임 제목 (예: "젤다의 전설: 왕국의 눈물")
@@ -117,6 +126,7 @@ public class Game implements Parcelable {
                 Platform platform, String storeUrl, GameStatus status,
                 float rating, String review) {
         this.id = id;
+        this.rawgId = 0;   // 정식(RAWG) id 없음 — 검색으로 추가할 때만 setRawgId로 채운다
         this.title = title;
         this.coverAssetName = coverAssetName;
         this.genre = genre;
@@ -156,6 +166,8 @@ public class Game implements Parcelable {
         this.screenshots = in.createStringArrayList();
         // 사용자가 고른 표지 URI (없으면 null) — writeToParcel 맨 끝에서 쓴 것을 여기서 읽음
         this.coverUri = in.readString();
+        // RAWG 정식 id (없으면 0) — 맨 끝에서 읽음 (쓰는 쪽도 맨 끝에서 씀)
+        this.rawgId = in.readInt();
     }
 
     // ========== Parcelable 구현 ==========
@@ -183,6 +195,8 @@ public class Game implements Parcelable {
         dest.writeStringList(screenshots);
         // 사용자가 고른 표지 URI (없으면 null) — 맨 끝에 붙임 (읽는 쪽도 맨 끝에서 읽음)
         dest.writeString(coverUri);
+        // RAWG 정식 id (없으면 0) — 맨 끝에 붙임
+        dest.writeInt(rawgId);
     }
 
     /// <summary>
@@ -224,6 +238,20 @@ public class Game implements Parcelable {
     /// </summary>
     public int getId() {
         return id;
+    }
+
+    /// <summary>
+    /// RAWG 정식 게임 번호 반환 (없으면 0 = 정식 등록 안 됨 = 타인과 매칭 불가)
+    /// </summary>
+    public int getRawgId() {
+        return rawgId;
+    }
+
+    /// <summary>
+    /// RAWG 정식 게임 번호 설정 (검색으로 추가할 때 그 게임의 RAWG id를 심는다)
+    /// </summary>
+    public void setRawgId(int rawgId) {
+        this.rawgId = rawgId;
     }
 
     /// <summary>

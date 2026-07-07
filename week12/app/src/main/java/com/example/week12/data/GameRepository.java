@@ -463,17 +463,29 @@ public class GameRepository {
     /// </summary>
     public Game addGame(String title, Genre genre, Platform platform, String storeUrl,
                         String coverUri) {
-        // 상태를 안 정한 추가(수동 입력 등)는 "찜 목록"(하고 싶은 목록)으로 시작
-        return addGame(title, genre, platform, storeUrl, coverUri, GameStatus.BACKLOG);
+        // 상태·정식 id를 안 정한 추가(수동 입력 등)는 "찜 목록" + 정식 id 없음(0)
+        return addGame(title, genre, platform, storeUrl, coverUri, GameStatus.BACKLOG, 0);
     }
 
     /// <summary>
     /// 새 게임을 라이브러리에 추가 (진행 상태를 직접 지정하는 버전)
     /// RAWG 검색 추가처럼 "이미 플레이했을 수도" 있는 경우, 사용자가 고른 상태로 담는다.
-    /// 위의 5-인자 버전은 상태를 BACKLOG로 고정해 이 메서드를 부른다.
+    /// 정식(RAWG) id는 0(없음)으로 두는 버전 — 아래 7-인자 버전에 위임한다.
     /// </summary>
     public Game addGame(String title, Genre genre, Platform platform, String storeUrl,
                         String coverUri, GameStatus status) {
+        return addGame(title, genre, platform, storeUrl, coverUri, status, 0);
+    }
+
+    /// <summary>
+    /// 새 게임을 라이브러리에 추가 (진행 상태 + RAWG 정식 id까지 지정하는 가장 완전한 버전)
+    ///
+    /// rawgId: RAWG 정식 게임 번호 (검색으로 추가하면 그 게임의 RAWG id, 없으면 0).
+    ///   나중에 서버/소셜에서 "같은 게임"을 사용자 간에 맞추는 공통 키가 된다.
+    /// 위의 5-인자/6-인자 버전은 rawgId를 0으로 고정해 이 메서드를 부른다.
+    /// </summary>
+    public Game addGame(String title, Genre genre, Platform platform, String storeUrl,
+                        String coverUri, GameStatus status, int rawgId) {
         Game newGame = new Game(
                 this.nextId,
                 title,
@@ -487,6 +499,8 @@ public class GameRepository {
         );
         // 사용자가 표지 이미지를 골랐으면 URI 설정 (없으면 null → 기본 아이콘)
         newGame.setCoverUri(coverUri);
+        // RAWG 정식 id 심기 (검색 추가면 값이 있고, 수동/시드면 0)
+        newGame.setRawgId(rawgId);
         this.games.add(newGame);
         this.nextId++;
         // 추가 게임은 코드 시드에 없으니 통째로 저장해야 재시작 후에도 남음
@@ -889,6 +903,7 @@ public class GameRepository {
         try {
             JSONObject o = new JSONObject();
             o.put("id", g.getId());
+            o.put("rawgId", g.getRawgId());
             o.put("title", g.getTitle());
             o.put("coverAssetName", g.getCoverAssetName());
             o.put("coverUri", g.getCoverUri() == null ? JSONObject.NULL : g.getCoverUri());
@@ -927,6 +942,7 @@ public class GameRepository {
                     (float) o.optDouble("rating", 0),
                     o.optString("review", ""));
             g.setCoverUri(o.isNull("coverUri") ? null : o.optString("coverUri", null));
+            g.setRawgId(o.optInt("rawgId", 0));
             JSONArray shots = o.optJSONArray("screenshots");
             if (shots != null) {
                 for (int i = 0; i < shots.length(); i++) {

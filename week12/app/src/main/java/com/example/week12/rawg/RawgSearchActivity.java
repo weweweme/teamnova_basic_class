@@ -180,11 +180,13 @@ public class RawgSearchActivity extends AppCompatActivity {
         Genre genre = RawgGameMapper.toGenre(game.getGenreSlugs());
         Platform platform = RawgGameMapper.toPlatform(game.getPlatformSlugs());
 
-        // 보관함에 추가: 제목·장르·플랫폼·표지·상태를 채움 (수동 입력 대체)
+        // 보관함에 추가: 제목·장르·플랫폼·표지·상태 + RAWG 정식 id를 채움 (수동 입력 대체)
         // storeUrl은 RAWG 검색 목록에 없어 빈 값. 표지는 https 원격 주소를 coverUri로 저장 →
         // 보관함 그리드가 loadUri로 표시(P3에서 원격 로딩 지원). 표지 없는 게임이면 null → 기본 아이콘
+        // rawgId: 나중에 서버/소셜에서 "같은 게임"을 사용자 간에 맞추는 공통 키로 심어둔다
         Game added = repository.addGame(
-                game.getName(), genre, platform, "", game.getCoverImageUrl(), status);
+                game.getName(), genre, platform, "", game.getCoverImageUrl(), status,
+                game.getRawgId());
 
         // 최근 활동 피드에 "추가함" 기록 (수동 추가와 동일 — 로그인 상태에서만 userPrefs 존재)
         UserPrefs userPrefs = app.getUserPrefs();

@@ -21,6 +21,7 @@ import kotlin.Unit;
 import com.example.week12.App;
 import com.example.week12.R;
 import com.example.week12.account.AccountManager;
+import com.example.week12.account.AuthRepository;
 import com.example.week12.account.LoginActivity;
 import com.example.week12.community.CommunityFragment;
 import com.example.week12.databinding.ActivityMainBinding;
@@ -240,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
     private void logoutKakaoIfNeeded() {
         String currentId = accountManager.getCurrentAccountId();
         boolean isKakao = currentId != null
-                && currentId.startsWith(LoginActivity.KAKAO_ACCOUNT_PREFIX);
+                && currentId.startsWith(AuthRepository.KAKAO_ACCOUNT_PREFIX);
         if (isKakao) {
             UserApiClient.getInstance().logout(error -> {
                 // 카카오 세션 끊기 (토큰 만료). 실패해도 우리 로그아웃은 계속 진행.

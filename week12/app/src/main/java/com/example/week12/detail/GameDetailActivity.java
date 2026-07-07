@@ -26,6 +26,8 @@ import com.example.week12.account.UserPrefs;
 import com.example.week12.data.CommunityRepository;
 import com.example.week12.data.RawgApi;
 import com.example.week12.data.RawgDetailCallback;
+import com.example.week12.data.RawgScreenshotsCallback;
+import com.example.week12.data.RawgStoreCallback;
 import com.example.week12.databinding.ActivityGameDetailBinding;
 import com.example.week12.databinding.DialogScreenshotZoomBinding;
 import com.example.week12.util.CoverImageLoader;
@@ -75,6 +77,16 @@ public class GameDetailActivity extends AppCompatActivity {
     /// RAWG 상세 조회용 (rawgId가 있는 게임의 설명·개발사·메타크리틱을 불러올 때 사용)
     /// </summary>
     private final RawgApi rawgApi = new RawgApi();
+
+    /// <summary>
+    /// RAWG에서 불러온 스토어 링크 (게임 자체의 storeUrl이 비어 있을 때 대신 씀). 없으면 빈 문자열
+    /// </summary>
+    private String fetchedStoreUrl = "";
+
+    /// <summary>
+    /// RAWG에서 불러온 스크린샷 주소들 (사용자가 직접 넣은 스크린샷이 없을 때 대신 보여줌)
+    /// </summary>
+    private java.util.List<String> rawgScreenshots = new java.util.ArrayList<>();
 
     /// <summary>
     /// ReviewWriteActivity를 실행하고 결과(별점/한줄평)를 받는 런처
@@ -367,6 +379,41 @@ public class GameDetailActivity extends AppCompatActivity {
 
         // RAWG 상세(설명·개발사·메타크리틱) 불러오기 (rawgId가 있는 게임만) — 화면 열 때 한 번
         loadRawgDetail();
+
+        // 스토어 링크가 없으면(검색 추가 게임) RAWG에서 실제 스토어 링크를 미리 받아둔다
+        loadStoreUrlIfNeeded();
+
+        // 사용자가 넣은 스크린샷이 없으면 RAWG 스크린샷을 불러와 대신 보여준다
+        loadRawgScreenshotsIfNeeded();
+    }
+
+    /// <summary>
+    /// 사용자가 직접 넣은 스크린샷이 없고 rawgId가 있으면, RAWG 스크린샷을 불러와 스크린샷 섹션에 보여준다.
+    /// (사용자 스크린샷이 있으면 그걸 우선 → 건너뜀 / 수동 게임은 rawgId=0이라 건너뜀)
+    /// 받아오면 rawgScreenshots에 담고 bindScreenshots를 다시 불러 화면에 반영한다.
+    /// </summary>
+    private void loadRawgScreenshotsIfNeeded() {
+        boolean hasOwnScreenshots = game.getScreenshots() != null && !game.getScreenshots().isEmpty();
+        if (hasOwnScreenshots || game.getRawgId() <= 0) {
+            return;
+        }
+        rawgApi.getScreenshots(game.getRawgId(), imageUrls -> {
+            rawgScreenshots = imageUrls;
+            bindScreenshots();   // 새로 받은 스크린샷으로 섹션 다시 그림
+        });
+    }
+
+    /// <summary>
+    /// 게임 자체의 storeUrl이 비어 있고 rawgId가 있으면, RAWG에서 실제 스토어 링크를 받아 보관한다.
+    /// (시드 게임은 이미 storeUrl이 있어 건너뜀 / 수동 게임은 rawgId=0이라 건너뜀)
+    /// 결과는 fetchedStoreUrl에 담아두고, "스토어 열기"를 누를 때 사용한다.
+    /// </summary>
+    private void loadStoreUrlIfNeeded() {
+        boolean hasOwnStoreUrl = game.getStoreUrl() != null && !game.getStoreUrl().isEmpty();
+        if (hasOwnStoreUrl || game.getRawgId() <= 0) {
+            return;
+        }
+        rawgApi.getStoreUrl(game.getRawgId(), storeUrl -> fetchedStoreUrl = storeUrl);
     }
 
     /// <summary>
@@ -803,8 +850,12 @@ public class GameDetailActivity extends AppCompatActivity {
     /// 앱 선택 다이얼로그 없이 바로 열어도 자연스러움
     /// </summary>
     private void openStoreUrl() {
-        // 스토어 URL이 없으면 사용자에게 알림 (커스텀 게임 등 URL이 없는 경우)
+        // 게임 자체의 스토어 URL 우선, 없으면 RAWG에서 받아둔 실제 스토어 링크 사용
         String url = game.getStoreUrl();
+        if (url == null || url.isEmpty()) {
+            url = fetchedStoreUrl;
+        }
+        // 둘 다 없으면 사용자에게 알림 (수동 게임 등 링크를 못 구한 경우)
         if (url == null || url.isEmpty()) {
             Toast.makeText(this, R.string.detail_no_store_url, Toast.LENGTH_SHORT).show();
             return;
@@ -922,7 +973,10 @@ public class GameDetailActivity extends AppCompatActivity {
     /// (개수가 적고 재활용이 불필요해 RecyclerView 대신 HorizontalScrollView 사용)
     /// </summary>
     private void bindScreenshots() {
-        java.util.List<String> screenshots = game.getScreenshots();
+        // 사용자가 직접 넣은 스크린샷이 우선, 없으면 RAWG에서 받아온 스크린샷을 보여준다
+        java.util.List<String> ownScreenshots = game.getScreenshots();
+        boolean hasOwn = ownScreenshots != null && !ownScreenshots.isEmpty();
+        java.util.List<String> screenshots = hasOwn ? ownScreenshots : rawgScreenshots;
         boolean hasScreenshots = screenshots != null && !screenshots.isEmpty();
 
         // 스크린샷 없으면 섹션 전체 숨김

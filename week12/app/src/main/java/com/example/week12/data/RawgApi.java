@@ -229,6 +229,138 @@ public class RawgApi {
     }
 
     /// <summary>
+    /// rawgId로 이 게임의 "스토어 링크"를 가져온다 (/games/{id}/stores) — 서브 스레드
+    ///
+    /// 게임 응답(/games/{id})의 stores에는 링크(url)가 비어 있고, 진짜 구매 링크는 이 엔드포인트에 있다.
+    /// Steam(store_id=1)을 우선으로 고르고, 없으면 첫 번째 링크. 실패하거나 없으면 빈 문자열.
+    /// 부가 기능이라 성공/실패를 나누지 않고 결과 문자열만 콜백으로 준다.
+    /// </summary>
+    public void getStoreUrl(int rawgId, RawgStoreCallback callback) {
+        new Thread(() -> {
+            HttpURLConnection conn = null;
+            String result = "";
+            // 부가 기능이라 어떤 예외든 조용히 무시하고 빈 문자열로 넘어간다
+            try {
+                URL url = new URL(BASE_URL + "/" + rawgId + "/stores?key=" + API_KEY);
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(conn.getInputStream()));
+                    StringBuilder builder = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        builder.append(line);
+                    }
+                    reader.close();
+                    result = parseBestStoreUrl(builder.toString());
+                }
+            } catch (Exception e) {
+                // 실패 → 빈 문자열 유지
+            } finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
+            }
+
+            final String storeUrl = result;   // 람다에서 쓰려면 사실상 final이어야 함
+            mainHandler.post(() -> callback.onResult(storeUrl));
+        }).start();
+    }
+
+    /// <summary>
+    /// rawgId로 이 게임의 스크린샷 이미지 주소들을 가져온다 (/games/{id}/screenshots) — 서브 스레드
+    /// 부가 기능이라 어떤 예외든 조용히 무시하고 빈 목록으로 넘어간다
+    /// </summary>
+    public void getScreenshots(int rawgId, RawgScreenshotsCallback callback) {
+        new Thread(() -> {
+            HttpURLConnection conn = null;
+            List<String> urls = new ArrayList<>();
+            try {
+                URL url = new URL(BASE_URL + "/" + rawgId + "/screenshots?key=" + API_KEY);
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(conn.getInputStream()));
+                    StringBuilder builder = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        builder.append(line);
+                    }
+                    reader.close();
+                    urls = parseScreenshots(builder.toString());
+                }
+            } catch (Exception e) {
+                // 실패 → 빈 목록 유지
+            } finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
+            }
+
+            final List<String> result = urls;   // 람다에서 쓰려면 사실상 final
+            mainHandler.post(() -> callback.onResult(result));
+        }).start();
+    }
+
+    /// <summary>
+    /// /games/{id}/screenshots 응답에서 이미지 주소들을 뽑는다
+    /// 구조: { "results": [ { "image": "https://media.rawg.io/.../shot.jpg" }, ... ] }
+    /// </summary>
+    private List<String> parseScreenshots(String json) throws JSONException {
+        List<String> list = new ArrayList<>();
+        JSONObject root = new JSONObject(json);
+        JSONArray results = root.optJSONArray("results");
+        if (results == null) {
+            return list;
+        }
+        for (int i = 0; i < results.length(); i++) {
+            JSONObject o = results.optJSONObject(i);
+            if (o == null) {
+                continue;
+            }
+            String image = o.optString("image", "");
+            if (!image.isEmpty()) {
+                list.add(image);
+            }
+        }
+        return list;
+    }
+
+    /// <summary>
+    /// /games/{id}/stores 응답에서 가장 좋은 스토어 링크를 고른다
+    /// 구조: { "results": [ { "store_id": 1, "url": "https://store.steampowered.com/app/..." }, ... ] }
+    /// Steam(store_id=1) 우선, 없으면 첫 번째 유효한 링크, 그것도 없으면 빈 문자열
+    /// </summary>
+    private String parseBestStoreUrl(String json) throws JSONException {
+        JSONObject root = new JSONObject(json);
+        JSONArray results = root.optJSONArray("results");
+        if (results == null) {
+            return "";
+        }
+
+        String firstUrl = "";
+        for (int i = 0; i < results.length(); i++) {
+            JSONObject o = results.optJSONObject(i);
+            if (o == null) {
+                continue;
+            }
+            String url = o.optString("url", "");
+            if (url.isEmpty()) {
+                continue;
+            }
+            if (o.optInt("store_id", 0) == 1) {
+                return url;                 // Steam 발견 → 바로 채택
+            }
+            if (firstUrl.isEmpty()) {
+                firstUrl = url;             // Steam이 아니면 첫 링크를 후보로 보관
+            }
+        }
+        return firstUrl;
+    }
+
+    /// <summary>
     /// RAWG 응답 JSON(글자)에서 게임 목록을 꺼내 RawgGame 목록으로 만든다
     ///
     /// RAWG 응답 구조:

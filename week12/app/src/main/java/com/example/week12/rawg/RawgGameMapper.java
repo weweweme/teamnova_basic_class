@@ -112,15 +112,15 @@ public class RawgGameMapper {
             return Platform.ETC;
         }
 
-        boolean isPc = slug.equals("pc");
+        // PC 계열(윈도우/맥/리눅스)은 모두 PC로 (Steam은 스토어라 검색 매핑에서는 PC로 둔다)
+        boolean isPc = slug.equals("pc") || slug.equals("macos") || slug.equals("linux");
         boolean isPlaystation = slug.startsWith("playstation") || slug.startsWith("ps");
         boolean isXbox = slug.startsWith("xbox");
         boolean isNintendo = slug.startsWith("nintendo");
         boolean isMobile = slug.equals("ios") || slug.equals("android");
 
         if (isPc) {
-            // 우리 앱은 Steam 중심이라 PC 게임은 Steam으로 근사 (가장 가까운 선택지)
-            return Platform.STEAM;
+            return Platform.PC;
         }
         if (isPlaystation) {
             return Platform.PLAYSTATION;

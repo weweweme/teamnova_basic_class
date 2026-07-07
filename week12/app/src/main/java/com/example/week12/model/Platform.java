@@ -7,6 +7,7 @@ package com.example.week12.model;
 /// </summary>
 public enum Platform {
     STEAM("Steam"),
+    PC("PC"),
     PLAYSTATION("PlayStation"),
     XBOX("Xbox"),
     NINTENDO_SWITCH("Nintendo Switch"),

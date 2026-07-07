@@ -140,7 +140,13 @@ public class LoginActivity extends AppCompatActivity {
     /// </summary>
     private void loadAccountsIntoSpinner() {
         accounts.clear();
-        accounts.addAll(accountManager.getAccounts());
+        // 카카오 계정은 PIN이 없어 PIN 로그인 목록에 넣지 않는다 (카카오는 '카카오로 로그인' 버튼 전용)
+        for (Account account : accountManager.getAccounts()) {
+            if (account.getId().startsWith(AuthRepository.KAKAO_ACCOUNT_PREFIX)) {
+                continue;
+            }
+            accounts.add(account);
+        }
 
         // Spinner에는 "계정 아이디"를 보여준다 — 로그인할 때 고르는 식별자이기 때문
         // (별명은 로그인 후 화면 표시용이라 여기엔 안 씀)

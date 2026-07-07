@@ -8,11 +8,15 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.week12.App;
 import com.example.week12.account.AccountManager;
+import com.example.week12.account.AuthRepository;
 import com.example.week12.account.LoginActivity;
 import com.example.week12.databinding.ActivitySplashBinding;
 import com.example.week12.main.MainActivity;
 import com.example.week12.model.Game;
 import com.example.week12.util.CoverImageLoader;
+import com.kakao.sdk.user.UserApiClient;
+
+import kotlin.Unit;
 
 /// <summary>
 /// 스플래시 화면 (앱 진입점)
@@ -112,16 +116,40 @@ public class SplashActivity extends AppCompatActivity {
         boolean hasAccount = accountManager.hasCurrentAccount();
         boolean canAutoLogin = keepLogin && hasAccount;
 
-        // 갈 화면을 먼저 고른다 (Home 또는 Login)
-        Class<?> target = canAutoLogin ? MainActivity.class : LoginActivity.class;
+        // 자동 로그인 조건이 안 되면 → 바로 로그인 화면
+        if (!canAutoLogin) {
+            goTo(LoginActivity.class);
+            return;
+        }
+
+        // 카카오 계정이면 "우리 로컬 플래그"만 믿지 않고, 카카오 세션(토큰)이 실제로 유효한지 확인한다
+        // (카카오에서 연결을 끊었거나 토큰이 만료됐으면 낡은 세션이므로, 로그인 화면으로 보낸다)
+        String currentId = accountManager.getCurrentAccountId();
+        boolean isKakao = currentId != null
+                && currentId.startsWith(AuthRepository.KAKAO_ACCOUNT_PREFIX);
+
+        if (isKakao) {
+            // 카카오에 "이 토큰 유효?" 확인 (accessTokenInfo) — 서브 스레드로 다녀와 결과에 따라 이동
+            UserApiClient.getInstance().accessTokenInfo((tokenInfo, error) -> {
+                boolean tokenValid = error == null && tokenInfo != null;
+                goTo(tokenValid ? MainActivity.class : LoginActivity.class);
+                // 콜백이 코틀린 함수 타입(반환형 Unit)이라 자바에선 Unit.INSTANCE를 돌려줘야 함
+                return Unit.INSTANCE;
+            });
+        } else {
+            // PIN 계정은 기존대로 로컬 세션으로 바로 홈
+            goTo(MainActivity.class);
+        }
+    }
+
+    /// <summary>
+    /// 지정한 화면으로 이동하며 이전 화면(Splash 포함)을 백스택에서 모두 제거
+    /// FLAG_ACTIVITY_NEW_TASK | CLEAR_TASK → 뒤로가기로 Splash에 못 돌아옴
+    /// (Unity에서 로고 Scene을 LoadSceneMode.Single로 날리는 것과 동일)
+    /// </summary>
+    private void goTo(Class<?> target) {
         Intent intent = new Intent(this, target);
-
-        // FLAG_ACTIVITY_NEW_TASK: 새 태스크에서 시작
-        // FLAG_ACTIVITY_CLEAR_TASK: 기존 태스크(Splash 포함) 전부 제거
-        // → 뒤로가기로 Splash에 돌아올 수 없게 함
-        // Unity에서 로고 Scene을 LoadSceneMode.Single로 날리는 것과 동일
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
         startActivity(intent);
     }
 }

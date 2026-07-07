@@ -191,6 +191,9 @@
     <!-- %d = 남은 일수 -->
     <string name="trash_days_left">%d일 후 삭제</string>
 
+    <!-- RAWG 게임 검색 (API로 검색해서 추가) -->
+    <string name="rawg_search_title">게임 검색</string>
+
     <!-- 게임 추가 -->
     <string name="add_game_title">게임 추가</string>
     <string name="add_game_hint_title">게임 제목</string>

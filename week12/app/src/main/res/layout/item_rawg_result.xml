@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- RAWG 검색 결과 한 줄 레이아웃 -->
+<!-- RawgSearchActivity의 결과 RecyclerView 항목 (LinearLayoutManager 세로 리스트) -->
+<!-- 보관함 그리드(세로 포스터)와 달리, 검색 결과는 가로형 한 줄: [표지 썸네일] [제목/출시일/평점] -->
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="12dp"
+    android:layout_marginEnd="12dp"
+    android:layout_marginTop="6dp"
+    android:layout_marginBottom="6dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="3dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <!-- 표지 썸네일 (가로 리스트라 작게, 세로 포스터 비율) -->
+        <!-- P2에서는 기본 아이콘, P3에서 원격 이미지(https)를 불러와 채운다 -->
+        <ImageView
+            android:id="@+id/imageViewCover"
+            android:layout_width="60dp"
+            android:layout_height="80dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/game_cover_description" />
+
+        <!-- 제목 + 출시일 + 평점 (표지 오른쪽, 세로로 쌓기) -->
+        <!-- weight=1: 표지를 뺀 나머지 가로 공간을 다 차지 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:layout_gravity="center_vertical"
+            android:orientation="vertical">
+
+            <!-- 게임 제목 (길면 두 줄까지, 넘치면 말줄임) -->
+            <TextView
+                android:id="@+id/textViewName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:maxLines="2"
+                android:ellipsize="end"
+                tools:text="The Legend of Zelda: Breath of the Wild" />
+
+            <!-- 출시일 (없으면 코드에서 "출시일 미정"으로 표시) -->
+            <TextView
+                android:id="@+id/textViewReleased"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="12sp"
+                android:textColor="#757575"
+                tools:text="2017-03-03" />
+
+            <!-- RAWG 평균 평점 (별 아이콘 + 숫자) -->
+            <TextView
+                android:id="@+id/textViewRating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textSize="12sp"
+                tools:text="★ 4.4" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

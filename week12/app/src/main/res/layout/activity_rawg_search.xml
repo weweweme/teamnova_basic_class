@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- RAWG 게임 검색 화면 -->
+<!-- 위: 검색창 + 검색 버튼 / 아래: 결과 리스트 (로딩·빈 상태를 같은 자리에 겹쳐 표시) -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF">
+
+    <!-- 검색 바 (검색어 입력칸 + 검색 버튼) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical">
+
+        <!-- 검색어 입력칸 -->
+        <!-- imeOptions=actionSearch: 키보드의 엔터가 "검색" 버튼으로 바뀜 -->
+        <!-- maxLines=1 + inputType=text: 한 줄짜리 검색어 -->
+        <EditText
+            android:id="@+id/editTextSearch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="게임 이름을 검색하세요"
+            android:inputType="text"
+            android:maxLines="1"
+            android:imeOptions="actionSearch"
+            android:importantForAutofill="no" />
+
+        <!-- 검색 버튼 -->
+        <Button
+            android:id="@+id/buttonSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="검색" />
+    </LinearLayout>
+
+    <!-- 결과 영역: RecyclerView(결과) 위에 로딩/빈 상태를 겹쳐 둠 -->
+    <!-- weight=1: 검색 바를 뺀 나머지 세로 공간을 다 차지 -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- 검색 결과 리스트 (세로 스크롤) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewResults"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp" />
+
+        <!-- 로딩 스피너 (검색 중에만 표시 — 기본은 숨김) -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+        <!-- 빈 상태/안내 문구 (검색 전 안내, 또는 결과 없음/실패 시 표시) -->
+        <TextView
+            android:id="@+id/textViewEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textColor="#757575"
+            android:textSize="14sp"
+            tools:text="게임 이름을 검색해보세요" />
+    </FrameLayout>
+
+</LinearLayout>

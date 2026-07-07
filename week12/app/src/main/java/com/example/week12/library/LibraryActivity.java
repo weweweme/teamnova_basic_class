@@ -709,8 +709,12 @@ public class LibraryActivity extends AppCompatActivity {
         }
 
         if (itemId == R.id.action_add_game) {
+            // [임시 P2 테스트] + 아이콘 → RAWG 검색 화면 열기 (검색 UI 확인용)
+            // 정식으로는 P4에서 "검색으로 추가 / 직접 입력" 선택 창을 띄우고,
+            // 아래 수동 추가(addGameLauncher)와 병존시킬 예정
+            startActivity(new Intent(this, com.example.week12.rawg.RawgSearchActivity.class));
             // + 아이콘 → AddGameActivity를 런처로 실행 (결과로 새 게임 정보 받음)
-            addGameLauncher.launch(new Intent(this, AddGameActivity.class));
+            // addGameLauncher.launch(new Intent(this, AddGameActivity.class));
             return true;
         }
 

@@ -178,6 +178,14 @@
             android:label="@string/add_game_title"
             android:parentActivityName=".library.LibraryActivity"
             android:exported="false" />
+
+        <!-- RAWG 게임 검색: API로 검색해서 보관함에 추가 (12주차) -->
+        <!-- parentActivityName: ← 버튼 누르면 보관함으로 돌아감 -->
+        <activity
+            android:name=".rawg.RawgSearchActivity"
+            android:label="@string/rawg_search_title"
+            android:parentActivityName=".library.LibraryActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

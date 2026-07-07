@@ -147,10 +147,47 @@ public class RawgApi {
             // 평점: 0.0~5.0 (double로 오므로 float로 변환)
             float rating = (float) gameObj.optDouble("rating", 0);
 
-            list.add(new RawgGame(rawgId, name, coverImageUrl, released, rating));
+            // 장르·플랫폼: 배열의 "첫 번째" 것만 대표로 꺼낸다 (게임 하나에 여러 개일 수 있음)
+            String genreSlug = firstGenreSlug(gameObj);
+            String platformSlug = firstPlatformSlug(gameObj);
+
+            list.add(new RawgGame(rawgId, name, coverImageUrl, released, rating,
+                    genreSlug, platformSlug));
         }
 
         return list;
+    }
+
+    /// <summary>
+    /// 게임 JSON에서 첫 장르의 코드값(slug)을 꺼낸다. 없으면 빈 문자열
+    /// 구조: "genres": [ { "name":"Action", "slug":"action" }, ... ]
+    /// (opt 계열만 써서 값이 없어도 예외 없이 빈 문자열로 넘어감)
+    /// </summary>
+    private String firstGenreSlug(JSONObject gameObj) {
+        JSONArray genres = gameObj.optJSONArray("genres");
+        if (genres == null || genres.length() == 0) {
+            return "";
+        }
+        JSONObject first = genres.optJSONObject(0);
+        return first != null ? first.optString("slug", "") : "";
+    }
+
+    /// <summary>
+    /// 게임 JSON에서 첫 플랫폼의 코드값(slug)을 꺼낸다. 없으면 빈 문자열
+    /// 구조: "platforms": [ { "platform": { "name":"PC", "slug":"pc" } }, ... ]
+    /// (플랫폼 정보가 platform이라는 한 겹 안에 더 들어있는 형태라 두 번 파고든다)
+    /// </summary>
+    private String firstPlatformSlug(JSONObject gameObj) {
+        JSONArray platforms = gameObj.optJSONArray("platforms");
+        if (platforms == null || platforms.length() == 0) {
+            return "";
+        }
+        JSONObject firstWrap = platforms.optJSONObject(0);
+        if (firstWrap == null) {
+            return "";
+        }
+        JSONObject platformObj = firstWrap.optJSONObject("platform");
+        return platformObj != null ? platformObj.optString("slug", "") : "";
     }
 
     /// <summary>

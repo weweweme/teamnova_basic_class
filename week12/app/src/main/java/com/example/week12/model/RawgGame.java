@@ -19,6 +19,13 @@ package com.example.week12.model;
 /// coverImageUrl ← "background_image" (표지. 없을 수 있어 null 허용)
 /// released      ← "released" (출시일 "2017-03-03" 형식, 없으면 빈 문자열)
 /// rating        ← "rating" (RAWG 이용자 평균 평점 0.0~5.0)
+/// genreSlug     ← "genres"[0]."slug" (첫 장르의 코드값, 예: "action". 없으면 빈 문자열)
+/// platformSlug  ← "platforms"[0]."platform"."slug" (첫 플랫폼의 코드값, 예: "pc". 없으면 빈 문자열)
+///
+/// ──── slug(슬러그)가 뭔가 ────
+/// RAWG가 장르·플랫폼을 컴퓨터가 다루기 좋게 매긴 짧은 코드 문자열 (예: 액션 → "action", PC → "pc").
+/// 사람에게 보여주는 이름("Action")과 달리 항상 소문자·고정값이라, 우리 enum으로 바꿀 때 기준으로 쓰기 좋다.
+/// 실제 변환은 RawgGameMapper가 담당 (여기서는 원본 값만 그대로 보관).
 /// </summary>
 public class RawgGame {
 
@@ -48,14 +55,27 @@ public class RawgGame {
     private final float rating;
 
     /// <summary>
+    /// 첫 장르의 코드값(slug) — 우리 Genre enum으로 바꿀 때 기준 (예: "action"). 없으면 빈 문자열
+    /// </summary>
+    private final String genreSlug;
+
+    /// <summary>
+    /// 첫 플랫폼의 코드값(slug) — 우리 Platform enum으로 바꿀 때 기준 (예: "pc"). 없으면 빈 문자열
+    /// </summary>
+    private final String platformSlug;
+
+    /// <summary>
     /// 검색 결과 한 건 생성 (모든 값은 RawgApi가 JSON에서 꺼내 채운다)
     /// </summary>
-    public RawgGame(int rawgId, String name, String coverImageUrl, String released, float rating) {
+    public RawgGame(int rawgId, String name, String coverImageUrl, String released, float rating,
+                    String genreSlug, String platformSlug) {
         this.rawgId = rawgId;
         this.name = name;
         this.coverImageUrl = coverImageUrl;
         this.released = released;
         this.rating = rating;
+        this.genreSlug = genreSlug;
+        this.platformSlug = platformSlug;
     }
 
     /// <summary>
@@ -91,5 +111,19 @@ public class RawgGame {
     /// </summary>
     public float getRating() {
         return rating;
+    }
+
+    /// <summary>
+    /// 첫 장르 코드값(slug) 반환 (없으면 빈 문자열)
+    /// </summary>
+    public String getGenreSlug() {
+        return genreSlug;
+    }
+
+    /// <summary>
+    /// 첫 플랫폼 코드값(slug) 반환 (없으면 빈 문자열)
+    /// </summary>
+    public String getPlatformSlug() {
+        return platformSlug;
     }
 }

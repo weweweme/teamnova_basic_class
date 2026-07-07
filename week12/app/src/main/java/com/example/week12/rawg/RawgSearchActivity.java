@@ -10,9 +10,16 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.week12.App;
+import com.example.week12.account.UserPrefs;
+import com.example.week12.data.GameRepository;
 import com.example.week12.data.RawgApi;
 import com.example.week12.data.RawgSearchCallback;
 import com.example.week12.databinding.ActivityRawgSearchBinding;
+import com.example.week12.model.ActivityLogType;
+import com.example.week12.model.Game;
+import com.example.week12.model.Genre;
+import com.example.week12.model.Platform;
 import com.example.week12.model.RawgGame;
 
 import java.util.ArrayList;
@@ -137,11 +144,33 @@ public class RawgSearchActivity extends AppCompatActivity {
     }
 
     /// <summary>
-    /// 결과 항목 클릭 처리
-    /// 현재(P2)는 어떤 게임을 골랐는지 토스트로만 확인. 보관함 추가는 P4에서 연결.
+    /// 결과 항목 클릭 처리 — 고른 게임을 우리 Game으로 변환해 보관함에 추가하고 복귀
+    ///
+    /// 흐름: RawgGame → (장르/플랫폼 매핑) → repository.addGame → 최근 활동 기록 → 토스트 → finish
+    /// finish 후 보관함(LibraryActivity)의 onResume이 목록을 새로고침해 추가된 게임이 보인다.
     /// </summary>
     private void onResultClick(RawgGame game) {
-        Toast.makeText(this, "선택: " + game.getName(), Toast.LENGTH_SHORT).show();
+        App app = (App) getApplication();
+        GameRepository repository = app.getGameRepository();
+
+        // RAWG 슬러그 → 우리 enum (근사 매핑, 없으면 기타)
+        Genre genre = RawgGameMapper.toGenre(game.getGenreSlug());
+        Platform platform = RawgGameMapper.toPlatform(game.getPlatformSlug());
+
+        // 보관함에 추가: 제목·장르·플랫폼·표지를 자동으로 채움 (수동 입력 대체)
+        // storeUrl은 RAWG 검색 목록에 없어 빈 값. 표지는 https 원격 주소를 coverUri로 저장 →
+        // 보관함 그리드가 loadUri로 표시(P3에서 원격 로딩 지원). 표지 없는 게임이면 null → 기본 아이콘
+        Game added = repository.addGame(
+                game.getName(), genre, platform, "", game.getCoverImageUrl());
+
+        // 최근 활동 피드에 "추가함" 기록 (수동 추가와 동일 — 로그인 상태에서만 userPrefs 존재)
+        UserPrefs userPrefs = app.getUserPrefs();
+        if (userPrefs != null) {
+            userPrefs.addActivityLog(ActivityLogType.ADDED, added.getId(), "");
+        }
+
+        Toast.makeText(this, "보관함에 추가됨: " + added.getTitle(), Toast.LENGTH_SHORT).show();
+        finish();   // 보관함으로 복귀 → onResume에서 목록 새로고침
     }
 
     // ========== 화면 상태 전환 (셋 중 하나만 표시) ==========

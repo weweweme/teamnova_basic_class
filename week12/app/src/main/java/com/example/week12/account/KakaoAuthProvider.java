@@ -1,5 +1,7 @@
 package com.example.week12.account;
 
+import android.app.Activity;
+
 import com.kakao.sdk.user.UserApiClient;
 import com.kakao.sdk.user.model.User;
 
@@ -35,11 +37,30 @@ public class KakaoAuthProvider implements SocialAuthProvider {
     }
 
     /// <summary>
-    /// 지금 로그인된 토큰으로 카카오에 사용자를 물어본다(me) → 확인된 신원을 콜백으로 전달
-    /// (토큰이 없거나 유효하지 않으면 error가 와서 실패로 처리된다)
+    /// 로그인 — 카카오계정 로그인 창을 띄우고(웹), 성공하면 신원을 확인해 콜백으로 전달한다.
+    /// (카톡 앱 없는 기기에서도 되도록 loginWithKakaoAccount(웹)로 통일)
     /// </summary>
     @Override
-    public void verify(SocialAuthCallback callback) {
+    public void login(Activity activity, SocialAuthCallback callback) {
+        UserApiClient.getInstance().loginWithKakaoAccount(activity, (token, error) -> {
+            // 로그인 창에서 실패했거나 취소하면 토큰이 없다
+            boolean failed = error != null || token == null;
+            if (failed) {
+                callback.onFailed("카카오 로그인 실패");
+            } else {
+                // 로그인 성공(토큰이 SDK에 저장됨) → 그 토큰으로 신원 확인
+                fetchIdentity(callback);
+            }
+            // 콜백이 코틀린 함수 타입(반환형 Unit)이라 자바에선 Unit.INSTANCE를 돌려줘야 함
+            return Unit.INSTANCE;
+        });
+    }
+
+    /// <summary>
+    /// 저장된 토큰으로 카카오에 사용자를 물어본다(me) → 확인된 신원을 콜백으로 전달
+    /// (토큰이 없거나 유효하지 않으면 error가 와서 실패로 처리된다)
+    /// </summary>
+    private void fetchIdentity(SocialAuthCallback callback) {
         UserApiClient.getInstance().me((user, error) -> {
             boolean failed = error != null || user == null || user.getId() == null;
             if (failed) {

@@ -108,5 +108,16 @@
             android:textColor="#FFFFFF"
             android:text="네이버로 로그인" />
 
+        <!-- Google로 로그인 (Credential Manager — ID 토큰 방식) -->
+        <!-- 흰 배경 + 검은 글씨 (구글 버튼 관례) -->
+        <Button
+            android:id="@+id/buttonGoogleLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="#FFFFFF"
+            android:textColor="#000000"
+            android:text="Google로 로그인" />
+
     </LinearLayout>
 </ScrollView>

@@ -49,6 +49,10 @@ dependencies {
     implementation("com.kakao.sdk:v2-user:2.20.6")
     // 네이버 아이디로 로그인 SDK — 네이버 계정으로 로그인 (Maven Central, 별도 저장소 불필요)
     implementation("com.navercorp.nid:oauth:5.11.2")
+    // 구글 로그인 (Credential Manager + Google ID) — 구글 계정으로 로그인
+    implementation("androidx.credentials:credentials:1.5.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

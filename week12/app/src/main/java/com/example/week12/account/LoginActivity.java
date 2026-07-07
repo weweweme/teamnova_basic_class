@@ -7,12 +7,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.kakao.sdk.user.UserApiClient;
-import com.navercorp.nid.NaverIdLoginSDK;
-import com.navercorp.nid.oauth.util.NidOAuthCallback;
-
-import kotlin.Unit;
-
 import com.example.week12.App;
 import com.example.week12.R;
 import com.example.week12.databinding.ActivityLoginBinding;
@@ -97,78 +91,50 @@ public class LoginActivity extends AppCompatActivity {
         binding.buttonSignup.setOnClickListener(v -> onSignupClicked());
         binding.buttonKakaoLogin.setOnClickListener(v -> onKakaoLoginClicked());
         binding.buttonNaverLogin.setOnClickListener(v -> onNaverLoginClicked());
+        binding.buttonGoogleLogin.setOnClickListener(v -> onGoogleLoginClicked());
     }
 
-    // ========== 네이버 로그인 ==========
+    // ========== 소셜 로그인 ==========
 
     /// <summary>
-    /// "네이버로 로그인" 버튼 클릭 → 네이버 계정으로 로그인
-    ///
-    /// 카카오와 똑같은 역할 분리: 화면(여기)은 로그인 창을 띄우고 "토큰"만 받는다.
-    /// 받은 토큰의 검증·세션 발급은 "서버 역할"인 AuthRepository에 맡긴다.
-    /// (NaverIdLoginSDK는 Kotlin object라 Java에선 INSTANCE로 접근)
-    /// </summary>
-    private void onNaverLoginClicked() {
-        NaverIdLoginSDK.INSTANCE.authenticate(this, new NidOAuthCallback() {
-            @Override
-            public void onSuccess() {
-                // 로그인 성공(토큰이 SDK에 저장됨) → 검증·세션 발급을 "서버 역할" 계층에 맡긴다
-                authRepository.loginWithNaver(binding.checkBoxKeepLogin.isChecked(),
-                        new AuthResultCallback() {
-                            @Override
-                            public void onSuccess(String nickname, boolean isNewAccount) {
-                                showToast(getString(R.string.login_success, nickname));
-                                proceedAfterAuth();
-                            }
-
-                            @Override
-                            public void onError(String message) {
-                                showToast(message);
-                            }
-                        });
-            }
-
-            @Override
-            public void onFailure(String httpStatus, String message) {
-                // 로그인 실패/취소 (네이버가 사유를 httpStatus/message로 알려줌)
-                showToast("네이버 로그인 실패");
-            }
-        });
-    }
-
-    // ========== 카카오 로그인 ==========
-
-    /// <summary>
-    /// "카카오로 로그인" 버튼 클릭 → 카카오계정으로 로그인 (웹 로그인)
-    ///
-    /// 화면(여기)은 딱 여기까지만 한다: 로그인 창을 띄우고 "토큰"을 받는 것.
-    /// 받은 토큰의 검증·세션 발급은 "서버 역할"인 AuthRepository에 맡긴다 (역할 분리 — 구조 학습).
-    /// (카톡 앱 없는 기기에서도 되도록 loginWithKakaoAccount(웹)로 통일)
+    /// "카카오로 로그인" 버튼 클릭 → 카카오 로그인을 인증 계층에 맡긴다
+    /// (로그인 창 띄우기·토큰·SDK 처리는 전부 provider가 하므로, 화면은 activity만 넘긴다)
     /// </summary>
     private void onKakaoLoginClicked() {
-        UserApiClient.getInstance().loginWithKakaoAccount(this, (token, error) -> {
-            if (error != null) {
-                showToast("카카오 로그인 실패");
-            } else if (token != null) {
-                // 로그인 성공(토큰이 SDK에 저장됨) → 검증·세션 발급을 "서버 역할" 계층에 맡긴다
-                // (토큰 검증은 provider가 SDK에 저장된 토큰으로 하므로 여기서 토큰을 넘길 필요 없음)
-                authRepository.loginWithKakao(binding.checkBoxKeepLogin.isChecked(),
-                        new AuthResultCallback() {
-                            @Override
-                            public void onSuccess(String nickname, boolean isNewAccount) {
-                                showToast(getString(R.string.login_success, nickname));
-                                proceedAfterAuth();
-                            }
+        authRepository.loginWithKakao(this, binding.checkBoxKeepLogin.isChecked(), authResultCallback());
+    }
 
-                            @Override
-                            public void onError(String message) {
-                                showToast(message);
-                            }
-                        });
+    /// <summary>
+    /// "네이버로 로그인" 버튼 클릭 → 네이버 로그인을 인증 계층에 맡긴다
+    /// </summary>
+    private void onNaverLoginClicked() {
+        authRepository.loginWithNaver(this, binding.checkBoxKeepLogin.isChecked(), authResultCallback());
+    }
+
+    /// <summary>
+    /// "Google로 로그인" 버튼 클릭 → 구글 로그인을 인증 계층에 맡긴다
+    /// </summary>
+    private void onGoogleLoginClicked() {
+        authRepository.loginWithGoogle(this, binding.checkBoxKeepLogin.isChecked(), authResultCallback());
+    }
+
+    /// <summary>
+    /// 소셜 로그인 결과를 처리하는 공통 콜백 (성공: 환영 + 다음 화면 / 실패: 안내)
+    /// 카카오/네이버/구글이 결과 처리가 똑같아 한 곳으로 묶는다
+    /// </summary>
+    private AuthResultCallback authResultCallback() {
+        return new AuthResultCallback() {
+            @Override
+            public void onSuccess(String nickname, boolean isNewAccount) {
+                showToast(getString(R.string.login_success, nickname));
+                proceedAfterAuth();
             }
-            // 이 콜백은 코틀린 함수 타입(반환형 Unit)이라, 자바에선 Unit.INSTANCE를 돌려줘야 한다
-            return Unit.INSTANCE;
-        });
+
+            @Override
+            public void onError(String message) {
+                showToast(message);
+            }
+        };
     }
 
     // ========== 계정 목록 표시 ==========
@@ -181,12 +147,10 @@ public class LoginActivity extends AppCompatActivity {
     /// </summary>
     private void loadAccountsIntoSpinner() {
         accounts.clear();
-        // 소셜 계정(카카오/네이버)은 PIN이 없어 PIN 로그인 목록에 넣지 않는다
-        // (각자 '카카오로 로그인' / '네이버로 로그인' 버튼 전용)
+        // 소셜 계정(카카오/네이버/구글)은 PIN이 없어 PIN 로그인 목록에 넣지 않는다
+        // (각자 전용 소셜 버튼으로 로그인 — provider가 늘어도 이 판별은 그대로)
         for (Account account : accountManager.getAccounts()) {
-            boolean isKakao = account.getId().startsWith(AuthRepository.KAKAO_ACCOUNT_PREFIX);
-            boolean isNaver = account.getId().startsWith(AuthRepository.NAVER_ACCOUNT_PREFIX);
-            if (isKakao || isNaver) {
+            if (authRepository.isSocialAccount(account.getId())) {
                 continue;
             }
             accounts.add(account);

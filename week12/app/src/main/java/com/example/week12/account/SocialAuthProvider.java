@@ -1,5 +1,7 @@
 package com.example.week12.account;
 
+import android.app.Activity;
+
 /// <summary>
 /// 소셜 로그인 provider(카카오/네이버/…)가 지켜야 할 공통 규격(인터페이스)
 ///
@@ -28,10 +30,14 @@ public interface SocialAuthProvider {
     boolean owns(String accountId);
 
     /// <summary>
-    /// 지금 로그인된 토큰으로 SDK에 신원을 물어본다 (검증) → 결과를 콜백으로 전달
-    /// (성공하면 확인된 SocialIdentity, 실패하면 사유)
+    /// 로그인 — 로그인 창을 띄우고(activity 필요), 성공하면 신원(SocialIdentity)을 콜백으로 전달한다.
+    ///
+    /// provider마다 방식이 다르다:
+    ///   - 카카오/네이버: 로그인 창 → 토큰 저장 → 프로필 조회(신원 확인)
+    ///   - 구글: 계정 선택창 → 그 자리에서 신원(ID 토큰)을 바로 받음 (별도 조회 없음)
+    /// 그 "다름"을 여기 각 구현체 안에 가두므로, 화면(LoginActivity)은 SDK를 몰라도 된다.
     /// </summary>
-    void verify(SocialAuthCallback callback);
+    void login(Activity activity, SocialAuthCallback callback);
 
     /// <summary>
     /// 로그아웃 — 이 provider의 SDK 토큰을 지운다 (연동·동의는 남김)

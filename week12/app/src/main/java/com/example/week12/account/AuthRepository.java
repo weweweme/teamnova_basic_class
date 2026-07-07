@@ -1,5 +1,6 @@
 package com.example.week12.account;
 
+import android.app.Activity;
 import android.content.Context;
 
 import com.example.week12.data.TestAccountSeeder;
@@ -59,6 +60,11 @@ public class AuthRepository {
     private final SocialAuthProvider naverProvider = new NaverAuthProvider();
 
     /// <summary>
+    /// 구글 로그인 provider — 컨텍스트가 필요해 생성자에서 만든다 (카카오/네이버는 무인자)
+    /// </summary>
+    private final SocialAuthProvider googleProvider;
+
+    /// <summary>
     /// 등록된 소셜 provider 목록 — 로그아웃/삭제 때 "이 계정이 누구 소관인지" 찾는 데 쓴다
     /// 새 provider는 생성자에서 이 목록에 add 한 줄만 추가하면 된다
     /// </summary>
@@ -70,36 +76,45 @@ public class AuthRepository {
     public AuthRepository(Context context, AccountManager accountManager) {
         this.appContext = context.getApplicationContext();
         this.accountManager = accountManager;
+        this.googleProvider = new GoogleAuthProvider(appContext);
         this.socialProviders = new ArrayList<>();
         socialProviders.add(kakaoProvider);
         socialProviders.add(naverProvider);
+        socialProviders.add(googleProvider);
     }
 
     // ========== 로그인 ==========
 
     /// <summary>
-    /// 카카오로 로그인 — 카카오 provider에게 신원 검증을 맡기고, 통과하면 세션 발급
-    /// (로그인 창을 띄워 토큰을 얻는 것은 화면 몫 → 여기 오는 시점엔 SDK에 토큰이 준비돼 있음)
+    /// 카카오로 로그인 — 카카오 provider에게 로그인+신원확인을 맡기고, 통과하면 세션 발급
+    /// (로그인 창을 띄우려면 activity가 필요하므로 화면에서 받아 넘긴다)
     /// </summary>
-    public void loginWithKakao(boolean keepLogin, AuthResultCallback callback) {
-        loginWithProvider(kakaoProvider, keepLogin, callback);
+    public void loginWithKakao(Activity activity, boolean keepLogin, AuthResultCallback callback) {
+        loginWithProvider(kakaoProvider, activity, keepLogin, callback);
     }
 
     /// <summary>
-    /// 네이버로 로그인 — 네이버 provider에게 신원 검증을 맡기고, 통과하면 세션 발급
+    /// 네이버로 로그인 — 네이버 provider에게 로그인+신원확인을 맡기고, 통과하면 세션 발급
     /// </summary>
-    public void loginWithNaver(boolean keepLogin, AuthResultCallback callback) {
-        loginWithProvider(naverProvider, keepLogin, callback);
+    public void loginWithNaver(Activity activity, boolean keepLogin, AuthResultCallback callback) {
+        loginWithProvider(naverProvider, activity, keepLogin, callback);
+    }
+
+    /// <summary>
+    /// 구글로 로그인 — 구글 provider에게 로그인+신원확인을 맡기고, 통과하면 세션 발급
+    /// </summary>
+    public void loginWithGoogle(Activity activity, boolean keepLogin, AuthResultCallback callback) {
+        loginWithProvider(googleProvider, activity, keepLogin, callback);
     }
 
     /// <summary>
     /// 소셜 로그인 공통 처리 — provider가 어느 소셜이든 흐름은 똑같다
-    ///   provider.verify(신원 검증) → 통과하면 issueSession(세션 발급) → 화면에 결과 콜백
-    /// "카카오냐 네이버냐"는 provider 안에 숨겨져 있어, 여기선 구분하지 않는다.
+    ///   provider.login(로그인+신원확인) → 통과하면 issueSession(세션 발급) → 화면에 결과 콜백
+    /// "카카오냐 네이버냐 구글이냐"는 provider 안에 숨겨져 있어, 여기선 구분하지 않는다.
     /// </summary>
-    private void loginWithProvider(SocialAuthProvider provider, boolean keepLogin,
+    private void loginWithProvider(SocialAuthProvider provider, Activity activity, boolean keepLogin,
                                    AuthResultCallback callback) {
-        provider.verify(new SocialAuthCallback() {
+        provider.login(activity, new SocialAuthCallback() {
             @Override
             public void onVerified(SocialIdentity identity) {
                 // provider 접두사 + provider가 준 고유 id = 우리 계정 id
@@ -166,6 +181,14 @@ public class AuthRepository {
             provider.unlink();
         }
         accountManager.deleteAccount(currentId);
+    }
+
+    /// <summary>
+    /// 이 계정이 소셜 로그인 계정(카카오/네이버/구글…)인지 여부.
+    /// PIN 로그인 목록에서 소셜 계정을 걸러낼 때 쓴다 (provider가 늘어도 이 메서드는 그대로).
+    /// </summary>
+    public boolean isSocialAccount(String accountId) {
+        return findProvider(accountId) != null;
     }
 
     /// <summary>

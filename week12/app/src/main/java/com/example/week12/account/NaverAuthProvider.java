@@ -1,5 +1,7 @@
 package com.example.week12.account;
 
+import android.app.Activity;
+
 import com.navercorp.nid.NaverIdLoginSDK;
 import com.navercorp.nid.oauth.NidOAuthLogin;
 import com.navercorp.nid.oauth.util.NidOAuthCallback;
@@ -37,11 +39,30 @@ public class NaverAuthProvider implements SocialAuthProvider {
     }
 
     /// <summary>
-    /// 지금 로그인된 토큰으로 네이버에 프로필을 물어본다 → 확인된 신원을 콜백으로 전달
-    /// (토큰이 없거나 유효하지 않으면 onFailure가 와서 실패로 처리된다)
+    /// 로그인 — 네이버 로그인 창을 띄우고, 성공하면 신원을 확인해 콜백으로 전달한다.
     /// </summary>
     @Override
-    public void verify(SocialAuthCallback callback) {
+    public void login(Activity activity, SocialAuthCallback callback) {
+        NaverIdLoginSDK.INSTANCE.authenticate(activity, new NidOAuthCallback() {
+            @Override
+            public void onSuccess() {
+                // 로그인 성공(토큰이 SDK에 저장됨) → 그 토큰으로 신원 확인
+                fetchIdentity(callback);
+            }
+
+            @Override
+            public void onFailure(String httpStatus, String message) {
+                // 로그인 실패/취소
+                callback.onFailed("네이버 로그인 실패");
+            }
+        });
+    }
+
+    /// <summary>
+    /// 저장된 토큰으로 네이버에 프로필을 물어본다 → 확인된 신원을 콜백으로 전달
+    /// (토큰이 없거나 유효하지 않으면 onFailure가 와서 실패로 처리된다)
+    /// </summary>
+    private void fetchIdentity(SocialAuthCallback callback) {
         new NidOAuthLogin().callProfileApi(new NidProfileCallback<NidProfile>() {
             @Override
             public void onSuccess(NidProfile result) {

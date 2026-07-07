@@ -77,5 +77,25 @@
             style="?attr/borderlessButtonStyle"
             android:text="@string/login_signup" />
 
+        <!-- "또는" 구분 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:text="또는"
+            android:textColor="#999999" />
+
+        <!-- 카카오로 로그인 (OAuth — 가상 계정과 병존) -->
+        <!-- 카카오 브랜드색(노랑 #FEE500) + 검은 글씨 -->
+        <Button
+            android:id="@+id/buttonKakaoLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="#FEE500"
+            android:textColor="#000000"
+            android:text="카카오로 로그인" />
+
     </LinearLayout>
 </ScrollView>

@@ -36,6 +36,7 @@ import com.example.week12.model.GameStatus;
 import com.example.week12.stats.StatsActivity;
 import com.example.week12.timeline.TimelineActivity;
 import com.example.week12.timeline.TimelineAdapter;
+import com.example.week12.util.CoverImageLoader;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -294,6 +295,19 @@ public class HomeFragment extends Fragment {
         binding.textViewNicknameHome.setText(nickname);
         binding.textViewAvatarHome.setText(initialOf(nickname));
         binding.textViewAvatarHome.setBackgroundTintList(ColorStateList.valueOf(avatarColor));
+
+        // 프로필 사진이 있으면(카카오 등) 색깔 원 위에 사진을 얹어 보여줌 (없으면 색깔 원 그대로)
+        String avatarImageUrl = userPrefs.getAvatarImageUrl();
+        boolean hasAvatarImage = avatarImageUrl != null && !avatarImageUrl.isEmpty();
+        if (hasAvatarImage) {
+            // 원형 배경(bg_avatar_circle) 외곽선으로 사진을 동그랗게 자른다
+            binding.imageViewAvatarHome.setClipToOutline(true);
+            CoverImageLoader loader = ((App) requireActivity().getApplication()).getCoverImageLoader();
+            loader.loadUri(binding.imageViewAvatarHome, avatarImageUrl);
+            binding.imageViewAvatarHome.setVisibility(View.VISIBLE);
+        } else {
+            binding.imageViewAvatarHome.setVisibility(View.GONE);
+        }
 
         // 한 줄 소개 (없으면 안내 문구)
         boolean bioEmpty = bio.isEmpty();

@@ -49,6 +49,11 @@ public class UserPrefs {
     private static final String KEY_AVATAR_COLOR = "avatar_color";
 
     /// <summary>
+    /// key: 아바타 사진 주소 (카카오 프로필 사진 등 원격 https URL). 없으면 색깔 원을 씀
+    /// </summary>
+    private static final String KEY_AVATAR_IMAGE_URL = "avatar_image_url";
+
+    /// <summary>
     /// key: 한 줄 소개(bio)
     /// </summary>
     private static final String KEY_BIO = "bio";
@@ -228,6 +233,22 @@ public class UserPrefs {
     public void setAvatarColor(int color) {
         prefs.edit()
                 .putInt(KEY_AVATAR_COLOR, color)
+                .apply();
+    }
+
+    /// <summary>
+    /// 아바타 사진 주소를 반환 (없으면 빈 문자열 → 색깔 원 아바타 사용)
+    /// </summary>
+    public String getAvatarImageUrl() {
+        return prefs.getString(KEY_AVATAR_IMAGE_URL, "");
+    }
+
+    /// <summary>
+    /// 아바타 사진 주소를 저장 (카카오 로그인 시 프로필 사진 URL 등)
+    /// </summary>
+    public void setAvatarImageUrl(String url) {
+        prefs.edit()
+                .putString(KEY_AVATAR_IMAGE_URL, url == null ? "" : url)
                 .apply();
     }
 

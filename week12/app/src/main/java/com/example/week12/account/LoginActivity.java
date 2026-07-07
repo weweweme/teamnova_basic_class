@@ -7,6 +7,11 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.kakao.sdk.user.UserApiClient;
+import com.kakao.sdk.user.model.User;
+
+import kotlin.Unit;
+
 import com.example.week12.App;
 import com.example.week12.R;
 import com.example.week12.databinding.ActivityLoginBinding;
@@ -81,6 +86,113 @@ public class LoginActivity extends AppCompatActivity {
         // 버튼 리스너 등록 (Unity의 Button.onClick.AddListener와 같은 개념)
         binding.buttonLogin.setOnClickListener(v -> onLoginClicked());
         binding.buttonSignup.setOnClickListener(v -> onSignupClicked());
+        binding.buttonKakaoLogin.setOnClickListener(v -> onKakaoLoginClicked());
+    }
+
+    // ========== 카카오 로그인 ==========
+
+    /// <summary>
+    /// "카카오로 로그인" 버튼 클릭 → 카카오계정으로 로그인 (웹 로그인)
+    ///
+    /// 카카오톡 앱이 없는 기기(에뮬레이터 등)에서도 되도록 loginWithKakaoAccount(웹)로 통일한다.
+    /// (실서비스에선 카톡 앱 설치 시 loginWithKakaoTalk을 먼저 쓰는 패턴도 있음)
+    /// 성공하면 토큰을 받고, 이어서 내 프로필(닉네임)을 조회한다.
+    /// </summary>
+    private void onKakaoLoginClicked() {
+        UserApiClient.getInstance().loginWithKakaoAccount(this, (token, error) -> {
+            if (error != null) {
+                showToast("카카오 로그인 실패");
+            } else if (token != null) {
+                fetchKakaoUserAndProceed();
+            }
+            // 이 콜백은 코틀린 함수 타입(반환형 Unit)이라, 자바에선 Unit.INSTANCE를 돌려줘야 한다
+            // (카카오 SDK가 코틀린으로 만들어져서 생기는 한 줄 — 신경 쓸 건 위 if/else뿐)
+            return Unit.INSTANCE;
+        });
+    }
+
+    /// <summary>
+    /// 카카오 로그인 성공 후, 내 정보(카카오 유저 ID + 닉네임)를 조회해 우리 계정에 연결
+    /// </summary>
+    private void fetchKakaoUserAndProceed() {
+        UserApiClient.getInstance().me((user, error) -> {
+            boolean failed = error != null || user == null || user.getId() == null;
+            if (failed) {
+                showToast("카카오 정보 조회 실패");
+                return Unit.INSTANCE;
+            }
+            long kakaoId = user.getId();
+
+            // [임시 진단] 카카오가 준 값 확인 (닉네임/사진이 왜 비는지 보려고) — 끝나면 삭제
+            boolean hasAccount = user.getKakaoAccount() != null;
+            boolean hasProfile = hasAccount && user.getKakaoAccount().getProfile() != null;
+            String rawNickname = hasProfile ? user.getKakaoAccount().getProfile().getNickname() : null;
+            String rawImage = hasProfile ? user.getKakaoAccount().getProfile().getProfileImageUrl() : null;
+            android.util.Log.d("KAKAO_ME", "id=" + kakaoId + " account=" + hasAccount
+                    + " profile=" + hasProfile + " nickname=" + rawNickname + " image=" + rawImage);
+
+            String nickname = extractNickname(user);
+            String imageUrl = extractImageUrl(user);
+            linkKakaoAndProceed(kakaoId, nickname, imageUrl);
+            return Unit.INSTANCE;
+        });
+    }
+
+    /// <summary>
+    /// 카카오 유저 객체에서 닉네임을 안전하게 꺼낸다 (동의 안 했거나 없으면 기본값)
+    /// 카카오 프로필은 동의 여부에 따라 중간 객체가 null일 수 있어 단계마다 확인한다
+    /// </summary>
+    private String extractNickname(User user) {
+        String fallback = "카카오사용자";
+        boolean hasProfile = user.getKakaoAccount() != null
+                && user.getKakaoAccount().getProfile() != null;
+        if (!hasProfile) {
+            return fallback;
+        }
+        String nickname = user.getKakaoAccount().getProfile().getNickname();
+        boolean hasNickname = nickname != null && !nickname.isEmpty();
+        return hasNickname ? nickname : fallback;
+    }
+
+    /// <summary>
+    /// 카카오 유저에서 프로필 사진 주소를 안전하게 꺼낸다 (없으면 빈 문자열 → 색깔 원 아바타 유지)
+    /// </summary>
+    private String extractImageUrl(User user) {
+        boolean hasProfile = user.getKakaoAccount() != null
+                && user.getKakaoAccount().getProfile() != null;
+        if (!hasProfile) {
+            return "";
+        }
+        String url = user.getKakaoAccount().getProfile().getProfileImageUrl();
+        return url != null ? url : "";
+    }
+
+    /// <summary>
+    /// 카카오 유저를 우리 가상 계정 시스템에 연결하고, 기존 로그인 흐름(튜토리얼/홈)으로 진입
+    ///
+    /// 계정 id = "kakao_" + 카카오유저ID (영문/숫자/밑줄이라 형식 안전).
+    /// 없으면 PIN 없이 등록(카카오 버튼으로만 로그인 — PIN 폼으로는 못 들어옴),
+    /// 있으면 닉네임만 최신으로 갱신. 이렇게 가상 계정과 카카오 계정이 병존한다.
+    /// </summary>
+    private void linkKakaoAndProceed(long kakaoId, String nickname, String imageUrl) {
+        String accountId = "kakao_" + kakaoId;
+
+        if (!accountManager.isRegistered(accountId)) {
+            accountManager.register(accountId, nickname, "");
+        } else {
+            accountManager.updateNickname(accountId, nickname);
+        }
+
+        accountManager.setCurrentAccount(accountId);
+        // 로그인 유지 체크 상태를 그대로 반영 (카카오도 동일하게 기억)
+        accountManager.setAutoLogin(binding.checkBoxKeepLogin.isChecked());
+
+        // 카카오 프로필 사진 주소를 이 계정의 UserPrefs에 저장 (현재 계정이 정해진 뒤라야 올바른 파일에 씀)
+        // → 홈/프로필 아바타가 색깔 원 대신 이 사진을 보여줌 (있을 때만)
+        ((App) getApplication()).getUserPrefs().setAvatarImageUrl(imageUrl);
+
+        showToast(getString(R.string.login_success, nickname));
+        proceedAfterAuth();
     }
 
     // ========== 계정 목록 표시 ==========

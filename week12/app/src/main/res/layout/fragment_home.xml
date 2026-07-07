@@ -39,17 +39,33 @@
                 android:gravity="center_vertical"
                 android:padding="16dp">
 
-                <!-- 아바타 (색 + 별명 첫 글자) — 색은 코드에서 backgroundTintList로 칠함 -->
-                <TextView
-                    android:id="@+id/textViewAvatarHome"
+                <!-- 아바타 (사진 있으면 사진, 없으면 색+첫글자) -->
+                <FrameLayout
                     android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:background="@drawable/bg_avatar_circle"
-                    android:gravity="center"
-                    android:textColor="#FFFFFF"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    tools:text="A" />
+                    android:layout_height="56dp">
+
+                    <!-- 기본: 색깔 원 + 별명 첫 글자 (색은 코드에서 backgroundTintList로 칠함) -->
+                    <TextView
+                        android:id="@+id/textViewAvatarHome"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/bg_avatar_circle"
+                        android:gravity="center"
+                        android:textColor="#FFFFFF"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        tools:text="A" />
+
+                    <!-- 프로필 사진 (카카오 등) — 있을 때만 코드에서 표시. 원형 배경 + clipToOutline로 동그랗게 -->
+                    <ImageView
+                        android:id="@+id/imageViewAvatarHome"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/bg_avatar_circle"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="@string/profile_avatar_placeholder"
+                        android:visibility="gone" />
+                </FrameLayout>
 
                 <!-- 별명 + 한 줄 소개 -->
                 <LinearLayout

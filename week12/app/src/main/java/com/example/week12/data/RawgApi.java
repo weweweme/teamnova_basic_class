@@ -116,8 +116,7 @@ public class RawgApi {
                     return;
                 }
 
-                BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(conn.getInputStream()));
+                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 StringBuilder builder = new StringBuilder();
                 String line;
                 while ((line = reader.readLine()) != null) {

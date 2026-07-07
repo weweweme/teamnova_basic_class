@@ -1,11 +1,15 @@
 package com.example.week12.rawg;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.week12.App;
 import com.example.week12.R;
 import com.example.week12.databinding.ItemRawgResultBinding;
 import com.example.week12.model.RawgGame;
+import com.example.week12.util.CoverImageLoader;
 
 import java.util.Locale;
 
@@ -52,9 +56,20 @@ public class RawgResultViewHolder extends RecyclerView.ViewHolder {
             binding.textViewRating.setText("평점 없음");
         }
 
-        // 표지 — P2에서는 기본 아이콘만 표시 (원격 이미지 로딩은 P3에서 추가)
-        // RAWG 표지는 https 주소라 지금 로더로는 못 불러오므로, 우선 자리만 채운다
-        binding.imageViewCover.setImageResource(R.mipmap.ic_launcher);
+        // 표지 — RAWG는 https 원격 이미지. 공용 로더(loadUri)가 http면 백그라운드로 내려받아 디코딩
+        // (셀 재활용 시 로더의 setTag가 엉뚱한 표지 덮어쓰기를 막아줌 — 보관함 그리드와 같은 원리)
+        // 표지가 없는(null) 게임도 있으므로 그때는 기본 아이콘
+        Context context = binding.getRoot().getContext();
+        CoverImageLoader loader = ((App) context.getApplicationContext()).getCoverImageLoader();
+        String coverUrl = game.getCoverImageUrl();
+        boolean hasCover = coverUrl != null && !coverUrl.isEmpty();
+        if (hasCover) {
+            loader.loadUri(binding.imageViewCover, coverUrl);
+        } else {
+            // 표지 없음 → 기본 아이콘 (대기 중이던 이전 로드가 이 셀을 덮어쓰지 않게 태그 비움)
+            binding.imageViewCover.setTag(null);
+            binding.imageViewCover.setImageResource(R.mipmap.ic_launcher);
+        }
 
         // 항목 클릭 리스너 (Activity 측 콜백 호출 — 이 게임을 보관함에 추가 등)
         binding.getRoot().setOnClickListener(v -> {

@@ -12,6 +12,8 @@ import android.view.View;
 import android.widget.ImageView;
 
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -220,12 +222,47 @@ public class CoverImageLoader {
     /// content:// URI에서 이미지를 열어 Bitmap으로 디코딩 (실패하면 null)
     /// </summary>
     private Bitmap decodeUri(Context context, String uriString) {
+        // 원격(http) 이미지면 인터넷에서 내려받아 디코딩,
+        // 아니면 기기 안 URI(content:// 갤러리, android.resource:// 번들)를 연다
+        boolean isRemote = uriString.startsWith("http://") || uriString.startsWith("https://");
+        if (isRemote) {
+            return decodeRemote(uriString);
+        }
+
         // 파일 열기/디코딩은 IOException 등이 날 수 있어 try 필수. try-with-resources로 스트림 자동 닫기
         // (외부 URI라 권한 문제 등 다양한 예외가 가능해 넓게 잡음)
         try (InputStream input = context.getContentResolver().openInputStream(Uri.parse(uriString))) {
             return BitmapFactory.decodeStream(input);
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    /// <summary>
+    /// 원격(https) 이미지 주소에서 이미지를 내려받아 Bitmap으로 디코딩 (실패하면 null)
+    /// RAWG 표지처럼 인터넷에 있는 이미지를 불러올 때 사용
+    ///
+    /// 네트워크라 반드시 백그라운드에서만 불러야 함 → 이 메서드는 decodeExecutor(스레드 풀)에서만 호출됨
+    /// (loadUri → decodeExecutor.execute → decodeUri → 여기). 06 슬라이드의 GET과 같은 원리
+    /// </summary>
+    private Bitmap decodeRemote(String urlString) {
+        HttpURLConnection conn = null;
+        // 네트워크는 다양한 예외(끊김/타임아웃/형식오류)가 가능해 넓게 잡고, 실패 시 null → 회색 박스 유지
+        try {
+            URL url = new URL(urlString);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");   // 이미지를 "읽어서 줘" (RESTful GET)
+            // try-with-resources로 응답 스트림 자동 닫기
+            try (InputStream input = conn.getInputStream()) {
+                return BitmapFactory.decodeStream(input);
+            }
+        } catch (Exception e) {
+            return null;
+        } finally {
+            // 성공이든 실패든 연결은 정리
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
     }
 

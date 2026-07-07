@@ -7,10 +7,13 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.week12.App;
 import com.example.week12.R;
 import com.example.week12.account.UserPrefs;
 import com.example.week12.databinding.ItemRankingBinding;
 import com.example.week12.model.AccountProfile;
+import com.example.week12.util.AvatarBinder;
+import com.example.week12.util.CoverImageLoader;
 
 /// <summary>
 /// "유저 랭킹" 목록 한 줄의 뷰 참조를 보관하는 ViewHolder
@@ -44,10 +47,10 @@ public class RankingViewHolder extends RecyclerView.ViewHolder {
         // 순위: 1~3위는 메달 이모지, 그 외는 숫자
         binding.textViewRank.setText(rankLabel(rank));
 
-        // 아바타: 색 + 별명 첫 글자
-        binding.textViewRankAvatar.setText(initialOf(profile.getNickname()));
-        binding.textViewRankAvatar.setBackgroundTintList(
-                ColorStateList.valueOf(profile.getAvatarColor()));
+        // 아바타: 사진 있으면 사진, 없으면 색+첫글자 (공용 헬퍼)
+        CoverImageLoader loader = ((App) context.getApplicationContext()).getCoverImageLoader();
+        AvatarBinder.bind(binding.textViewRankAvatar, binding.imageViewRankAvatar,
+                profile.getNickname(), profile.getAvatarColor(), profile.getAvatarImageUrl(), loader);
 
         // 별명 (내 계정이면 "(나)")
         String nickname = profile.getNickname();
@@ -63,6 +66,7 @@ public class RankingViewHolder extends RecyclerView.ViewHolder {
         // 아바타/별명 클릭 → 그 유저의 프로필로
         View.OnClickListener toProfile = v -> UserProfileActivity.start(context, profile.getId());
         binding.textViewRankAvatar.setOnClickListener(toProfile);
+        binding.imageViewRankAvatar.setOnClickListener(toProfile);
         binding.textViewRankNickname.setOnClickListener(toProfile);
 
         // 팔로우 버튼 — 내 계정 줄에는 안 보이고, 남의 줄에만 팔로우/팔로잉 토글

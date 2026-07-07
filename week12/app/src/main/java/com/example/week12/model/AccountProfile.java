@@ -26,6 +26,9 @@ public class AccountProfile {
     /// <summary>아바타 원 색 (ARGB 정수)</summary>
     private final int avatarColor;
 
+    /// <summary>아바타 사진 주소 (카카오 등, 없으면 빈 문자열 → 색깔 원 사용)</summary>
+    private final String avatarImageUrl;
+
     /// <summary>한 줄 소개 (없으면 빈 문자열)</summary>
     private final String bio;
 
@@ -44,6 +47,7 @@ public class AccountProfile {
     public AccountProfile(String id,
                           String nickname,
                           int avatarColor,
+                          String avatarImageUrl,
                           String bio,
                           int streak,
                           int visitCount,
@@ -51,6 +55,7 @@ public class AccountProfile {
         this.id = id;
         this.nickname = nickname;
         this.avatarColor = avatarColor;
+        this.avatarImageUrl = avatarImageUrl;
         this.bio = bio;
         this.streak = streak;
         this.visitCount = visitCount;
@@ -70,6 +75,11 @@ public class AccountProfile {
     /// <summary>아바타 색 반환</summary>
     public int getAvatarColor() {
         return avatarColor;
+    }
+
+    /// <summary>아바타 사진 주소 반환 (없으면 빈 문자열)</summary>
+    public String getAvatarImageUrl() {
+        return avatarImageUrl;
     }
 
     /// <summary>한 줄 소개 반환</summary>

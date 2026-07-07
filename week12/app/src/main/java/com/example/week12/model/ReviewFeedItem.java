@@ -15,6 +15,9 @@ public class ReviewFeedItem {
     /// <summary>작성자 아바타 색 (ARGB)</summary>
     private final int avatarColor;
 
+    /// <summary>작성자 아바타 사진 주소 (없으면 빈 문자열 → 색깔 원 사용)</summary>
+    private final String avatarImageUrl;
+
     /// <summary>리뷰 대상 게임 id (피드 항목을 눌러 그 게임으로 이동할 때 사용)</summary>
     private final int gameId;
 
@@ -48,11 +51,13 @@ public class ReviewFeedItem {
     /// <summary>
     /// 피드 항목 생성
     /// </summary>
-    public ReviewFeedItem(String nickname, int avatarColor, int gameId, String gameTitle,
+    public ReviewFeedItem(String nickname, int avatarColor, String avatarImageUrl,
+                          int gameId, String gameTitle,
                           float rating, String review, long timestamp,
                           String reviewerId, int likeCount, boolean likedByMe) {
         this.nickname = nickname;
         this.avatarColor = avatarColor;
+        this.avatarImageUrl = avatarImageUrl;
         this.gameId = gameId;
         this.gameTitle = gameTitle;
         this.rating = rating;
@@ -105,6 +110,11 @@ public class ReviewFeedItem {
     /// <summary>작성자 아바타 색 반환</summary>
     public int getAvatarColor() {
         return avatarColor;
+    }
+
+    /// <summary>작성자 아바타 사진 주소 반환 (없으면 빈 문자열)</summary>
+    public String getAvatarImageUrl() {
+        return avatarImageUrl;
     }
 
     /// <summary>게임 id 반환</summary>

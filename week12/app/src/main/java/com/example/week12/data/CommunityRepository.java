@@ -97,6 +97,7 @@ public class CommunityRepository {
                     id,
                     account.getNickname(),
                     prefs.getAvatarColor(),
+                    prefs.getAvatarImageUrl(),
                     prefs.getBio(),
                     prefs.getStreak(),
                     prefs.getVisitCount(),
@@ -156,6 +157,7 @@ public class CommunityRepository {
             reviews.add(new GameReview(
                     account.getNickname(),
                     prefs.getAvatarColor(),
+                    prefs.getAvatarImageUrl(),
                     gameId,
                     id,
                     prefs.getRating(gameId),
@@ -324,6 +326,7 @@ public class CommunityRepository {
                 accountId,
                 accountManager.getNickname(accountId),
                 prefs.getAvatarColor(),
+                prefs.getAvatarImageUrl(),
                 prefs.getBio(),
                 prefs.getStreak(),
                 prefs.getVisitCount(),
@@ -352,6 +355,7 @@ public class CommunityRepository {
             list.add(new ReviewFeedItem(
                     nickname,
                     avatarColor,
+                    prefs.getAvatarImageUrl(),
                     gameId,
                     game.getTitle(),
                     prefs.getRating(gameId),
@@ -391,6 +395,7 @@ public class CommunityRepository {
                 feed.add(new ReviewFeedItem(
                         account.getNickname(),
                         prefs.getAvatarColor(),
+                        prefs.getAvatarImageUrl(),
                         gameId,
                         game.getTitle(),
                         prefs.getRating(gameId),

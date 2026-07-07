@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.week12.App;
 import com.example.week12.R;
+import com.example.week12.util.AvatarBinder;
+import com.example.week12.util.CoverImageLoader;
 import com.example.week12.account.UserPrefs;
 import com.example.week12.data.CommunityRepository;
 import com.example.week12.databinding.ActivityUserProfileBinding;
@@ -139,9 +141,10 @@ public class UserProfileActivity extends AppCompatActivity {
     private void renderProfile(AccountProfile profile, int followingCount, int followerCount,
                                List<ReviewFeedItem> reviews, boolean isMe, boolean following) {
         // ── 프로필 헤더 ──
-        binding.textViewProfileAvatar.setText(initialOf(profile.getNickname()));
-        binding.textViewProfileAvatar.setBackgroundTintList(
-                ColorStateList.valueOf(profile.getAvatarColor()));
+        // 아바타: 사진 있으면 사진, 없으면 색+첫글자 (공용 헬퍼)
+        CoverImageLoader loader = ((App) getApplication()).getCoverImageLoader();
+        AvatarBinder.bind(binding.textViewProfileAvatar, binding.imageViewProfileAvatar,
+                profile.getNickname(), profile.getAvatarColor(), profile.getAvatarImageUrl(), loader);
         binding.textViewProfileNickname.setText(profile.getNickname());
         binding.textViewProfileBio.setText(profile.getBio());
 

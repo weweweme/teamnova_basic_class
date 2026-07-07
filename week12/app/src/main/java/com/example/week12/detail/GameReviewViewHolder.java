@@ -6,10 +6,13 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.week12.App;
 import com.example.week12.account.UserPrefs;
 import com.example.week12.community.UserProfileActivity;
 import com.example.week12.databinding.ItemGameReviewBinding;
 import com.example.week12.model.GameReview;
+import com.example.week12.util.AvatarBinder;
+import com.example.week12.util.CoverImageLoader;
 
 /// <summary>
 /// "다른 사람들의 평가" 목록 한 줄의 뷰 참조를 보관하는 ViewHolder
@@ -36,10 +39,11 @@ public class GameReviewViewHolder extends RecyclerView.ViewHolder {
     /// <param name="review">표시할 리뷰</param>
     /// <param name="myPrefs">지금 로그인한 내 저장소 — 하트를 눌렀을 때 좋아요를 저장하는 데 사용</param>
     public void bind(GameReview review, UserPrefs myPrefs) {
-        // 작성자 아바타: 색 + 별명 첫 글자
-        binding.textViewReviewerAvatar.setText(initialOf(review.getNickname()));
-        binding.textViewReviewerAvatar.setBackgroundTintList(
-                ColorStateList.valueOf(review.getAvatarColor()));
+        // 작성자 아바타: 사진 있으면 사진, 없으면 색+첫글자 (공용 헬퍼)
+        CoverImageLoader loader = ((App) binding.getRoot().getContext().getApplicationContext())
+                .getCoverImageLoader();
+        AvatarBinder.bind(binding.textViewReviewerAvatar, binding.imageViewReviewerAvatar,
+                review.getNickname(), review.getAvatarColor(), review.getAvatarImageUrl(), loader);
 
         // 별명
         binding.textViewReviewerNickname.setText(review.getNickname());
@@ -48,6 +52,7 @@ public class GameReviewViewHolder extends RecyclerView.ViewHolder {
         View.OnClickListener toProfile = v ->
                 UserProfileActivity.start(v.getContext(), review.getReviewerId());
         binding.textViewReviewerAvatar.setOnClickListener(toProfile);
+        binding.imageViewReviewerAvatar.setOnClickListener(toProfile);
         binding.textViewReviewerNickname.setOnClickListener(toProfile);
 
         // 별점 (예: "★ 4.5")

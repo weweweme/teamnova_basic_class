@@ -9,10 +9,13 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.week12.App;
 import com.example.week12.R;
 import com.example.week12.databinding.ItemReviewFeedBinding;
 import com.example.week12.model.ReviewFeedItem;
 import com.example.week12.timeline.TimeAgoFormatter;
+import com.example.week12.util.AvatarBinder;
+import com.example.week12.util.CoverImageLoader;
 
 /// <summary>
 /// 리뷰 피드 한 줄의 뷰 참조를 보관하는 ViewHolder
@@ -55,10 +58,11 @@ public class ReviewFeedViewHolder extends RecyclerView.ViewHolder {
         binding.getRoot().setAlpha(1f);
         binding.getRoot().setTranslationY(0f);
 
-        // 작성자 아바타: 색 + 별명 첫 글자
-        binding.textViewFeedAvatar.setText(initialOf(item.getNickname()));
-        binding.textViewFeedAvatar.setBackgroundTintList(
-                ColorStateList.valueOf(item.getAvatarColor()));
+        // 작성자 아바타: 사진 있으면 사진, 없으면 색+첫글자 (공용 헬퍼)
+        CoverImageLoader loader = ((App) binding.getRoot().getContext().getApplicationContext())
+                .getCoverImageLoader();
+        AvatarBinder.bind(binding.textViewFeedAvatar, binding.imageViewFeedAvatar,
+                item.getNickname(), item.getAvatarColor(), item.getAvatarImageUrl(), loader);
 
         // 닉네임 · 게임제목 · 별점
         binding.textViewFeedNickname.setText(item.getNickname());

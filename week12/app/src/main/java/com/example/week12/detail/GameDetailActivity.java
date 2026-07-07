@@ -24,6 +24,8 @@ import com.example.week12.App;
 import com.example.week12.R;
 import com.example.week12.account.UserPrefs;
 import com.example.week12.data.CommunityRepository;
+import com.example.week12.data.RawgApi;
+import com.example.week12.data.RawgDetailCallback;
 import com.example.week12.databinding.ActivityGameDetailBinding;
 import com.example.week12.databinding.DialogScreenshotZoomBinding;
 import com.example.week12.util.CoverImageLoader;
@@ -33,6 +35,7 @@ import com.example.week12.model.ActivityLogType;
 import com.example.week12.model.GameStatus;
 import com.example.week12.model.Genre;
 import com.example.week12.model.Platform;
+import com.example.week12.model.RawgGameDetail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +70,11 @@ public class GameDetailActivity extends AppCompatActivity {
     /// Intent로 전달받은 게임 데이터
     /// </summary>
     private Game game;
+
+    /// <summary>
+    /// RAWG 상세 조회용 (rawgId가 있는 게임의 설명·개발사·메타크리틱을 불러올 때 사용)
+    /// </summary>
+    private final RawgApi rawgApi = new RawgApi();
 
     /// <summary>
     /// ReviewWriteActivity를 실행하고 결과(별점/한줄평)를 받는 런처
@@ -356,6 +364,85 @@ public class GameDetailActivity extends AppCompatActivity {
 
         // 버튼 리스너 등록
         setupButtons();
+
+        // RAWG 상세(설명·개발사·메타크리틱) 불러오기 (rawgId가 있는 게임만) — 화면 열 때 한 번
+        loadRawgDetail();
+    }
+
+    /// <summary>
+    /// RAWG에서 이 게임의 상세 정보를 불러와 화면에 채운다 (rawgId가 있을 때만)
+    ///
+    /// rawgId==0(수동 추가 등 정식 등록 없는 게임)이면 아무것도 안 함 → RAWG 정보 영역은 숨김 유지.
+    /// 서버 통신은 RawgApi가 서브 스레드에서 처리하고, 결과 콜백은 메인 스레드로 온다(11주차).
+    /// 실패해도 조용히 넘어간다 (상세의 부가 정보라, 없다고 화면이 깨지면 안 되므로).
+    /// </summary>
+    private void loadRawgDetail() {
+        int rawgId = game.getRawgId();
+        if (rawgId <= 0) {
+            binding.layoutRawgInfo.setVisibility(View.GONE);
+            return;
+        }
+
+        rawgApi.getGameDetail(rawgId, new RawgDetailCallback() {
+            @Override
+            public void onSuccess(RawgGameDetail detail) {
+                bindRawgDetail(detail);
+            }
+
+            @Override
+            public void onError(String message) {
+                // 부가 정보라 실패해도 화면은 그대로 (영역만 숨김)
+                binding.layoutRawgInfo.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    /// <summary>
+    /// 불러온 RAWG 상세를 화면에 채운다 (개발사 / 메타크리틱 / 설명)
+    /// 각 항목은 값이 있을 때만 보여주고, 셋 다 없으면 영역 자체를 숨긴다
+    /// </summary>
+    private void bindRawgDetail(RawgGameDetail detail) {
+        boolean hasDeveloper = detail.getDeveloper() != null && !detail.getDeveloper().isEmpty();
+        boolean hasMetacritic = detail.getMetacritic() > 0;
+        boolean hasDescription = detail.getDescription() != null && !detail.getDescription().isEmpty();
+
+        // 개발사
+        if (hasDeveloper) {
+            binding.textViewDeveloper.setText("개발사: " + detail.getDeveloper());
+            binding.textViewDeveloper.setVisibility(View.VISIBLE);
+        } else {
+            binding.textViewDeveloper.setVisibility(View.GONE);
+        }
+
+        // 메타크리틱 배지 (점수색: 75+ 초록 / 50+ 노랑 / 그 미만 빨강 — 메타크리틱 관례)
+        if (hasMetacritic) {
+            int score = detail.getMetacritic();
+            binding.textViewMetacritic.setText("MC " + score);
+            int color;
+            if (score >= 75) {
+                color = 0xFF2E7D32;      // 초록
+            } else if (score >= 50) {
+                color = 0xFFEF6C00;      // 노랑(주황)
+            } else {
+                color = 0xFFC62828;      // 빨강
+            }
+            binding.textViewMetacritic.setBackgroundTintList(ColorStateList.valueOf(color));
+            binding.textViewMetacritic.setVisibility(View.VISIBLE);
+        } else {
+            binding.textViewMetacritic.setVisibility(View.GONE);
+        }
+
+        // 설명
+        if (hasDescription) {
+            binding.textViewDescription.setText(detail.getDescription());
+            binding.textViewDescription.setVisibility(View.VISIBLE);
+        } else {
+            binding.textViewDescription.setVisibility(View.GONE);
+        }
+
+        // 하나라도 있으면 영역 표시, 셋 다 없으면 숨김
+        boolean anyInfo = hasDeveloper || hasMetacritic || hasDescription;
+        binding.layoutRawgInfo.setVisibility(anyInfo ? View.VISIBLE : View.GONE);
     }
 
     /// <summary>

@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import com.example.week12.model.RawgGame;
+import com.example.week12.model.RawgGameDetail;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -108,6 +109,87 @@ public class RawgApi {
                 }
             }
         }).start();
+    }
+
+    /// <summary>
+    /// rawgId로 게임 상세 하나를 가져온다 (/games/{id}) — 오래 걸리므로 서브 스레드
+    ///
+    /// 검색(search)이 "목록 훑기"라면, 이건 "자원 하나 콕 집기"(RESTful /games/{id} — 슬라이드 04).
+    /// 성공하면 RawgGameDetail을, 실패하면 사유를 메인 스레드에서 콜백으로 전달.
+    /// </summary>
+    public void getGameDetail(int rawgId, RawgDetailCallback callback) {
+        new Thread(() -> {                              // 오래 걸리는 일은 서브 스레드 (11주차)
+            HttpURLConnection conn = null;
+            try {
+                // 주소: 검색과 달리 id를 "경로"에 붙인다 (/games/3498?key=...)
+                URL url = new URL(BASE_URL + "/" + rawgId + "?key=" + API_KEY);
+
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");           // GET = 읽기 (Read)
+
+                int responseCode = conn.getResponseCode();
+                boolean isOk = responseCode == HttpURLConnection.HTTP_OK;
+                if (!isOk) {
+                    postDetailError(callback, "서버 오류 (코드 " + responseCode + ")");
+                    return;
+                }
+
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(conn.getInputStream()));
+                StringBuilder builder = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    builder.append(line);
+                }
+                reader.close();
+
+                RawgGameDetail detail = parseDetail(builder.toString());
+                mainHandler.post(() -> callback.onSuccess(detail));
+
+            } catch (IOException | JSONException e) {
+                postDetailError(callback, "불러오기 실패: " + e.getMessage());
+            } finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
+            }
+        }).start();
+    }
+
+    /// <summary>
+    /// /games/{id} 응답 JSON에서 상세 정보를 꺼낸다
+    /// (검색과 달리 results 배열이 아니라, 게임 하나가 통째로 최상위에 옴)
+    /// </summary>
+    private RawgGameDetail parseDetail(String json) throws JSONException {
+        JSONObject o = new JSONObject(json);
+
+        // 설명: 태그 없는 순수 텍스트("description_raw")를 쓴다 (HTML "description"보다 화면에 바로 쓰기 좋음)
+        String description = o.optString("description_raw", "");
+
+        // 메타크리틱: 없으면(JSON null) 0
+        int metacritic = o.optInt("metacritic", 0);
+
+        // 개발사: developers 배열의 첫 번째 이름
+        String developer = "";
+        JSONArray developers = o.optJSONArray("developers");
+        if (developers != null && developers.length() > 0) {
+            JSONObject first = developers.optJSONObject(0);
+            if (first != null) {
+                developer = first.optString("name", "");
+            }
+        }
+
+        // 공식 홈페이지
+        String website = o.optString("website", "");
+
+        return new RawgGameDetail(description, metacritic, developer, website);
+    }
+
+    /// <summary>
+    /// 상세 조회 실패 사유를 메인 스레드에서 콜백(onError)으로 전달
+    /// </summary>
+    private void postDetailError(RawgDetailCallback callback, String message) {
+        mainHandler.post(() -> callback.onError(message));
     }
 
     /// <summary>

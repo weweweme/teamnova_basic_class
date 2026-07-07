@@ -325,6 +325,49 @@ public class GameRepository {
                 Genre.ADVENTURE, Platform.STEAM,
                 "https://store.steampowered.com/app/892970/",
                 GameStatus.BACKLOG, 0f, ""));
+
+        // 시드 게임들에도 진짜 RAWG 정식 id를 심는다 (rawgId=0 방지)
+        // → 시드도 검색으로 추가한 게임과 동일하게 "전 세계 공통 신분증"을 갖게 됨
+        //   (미래에 서버/소셜을 붙이면 이 rawgId로 사용자 간 같은 게임을 매칭)
+        assignSeedRawgIds();
+    }
+
+    /// <summary>
+    /// 시드 게임(로컬 id 1~20)에 각 게임의 RAWG 정식 id를 부여
+    /// 값은 RAWG 검색으로 한 번 조회해 확정한 것 — 로컬 id → rawgId 매핑을 여기 한곳에 모아둔다
+    /// (이후 추가되는 게임은 검색 시 자동으로 rawgId를 가지므로 여기 손댈 필요 없음)
+    /// </summary>
+    private void assignSeedRawgIds() {
+        setSeedRawgId(1, 326243);   // Elden Ring
+        setSeedRawgId(2, 324997);   // Baldur's Gate III
+        setSeedRawgId(3, 9767);     // Hollow Knight
+        setSeedRawgId(4, 22121);    // Celeste
+        setSeedRawgId(5, 654);      // Stardew Valley
+        setSeedRawgId(6, 274755);   // Hades
+        setSeedRawgId(7, 545015);   // Disco Elysium: Final Cut
+        setSeedRawgId(8, 422);      // Terraria
+        setSeedRawgId(9, 4200);     // Portal 2
+        setSeedRawgId(10, 3328);    // The Witcher 3: Wild Hunt
+        setSeedRawgId(11, 41494);   // Cyberpunk 2077
+        setSeedRawgId(12, 2551);    // Dark Souls III
+        setSeedRawgId(13, 12130);   // RimWorld
+        setSeedRawgId(14, 10926);   // Factorio
+        setSeedRawgId(15, 28121);   // Slay the Spire
+        setSeedRawgId(16, 13627);   // Undertale
+        setSeedRawgId(17, 28154);   // Cuphead
+        setSeedRawgId(18, 19590);   // Ori and the Blind Forest
+        setSeedRawgId(19, 11726);   // Dead Cells
+        setSeedRawgId(20, 248521);  // Valheim
+    }
+
+    /// <summary>
+    /// 시드 게임 하나(로컬 id)에 RAWG 정식 id를 심는다 (해당 게임이 목록에 있으면)
+    /// </summary>
+    private void setSeedRawgId(int id, int rawgId) {
+        Game game = findById(id);
+        if (game != null) {
+            game.setRawgId(rawgId);
+        }
     }
 
     // ========== 전체 초기화 (시연용) ==========

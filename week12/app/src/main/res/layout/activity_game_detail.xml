@@ -124,6 +124,58 @@
             android:layout_marginTop="6dp"
             android:textSize="16sp" />
 
+        <!-- RAWG 상세 정보 (rawgId가 있는 게임만 — /games/{id}로 불러와 채워지면 표시) -->
+        <!-- 기본은 숨김(gone), 로드 성공 시 코드에서 VISIBLE + 각 항목 채움 -->
+        <LinearLayout
+            android:id="@+id/layoutRawgInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- 개발사(왼쪽) + 메타크리틱 배지(오른쪽) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/textViewDeveloper"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="#555555"
+                    android:textSize="14sp" />
+
+                <!-- 메타크리틱 배지 (점수색 tint는 코드에서: 높음=초록/보통=노랑/낮음=빨강) -->
+                <TextView
+                    android:id="@+id/textViewMetacritic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_status_badge"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- 게임 설명 (RAWG 제공, 너무 길면 잘라서 표시) -->
+            <TextView
+                android:id="@+id/textViewDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:ellipsize="end"
+                android:lineSpacingExtra="2dp"
+                android:maxLines="12"
+                android:textSize="14sp" />
+        </LinearLayout>
+
         <!-- 스크린샷 썸네일 (가로 스크롤) -->
         <!-- 스크린샷이 있을 때만 표시 (없으면 라벨·스크롤뷰 모두 GONE) -->
         <TextView

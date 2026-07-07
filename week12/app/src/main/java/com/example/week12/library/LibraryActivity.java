@@ -698,6 +698,13 @@ public class LibraryActivity extends AppCompatActivity {
             chip.setText(query);
             // 칩을 누르면 그 검색어를 검색창에 넣고 곧바로 제출(true) → 결과 필터 + 기록 최신화
             chip.setOnClickListener(v -> searchView.setQuery(query, true));
+            // 칩 오른쪽 X → 이 검색어 하나만 기록에서 삭제하고 목록을 다시 그린다
+            // (마지막 하나를 지우면 showRecentSearches가 영역을 GONE 처리)
+            chip.setCloseIconVisible(true);
+            chip.setOnCloseIconClickListener(v -> {
+                userPrefs.removeSearchQuery(query);
+                showRecentSearches();
+            });
             chipGroup.addView(chip);
         }
 

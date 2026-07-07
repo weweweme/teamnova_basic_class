@@ -645,7 +645,26 @@ public class UserPrefs {
             history.remove(history.size() - 1);
         }
 
-        // 줄바꿈으로 이어 붙여 한 문자열로 저장
+        persistSearchHistory(history);
+    }
+
+    /// <summary>
+    /// 최근 검색어 하나만 기록에서 지운다 (칩의 X 버튼을 눌렀을 때)
+    /// 해당 검색어가 없으면 아무 일도 하지 않는다
+    /// </summary>
+    public void removeSearchQuery(String query) {
+        String trimmed = query.trim();
+        List<String> history = getSearchHistory();
+        boolean removed = history.remove(trimmed);
+        if (removed) {
+            persistSearchHistory(history);
+        }
+    }
+
+    /// <summary>
+    /// 최근 검색어 목록을 줄바꿈으로 이어 붙여 한 문자열로 저장 (push/remove 공용)
+    /// </summary>
+    private void persistSearchHistory(List<String> history) {
         StringBuilder joined = new StringBuilder();
         for (int i = 0; i < history.size(); i++) {
             if (i > 0) {

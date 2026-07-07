@@ -463,6 +463,17 @@ public class GameRepository {
     /// </summary>
     public Game addGame(String title, Genre genre, Platform platform, String storeUrl,
                         String coverUri) {
+        // 상태를 안 정한 추가(수동 입력 등)는 "찜 목록"(하고 싶은 목록)으로 시작
+        return addGame(title, genre, platform, storeUrl, coverUri, GameStatus.BACKLOG);
+    }
+
+    /// <summary>
+    /// 새 게임을 라이브러리에 추가 (진행 상태를 직접 지정하는 버전)
+    /// RAWG 검색 추가처럼 "이미 플레이했을 수도" 있는 경우, 사용자가 고른 상태로 담는다.
+    /// 위의 5-인자 버전은 상태를 BACKLOG로 고정해 이 메서드를 부른다.
+    /// </summary>
+    public Game addGame(String title, Genre genre, Platform platform, String storeUrl,
+                        String coverUri, GameStatus status) {
         Game newGame = new Game(
                 this.nextId,
                 title,
@@ -470,7 +481,7 @@ public class GameRepository {
                 genre,
                 platform,
                 storeUrl == null ? "" : storeUrl,
-                GameStatus.BACKLOG, // 새로 추가한 게임은 "백로그"(하고 싶은 목록)로 시작
+                status,             // 호출자가 지정한 진행 상태
                 0f,                 // 초기 별점
                 ""                  // 초기 한줄평
         );

@@ -1,5 +1,7 @@
 package com.example.week12.model;
 
+import java.util.List;
+
 /// <summary>
 /// RAWG 검색 결과 한 건을 담는 모델
 ///
@@ -19,13 +21,16 @@ package com.example.week12.model;
 /// coverImageUrl ← "background_image" (표지. 없을 수 있어 null 허용)
 /// released      ← "released" (출시일 "2017-03-03" 형식, 없으면 빈 문자열)
 /// rating        ← "rating" (RAWG 이용자 평균 평점 0.0~5.0)
-/// genreSlug     ← "genres"[0]."slug" (첫 장르의 코드값, 예: "action". 없으면 빈 문자열)
-/// platformSlug  ← "platforms"[0]."platform"."slug" (첫 플랫폼의 코드값, 예: "pc". 없으면 빈 문자열)
+/// genreSlugs    ← "genres"[].slug 전체 목록 (예: ["indie","action"])
+/// platformSlugs ← "platforms"[].platform.slug 전체 목록 (예: ["pc","playstation5"])
 ///
-/// ──── slug(슬러그)가 뭔가 ────
-/// RAWG가 장르·플랫폼을 컴퓨터가 다루기 좋게 매긴 짧은 코드 문자열 (예: 액션 → "action", PC → "pc").
-/// 사람에게 보여주는 이름("Action")과 달리 항상 소문자·고정값이라, 우리 enum으로 바꿀 때 기준으로 쓰기 좋다.
-/// 실제 변환은 RawgGameMapper가 담당 (여기서는 원본 값만 그대로 보관).
+/// ──── 왜 "하나"가 아니라 "목록"인가 ────
+/// 게임 하나에 장르·플랫폼이 여러 개 붙는다. 그런데 RAWG가 주는 첫 번째가 우리 enum에 없는 것
+/// (예: "indie")일 때가 잦다. 그래서 첫 번째만 보지 않고 목록 전체를 들고 있다가,
+/// 변환할 때 "우리 enum에 매핑되는 첫 항목"을 고른다 (변환은 RawgGameMapper가 담당).
+///
+/// slug(슬러그): RAWG가 장르·플랫폼에 매긴 소문자 고정 코드 (액션→"action", PC→"pc").
+/// 사람이 보는 이름("Action")과 달리 항상 고정값이라, 우리 enum으로 바꿀 기준으로 쓰기 좋다.
 /// </summary>
 public class RawgGame {
 
@@ -55,27 +60,29 @@ public class RawgGame {
     private final float rating;
 
     /// <summary>
-    /// 첫 장르의 코드값(slug) — 우리 Genre enum으로 바꿀 때 기준 (예: "action"). 없으면 빈 문자열
+    /// 이 게임의 장르 코드값(slug) 전체 목록 — 우리 Genre로 바꿀 때 여기서 매핑되는 첫 항목을 고른다
+    /// (RAWG에 장르가 없으면 빈 목록)
     /// </summary>
-    private final String genreSlug;
+    private final List<String> genreSlugs;
 
     /// <summary>
-    /// 첫 플랫폼의 코드값(slug) — 우리 Platform enum으로 바꿀 때 기준 (예: "pc"). 없으면 빈 문자열
+    /// 이 게임의 플랫폼 코드값(slug) 전체 목록 — 우리 Platform으로 바꿀 때 매핑되는 첫 항목을 고른다
+    /// (RAWG에 플랫폼이 없으면 빈 목록)
     /// </summary>
-    private final String platformSlug;
+    private final List<String> platformSlugs;
 
     /// <summary>
     /// 검색 결과 한 건 생성 (모든 값은 RawgApi가 JSON에서 꺼내 채운다)
     /// </summary>
     public RawgGame(int rawgId, String name, String coverImageUrl, String released, float rating,
-                    String genreSlug, String platformSlug) {
+                    List<String> genreSlugs, List<String> platformSlugs) {
         this.rawgId = rawgId;
         this.name = name;
         this.coverImageUrl = coverImageUrl;
         this.released = released;
         this.rating = rating;
-        this.genreSlug = genreSlug;
-        this.platformSlug = platformSlug;
+        this.genreSlugs = genreSlugs;
+        this.platformSlugs = platformSlugs;
     }
 
     /// <summary>
@@ -114,16 +121,16 @@ public class RawgGame {
     }
 
     /// <summary>
-    /// 첫 장르 코드값(slug) 반환 (없으면 빈 문자열)
+    /// 장르 코드값(slug) 전체 목록 반환 (없으면 빈 목록)
     /// </summary>
-    public String getGenreSlug() {
-        return genreSlug;
+    public List<String> getGenreSlugs() {
+        return genreSlugs;
     }
 
     /// <summary>
-    /// 첫 플랫폼 코드값(slug) 반환 (없으면 빈 문자열)
+    /// 플랫폼 코드값(slug) 전체 목록 반환 (없으면 빈 목록)
     /// </summary>
-    public String getPlatformSlug() {
-        return platformSlug;
+    public List<String> getPlatformSlugs() {
+        return platformSlugs;
     }
 }

@@ -147,47 +147,67 @@ public class RawgApi {
             // 평점: 0.0~5.0 (double로 오므로 float로 변환)
             float rating = (float) gameObj.optDouble("rating", 0);
 
-            // 장르·플랫폼: 배열의 "첫 번째" 것만 대표로 꺼낸다 (게임 하나에 여러 개일 수 있음)
-            String genreSlug = firstGenreSlug(gameObj);
-            String platformSlug = firstPlatformSlug(gameObj);
+            // 장르·플랫폼: 전체 slug 목록을 모은다 (매핑되는 첫 항목을 나중에 고르기 위해)
+            List<String> genreSlugs = allGenreSlugs(gameObj);
+            List<String> platformSlugs = allPlatformSlugs(gameObj);
 
             list.add(new RawgGame(rawgId, name, coverImageUrl, released, rating,
-                    genreSlug, platformSlug));
+                    genreSlugs, platformSlugs));
         }
 
         return list;
     }
 
     /// <summary>
-    /// 게임 JSON에서 첫 장르의 코드값(slug)을 꺼낸다. 없으면 빈 문자열
+    /// 게임 JSON에서 장르 코드값(slug)을 모두 모아 목록으로 돌려준다 (없으면 빈 목록)
     /// 구조: "genres": [ { "name":"Action", "slug":"action" }, ... ]
-    /// (opt 계열만 써서 값이 없어도 예외 없이 빈 문자열로 넘어감)
+    /// (opt 계열만 써서 값이 없어도 예외 없이 넘어감. 빈 slug는 건너뜀)
     /// </summary>
-    private String firstGenreSlug(JSONObject gameObj) {
+    private List<String> allGenreSlugs(JSONObject gameObj) {
+        List<String> slugs = new ArrayList<>();
         JSONArray genres = gameObj.optJSONArray("genres");
-        if (genres == null || genres.length() == 0) {
-            return "";
+        if (genres == null) {
+            return slugs;
         }
-        JSONObject first = genres.optJSONObject(0);
-        return first != null ? first.optString("slug", "") : "";
+        for (int i = 0; i < genres.length(); i++) {
+            JSONObject g = genres.optJSONObject(i);
+            if (g == null) {
+                continue;
+            }
+            String slug = g.optString("slug", "");
+            if (!slug.isEmpty()) {
+                slugs.add(slug);
+            }
+        }
+        return slugs;
     }
 
     /// <summary>
-    /// 게임 JSON에서 첫 플랫폼의 코드값(slug)을 꺼낸다. 없으면 빈 문자열
+    /// 게임 JSON에서 플랫폼 코드값(slug)을 모두 모아 목록으로 돌려준다 (없으면 빈 목록)
     /// 구조: "platforms": [ { "platform": { "name":"PC", "slug":"pc" } }, ... ]
     /// (플랫폼 정보가 platform이라는 한 겹 안에 더 들어있는 형태라 두 번 파고든다)
     /// </summary>
-    private String firstPlatformSlug(JSONObject gameObj) {
+    private List<String> allPlatformSlugs(JSONObject gameObj) {
+        List<String> slugs = new ArrayList<>();
         JSONArray platforms = gameObj.optJSONArray("platforms");
-        if (platforms == null || platforms.length() == 0) {
-            return "";
+        if (platforms == null) {
+            return slugs;
         }
-        JSONObject firstWrap = platforms.optJSONObject(0);
-        if (firstWrap == null) {
-            return "";
+        for (int i = 0; i < platforms.length(); i++) {
+            JSONObject wrap = platforms.optJSONObject(i);
+            if (wrap == null) {
+                continue;
+            }
+            JSONObject platformObj = wrap.optJSONObject("platform");
+            if (platformObj == null) {
+                continue;
+            }
+            String slug = platformObj.optString("slug", "");
+            if (!slug.isEmpty()) {
+                slugs.add(slug);
+            }
         }
-        JSONObject platformObj = firstWrap.optJSONObject("platform");
-        return platformObj != null ? platformObj.optString("slug", "") : "";
+        return slugs;
     }
 
     /// <summary>

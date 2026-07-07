@@ -118,6 +118,11 @@ public class Translator {
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");               // GET = 읽기(번역 결과를 읽어옴)
 
+            // "나는 브라우저다"라고 알려주는 표식(User-Agent)을 붙인다.
+            // 안 붙이면 안드로이드 기본 표식(Dalvik…)이 나가는데, 이 번역 서버는 그걸 보고
+            // 딴 데로 돌려보내(302) 번역이 실패한다. 브라우저인 척하면 정상 응답(200)을 준다.
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+
             int responseCode = conn.getResponseCode();
             boolean isOk = responseCode == HttpURLConnection.HTTP_OK;
             if (!isOk) {

@@ -31,6 +31,7 @@ import com.example.week12.data.GameRepository;
 import com.example.week12.databinding.ActivityLibraryBinding;
 import com.example.week12.databinding.BottomSheetAddGameBinding;
 import com.example.week12.databinding.BottomSheetGameActionsBinding;
+import com.example.week12.data.KoreanQueryResolver;
 import com.example.week12.rawg.RawgSearchActivity;
 import com.example.week12.model.ActivityLogType;
 import com.example.week12.model.Game;
@@ -99,6 +100,12 @@ public class LibraryActivity extends AppCompatActivity {
     /// 상태 탭 필터 결과 안에서 제목으로 한 번 더 거르는 데 사용
     /// </summary>
     private String currentQuery = "";
+
+    /// <summary>
+    /// 한글 검색어를 영어로 바꿔주는 공용 보정기 (제목이 영어라 "발헤임"으론 "Valheim"을 못 찾기 때문).
+    /// 타이핑 중엔 로컬 필터, 엔터로 검색을 확정할 때만 이걸로 한글→영어 보정 후 필터한다.
+    /// </summary>
+    private final KoreanQueryResolver queryResolver = new KoreanQueryResolver();
 
     /// <summary>
     /// 검색 디바운스가 지난 뒤 대기하는 시간(ms) — 이 시간만큼 입력이 멈추면 한 번만 필터
@@ -310,6 +317,17 @@ public class LibraryActivity extends AppCompatActivity {
     private void applyCurrentFilter() {
         int selected = binding.tabLayoutFilter.getSelectedTabPosition();
         applyFilter(selected < 0 ? TAB_POSITION_ALL : selected);
+    }
+
+    /// <summary>
+    /// 한글 검색을 엔터로 확정했을 때, 보정된 영어 검색어를 검색창에 반영하고 다시 필터한다.
+    /// 검색창 글자를 영어로 바꿔("발헤임"→"Valheim") 사용자에게 무엇으로 검색됐는지 보여준다.
+    /// (setQuery의 두 번째 인자 false = 다시 제출하지 않음 → 무한 반복 방지)
+    /// </summary>
+    private void applyResolvedQuery(String english) {
+        currentQuery = english;
+        searchView.setQuery(english, false);
+        applyCurrentFilter();
     }
 
     /// <summary>
@@ -585,10 +603,15 @@ public class LibraryActivity extends AppCompatActivity {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                // 검색을 확정(엔터/검색 버튼)한 순간 → 최근 검색어로 저장
+                // 검색을 확정(엔터/검색 버튼)한 순간 → 최근 검색어로 저장 (원문 그대로)
                 userPrefs.pushSearchQuery(query);
                 // 결과가 이미 아래에 떠 있으니 최근 검색어 목록은 접는다
                 hideRecentSearches();
+                // 한글이면(제목은 영어라 안 걸림) 엔터 시 영어로 보정한 뒤 그 결과로 필터한다
+                // (타이핑 중엔 로컬 필터라 한글이면 결과가 없다가, 엔터로 확정하면 영어로 바뀌어 잡힘)
+                if (KoreanQueryResolver.hasKorean(query)) {
+                    queryResolver.toEnglish(query, LibraryActivity.this::applyResolvedQuery);
+                }
                 // true 반환: SearchView 기본 동작(제안 목록 등) 없이 우리가 처리 끝냈음을 알림
                 return true;
             }

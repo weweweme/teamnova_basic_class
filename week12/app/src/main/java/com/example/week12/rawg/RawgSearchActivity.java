@@ -10,12 +10,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.example.week12.data.GameNameCallback;
-import com.example.week12.data.GameNameResolver;
+import com.example.week12.data.KoreanQueryResolver;
 import com.example.week12.data.RawgApi;
 import com.example.week12.data.RawgPageCallback;
-import com.example.week12.data.TranslateCallback;
-import com.example.week12.data.Translator;
 import com.example.week12.databinding.ActivityRawgSearchBinding;
 import com.example.week12.model.RawgGame;
 
@@ -47,14 +44,9 @@ public class RawgSearchActivity extends AppCompatActivity {
     private final RawgApi rawgApi = new RawgApi();
 
     /// <summary>
-    /// 한글 검색어를 정식 영어 게임 제목으로 보정하는 AI(Gemini) — 1순위 ("배그"→"PUBG" 등 별칭까지)
+    /// 한글 검색어를 영어로 바꿔주는 공용 보정기 (AI→번역→원문 폴백을 안에서 다 처리)
     /// </summary>
-    private final GameNameResolver gameNameResolver = new GameNameResolver();
-
-    /// <summary>
-    /// 한→영 번역기 — AI가 실패(한도 초과 등)했을 때의 2순위 폴백 ("엘든링"→"Elden Ring")
-    /// </summary>
-    private final Translator translator = new Translator();
+    private final KoreanQueryResolver queryResolver = new KoreanQueryResolver();
 
     /// <summary>
     /// 결과 리스트 어댑터 (첫 페이지는 updateItems로 교체, 다음 페이지는 appendItems로 이어붙임)
@@ -141,9 +133,8 @@ public class RawgSearchActivity extends AppCompatActivity {
     /// <summary>
     /// 입력한 검색어로 새 검색을 시작한다
     ///
-    /// 검색어에 한글이 있으면(RAWG는 영어 전용) 먼저 영어로 바꾼 뒤 검색한다:
-    ///   1순위 AI(Gemini)로 정식 제목 보정 → 실패하면 2순위 번역 → 그래도 안 되면 원문 그대로.
-    /// 영어만 있으면 바로 검색한다.
+    /// 검색어에 한글이 있으면(RAWG는 영어 전용) 공용 보정기로 영어로 바꾼 뒤 검색한다
+    /// (AI→번역→원문 폴백은 KoreanQueryResolver가 안에서 처리). 영어면 바로 검색.
     /// </summary>
     private void doSearch() {
         String query = "";
@@ -156,60 +147,12 @@ public class RawgSearchActivity extends AppCompatActivity {
             return;
         }
 
-        // 영어(한글 없음)면 보정 없이 바로 검색
-        if (!containsKorean(query)) {
-            startSearch(query);
-            return;
+        // 한글이면 보정에 시간이 걸리니 미리 로딩 표시 (영어면 아래 콜백이 즉시 불림)
+        if (KoreanQueryResolver.hasKorean(query)) {
+            showLoading();
         }
-
-        // 한글 → 영어 보정 후 검색 (보정 중에도 로딩 스피너를 보여줌)
-        showLoading();
-        resolveThenSearch(query);
-    }
-
-    /// <summary>
-    /// 한글 검색어를 영어로 보정한 뒤 검색한다 (AI 1순위 → 번역 2순위 → 원문 최후)
-    /// </summary>
-    private void resolveThenSearch(String korean) {
-        // 1순위: AI(Gemini) — 별칭·오타·한글 표기를 정식 영어 제목으로
-        gameNameResolver.resolve(korean, new GameNameCallback() {
-            @Override
-            public void onResolved(String englishTitle) {
-                startSearch(pickEnglish(englishTitle, korean));
-            }
-
-            @Override
-            public void onError(String message) {
-                // AI 실패(한도 초과 등) → 2순위 번역으로 폴백
-                fallbackTranslate(korean);
-            }
-        });
-    }
-
-    /// <summary>
-    /// AI가 실패했을 때 번역으로 한 번 더 시도, 그래도 안 되면 원문 그대로 검색
-    /// </summary>
-    private void fallbackTranslate(String korean) {
-        translator.translateToEnglish(korean, new TranslateCallback() {
-            @Override
-            public void onSuccess(String english) {
-                startSearch(pickEnglish(english, korean));
-            }
-
-            @Override
-            public void onError(String message) {
-                // 번역도 실패 → 최후에는 원문 그대로 (그래도 뭔가 검색은 되게)
-                startSearch(korean);
-            }
-        });
-    }
-
-    /// <summary>
-    /// 보정 결과가 비어 있으면 원문을 쓰고, 있으면 앞뒤 공백을 정리해 쓴다
-    /// </summary>
-    private String pickEnglish(String converted, String original) {
-        boolean usable = converted != null && !converted.trim().isEmpty();
-        return usable ? converted.trim() : original;
+        // 영어로 바뀐(또는 원래 영어인) 검색어로 실제 검색 시작
+        queryResolver.toEnglish(query, this::startSearch);
     }
 
     /// <summary>
@@ -222,23 +165,6 @@ public class RawgSearchActivity extends AppCompatActivity {
 
         showLoading();
         loadPage(true);   // 첫 페이지
-    }
-
-    /// <summary>
-    /// 글자에 한글이 하나라도 있는지 (한글 음절 '가'~'힣' 또는 자모 범위)
-    /// RAWG는 영어 전용이라, 한글이 섞여 있으면 영어로 바꿔줘야 하기 때문에 판별한다
-    /// </summary>
-    private boolean containsKorean(String text) {
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            boolean isSyllable = c >= 0xAC00 && c <= 0xD7A3;   // 완성형 한글 (가~힣)
-            boolean isJamo = c >= 0x1100 && c <= 0x11FF;       // 첫가끝 자모
-            boolean isCompatJamo = c >= 0x3130 && c <= 0x318F; // 호환 자모 (ㄱ, ㅏ 등)
-            if (isSyllable || isJamo || isCompatJamo) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /// <summary>

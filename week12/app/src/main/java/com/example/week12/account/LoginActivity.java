@@ -43,6 +43,13 @@ import java.util.List;
 public class LoginActivity extends AppCompatActivity {
 
     /// <summary>
+    /// 카카오 계정을 우리 계정 시스템에 넣을 때 id 앞에 붙이는 접두사 (예: kakao_1234567890)
+    /// "이 계정이 카카오 계정인지" 판단할 때도 이 접두사를 쓴다 (MainActivity 로그아웃 등)
+    /// (public static: 다른 화면이 LoginActivity.KAKAO_ACCOUNT_PREFIX로 참조)
+    /// </summary>
+    public static final String KAKAO_ACCOUNT_PREFIX = "kakao_";
+
+    /// <summary>
     /// activity_login.xml의 View들을 모아둔 ViewBinding 묶음
     /// (binding.spinnerAccount, binding.editTextPin, binding.buttonLogin ...)
     /// </summary>
@@ -122,15 +129,6 @@ public class LoginActivity extends AppCompatActivity {
                 return Unit.INSTANCE;
             }
             long kakaoId = user.getId();
-
-            // [임시 진단] 카카오가 준 값 확인 (닉네임/사진이 왜 비는지 보려고) — 끝나면 삭제
-            boolean hasAccount = user.getKakaoAccount() != null;
-            boolean hasProfile = hasAccount && user.getKakaoAccount().getProfile() != null;
-            String rawNickname = hasProfile ? user.getKakaoAccount().getProfile().getNickname() : null;
-            String rawImage = hasProfile ? user.getKakaoAccount().getProfile().getProfileImageUrl() : null;
-            android.util.Log.d("KAKAO_ME", "id=" + kakaoId + " account=" + hasAccount
-                    + " profile=" + hasProfile + " nickname=" + rawNickname + " image=" + rawImage);
-
             String nickname = extractNickname(user);
             String imageUrl = extractImageUrl(user);
             linkKakaoAndProceed(kakaoId, nickname, imageUrl);
@@ -175,7 +173,7 @@ public class LoginActivity extends AppCompatActivity {
     /// 있으면 닉네임만 최신으로 갱신. 이렇게 가상 계정과 카카오 계정이 병존한다.
     /// </summary>
     private void linkKakaoAndProceed(long kakaoId, String nickname, String imageUrl) {
-        String accountId = "kakao_" + kakaoId;
+        String accountId = KAKAO_ACCOUNT_PREFIX + kakaoId;
 
         if (!accountManager.isRegistered(accountId)) {
             accountManager.register(accountId, nickname, "");

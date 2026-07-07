@@ -14,6 +14,10 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import com.kakao.sdk.user.UserApiClient;
+
+import kotlin.Unit;
+
 import com.example.week12.App;
 import com.example.week12.R;
 import com.example.week12.account.AccountManager;
@@ -218,11 +222,32 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle(R.string.logout_confirm_title)
                 .setMessage(R.string.logout_confirm_message)
                 .setPositiveButton(R.string.logout_confirm_ok, (dialog, which) -> {
+                    logoutKakaoIfNeeded();   // 카카오 계정이면 카카오 세션도 끊기 (우리 로그아웃 전에)
                     accountManager.logout();
                     goToLogin();
                 })
                 .setNegativeButton(android.R.string.cancel, null)
                 .show();
+    }
+
+    /// <summary>
+    /// 현재 로그인 계정이 카카오 계정이면 카카오 세션도 함께 끊는다 (진짜 로그아웃)
+    ///
+    /// 안 그러면 카카오 토큰이 남아, 로그아웃 후 다시 "카카오로 로그인" 하면
+    /// 재동의 없이 곧바로 같은 계정으로 들어가버린다 (다른 계정으로 못 바꾸는 느낌).
+    /// 주의: accountManager.logout()이 현재 계정을 비우기 전에 호출해야 카카오 계정인지 판별 가능.
+    /// </summary>
+    private void logoutKakaoIfNeeded() {
+        String currentId = accountManager.getCurrentAccountId();
+        boolean isKakao = currentId != null
+                && currentId.startsWith(LoginActivity.KAKAO_ACCOUNT_PREFIX);
+        if (isKakao) {
+            UserApiClient.getInstance().logout(error -> {
+                // 카카오 세션 끊기 (토큰 만료). 실패해도 우리 로그아웃은 계속 진행.
+                // 콜백이 코틀린 함수 타입(반환형 Unit)이라 자바에선 Unit.INSTANCE를 돌려줘야 함
+                return Unit.INSTANCE;
+            });
+        }
     }
 
     /// <summary>
@@ -241,6 +266,7 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle(R.string.delete_account_confirm_title)
                 .setMessage(getString(R.string.delete_account_confirm_message, nickname))
                 .setPositiveButton(R.string.delete_account_confirm_ok, (dialog, which) -> {
+                    logoutKakaoIfNeeded();   // 카카오 계정이면 카카오 세션도 끊기
                     accountManager.deleteAccount(currentId);
                     goToLogin();
                 })

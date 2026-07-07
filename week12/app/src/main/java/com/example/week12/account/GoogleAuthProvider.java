@@ -100,10 +100,9 @@ public class GoogleAuthProvider implements SocialAuthProvider {
                     @Override
                     public void onError(GetCredentialException e) {
                         // 계정 없음 / 사용자 취소 / Play 서비스 문제 등
-                        // (진단용) 실제 예외 종류·메시지를 로그와 토스트에 드러낸다
+                        // 사용자에겐 간단히 안내하고, 원인 추적용으로 로그에 상세를 남긴다
                         Log.e("GoogleAuth", "getCredential 실패", e);
-                        callback.onFailed("구글 로그인 실패: "
-                                + e.getClass().getSimpleName() + " / " + e.getMessage());
+                        callback.onFailed("구글 로그인 실패");
                     }
                 });
     }

@@ -252,6 +252,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /// <summary>
+    /// 현재 로그인 계정이 카카오 계정이면 카카오 "연결 끊기"(unlink)까지 한다 (계정 삭제용)
+    ///
+    /// 로그아웃(logout)은 토큰만 만료시키고 앱↔카카오 연결·동의는 남긴다.
+    /// unlink는 그 연결·동의까지 완전히 해제 → 다음 카카오 로그인 때 "처음처럼" 동의 화면부터 뜨고
+    /// 새 계정으로 다시 만들어진다. 계정을 통째로 지우는 상황엔 이게 맞다.
+    /// (accountManager.deleteAccount() 전에 호출해야 현재 계정이 카카오인지 판별 가능)
+    /// </summary>
+    private void unlinkKakaoIfNeeded() {
+        String currentId = accountManager.getCurrentAccountId();
+        boolean isKakao = currentId != null
+                && currentId.startsWith(AuthRepository.KAKAO_ACCOUNT_PREFIX);
+        if (isKakao) {
+            UserApiClient.getInstance().unlink(error -> {
+                // 연결 끊기 (앱↔카카오 완전 해제). 실패해도 로컬 계정 삭제는 계속 진행.
+                return Unit.INSTANCE;
+            });
+        }
+    }
+
+    /// <summary>
     /// 계정 삭제 확인 다이얼로그 → 확인 시 현재 계정을 통째로 지우고 로그인 화면으로
     /// 되돌릴 수 없는 동작이라 별명을 메시지에 넣어 "어떤 계정을 지우는지" 분명히 보여준다
     /// </summary>
@@ -267,7 +287,9 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle(R.string.delete_account_confirm_title)
                 .setMessage(getString(R.string.delete_account_confirm_message, nickname))
                 .setPositiveButton(R.string.delete_account_confirm_ok, (dialog, which) -> {
-                    logoutKakaoIfNeeded();   // 카카오 계정이면 카카오 세션도 끊기
+                    // 계정 삭제는 완전히 관계를 끊는 것 → 카카오는 로그아웃이 아니라 "연결 끊기"(unlink)
+                    // → 다음에 다시 카카오 로그인하면 처음처럼 동의 화면부터 뜨고 새 계정으로 생성됨
+                    unlinkKakaoIfNeeded();
                     accountManager.deleteAccount(currentId);
                     goToLogin();
                 })

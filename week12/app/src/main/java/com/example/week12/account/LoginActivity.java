@@ -8,6 +8,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.kakao.sdk.user.UserApiClient;
+import com.navercorp.nid.NaverIdLoginSDK;
+import com.navercorp.nid.oauth.util.NidOAuthCallback;
 
 import kotlin.Unit;
 
@@ -94,6 +96,45 @@ public class LoginActivity extends AppCompatActivity {
         binding.buttonLogin.setOnClickListener(v -> onLoginClicked());
         binding.buttonSignup.setOnClickListener(v -> onSignupClicked());
         binding.buttonKakaoLogin.setOnClickListener(v -> onKakaoLoginClicked());
+        binding.buttonNaverLogin.setOnClickListener(v -> onNaverLoginClicked());
+    }
+
+    // ========== 네이버 로그인 ==========
+
+    /// <summary>
+    /// "네이버로 로그인" 버튼 클릭 → 네이버 계정으로 로그인
+    ///
+    /// 카카오와 똑같은 역할 분리: 화면(여기)은 로그인 창을 띄우고 "토큰"만 받는다.
+    /// 받은 토큰의 검증·세션 발급은 "서버 역할"인 AuthRepository에 맡긴다.
+    /// (NaverIdLoginSDK는 Kotlin object라 Java에선 INSTANCE로 접근)
+    /// </summary>
+    private void onNaverLoginClicked() {
+        NaverIdLoginSDK.INSTANCE.authenticate(this, new NidOAuthCallback() {
+            @Override
+            public void onSuccess() {
+                // 로그인 성공 → SDK가 보관한 접근 토큰을 꺼내 "서버 역할" 계층에 넘긴다
+                String accessToken = NaverIdLoginSDK.INSTANCE.getAccessToken();
+                authRepository.loginWithNaver(accessToken, binding.checkBoxKeepLogin.isChecked(),
+                        new AuthResultCallback() {
+                            @Override
+                            public void onSuccess(String nickname, boolean isNewAccount) {
+                                showToast(getString(R.string.login_success, nickname));
+                                proceedAfterAuth();
+                            }
+
+                            @Override
+                            public void onError(String message) {
+                                showToast(message);
+                            }
+                        });
+            }
+
+            @Override
+            public void onFailure(String httpStatus, String message) {
+                // 로그인 실패/취소 (네이버가 사유를 httpStatus/message로 알려줌)
+                showToast("네이버 로그인 실패");
+            }
+        });
     }
 
     // ========== 카카오 로그인 ==========
@@ -140,9 +181,12 @@ public class LoginActivity extends AppCompatActivity {
     /// </summary>
     private void loadAccountsIntoSpinner() {
         accounts.clear();
-        // 카카오 계정은 PIN이 없어 PIN 로그인 목록에 넣지 않는다 (카카오는 '카카오로 로그인' 버튼 전용)
+        // 소셜 계정(카카오/네이버)은 PIN이 없어 PIN 로그인 목록에 넣지 않는다
+        // (각자 '카카오로 로그인' / '네이버로 로그인' 버튼 전용)
         for (Account account : accountManager.getAccounts()) {
-            if (account.getId().startsWith(AuthRepository.KAKAO_ACCOUNT_PREFIX)) {
+            boolean isKakao = account.getId().startsWith(AuthRepository.KAKAO_ACCOUNT_PREFIX);
+            boolean isNaver = account.getId().startsWith(AuthRepository.NAVER_ACCOUNT_PREFIX);
+            if (isKakao || isNaver) {
                 continue;
             }
             accounts.add(account);

@@ -97,5 +97,16 @@
             android:textColor="#000000"
             android:text="카카오로 로그인" />
 
+        <!-- 네이버로 로그인 (OAuth — 카카오와 같은 방식) -->
+        <!-- 네이버 브랜드색(초록 #03C75A) + 흰 글씨 -->
+        <Button
+            android:id="@+id/buttonNaverLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="#03C75A"
+            android:textColor="#FFFFFF"
+            android:text="네이버로 로그인" />
+
     </LinearLayout>
 </ScrollView>

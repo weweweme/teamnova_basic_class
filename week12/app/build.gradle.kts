@@ -47,6 +47,8 @@ dependencies {
     implementation(libs.swiperefreshlayout)
     // 카카오 로그인 SDK (사용자 모듈) — 카카오 계정으로 로그인
     implementation("com.kakao.sdk:v2-user:2.20.6")
+    // 네이버 아이디로 로그인 SDK — 네이버 계정으로 로그인 (Maven Central, 별도 저장소 불필요)
+    implementation("com.navercorp.nid:oauth:5.11.2")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

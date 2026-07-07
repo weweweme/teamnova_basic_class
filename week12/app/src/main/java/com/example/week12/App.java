@@ -3,6 +3,7 @@ package com.example.week12;
 import android.app.Application;
 
 import com.kakao.sdk.common.KakaoSdk;
+import com.navercorp.nid.NaverIdLoginSDK;
 
 import com.example.week12.account.AccountManager;
 import com.example.week12.account.UserPrefs;
@@ -90,6 +91,15 @@ public class App extends Application {
         // 이 키는 카카오 개발자 콘솔에서 발급한 "네이티브 앱 키" (RAWG 키처럼 앱 신분증)
         // 주의: 공개 저장소에 올릴 거면 숨기는 게 안전 (학습용이라 코드에 둠)
         KakaoSdk.init(this, "273f1b25dbcaf75b1264b6616d3f1187");
+
+        // 네이버 로그인 SDK 초기화 (앱 시작 시 한 번)
+        // 값: 네이버 개발자 콘솔에서 발급한 Client ID / Client Secret + 동의창에 표시될 앱 이름
+        // NaverIdLoginSDK는 Kotlin object라 Java에선 INSTANCE로 접근한다 (카카오와 호출 방식만 다름)
+        // 주의: 이 값들도 공개 저장소에 올릴 거면 숨기는 게 안전 (학습용이라 코드에 둠)
+        NaverIdLoginSDK.INSTANCE.initialize(this,
+                "pD2vHK_E_WLcCNVVSTnz",   // Client ID
+                "uG7w8DXzJF",             // Client Secret
+                "게임 다이어리");           // 로그인 동의창에 표시될 이름
 
         gameRepository = new GameRepository(this);
         // 앱이 켜질 때 시스템이 스스로 휴지통을 점검해 30일 지난 항목을 자동 정리

@@ -7,6 +7,10 @@ import com.example.week12.model.Account;
 import com.kakao.sdk.auth.model.OAuthToken;
 import com.kakao.sdk.user.UserApiClient;
 import com.kakao.sdk.user.model.User;
+import com.navercorp.nid.oauth.NidOAuthLogin;
+import com.navercorp.nid.profile.domain.vo.NidProfile;
+import com.navercorp.nid.profile.domain.vo.NidProfileDetail;
+import com.navercorp.nid.profile.util.NidProfileCallback;
 
 import kotlin.Unit;
 
@@ -29,6 +33,12 @@ public class AuthRepository {
     /// "이 계정이 카카오 계정인지" 판단할 때도 이 접두사를 쓴다 (로그아웃 등)
     /// </summary>
     public static final String KAKAO_ACCOUNT_PREFIX = "kakao_";
+
+    /// <summary>
+    /// 네이버 계정을 우리 계정 id로 만들 때 붙이는 접두사 (예: naver_abcd1234)
+    /// "이 계정이 네이버 계정인지" 판단할 때도 이 접두사를 쓴다 (로그아웃/자동로그인 등)
+    /// </summary>
+    public static final String NAVER_ACCOUNT_PREFIX = "naver_";
 
     /// <summary>
     /// 계정 파일(user_<id>) 접근용 앱 컨텍스트
@@ -76,10 +86,53 @@ public class AuthRepository {
             long kakaoId = user.getId();
             String nickname = extractNickname(user);
             String imageUrl = extractImageUrl(user);
-            boolean isNew = issueSession(kakaoId, nickname, imageUrl, keepLogin);
+            boolean isNew = issueSession(KAKAO_ACCOUNT_PREFIX + kakaoId, nickname, imageUrl, keepLogin);
 
             callback.onSuccess(nickname, isNew);
             return Unit.INSTANCE;
+        });
+    }
+
+    /// <summary>
+    /// 네이버 토큰으로 로그인 처리 — 검증 → 세션 발급 (카카오와 완전히 같은 "서버 역할" 경계)
+    ///
+    /// 카카오의 me()가 토큰으로 유저를 물어보듯, 여기서는 네이버 프로필 API(callProfileApi)가
+    /// 토큰으로 네이버에 유저를 물어보는 것이 검증에 해당한다 (네이버가 확인해준 신원만 돌아옴).
+    /// 결과는 콜백으로 돌려주며, 네이버 SDK가 콜백을 메인 스레드에서 불러준다.
+    /// </summary>
+    public void loginWithNaver(String accessToken, boolean keepLogin, AuthResultCallback callback) {
+        // 클라이언트가 건넨 로그인 증표(토큰)가 없으면 진행 불가
+        boolean noToken = accessToken == null || accessToken.isEmpty();
+        if (noToken) {
+            callback.onError("로그인 정보가 없어요");
+            return;
+        }
+
+        // ① 검증: 토큰으로 네이버에 프로필을 물어본다 (네이버가 확인해준 신원만 돌아옴)
+        new NidOAuthLogin().callProfileApi(new NidProfileCallback<NidProfile>() {
+            @Override
+            public void onSuccess(NidProfile result) {
+                NidProfileDetail detail = result.getProfile();
+                // 네이버 유저 고유 id가 있어야 우리 계정 id를 만들 수 있음
+                boolean failed = detail == null || detail.getId() == null || detail.getId().isEmpty();
+                if (failed) {
+                    callback.onError("네이버 인증 실패");
+                    return;
+                }
+
+                // ② 검증 통과 → 우리 앱 세션 발급
+                String accountId = NAVER_ACCOUNT_PREFIX + detail.getId();
+                String nickname = extractNaverNickname(detail);
+                String imageUrl = detail.getProfileImage() != null ? detail.getProfileImage() : "";
+                boolean isNew = issueSession(accountId, nickname, imageUrl, keepLogin);
+
+                callback.onSuccess(nickname, isNew);
+            }
+
+            @Override
+            public void onFailure(String httpStatus, String message) {
+                callback.onError("네이버 인증 실패");
+            }
         });
     }
 
@@ -104,10 +157,11 @@ public class AuthRepository {
     ///   - 현재 로그인 계정으로 지정 + 로그인 유지 반영 + 프로필 사진 저장
     ///   - 새 계정이면 테스트 계정 자동 팔로우 (팔로잉 피드 시드)
     /// 반환값: 이번에 새로 만든 계정이면 true
+    ///
+    /// accountId: 이미 접두사가 붙은 우리 계정 id (카카오면 kakao_..., 네이버면 naver_...)
+    ///   → 어느 소셜이든 이 메서드 하나로 세션을 발급한다 (provider별로 중복 코드 없음)
     /// </summary>
-    private boolean issueSession(long kakaoId, String nickname, String imageUrl, boolean keepLogin) {
-        String accountId = KAKAO_ACCOUNT_PREFIX + kakaoId;
-
+    private boolean issueSession(String accountId, String nickname, String imageUrl, boolean keepLogin) {
         boolean isNew = !accountManager.isRegistered(accountId);
         if (isNew) {
             accountManager.register(accountId, nickname, "");
@@ -155,6 +209,16 @@ public class AuthRepository {
             return fallback;
         }
         String nickname = user.getKakaoAccount().getProfile().getNickname();
+        boolean hasNickname = nickname != null && !nickname.isEmpty();
+        return hasNickname ? nickname : fallback;
+    }
+
+    /// <summary>
+    /// 네이버 프로필에서 별명을 안전하게 꺼낸다 (동의 안 했거나 없으면 기본값)
+    /// </summary>
+    private String extractNaverNickname(NidProfileDetail detail) {
+        String fallback = "네이버사용자";
+        String nickname = detail.getNickname();
         boolean hasNickname = nickname != null && !nickname.isEmpty();
         return hasNickname ? nickname : fallback;
     }

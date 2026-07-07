@@ -5,6 +5,16 @@ import android.os.Looper;
 
 import com.example.week12.model.RawgGame;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,10 +23,6 @@ import java.util.List;
 ///
 /// 하는 일 하나: 검색어를 받아 RAWG 서버에 물어보고, 결과(RawgGame 목록)를 콜백으로 돌려준다.
 /// 06 슬라이드의 코드가 실제 클래스가 된 것 — 주소 만들기 → GET → JSON 파싱 → Handler로 결과 전달.
-///
-/// ──── 지금은 골격만 (B2) ────
-/// 실제 네트워크 호출과 JSON 파싱은 다음 단계(B3)에서 채운다.
-/// 여기서는 "어떤 스레드에서, 어떤 통로로 결과를 돌려줄지"의 구조만 잡는다.
 ///
 /// Unity 비유: 서버에 요청 보내는 UnityWebRequest 래퍼. 결과는 콜백으로 넘겨준다.
 /// </summary>
@@ -49,18 +55,108 @@ public class RawgApi {
     /// query: 사용자가 입력한 검색어 (예: "zelda")
     /// callback: 결과를 돌려받을 통로 (성공/실패) — 메인 스레드에서 불린다
     ///
-    /// ──── 지금은 골격 (B2) ────
-    /// 실제 GET 요청과 JSON 파싱은 B3에서 채운다.
-    /// 지금은 스레드를 띄우고 "빈 결과"를 메인으로 돌려주는 구조만 있다.
+    /// 흐름(06 슬라이드 그대로): 주소 완성 → GET → 응답 글자 읽기 → JSON 파싱 → Handler로 결과 전달
     /// </summary>
     public void search(String query, RawgSearchCallback callback) {
         new Thread(() -> {                              // 오래 걸리는 일은 서브 스레드 (11주차)
-            // TODO(B3): 여기서 주소 완성 → HttpURLConnection GET → JSON 파싱 → results 채우기
-            //   완성할 주소 예: BASE_URL + "?search=" + query + "&key=" + API_KEY
-            List<RawgGame> results = new ArrayList<>();  // B3 전까지는 빈 목록
+            // 연결 객체를 finally에서 정리하려고 try 밖에 미리 선언 (실패해도 끊어주기 위함)
+            HttpURLConnection conn = null;
+            try {
+                // ① 주소 완성
+                //    검색어에 공백·한글이 있을 수 있어 URL에 안전한 형태로 변환(인코딩)한다
+                //    예: "hollow knight" → "hollow%20knight" (공백을 %20으로)
+                String encodedQuery = URLEncoder.encode(query, "UTF-8");
+                String urlString = BASE_URL + "?search=" + encodedQuery + "&key=" + API_KEY;
+                URL url = new URL(urlString);
 
-            // 결과 반영(콜백)은 메인 스레드에서 (화면은 메인에서만 — 11주차)
-            mainHandler.post(() -> callback.onSuccess(results));
+                // ② GET = "읽어서 줘" (RESTful 동사, CRUD의 Read)
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+
+                // ②-1 서버 응답 코드 확인 (200 OK가 정상 — 401은 키 문제, 404는 없는 주소 등)
+                int responseCode = conn.getResponseCode();
+                boolean isOk = responseCode == HttpURLConnection.HTTP_OK;
+                if (!isOk) {
+                    // 03 주의점 — 서버가 정상 응답이 아니면 실패로 처리
+                    postError(callback, "서버 오류 (코드 " + responseCode + ")");
+                    return;   // 이 스레드 종료 (아래 파싱으로 안 감)
+                }
+
+                // ③ 응답(JSON 글자)을 한 줄씩 읽어 이어붙임
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(conn.getInputStream()));
+                StringBuilder builder = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    builder.append(line);
+                }
+                reader.close();
+
+                // ④ JSON 글자 → RawgGame 목록으로 꺼내기 (파싱은 아래 헬퍼로 분리)
+                List<RawgGame> results = parseResults(builder.toString());
+
+                // ⑤ 성공 — 결과를 메인 스레드에서 콜백으로 전달
+                mainHandler.post(() -> callback.onSuccess(results));
+
+            } catch (IOException | JSONException e) {
+                // 03 주의점 — 인터넷 없음/서버 오류(IOException) 또는 형태가 예상과 다름(JSONException)
+                postError(callback, "불러오기 실패: " + e.getMessage());
+            } finally {
+                // 성공이든 실패든 연결은 정리 (열어둔 연결을 끊음)
+                if (conn != null) {
+                    conn.disconnect();
+                }
+            }
         }).start();
+    }
+
+    /// <summary>
+    /// RAWG 응답 JSON(글자)에서 게임 목록을 꺼내 RawgGame 목록으로 만든다
+    ///
+    /// RAWG 응답 구조:
+    ///   { "count": 1234, "results": [ {게임}, {게임}, ... ] }
+    /// → "results" 배열을 돌며 각 게임에서 필요한 이름표만 꺼낸다
+    ///
+    /// 형태가 예상과 다르면 JSONException을 던짐 → 호출부(search)의 catch가 실패로 처리
+    /// </summary>
+    private List<RawgGame> parseResults(String json) throws JSONException {
+        List<RawgGame> list = new ArrayList<>();
+
+        JSONObject root = new JSONObject(json);
+        JSONArray results = root.getJSONArray("results");   // 게임들이 담긴 배열
+
+        for (int i = 0; i < results.length(); i++) {
+            JSONObject gameObj = results.getJSONObject(i);
+
+            // 이름표를 보고 값 꺼내기 (07 슬라이드에서 말한 "이름표 붙은 상자")
+            int rawgId = gameObj.optInt("id", 0);
+            String name = gameObj.optString("name", "");
+
+            // 표지: 없거나 null일 수 있음 → 없으면 null로 (P3에서 null이면 기본 아이콘)
+            String coverImageUrl = null;
+            if (!gameObj.isNull("background_image")) {
+                coverImageUrl = gameObj.optString("background_image", null);
+            }
+
+            // 출시일: 미정이면 null일 수 있음 → 없으면 빈 문자열
+            String released = "";
+            if (!gameObj.isNull("released")) {
+                released = gameObj.optString("released", "");
+            }
+
+            // 평점: 0.0~5.0 (double로 오므로 float로 변환)
+            float rating = (float) gameObj.optDouble("rating", 0);
+
+            list.add(new RawgGame(rawgId, name, coverImageUrl, released, rating));
+        }
+
+        return list;
+    }
+
+    /// <summary>
+    /// 실패 사유를 메인 스레드에서 콜백(onError)으로 전달 (여러 곳에서 재사용)
+    /// </summary>
+    private void postError(RawgSearchCallback callback, String message) {
+        mainHandler.post(() -> callback.onError(message));
     }
 }

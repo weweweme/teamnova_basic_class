@@ -36,57 +36,6 @@
             app:singleLine="true" />
     </HorizontalScrollView>
 
-    <!-- 최근 검색어 (검색창을 펼쳤는데 입력이 비어 있을 때만 코드에서 표시) -->
-    <!-- 칩을 누르면 그 검색어로 다시 검색됨 -->
-    <LinearLayout
-        android:id="@+id/layoutRecentSearch"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:visibility="gone">
-
-        <!-- 제목 줄: "최근 검색" + 오른쪽 끝 "지우기" -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/library_recent_search_label"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/textViewClearRecentSearch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:padding="6dp"
-                android:text="@string/library_recent_search_clear"
-                android:textColor="#888888"
-                android:textSize="13sp" />
-        </LinearLayout>
-
-        <!-- 최근 검색어 칩들 (코드에서 동적 생성) -->
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars="none">
-
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chipGroupRecentSearch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:singleLine="true" />
-        </HorizontalScrollView>
-    </LinearLayout>
-
     <!-- 표지 격자 영역 (탭으로 필터된 게임 표시) -->
     <FrameLayout
         android:layout_width="match_parent"

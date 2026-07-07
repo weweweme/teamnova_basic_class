@@ -126,8 +126,6 @@
     <string name="library_filter_all">전체</string>
     <string name="library_empty">이 상태의 게임이 없어요</string>
     <string name="library_search_hint">게임 제목 검색</string>
-    <string name="library_recent_search_label">최근 검색</string>
-    <string name="library_recent_search_clear">지우기</string>
     <string name="library_search_empty">검색 결과가 없어요</string>
     <!-- 한글 입력 중: 제목이 영어라 바로 안 걸리니 엔터로 검색하라고 안내 -->
     <string name="library_search_press_enter">한글은 검색(→) 또는 엔터로 검색하세요</string>

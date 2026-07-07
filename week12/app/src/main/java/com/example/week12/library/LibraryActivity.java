@@ -335,6 +335,9 @@ public class LibraryActivity extends AppCompatActivity {
     /// (보정이 끝나면 applyResolvedQuery → applyCurrentFilter가 결과/빈 상태로 덮어씀)
     /// </summary>
     private void showSearching() {
+        // 직전에 예약된 로컬 필터(한글→빈 결과 안내)를 취소한다.
+        // 안 그러면 그 필터가 300ms 뒤 뒤늦게 실행돼 "검색 중…"을 "엔터로 검색" 안내로 덮어씀(깜빡임).
+        searchHandler.removeCallbacks(searchFilterRunnable);
         binding.textViewEmpty.setText(R.string.library_searching);
         binding.textViewEmpty.setVisibility(View.VISIBLE);
     }
@@ -625,10 +628,6 @@ public class LibraryActivity extends AppCompatActivity {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                // 검색을 확정(엔터/검색 버튼)한 순간 → 최근 검색어로 저장 (원문 그대로)
-                userPrefs.pushSearchQuery(query);
-                // 결과가 이미 아래에 떠 있으니 최근 검색어 목록은 접는다
-                hideRecentSearches();
                 // 한글이면(제목은 영어라 안 걸림) 엔터 시 영어로 보정한 뒤 그 결과로 필터한다
                 // (타이핑 중엔 로컬 필터라 한글이면 결과가 없다가, 엔터로 확정하면 영어로 바뀌어 잡힘)
                 if (KoreanQueryResolver.hasKorean(query)) {
@@ -648,97 +647,10 @@ public class LibraryActivity extends AppCompatActivity {
                 //   입력이 멈춘 순간 딱 한 번만 목록을 다시 그림 (글자마다 렉 제거)
                 searchHandler.removeCallbacks(searchFilterRunnable);
                 searchHandler.postDelayed(searchFilterRunnable, SEARCH_DEBOUNCE_MS);
-
-                // 최근 검색어 표시 여부는 힌트라 즉시 갱신 (가벼움)
-                updateRecentSearchVisibility();
                 return true;
             }
         });
-
-        // 돋보기를 눌러 검색창을 펼친 순간 (입력은 아직 비어 있음) → 최근 검색어 표시
-        searchView.setOnSearchClickListener(v -> showRecentSearches());
-
-        // 검색창을 접으면(← 또는 X) 최근 검색어 목록도 함께 숨김
-        searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
-            @Override
-            public boolean onMenuItemActionExpand(@NonNull MenuItem item) {
-                // 펼치는 순간엔 입력이 비어 있으니 최근 검색어를 바로 보여준다
-                // (collapseActionView 방식이라 setOnSearchClickListener가 안 불릴 수 있어 여기서 처리)
-                showRecentSearches();
-                return true;  // 펼침 허용
-            }
-
-            @Override
-            public boolean onMenuItemActionCollapse(@NonNull MenuItem item) {
-                hideRecentSearches();
-                return true;  // 접힘 허용
-            }
-        });
-
-        // "지우기" → 검색 기록 전체 삭제 후 목록 숨김
-        binding.textViewClearRecentSearch.setOnClickListener(v -> {
-            userPrefs.clearSearchHistory();
-            hideRecentSearches();
-        });
         return true;
-    }
-
-    // ========== 최근 검색어 ==========
-
-    /// <summary>
-    /// 검색창이 펼쳐져 있고 입력이 비어 있을 때만 최근 검색어를 보여준다
-    /// (입력 도중엔 결과가 중요하므로 최근 검색어는 감춤)
-    /// </summary>
-    private void updateRecentSearchVisibility() {
-        boolean searchOpen = searchItem != null && searchItem.isActionViewExpanded();
-        boolean queryEmpty = currentQuery.isEmpty();
-        if (searchOpen && queryEmpty) {
-            showRecentSearches();
-        } else {
-            hideRecentSearches();
-        }
-    }
-
-    /// <summary>
-    /// 최근 검색어 칩들을 만들어 표시한다
-    /// 저장된 기록이 없으면 영역을 숨김(GONE)
-    /// 칩을 누르면 그 검색어로 SearchView를 채워 바로 검색되게 한다
-    /// </summary>
-    private void showRecentSearches() {
-        ChipGroup chipGroup = binding.chipGroupRecentSearch;
-        chipGroup.removeAllViews();
-
-        List<String> history = userPrefs.getSearchHistory();
-        if (history.isEmpty()) {
-            binding.layoutRecentSearch.setVisibility(View.GONE);
-            return;
-        }
-
-        for (String query : history) {
-            // 장르 칩과 달리 체크가 아닌 "누르면 검색" 액션 칩
-            Chip chip = (Chip) getLayoutInflater()
-                    .inflate(R.layout.item_recent_search_chip, chipGroup, false);
-            chip.setText(query);
-            // 칩을 누르면 그 검색어를 검색창에 넣고 곧바로 제출(true) → 결과 필터 + 기록 최신화
-            chip.setOnClickListener(v -> searchView.setQuery(query, true));
-            // 칩 오른쪽 X → 이 검색어 하나만 기록에서 삭제하고 목록을 다시 그린다
-            // (마지막 하나를 지우면 showRecentSearches가 영역을 GONE 처리)
-            chip.setCloseIconVisible(true);
-            chip.setOnCloseIconClickListener(v -> {
-                userPrefs.removeSearchQuery(query);
-                showRecentSearches();
-            });
-            chipGroup.addView(chip);
-        }
-
-        binding.layoutRecentSearch.setVisibility(View.VISIBLE);
-    }
-
-    /// <summary>
-    /// 최근 검색어 영역을 숨긴다
-    /// </summary>
-    private void hideRecentSearches() {
-        binding.layoutRecentSearch.setVisibility(View.GONE);
     }
 
     /// <summary>

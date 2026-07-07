@@ -137,18 +137,6 @@ public class UserPrefs {
     private static final int RECENT_VIEWED_MAX = 10;
 
     /// <summary>
-    /// key: 최근 검색어 목록 (줄바꿈으로 이어 붙인 한 문자열, 최신순)
-    /// 게임 제목에는 쉼표가 들어갈 수 있어(예: "Baldur's Gate 3, Deluxe"),
-    /// 최근 본 게임과 달리 구분자를 쉼표가 아닌 줄바꿈(\n)으로 둔다
-    /// </summary>
-    private static final String KEY_SEARCH_HISTORY = "search_history";
-
-    /// <summary>
-    /// 검색어를 몇 개까지 기억할지 (넘치면 가장 오래된 것부터 버림)
-    /// </summary>
-    private static final int SEARCH_HISTORY_MAX = 8;
-
-    /// <summary>
     /// key: 이 계정의 활동 로그 (줄바꿈으로 이어 붙인 한 문자열, 최신순)
     /// 로그 한 줄 형식: "종류|게임id|시각(밀리초)|부가정보"
     ///   예: "REVIEWED|6|1720000000000|하데스 갓겜"
@@ -616,92 +604,6 @@ public class UserPrefs {
             ids.add(Integer.parseInt(part));
         }
         return ids;
-    }
-
-    // ========== 검색 기록 (search_history) ==========
-
-    /// <summary>
-    /// 검색어를 "방금 검색함"으로 기록한다 (검색을 제출했을 때 호출)
-    ///   - 앞뒤 공백을 다듬고, 빈 문자열이면 저장하지 않음
-    ///   - 이미 있던 같은 검색어는 빼고 맨 앞으로 옮김 (가장 최근으로 갱신)
-    ///   - 최대 개수를 넘으면 뒤(가장 오래된 것)를 잘라냄
-    /// </summary>
-    public void pushSearchQuery(String query) {
-        String trimmed = query.trim();
-        if (trimmed.isEmpty()) {
-            return;
-        }
-
-        List<String> history = getSearchHistory();
-
-        // 같은 검색어가 이미 있으면 제거 (맨 앞으로 새로 넣기 위해)
-        history.remove(trimmed);
-
-        // 맨 앞에 추가 = 가장 최근
-        history.add(0, trimmed);
-
-        // 최대 개수 초과분은 뒤에서부터 잘라냄
-        while (history.size() > SEARCH_HISTORY_MAX) {
-            history.remove(history.size() - 1);
-        }
-
-        persistSearchHistory(history);
-    }
-
-    /// <summary>
-    /// 최근 검색어 하나만 기록에서 지운다 (칩의 X 버튼을 눌렀을 때)
-    /// 해당 검색어가 없으면 아무 일도 하지 않는다
-    /// </summary>
-    public void removeSearchQuery(String query) {
-        String trimmed = query.trim();
-        List<String> history = getSearchHistory();
-        boolean removed = history.remove(trimmed);
-        if (removed) {
-            persistSearchHistory(history);
-        }
-    }
-
-    /// <summary>
-    /// 최근 검색어 목록을 줄바꿈으로 이어 붙여 한 문자열로 저장 (push/remove 공용)
-    /// </summary>
-    private void persistSearchHistory(List<String> history) {
-        StringBuilder joined = new StringBuilder();
-        for (int i = 0; i < history.size(); i++) {
-            if (i > 0) {
-                joined.append("\n");
-            }
-            joined.append(history.get(i));
-        }
-        prefs.edit()
-                .putString(KEY_SEARCH_HISTORY, joined.toString())
-                .apply();
-    }
-
-    /// <summary>
-    /// 최근 검색어들을 최신순으로 반환 (없으면 빈 목록)
-    /// 저장된 문자열을 줄바꿈으로 잘라 목록으로 되돌린다
-    /// </summary>
-    public List<String> getSearchHistory() {
-        List<String> history = new ArrayList<>();
-        String joined = prefs.getString(KEY_SEARCH_HISTORY, "");
-        if (joined.isEmpty()) {
-            return history;
-        }
-        for (String part : joined.split("\n")) {
-            if (!part.isEmpty()) {
-                history.add(part);
-            }
-        }
-        return history;
-    }
-
-    /// <summary>
-    /// 검색 기록을 모두 지운다 ("기록 지우기"에 사용)
-    /// </summary>
-    public void clearSearchHistory() {
-        prefs.edit()
-                .remove(KEY_SEARCH_HISTORY)
-                .apply();
     }
 
     // ========== 활동 로그 (activity_log) ==========

@@ -14,6 +14,7 @@ import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.exceptions.ClearCredentialException;
 import androidx.credentials.exceptions.GetCredentialException;
 
+import com.example.week12.util.LogFormat;
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 
@@ -124,6 +125,8 @@ public class GoogleAuthProvider implements SocialAuthProvider {
         }
         // 자격증명 데이터(Bundle)에서 구글 ID 토큰 신원을 꺼낸다
         GoogleIdTokenCredential google = GoogleIdTokenCredential.createFrom(credential.getData());
+        // ID 토큰(JWT)에 신원이 서명돼 들어있음 → 토큰(가림)을 남긴다 (OIDC 방식 증명)
+        Log.d("AuthApi", "  ↳ 구글 ID 토큰(JWT) 수신: " + LogFormat.mask(google.getIdToken()));
         String id = google.getId();   // 구글 계정 식별자 (보통 이메일)
         String nickname = pickNickname(google);
         String imageUrl = google.getProfilePictureUri() != null

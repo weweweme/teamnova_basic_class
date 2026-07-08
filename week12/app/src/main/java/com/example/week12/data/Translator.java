@@ -4,6 +4,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.example.week12.util.LogFormat;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -165,8 +167,8 @@ public class Translator {
 
             String rawBody = builder.toString();
             long ms = System.currentTimeMillis() - t0;
-            Log.d(TAG, "   HTTP " + responseCode + " · " + ms + "ms · " + rawBody.length()
-                    + "자 · 원문: " + preview(rawBody));
+            Log.d(TAG, "   HTTP " + responseCode + " · " + ms + "ms · " + rawBody.length() + "자");
+            Log.d(TAG, "   원문:\n" + LogFormat.prettyPreview(rawBody, 600));
             return parseTranslation(rawBody);
 
         } finally {

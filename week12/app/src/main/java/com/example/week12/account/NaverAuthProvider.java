@@ -3,6 +3,7 @@ package com.example.week12.account;
 import android.app.Activity;
 import android.util.Log;
 
+import com.example.week12.util.LogFormat;
 import com.navercorp.nid.NaverIdLoginSDK;
 import com.navercorp.nid.oauth.NidOAuthLogin;
 import com.navercorp.nid.oauth.util.NidOAuthCallback;
@@ -44,11 +45,13 @@ public class NaverAuthProvider implements SocialAuthProvider {
     /// </summary>
     @Override
     public void login(Activity activity, SocialAuthCallback callback) {
-        Log.d("AuthApi", "  ↳ 네이버 SDK 로그인 창 호출");
+        Log.d("AuthApi", "  ↳ 네이버 SDK authenticate() 호출 (로그인 창)");
         NaverIdLoginSDK.INSTANCE.authenticate(activity, new NidOAuthCallback() {
             @Override
             public void onSuccess() {
-                // 로그인 성공(토큰이 SDK에 저장됨) → 그 토큰으로 신원 확인
+                // 로그인 성공 → 발급된 액세스 토큰(가림)을 남기고, 그 토큰으로 신원 확인
+                Log.d("AuthApi", "  ↳ 네이버 액세스 토큰 발급됨: "
+                        + LogFormat.mask(NaverIdLoginSDK.INSTANCE.getAccessToken()));
                 fetchIdentity(callback);
             }
 
@@ -65,7 +68,7 @@ public class NaverAuthProvider implements SocialAuthProvider {
     /// (토큰이 없거나 유효하지 않으면 onFailure가 와서 실패로 처리된다)
     /// </summary>
     private void fetchIdentity(SocialAuthCallback callback) {
-        Log.d("AuthApi", "  ↳ 네이버 프로필 API 조회 (OAuth 2.0)");
+        Log.d("AuthApi", "  ↳ 네이버 프로필 API 조회 (OAuth 2.0 — openapi.naver.com/v1/nid/me)");
         new NidOAuthLogin().callProfileApi(new NidProfileCallback<NidProfile>() {
             @Override
             public void onSuccess(NidProfile result) {

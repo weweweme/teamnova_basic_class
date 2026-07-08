@@ -121,20 +121,24 @@ public class AuthRepository {
     private void loginWithProvider(SocialAuthProvider provider, Activity activity, boolean keepLogin,
                                    AuthResultCallback callback) {
         Log.d(TAG, "🔐 소셜 로그인 시작 (" + provider.accountPrefix() + ")");
+        final long t0 = System.currentTimeMillis();
         provider.login(activity, new SocialAuthCallback() {
             @Override
             public void onVerified(SocialIdentity identity) {
-                Log.d(TAG, "✅ 신원 확인 ← 닉네임=" + identity.getNickname() + ", id=" + identity.getId());
+                String imageUrl = identity.getImageUrl();
+                Log.d(TAG, "✅ 신원 확인 ← (" + (System.currentTimeMillis() - t0) + "ms)");
+                Log.d(TAG, "   id: " + identity.getId());
+                Log.d(TAG, "   닉네임: " + identity.getNickname());
+                Log.d(TAG, "   프로필 사진: " + (imageUrl == null || imageUrl.isEmpty() ? "없음" : imageUrl));
                 // provider 접두사 + provider가 준 고유 id = 우리 계정 id
                 String accountId = provider.accountPrefix() + identity.getId();
-                boolean isNew = issueSession(accountId, identity.getNickname(),
-                        identity.getImageUrl(), keepLogin);
+                boolean isNew = issueSession(accountId, identity.getNickname(), imageUrl, keepLogin);
                 callback.onSuccess(identity.getNickname(), isNew);
             }
 
             @Override
             public void onFailed(String message) {
-                Log.w(TAG, "❌ 인증 실패 ← " + message);
+                Log.w(TAG, "❌ 인증 실패 ← " + message + " (" + (System.currentTimeMillis() - t0) + "ms)");
                 callback.onError(message);
             }
         });
@@ -243,6 +247,9 @@ public class AuthRepository {
         accountManager.setAutoLogin(keepLogin);
 
         Log.d(TAG, "🎫 세션 발급 ← 계정=" + accountId + " (신규=" + isNew + ")");
+        Log.d(TAG, "   저장: app_global.current_account=" + accountId
+                + ", auto_login=" + keepLogin
+                + (isNew ? " · user_" + accountId + " 파일 생성" : " · 닉네임 갱신"));
 
         UserPrefs userPrefs = new UserPrefs(appContext, accountId);
 

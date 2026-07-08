@@ -4,6 +4,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.example.week12.util.LogFormat;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -96,7 +98,7 @@ public class GameNameResolver {
                 String body = buildRequestBody(query);
                 Log.d(TAG, "🤖 요청  POST " + BASE_URL);
                 Log.d(TAG, "   헤더: x-goog-api-key: ***(가림)");
-                Log.d(TAG, "   본문: " + preview(body));
+                Log.d(TAG, "   본문:\n" + LogFormat.prettyPreview(body, 600));
                 long t0 = System.currentTimeMillis();
                 try (OutputStream os = conn.getOutputStream()) {
                     os.write(body.getBytes(StandardCharsets.UTF_8));
@@ -114,7 +116,7 @@ public class GameNameResolver {
                 String title = parseTitle(responseText);
                 long ms = System.currentTimeMillis() - t0;
                 Log.d(TAG, "✅ 응답  " + responseCode + " · " + ms + "ms · " + responseText.length() + "자");
-                Log.d(TAG, "   원문: " + preview(responseText));
+                Log.d(TAG, "   원문:\n" + LogFormat.prettyPreview(responseText, 700));
                 Log.d(TAG, "   결과: \"" + query + "\" → \"" + title + "\"");
                 mainHandler.post(() -> callback.onResolved(title));
 
@@ -184,14 +186,5 @@ public class GameNameResolver {
     private void postError(GameNameCallback callback, String message) {
         Log.w(TAG, "❌ 보정 실패 ← " + message + " (→ 번역으로 폴백)");
         mainHandler.post(() -> callback.onError(message));
-    }
-
-    /// <summary>
-    /// 요청 본문·응답 원문이 로그에 너무 길게 찍히지 않게 앞부분만 잘라 한 줄로 (증명용)
-    /// </summary>
-    private static String preview(String body) {
-        int max = 200;
-        String oneLine = body.replace("\n", " ").replace("\r", " ");
-        return oneLine.length() > max ? oneLine.substring(0, max) + "…" : oneLine;
     }
 }

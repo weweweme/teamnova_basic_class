@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.example.week12.model.RawgGame;
 import com.example.week12.model.RawgGameDetail;
+import com.example.week12.util.LogFormat;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -142,7 +143,7 @@ public class RawgApi {
                 Log.d(TAG, "✅ 응답  " + responseCode + " OK · " + ms + "ms · "
                         + rawBody.length() + "자 · 결과 " + results.size() + "개"
                         + (hasNext ? " (다음 페이지 있음)" : ""));
-                Log.d(TAG, "   원문: " + preview(rawBody));
+                Log.d(TAG, "   원문:\n" + LogFormat.prettyPreview(rawBody, 700));
 
                 mainHandler.post(() -> callback.onSuccess(results, hasNext));
 
@@ -206,7 +207,7 @@ public class RawgApi {
                 Log.d(TAG, "   파싱: 개발사=" + detail.getDeveloper()
                         + ", 메타크리틱=" + detail.getMetacritic()
                         + ", 설명=" + detail.getDescription().length() + "자");
-                Log.d(TAG, "   원문: " + preview(rawBody));
+                Log.d(TAG, "   원문:\n" + LogFormat.prettyPreview(rawBody, 700));
                 mainHandler.post(() -> callback.onSuccess(detail));
 
             } catch (IOException | JSONException e) {
@@ -539,14 +540,5 @@ public class RawgApi {
     private void postError(RawgSearchCallback callback, String message) {
         Log.w(TAG, "❌ 실패 ← " + message);
         mainHandler.post(() -> callback.onError(message));
-    }
-
-    /// <summary>
-    /// 응답 원문이 로그에 너무 길게 찍히지 않게 앞부분만 잘라 한 줄로 (증명용 미리보기)
-    /// </summary>
-    private static String preview(String body) {
-        int max = 200;
-        String oneLine = body.replace("\n", " ").replace("\r", " ");
-        return oneLine.length() > max ? oneLine.substring(0, max) + "…" : oneLine;
     }
 }

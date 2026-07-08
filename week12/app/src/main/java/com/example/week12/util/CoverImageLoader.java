@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.view.View;
 import android.widget.ImageView;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -55,6 +56,13 @@ public class CoverImageLoader {
     /// 그리드 표지를 병렬로 몇 장씩 디코딩하기에 4개면 충분
     /// </summary>
     private static final int POOL_SIZE = 4;
+
+    /// <summary>
+    /// 디코딩한 이미지의 최대 한 변 크기(px). 이보다 크면 절반씩 줄여서(다운샘플) 디코딩한다.
+    /// RAWG 표지 중엔 8000px가 넘는 초고해상도가 있는데, 그대로 그리면 GPU/Canvas 한계를 넘어
+    /// "Canvas: trying to draw too large bitmap" 크래시가 난다. 폰 화면엔 2048px면 충분하다.
+    /// </summary>
+    private static final int MAX_IMAGE_DIM = 2048;
 
     /// <summary>
     /// 디코딩 결과를 화면(메인 스레드)에 반영할 때 쓰는 Handler
@@ -232,7 +240,9 @@ public class CoverImageLoader {
         // 파일 열기/디코딩은 IOException 등이 날 수 있어 try 필수. try-with-resources로 스트림 자동 닫기
         // (외부 URI라 권한 문제 등 다양한 예외가 가능해 넓게 잡음)
         try (InputStream input = context.getContentResolver().openInputStream(Uri.parse(uriString))) {
-            return BitmapFactory.decodeStream(input);
+            byte[] data = readAllBytes(input);
+            // 너무 큰 이미지는 절반씩 줄여서 디코딩 (Canvas 한계 초과 크래시 방지)
+            return decodeSampled(data);
         } catch (Exception e) {
             return null;
         }
@@ -254,7 +264,9 @@ public class CoverImageLoader {
             conn.setRequestMethod("GET");   // 이미지를 "읽어서 줘" (RESTful GET)
             // try-with-resources로 응답 스트림 자동 닫기
             try (InputStream input = conn.getInputStream()) {
-                return BitmapFactory.decodeStream(input);
+                byte[] data = readAllBytes(input);
+                // 너무 큰 이미지는 절반씩 줄여서 디코딩 (RAWG 초고해상도 표지 → Canvas 크래시 방지)
+                return decodeSampled(data);
             }
         } catch (Exception e) {
             return null;
@@ -264,6 +276,49 @@ public class CoverImageLoader {
                 conn.disconnect();
             }
         }
+    }
+
+    /// <summary>
+    /// 스트림을 통째로 읽어 바이트 배열로 (바운드 확인 + 실제 디코딩에 같은 데이터를 두 번 쓰려고)
+    /// </summary>
+    private byte[] readAllBytes(InputStream input) throws java.io.IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        byte[] chunk = new byte[8192];
+        int read;
+        while ((read = input.read(chunk)) != -1) {
+            buffer.write(chunk, 0, read);
+        }
+        return buffer.toByteArray();
+    }
+
+    /// <summary>
+    /// 이미지 바이트를 디코딩하되, 한 변이 MAX_IMAGE_DIM(2048px)을 넘으면 절반씩 줄여서 디코딩한다.
+    /// ① 먼저 실제 픽셀은 안 읽고 "크기(가로·세로)만" 잰다(inJustDecodeBounds)
+    /// ② 그 크기로 몇 배 줄일지(inSampleSize) 계산 → 그 배율로 실제 디코딩
+    /// → 8000px짜리도 2048px 이하로 줄어들어 Canvas가 안전하게 그린다 (메모리도 절약)
+    /// </summary>
+    private Bitmap decodeSampled(byte[] data) {
+        // ① 크기만 재기 (실제 비트맵은 안 만듦 → 메모리 안 씀)
+        BitmapFactory.Options bounds = new BitmapFactory.Options();
+        bounds.inJustDecodeBounds = true;
+        BitmapFactory.decodeByteArray(data, 0, data.length, bounds);
+
+        // ② 줄일 배율 계산 후 실제 디코딩
+        BitmapFactory.Options opts = new BitmapFactory.Options();
+        opts.inSampleSize = computeSampleSize(bounds.outWidth, bounds.outHeight);
+        return BitmapFactory.decodeByteArray(data, 0, data.length, opts);
+    }
+
+    /// <summary>
+    /// 가로·세로가 MAX_IMAGE_DIM 이하가 될 때까지 2배씩 키운 축소 배율(1,2,4,8…)을 돌려준다
+    /// (inSampleSize=2면 가로·세로가 절반, 넓이는 1/4로 줄어든다)
+    /// </summary>
+    private int computeSampleSize(int width, int height) {
+        int sampleSize = 1;
+        while (width / sampleSize > MAX_IMAGE_DIM || height / sampleSize > MAX_IMAGE_DIM) {
+            sampleSize *= 2;
+        }
+        return sampleSize;
     }
 
     /// <summary>

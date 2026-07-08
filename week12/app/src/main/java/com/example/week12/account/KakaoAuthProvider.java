@@ -1,6 +1,7 @@
 package com.example.week12.account;
 
 import android.app.Activity;
+import android.util.Log;
 
 import com.kakao.sdk.user.UserApiClient;
 import com.kakao.sdk.user.model.User;
@@ -42,6 +43,7 @@ public class KakaoAuthProvider implements SocialAuthProvider {
     /// </summary>
     @Override
     public void login(Activity activity, SocialAuthCallback callback) {
+        Log.d("AuthApi", "  ↳ 카카오 SDK 로그인 창 호출");
         UserApiClient.getInstance().loginWithKakaoAccount(activity, (token, error) -> {
             // 로그인 창에서 실패했거나 취소하면 토큰이 없다
             boolean failed = error != null || token == null;
@@ -61,6 +63,7 @@ public class KakaoAuthProvider implements SocialAuthProvider {
     /// (토큰이 없거나 유효하지 않으면 error가 와서 실패로 처리된다)
     /// </summary>
     private void fetchIdentity(SocialAuthCallback callback) {
+        Log.d("AuthApi", "  ↳ 카카오 me() 신원 조회 (OAuth 2.0 · 프로필 API)");
         UserApiClient.getInstance().me((user, error) -> {
             boolean failed = error != null || user == null || user.getId() == null;
             if (failed) {

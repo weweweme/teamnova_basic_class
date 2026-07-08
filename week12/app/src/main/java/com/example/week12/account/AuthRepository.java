@@ -2,6 +2,7 @@ package com.example.week12.account;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 
 import com.example.week12.data.TestAccountSeeder;
 import com.example.week12.model.Account;
@@ -27,6 +28,11 @@ import java.util.List;
 ///    여기서는 "서버라면 이런 모양이다"라는 구조만 보여준다.
 /// </summary>
 public class AuthRepository {
+
+    /// <summary>
+    /// Logcat 태그 — 발표 때 "AuthApi"로 필터하면 로그인 전 과정(시작→검증→세션)이 보인다
+    /// </summary>
+    private static final String TAG = "AuthApi";
 
     /// <summary>
     /// 카카오 계정 접두사 — 접두사의 소유자는 provider이고, 여기선 다른 화면(Login/Splash)이
@@ -114,9 +120,11 @@ public class AuthRepository {
     /// </summary>
     private void loginWithProvider(SocialAuthProvider provider, Activity activity, boolean keepLogin,
                                    AuthResultCallback callback) {
+        Log.d(TAG, "🔐 소셜 로그인 시작 (" + provider.accountPrefix() + ")");
         provider.login(activity, new SocialAuthCallback() {
             @Override
             public void onVerified(SocialIdentity identity) {
+                Log.d(TAG, "✅ 신원 확인 ← 닉네임=" + identity.getNickname() + ", id=" + identity.getId());
                 // provider 접두사 + provider가 준 고유 id = 우리 계정 id
                 String accountId = provider.accountPrefix() + identity.getId();
                 boolean isNew = issueSession(accountId, identity.getNickname(),
@@ -126,6 +134,7 @@ public class AuthRepository {
 
             @Override
             public void onFailed(String message) {
+                Log.w(TAG, "❌ 인증 실패 ← " + message);
                 callback.onError(message);
             }
         });
@@ -143,6 +152,7 @@ public class AuthRepository {
         if (ok) {
             accountManager.setAutoLogin(keepLogin);
         }
+        Log.d(TAG, "🔐 PIN 로그인: " + id + " → " + (ok ? "성공" : "실패"));
         return ok;
     }
 
@@ -157,7 +167,9 @@ public class AuthRepository {
     /// (accountManager.logout()이 현재 계정을 비우기 전에 provider를 먼저 찾아야 판별 가능)
     /// </summary>
     public void logout() {
-        SocialAuthProvider provider = findProvider(accountManager.getCurrentAccountId());
+        String currentId = accountManager.getCurrentAccountId();
+        Log.d(TAG, "🚪 로그아웃 (계정=" + currentId + ")");
+        SocialAuthProvider provider = findProvider(currentId);
         if (provider != null) {
             provider.clearSession();
         }
@@ -176,6 +188,7 @@ public class AuthRepository {
         if (currentId == null) {
             return;
         }
+        Log.d(TAG, "🗑 계정 삭제 (계정=" + currentId + ")");
         SocialAuthProvider provider = findProvider(currentId);
         if (provider != null) {
             provider.unlink();
@@ -228,6 +241,8 @@ public class AuthRepository {
 
         accountManager.setCurrentAccount(accountId);
         accountManager.setAutoLogin(keepLogin);
+
+        Log.d(TAG, "🎫 세션 발급 ← 계정=" + accountId + " (신규=" + isNew + ")");
 
         UserPrefs userPrefs = new UserPrefs(appContext, accountId);
 

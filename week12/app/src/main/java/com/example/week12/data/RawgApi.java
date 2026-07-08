@@ -2,6 +2,7 @@ package com.example.week12.data;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import com.example.week12.model.RawgGame;
 import com.example.week12.model.RawgGameDetail;
@@ -39,6 +40,12 @@ public class RawgApi {
     ///       (학습용이라 코드에 그대로 둠)
     /// </summary>
     private static final String API_KEY = "3ab64f02833c4853851d0ccd13025cf6";
+
+    /// <summary>
+    /// Logcat 태그 — 발표 때 "RawgApi"로 필터하면 RAWG API 호출이 실시간으로 보인다
+    /// (URL은 열쇠(key)를 빼고 찍어 노출 방지)
+    /// </summary>
+    private static final String TAG = "RawgApi";
 
     /// <summary>
     /// 게임 검색 기본 주소 (여기에 ?search=검색어&key=열쇠 를 붙여 완성한다)
@@ -105,6 +112,8 @@ public class RawgApi {
             HttpURLConnection conn = null;              // finally에서 정리하려고 try 밖에 선언
             try {
                 URL url = new URL(BASE_URL + "?" + queryParams + "&key=" + API_KEY);
+                Log.d(TAG, "🔎 요청  GET " + BASE_URL + "?" + queryParams);
+                long t0 = System.currentTimeMillis();
 
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");           // GET = 읽기 (Read)
@@ -125,9 +134,15 @@ public class RawgApi {
                 reader.close();
 
                 // 응답을 한 번만 파싱해 결과 목록 + "다음 페이지 있음"(next가 null이 아님)을 함께 꺼낸다
-                JSONObject root = new JSONObject(builder.toString());
+                String rawBody = builder.toString();
+                JSONObject root = new JSONObject(rawBody);
                 List<RawgGame> results = parseResults(root);
                 boolean hasNext = !root.isNull("next");
+                long ms = System.currentTimeMillis() - t0;
+                Log.d(TAG, "✅ 응답  " + responseCode + " OK · " + ms + "ms · "
+                        + rawBody.length() + "자 · 결과 " + results.size() + "개"
+                        + (hasNext ? " (다음 페이지 있음)" : ""));
+                Log.d(TAG, "   원문: " + preview(rawBody));
 
                 mainHandler.post(() -> callback.onSuccess(results, hasNext));
 
@@ -146,6 +161,7 @@ public class RawgApi {
     /// 페이지 조회 실패 사유를 메인 스레드에서 콜백(onError)으로 전달
     /// </summary>
     private void postPageError(RawgPageCallback callback, String message) {
+        Log.w(TAG, "❌ 목록 실패 ← " + message);
         mainHandler.post(() -> callback.onError(message));
     }
 
@@ -161,6 +177,8 @@ public class RawgApi {
             try {
                 // 주소: 검색과 달리 id를 "경로"에 붙인다 (/games/3498?key=...)
                 URL url = new URL(BASE_URL + "/" + rawgId + "?key=" + API_KEY);
+                Log.d(TAG, "📄 요청  GET " + BASE_URL + "/" + rawgId);
+                long t0 = System.currentTimeMillis();
 
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");           // GET = 읽기 (Read)
@@ -181,7 +199,14 @@ public class RawgApi {
                 }
                 reader.close();
 
-                RawgGameDetail detail = parseDetail(builder.toString());
+                String rawBody = builder.toString();
+                RawgGameDetail detail = parseDetail(rawBody);
+                long ms = System.currentTimeMillis() - t0;
+                Log.d(TAG, "✅ 응답  " + responseCode + " OK · " + ms + "ms · " + rawBody.length() + "자");
+                Log.d(TAG, "   파싱: 개발사=" + detail.getDeveloper()
+                        + ", 메타크리틱=" + detail.getMetacritic()
+                        + ", 설명=" + detail.getDescription().length() + "자");
+                Log.d(TAG, "   원문: " + preview(rawBody));
                 mainHandler.post(() -> callback.onSuccess(detail));
 
             } catch (IOException | JSONException e) {
@@ -227,6 +252,7 @@ public class RawgApi {
     /// 상세 조회 실패 사유를 메인 스레드에서 콜백(onError)으로 전달
     /// </summary>
     private void postDetailError(RawgDetailCallback callback, String message) {
+        Log.w(TAG, "❌ 상세 실패 ← " + message);
         mainHandler.post(() -> callback.onError(message));
     }
 
@@ -244,6 +270,7 @@ public class RawgApi {
             // 부가 기능이라 어떤 예외든 조용히 무시하고 빈 문자열로 넘어간다
             try {
                 URL url = new URL(BASE_URL + "/" + rawgId + "/stores?key=" + API_KEY);
+                Log.d(TAG, "🛒 스토어 링크 요청 → " + BASE_URL + "/" + rawgId + "/stores");
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
                 if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
@@ -281,6 +308,7 @@ public class RawgApi {
             HttpURLConnection conn = null;
             try {
                 URL url = new URL(BASE_URL + "/" + rawgId + "/game-series?key=" + API_KEY);
+                Log.d(TAG, "🎮 같은 시리즈 요청 → " + BASE_URL + "/" + rawgId + "/game-series");
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
 
@@ -323,6 +351,7 @@ public class RawgApi {
             List<String> urls = new ArrayList<>();
             try {
                 URL url = new URL(BASE_URL + "/" + rawgId + "/screenshots?key=" + API_KEY);
+                Log.d(TAG, "🖼 스크린샷 요청 → " + BASE_URL + "/" + rawgId + "/screenshots");
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
                 if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
@@ -508,6 +537,16 @@ public class RawgApi {
     /// 실패 사유를 메인 스레드에서 콜백(onError)으로 전달 (여러 곳에서 재사용)
     /// </summary>
     private void postError(RawgSearchCallback callback, String message) {
+        Log.w(TAG, "❌ 실패 ← " + message);
         mainHandler.post(() -> callback.onError(message));
+    }
+
+    /// <summary>
+    /// 응답 원문이 로그에 너무 길게 찍히지 않게 앞부분만 잘라 한 줄로 (증명용 미리보기)
+    /// </summary>
+    private static String preview(String body) {
+        int max = 200;
+        String oneLine = body.replace("\n", " ").replace("\r", " ");
+        return oneLine.length() > max ? oneLine.substring(0, max) + "…" : oneLine;
     }
 }

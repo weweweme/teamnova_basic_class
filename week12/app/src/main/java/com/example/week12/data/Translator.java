@@ -2,6 +2,7 @@ package com.example.week12.data;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -42,6 +43,11 @@ public class Translator {
     /// 이 클래스만 쓰는 값이라 private로 닫아둠
     /// </summary>
     private static final String BASE_URL = "https://translate.googleapis.com/translate_a/single";
+
+    /// <summary>
+    /// Logcat 태그 — 발표 때 "TranslateApi"로 필터하면 번역 호출이 실시간으로 보인다
+    /// </summary>
+    private static final String TAG = "TranslateApi";
 
     /// <summary>
     /// 한 번에 보낼 최대 글자 수 (주소가 너무 길어지지 않게 이 길이로 잘라 보냄)
@@ -89,8 +95,11 @@ public class Translator {
             return;
         }
 
+        Log.d(TAG, "🌐 번역 요청(" + sourceLang + "→" + targetLang + ") → \"" + preview(text) + "\"");
+
         new Thread(() -> {                              // 오래 걸리는 일은 서브 스레드
             try {
+                long t0 = System.currentTimeMillis();
                 // 긴 글은 조각으로 나눠 각각 번역한 뒤 순서대로 이어붙인다
                 List<String> chunks = splitIntoChunks(text, MAX_CHUNK_CHARS);
                 StringBuilder result = new StringBuilder();
@@ -98,6 +107,9 @@ public class Translator {
                     result.append(translateChunk(chunk, sourceLang, targetLang));
                 }
                 String translated = result.toString();
+                long ms = System.currentTimeMillis() - t0;
+                Log.d(TAG, "✅ 번역 결과 ← \"" + preview(translated) + "\"  ("
+                        + chunks.size() + "조각 · " + ms + "ms)");
                 mainHandler.post(() -> callback.onSuccess(translated));
 
             } catch (IOException | JSONException e) {
@@ -124,6 +136,8 @@ public class Translator {
                     + "&tl=" + targetLang
                     + "&dt=t&q=" + encoded;
             URL url = new URL(BASE_URL + query);
+            Log.d(TAG, "🌐 요청  GET " + BASE_URL + " (sl=" + sourceLang + " tl=" + targetLang + ")");
+            long t0 = System.currentTimeMillis();
 
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");               // GET = 읽기(번역 결과를 읽어옴)
@@ -149,7 +163,11 @@ public class Translator {
             }
             reader.close();
 
-            return parseTranslation(builder.toString());
+            String rawBody = builder.toString();
+            long ms = System.currentTimeMillis() - t0;
+            Log.d(TAG, "   HTTP " + responseCode + " · " + ms + "ms · " + rawBody.length()
+                    + "자 · 원문: " + preview(rawBody));
+            return parseTranslation(rawBody);
 
         } finally {
             if (conn != null) {
@@ -227,6 +245,16 @@ public class Translator {
     /// 번역 실패 사유를 메인 스레드에서 콜백(onError)으로 전달
     /// </summary>
     private void postError(TranslateCallback callback, String message) {
+        Log.w(TAG, "❌ 번역 실패 ← " + message);
         mainHandler.post(() -> callback.onError(message));
+    }
+
+    /// <summary>
+    /// 로그가 너무 길어지지 않게 글을 앞부분만 잘라 보여준다 (긴 게임 설명 대비)
+    /// </summary>
+    private String preview(String text) {
+        int max = 120;
+        String oneLine = text.replace("\n", " ").replace("\r", " ");
+        return oneLine.length() > max ? oneLine.substring(0, max) + "…" : oneLine;
     }
 }

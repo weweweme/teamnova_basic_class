@@ -2,6 +2,7 @@ package com.example.week12.data;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,6 +48,11 @@ public class GameNameResolver {
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
     /// <summary>
+    /// Logcat 태그 — 발표 때 "GeminiApi"로 필터하면 AI 보정 호출이 실시간으로 보인다
+    /// </summary>
+    private static final String TAG = "GeminiApi";
+
+    /// <summary>
     /// AI에게 주는 지시문 — "정식 영어 제목만 답하라" (뒤에 사용자 검색어를 붙여 완성)
     /// 설명·따옴표 없이 제목만 받아야 그대로 RAWG 검색에 넣을 수 있다.
     /// </summary>
@@ -75,6 +81,8 @@ public class GameNameResolver {
             return;
         }
 
+        Log.d(TAG, "🤖 보정 요청 → \"" + query + "\"  (모델: gemini-2.5-flash)");
+
         new Thread(() -> {                              // 오래 걸리는 일은 서브 스레드
             HttpURLConnection conn = null;              // finally에서 정리하려고 try 밖에 선언
             try {
@@ -86,6 +94,10 @@ public class GameNameResolver {
 
                 // 요청 본문(JSON)을 만들고 UTF-8로 내보낸다 (한글이 안 깨지도록 인코딩 명시)
                 String body = buildRequestBody(query);
+                Log.d(TAG, "🤖 요청  POST " + BASE_URL);
+                Log.d(TAG, "   헤더: x-goog-api-key: ***(가림)");
+                Log.d(TAG, "   본문: " + preview(body));
+                long t0 = System.currentTimeMillis();
                 try (OutputStream os = conn.getOutputStream()) {
                     os.write(body.getBytes(StandardCharsets.UTF_8));
                 }
@@ -100,6 +112,10 @@ public class GameNameResolver {
 
                 String responseText = readAll(conn.getInputStream());
                 String title = parseTitle(responseText);
+                long ms = System.currentTimeMillis() - t0;
+                Log.d(TAG, "✅ 응답  " + responseCode + " · " + ms + "ms · " + responseText.length() + "자");
+                Log.d(TAG, "   원문: " + preview(responseText));
+                Log.d(TAG, "   결과: \"" + query + "\" → \"" + title + "\"");
                 mainHandler.post(() -> callback.onResolved(title));
 
             } catch (IOException | JSONException e) {
@@ -166,6 +182,16 @@ public class GameNameResolver {
     /// 실패 사유를 메인 스레드에서 콜백(onError)으로 전달
     /// </summary>
     private void postError(GameNameCallback callback, String message) {
+        Log.w(TAG, "❌ 보정 실패 ← " + message + " (→ 번역으로 폴백)");
         mainHandler.post(() -> callback.onError(message));
+    }
+
+    /// <summary>
+    /// 요청 본문·응답 원문이 로그에 너무 길게 찍히지 않게 앞부분만 잘라 한 줄로 (증명용)
+    /// </summary>
+    private static String preview(String body) {
+        int max = 200;
+        String oneLine = body.replace("\n", " ").replace("\r", " ");
+        return oneLine.length() > max ? oneLine.substring(0, max) + "…" : oneLine;
     }
 }

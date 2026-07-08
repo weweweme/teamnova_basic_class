@@ -77,6 +77,7 @@ public class GoogleAuthProvider implements SocialAuthProvider {
     /// </summary>
     @Override
     public void login(Activity activity, SocialAuthCallback callback) {
+        Log.d("AuthApi", "  ↳ 구글 Credential Manager 호출 (OIDC · ID 토큰에 신원 포함)");
         // "Google로 로그인" 버튼용 요청 — 계정 선택/추가 전체 흐름을 보여준다
         // (바텀시트 방식 GetGoogleIdOption은 기존 계정이 없으면 바로 실패하므로, 버튼엔 이게 맞다)
         GetSignInWithGoogleOption option =

@@ -1,6 +1,7 @@
 package com.example.week12.account;
 
 import android.app.Activity;
+import android.util.Log;
 
 import com.navercorp.nid.NaverIdLoginSDK;
 import com.navercorp.nid.oauth.NidOAuthLogin;
@@ -43,6 +44,7 @@ public class NaverAuthProvider implements SocialAuthProvider {
     /// </summary>
     @Override
     public void login(Activity activity, SocialAuthCallback callback) {
+        Log.d("AuthApi", "  ↳ 네이버 SDK 로그인 창 호출");
         NaverIdLoginSDK.INSTANCE.authenticate(activity, new NidOAuthCallback() {
             @Override
             public void onSuccess() {
@@ -63,6 +65,7 @@ public class NaverAuthProvider implements SocialAuthProvider {
     /// (토큰이 없거나 유효하지 않으면 onFailure가 와서 실패로 처리된다)
     /// </summary>
     private void fetchIdentity(SocialAuthCallback callback) {
+        Log.d("AuthApi", "  ↳ 네이버 프로필 API 조회 (OAuth 2.0)");
         new NidOAuthLogin().callProfileApi(new NidProfileCallback<NidProfile>() {
             @Override
             public void onSuccess(NidProfile result) {

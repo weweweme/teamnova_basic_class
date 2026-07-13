@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  lamp_server:
+    image: ubuntu:22.04
+    container_name: manual_lamp
+    stdin_open: true
+    tty: true
+    ports:
+      - "8080:80"      # 웹 브라우저 접속 포트
+      - "3306:3306"    # MariaDB 접속 포트
+    volumes:
+      # 내 컴퓨터의 lamp/src 폴더를 리눅스의 기본 웹 서버 경로(/var/www/html)와 연결
+      - ./src:/var/www/html

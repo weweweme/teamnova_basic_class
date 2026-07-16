@@ -30,5 +30,19 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .widget-placeholder { background: #f4f6fb; border: 1px dashed #b8c2e0;
   color: #667; text-align: center; padding: 40px; border-radius: 8px; margin: 16px 0; }
 
+/* 글쓰기 폼 */
+.write-form label { display: block; margin: 14px 0 4px; font-weight: 600; }
+.write-form input[type=text],
+.write-form textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
+.write-form fieldset { margin: 14px 0; border: 1px solid #ddd; border-radius: 6px; }
+.write-form fieldset label { display: inline; font-weight: normal; margin-right: 12px; }
+.write-form button { margin-top: 14px; padding: 9px 18px; background: #2b6cff;
+  color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+
+/* 완료 알림(flash) */
+.flash { background: #e8f6ee; border: 1px solid #b6e0c6; color: #1b7a43;
+  padding: 12px 14px; border-radius: 8px; margin: 14px 0; }
+.flash small { color: #6a9a7d; }
+
 /* 하단 */
 .foot { text-align: center; color: #999; padding: 24px; }

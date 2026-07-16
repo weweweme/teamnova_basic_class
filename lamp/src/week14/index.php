@@ -26,6 +26,19 @@ $pageTitle = '홈 · 종목토론방';
 require __DIR__ . '/includes/header.php';
 ?>
 
+  <?php
+  // ── 완료 알림(flash) ─────────────────────────────────────
+  //   create.php가 글 처리 후 '/?posted=1' 로 리다이렉트해온다.
+  //   isset($_GET['posted']) = 주소에 ?posted 가 '있냐?' → true/false 반환.
+  //     있을 때(= 글쓰기 직후)만 아래 초록 박스를 보여준다.
+  //     왜 isset? 없는 값을 그냥 꺼내면 PHP 경고가 나므로, '있는지 먼저 확인'(Tester-Doer).
+  //   메시지 '내용'은 여기(div), '생김새'(초록 박스)는 style.css 의 .flash 규칙.
+  //     둘을 잇는 건 class="flash" (이름표).
+  ?>
+  <?php if (isset($_GET['posted'])): ?>
+    <div class="flash">✅ 글이 등록되었습니다. <small>(지금은 저장 안 되는 껍데기예요)</small></div>
+  <?php endif; ?>
+
   <h1>인기 종목</h1>
   <ul class="stock-list">
     <?php foreach ($stocks as $s): ?>

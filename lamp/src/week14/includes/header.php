@@ -18,7 +18,11 @@ $pageTitle = $pageTitle ?? '종목토론방';
 <head>
   <meta charset="UTF-8">
   <title><?= e($pageTitle) ?></title>
-  <!-- 공통 스타일. 경로가 '/'로 시작 = week14 최상위 기준(어느 폴더 페이지든 동일하게 작동) -->
+  <!-- 공통 스타일 연결 (외부 CSS 방식):
+       브라우저가 이 <link>를 보고 style.css 를 '따로' 한 번 더 요청해서 가져와 적용한다.
+       이 <link>가 header에 있으니, header를 include하는 '모든 페이지'가 CSS를 자동으로 물려받음.
+       rel="stylesheet" = 관계가 스타일시트 / href = CSS 파일 위치.
+       경로가 '/'로 시작 = week14 최상위 기준(어느 폴더 페이지든 같은 경로로 찾음). -->
   <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>

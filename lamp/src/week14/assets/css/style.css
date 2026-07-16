@@ -22,5 +22,13 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .tag { background: #eef1ff; color: #2b6cff; font-size: 12px;
        padding: 2px 7px; border-radius: 4px; margin-left: 6px; }
 
+/* 소제목 · 종목코드 */
+.container h2 { font-size: 17px; margin-top: 24px; }
+.container h1 small { color: #888; font-weight: normal; font-size: 15px; }
+
+/* 위젯 자리 표시(placeholder) — 나중 TradingView 위젯으로 교체 */
+.widget-placeholder { background: #f4f6fb; border: 1px dashed #b8c2e0;
+  color: #667; text-align: center; padding: 40px; border-radius: 8px; margin: 16px 0; }
+
 /* 하단 */
 .foot { text-align: center; color: #999; padding: 24px; }

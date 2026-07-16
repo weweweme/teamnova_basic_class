@@ -46,6 +46,14 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .comments { margin-top: 32px; border-top: 1px solid #eee; padding-top: 16px; }
 .muted { color: #999; }
 
+/* 댓글 */
+.comment-list { margin: 0 0 20px; }
+.comment-list li { padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+.comment-author { font-weight: 600; margin-right: 8px; }
+.comment-form textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
+.comment-form button { margin-top: 8px; padding: 8px 16px; background: #2b6cff;
+  color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+
 /* 완료 알림(flash) */
 .flash { background: #e8f6ee; border: 1px solid #b6e0c6; color: #1b7a43;
   padding: 12px 14px; border-radius: 8px; margin: 14px 0; }

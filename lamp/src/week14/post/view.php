@@ -47,6 +47,12 @@ if (!isset($allPosts[$id])) {
 //   나중 DB를 붙이면 이 줄이 "SELECT * FROM posts WHERE id=$id" 조회로 바뀐다(패턴은 동일).
 $post = $allPosts[$id];
 
+// ── 더미 댓글 목록 (나중 comments 테이블에서 post_id로 조회로 교체) ──
+$comments = [
+    ['author' => '주주1', 'content' => '저도 그렇게 봅니다.'],
+    ['author' => '개미2', 'content' => '음, 신중하게 접근해야 할 듯요.'],
+];
+
 $pageTitle = $post['title'];
 require __DIR__ . '/../includes/header.php';
 ?>
@@ -79,8 +85,34 @@ require __DIR__ . '/../includes/header.php';
   <section class="comments">
     <!-- h2 = 소제목 (h1보다 한 단계 작은 제목) -->
     <h2>댓글</h2>
-    <!-- muted 클래스 = 흐린 회색 글씨(style.css에서 정의) -->
-    <p class="muted">댓글 기능은 다음 단계예요 (POST로 붙일 예정).</p>
+
+    <?php
+    // create.php가 댓글 처리 후 ?commented=1 로 리다이렉트해오면 완료 알림.
+    // (글쓰기의 ?posted=1 과 똑같은 방식)
+    ?>
+    <?php if (isset($_GET['commented'])): ?>
+      <div class="flash">✅ 댓글이 등록되었습니다. <small>(지금은 저장 안 되는 껍데기)</small></div>
+    <?php endif; ?>
+
+    <!-- 더미 댓글 목록 (나중 comments 테이블에서 post_id로 조회로 교체) -->
+    <ul class="comment-list">
+      <?php foreach ($comments as $c): ?>
+        <li>
+          <span class="comment-author"><?= e($c['author']) ?></span>
+          <?= e($c['content']) ?>
+        </li>
+      <?php endforeach; ?>
+    </ul>
+
+    <!-- 댓글 작성 폼 → comment/create.php 로 POST 전송 -->
+    <form class="comment-form" method="post" action="/comment/create.php">
+      <!-- hidden = 화면엔 안 보이지만 폼과 '함께 전송'되는 값.
+           이 댓글이 '몇 번 글'에 달리는지 서버에 알려주려고 현재 글 id를 실어 보낸다.
+           (그래야 create.php가 처리 후 '그 글로' 되돌아갈 수 있음) -->
+      <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
+      <textarea name="content" rows="3" placeholder="댓글을 입력하세요" required></textarea>
+      <button type="submit">댓글 등록</button>
+    </form>
   </section>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

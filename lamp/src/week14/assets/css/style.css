@@ -39,6 +39,13 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .write-form button { margin-top: 14px; padding: 9px 18px; background: #2b6cff;
   color: #fff; border: none; border-radius: 6px; cursor: pointer; }
 
+/* 글 보기 */
+.post h1 { margin-bottom: 6px; }
+.post-meta { color: #888; font-size: 14px; margin: 0 0 16px; }
+.post-content { line-height: 1.7; }
+.comments { margin-top: 32px; border-top: 1px solid #eee; padding-top: 16px; }
+.muted { color: #999; }
+
 /* 완료 알림(flash) */
 .flash { background: #e8f6ee; border: 1px solid #b6e0c6; color: #1b7a43;
   padding: 12px 14px; border-radius: 8px; margin: 14px 0; }

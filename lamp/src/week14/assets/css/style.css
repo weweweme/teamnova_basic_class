@@ -1,0 +1,26 @@
+/* ============================================================
+   style.css — 최소 공통 스타일 (지금은 '읽기 편할 정도'만)
+   본격 꾸미기는 나중. 지금 주제는 GET/POST 흐름이라 가볍게만.
+   ============================================================ */
+* { box-sizing: border-box; }
+body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
+
+/* 상단 메뉴바 */
+.topbar { display: flex; align-items: center; gap: 14px;
+          padding: 12px 20px; background: #2b6cff; }
+.topbar .logo { font-weight: bold; color: #fff; text-decoration: none; margin-right: auto; }
+.topbar nav a { color: #fff; text-decoration: none; margin-left: 14px; }
+
+/* 본문 영역 */
+.container { max-width: 720px; margin: 0 auto; padding: 20px; }
+.container h1 { font-size: 20px; margin-top: 28px; }
+.container ul { list-style: none; padding: 0; }
+.container li { padding: 10px 0; border-bottom: 1px solid #eee; }
+.container a { color: #1a4fd6; text-decoration: none; }
+
+/* 종목 태그 */
+.tag { background: #eef1ff; color: #2b6cff; font-size: 12px;
+       padding: 2px 7px; border-radius: 4px; margin-left: 6px; }
+
+/* 하단 */
+.foot { text-align: center; color: #999; padding: 24px; }

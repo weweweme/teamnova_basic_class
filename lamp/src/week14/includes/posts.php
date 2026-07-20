@@ -30,6 +30,21 @@ function get_post(int $id): ?array {
     return null;
 }
 
+// 심리(매수/매도/중립)로 글을 걸러낸다.
+//   $sentiment가 빈 문자열이면 '전체'라는 뜻 → 거르지 않고 그대로 돌려준다.
+function filter_posts_by_sentiment(array $posts, string $sentiment): array {
+    if ($sentiment === '') {
+        return $posts;              // 전체 = 필터 없음
+    }
+    $result = [];
+    foreach ($posts as $p) {
+        if ($p['sentiment'] === $sentiment) {
+            $result[] = $p;         // 조건에 맞는 것만 새 배열에 담는다
+        }
+    }
+    return $result;
+}
+
 // 글 목록을 정렬 기준(sort)대로 정렬해서 돌려준다.
 //   usort() = Java의 list.sort(Comparator)와 같음. (b - a면 큰 값이 위로 = 내림차순)
 function sort_posts(array $posts, string $sort): array {

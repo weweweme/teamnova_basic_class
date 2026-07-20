@@ -52,6 +52,26 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
   color: #555; font-size: 13px; text-decoration: none; }
 .filter-tabs a.active { background: #eef1ff; color: #2b6cff; border-color: #2b6cff; font-weight: 600; }
 
+/* 페이지 이동(페이징) — 위에 구분선, 전체 가운데 정렬 */
+.pagination { display: flex; justify-content: center; align-items: center; gap: 16px;
+  margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; flex-wrap: wrap; }
+
+/* 이전·다음: 번호와 확실히 구분되는 '버튼' 모양
+   (선택자에 .pagination 을 붙여 .container a 보다 우선순위를 높임) */
+.pagination .page-nav { padding: 8px 16px; border: 1px solid #cdd6f5; border-radius: 8px;
+  background: #fff; color: #2b6cff; font-size: 14px; font-weight: 600; text-decoration: none; }
+.pagination .page-nav:hover { background: #f2f5ff; }
+.pagination .page-nav.disabled { color: #bbb; background: #f7f7f7; border-color: #eee; }
+
+/* 가운데 페이지 번호 묶음 */
+.pagination .page-numbers { display: flex; gap: 4px; }
+.pagination .page-num { min-width: 34px; padding: 7px 0; text-align: center;
+  border: 1px solid #ddd; border-radius: 6px; color: #555; font-size: 14px; text-decoration: none; }
+.pagination .page-num:hover { background: #f5f5f5; }
+/* ★ 현재 페이지 강조 (꽉 찬 파랑 + 굵게) */
+.pagination .page-num.active { background: #2b6cff; color: #fff;
+  border-color: #2b6cff; font-weight: 700; }
+
 /* 글 보기 */
 .post h1 { margin-bottom: 6px; }
 .post-meta { color: #888; font-size: 14px; margin: 0 0 16px; }

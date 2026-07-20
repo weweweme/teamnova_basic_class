@@ -24,7 +24,15 @@ function query_url(string $path, array $overrides = []): string {
     // array_merge : 현재 $_GET 위에 $overrides를 덮어쓴다(같은 키면 새 값이 이김).
     $params = array_merge($_GET, $overrides);
 
-    // 값이 빈 것은 주소에서 빼서 깔끔하게. (예: 필터 '전체'는 값이 ''라 아예 제거)
+    // 값이 빈 것('')은 주소에서 아예 빼버린다.
+    //   왜 이렇게 하나?
+    //   ① 지저분한 빈 파라미터 방지 — '전체' 필터를 고르면 sentiment=''가 되는데,
+    //      그대로 두면 /board/?ticker=005930&sort=new&sentiment=  처럼 꼬리가 남는다.
+    //   ② 상태가 주소에 정직하게 드러남 — "sentiment 항목 자체가 없음" = "필터 안 걸림".
+    //      (빈 값으로 남겨두면 '필터를 건 건가 만 건가' 헷갈림)
+    //   ③ 같은 화면인데 주소가 여러 개가 되는 걸 막음 —
+    //      '?sentiment=' 와 '아무것도 없음'은 결과가 똑같은데 URL은 서로 달라진다.
+    //      URL이 갈라지면 공유·북마크·캐시 입장에서 같은 페이지를 다른 것으로 취급해 낭비.
     //   fn($v) => ... 는 '짧은 익명 함수' (Java 람다와 같은 것).
     $params = array_filter($params, fn($v) => $v !== '' && $v !== null);
 

@@ -30,6 +30,14 @@ function get_post(int $id): ?array {
     return null;
 }
 
+// 글 목록에서 '그 페이지에 해당하는 분량'만 잘라낸다.
+//   $page는 1부터 시작. array_slice(배열, 시작위치, 개수)로 자른다.
+//   예) perPage=3 일 때  1페이지→0번부터 3개, 2페이지→3번부터 3개, 3페이지→6번부터 3개
+function paginate_posts(array $posts, int $page, int $perPage): array {
+    $offset = ($page - 1) * $perPage;   // 몇 번째부터 자를지
+    return array_slice($posts, $offset, $perPage);
+}
+
 // 심리(매수/매도/중립)로 글을 걸러낸다.
 //   $sentiment가 빈 문자열이면 '전체'라는 뜻 → 거르지 않고 그대로 돌려준다.
 function filter_posts_by_sentiment(array $posts, string $sentiment): array {

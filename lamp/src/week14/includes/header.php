@@ -23,7 +23,29 @@ $pageTitle = $pageTitle ?? '종목토론방';
        이 <link>가 header에 있으니, header를 include하는 '모든 페이지'가 CSS를 자동으로 물려받음.
        rel="stylesheet" = 관계가 스타일시트 / href = CSS 파일 위치.
        경로가 '/'로 시작 = week14 최상위 기준(어느 폴더 페이지든 같은 경로로 찾음). -->
-  <link rel="stylesheet" href="/assets/css/style.css">
+  <?php
+  // ── 캐시 무력화(cache busting) ────────────────────────────────
+  //   [문제] 브라우저는 한 번 받은 CSS를 '같은 주소'면 저장(캐시)해두고 다시 안 받아온다.
+  //          → style.css를 고쳐도 화면은 옛날 그대로. (개발할 때 제일 헷갈리는 함정)
+  //
+  //   [해결] 주소 뒤에 그 파일의 '마지막 수정시각'을 ?v= 로 붙인다.
+  //          filemtime() = 파일이 마지막으로 바뀐 시각을 숫자로 돌려줌
+  //                        (1970년부터 흐른 초. 예: 1784557902)
+  //          · CSS를 고치면 → 시각이 바뀜 → 주소가 달라짐 → 브라우저가 '처음 보는 주소'라 새로 받음
+  //          · 안 고쳤으면 → 주소 그대로 → 캐시 재사용(빠름)
+  //
+  //   [왜 통하나 — 핵심]
+  //          ?v=... 는 서버 입장에선 '의미 없는 꼬리표'다. 붙이든 말든 어차피 같은 style.css를 준다.
+  //          하지만 브라우저는 '주소 전체'를 열쇠로 캐시를 관리하므로,
+  //          꼬리표만 달라져도 '다른 파일'로 보고 새로 받아온다.
+  //          → 서버 동작은 그대로 두고 브라우저 캐시만 정확히 갱신시키는 실무 표준 기법.
+  //
+  //   file_exists 먼저 확인: 파일이 없으면 filemtime()이 경고를 내므로
+  //   '있는지 확인 후 사용'(Tester-Doer). 없으면 임시로 '1'을 쓴다.
+  $cssPath = __DIR__ . '/../assets/css/style.css';
+  $cssVer  = file_exists($cssPath) ? filemtime($cssPath) : '1';
+  ?>
+  <link rel="stylesheet" href="/assets/css/style.css?v=<?= e((string)$cssVer) ?>">
 </head>
 <body>
   <!-- 공통 상단 메뉴바: 어느 페이지에서든 여기로 이동 가능 -->

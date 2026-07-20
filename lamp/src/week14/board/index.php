@@ -1,64 +1,61 @@
 <?php
 // ============================================================
 // board/index.php — 종목 토론방  [GET 요청]
-//   홈에서 보낸  /board/?ticker=005930  을 '받아서'
-//   그 종목의 토론방 화면을 보여준다.
-//   = 안드로이드 Intent의 getStringExtra("ticker") 자리(받는 쪽).
+//   ?ticker= 로 종목을 받고, ?sort= 로 글 '정렬 방식'을 받는다.
+//   (심리 필터 ?sentiment=, 페이징 ?page= 는 다음 micro-step에서 추가)
 // ============================================================
-
-// 이 파일은 board/ 폴더 '안'이라, 공통 조각은 한 단계 위(..)에서 불러온다.
 require_once __DIR__ . '/../includes/util.php';
+require_once __DIR__ . '/../includes/posts.php';   // 글 데이터·정렬을 모아둔 모듈
 
-// ── 1) GET으로 온 ticker 받기 ────────────────────────────────
-//   $_GET = 주소 뒤 ?이름=값 들이 담기는 PHP 기본 배열.
-//   ?? '' = ticker가 아예 없으면(그냥 /board/ 로 접속) 빈 문자열로 둔다.
+// ── 1) 파라미터 받기 ─────────────────────────────────────────
 $ticker = $_GET['ticker'] ?? '';
+$sort   = $_GET['sort'] ?? 'new';   // new(최신) | hot(인기) | views(조회) | comments(댓글)
 
-// ── 2) 검증(Tester-Doer): ticker가 없으면 먼저 걸러낸다 ────────
-//   실무 FM: 값이 없을 수 있으면 '먼저 확인'하고 분기. (있다 치고 진행 금지)
+// ── 2) ticker 검증 (없으면 안내 후 종료) ─────────────────────
 if ($ticker === '') {
     $pageTitle = '종목 토론방';
     require __DIR__ . '/../includes/header.php';
     echo '<p>종목을 선택해 주세요. <a href="/">홈으로</a></p>';
     require __DIR__ . '/../includes/footer.php';
-    exit;   // 여기서 실행 종료 → 아래 코드는 안 돌린다.
+    exit;
 }
 
-// ── 3) 더미: ticker → 종목명 (나중 stocks 테이블 조회로 교체) ──
-$stockNames = [
-    '005930' => '삼성전자',
-    '000660' => 'SK하이닉스',
-    'AAPL'   => '애플',
-];
-// 목록에 없는 ticker면 '알 수 없는 종목'으로.
+// ── 3) ticker → 종목명 (더미, 나중 stocks 테이블 조회) ───────
+$stockNames = ['005930' => '삼성전자', '000660' => 'SK하이닉스', 'AAPL' => '애플'];
 $name = $stockNames[$ticker] ?? '알 수 없는 종목';
 
-// ── 4) 더미 글 목록 (나중 posts 테이블에서 ticker로 조회) ──────
-$posts = [
-    ['id' => 1, 'title' => '지금 들어가도 될까요?', 'sentiment' => '매수'],
-    ['id' => 2, 'title' => '실적 발표 한줄 정리',    'sentiment' => '중립'],
-];
+// ── 4) 글 목록 가져와서 정렬 (둘 다 posts 모듈에 맡김) ───────
+//   get_posts()  : 더미 글 전체 가져오기
+//   sort_posts() : 정렬 기준(sort)대로 정렬
+//   ★ 정렬 로직을 이 파일에 두지 않고 모듈로 뺀 이유: search·profile도 같은 정렬을
+//     쓸 거라, 한 곳(posts.php)에 두면 중복이 없고 나중 DB 교체도 그 안만 고치면 됨.
+$posts = sort_posts(get_posts(), $sort);
+
+// ── 6) 정렬 탭 목록 (키=?sort 값, 값=표시 이름) ──────────────
+$sortTabs = ['new' => '최신', 'hot' => '인기', 'views' => '조회', 'comments' => '댓글'];
 
 $pageTitle = $name . ' 토론방';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-  <!-- 종목 헤더: 이름 + 코드.
-       ★ ticker는 '주소(URL)로 들어온 값' = 사용자가 조작 가능 → 반드시 e()로 감싼다(XSS 방지). -->
   <h1><?= e($name) ?> <small>(<?= e($ticker) ?>)</small></h1>
-
-  <!-- TradingView 현재가·차트 위젯 자리 (나중에 임베드 코드로 교체) -->
   <div class="widget-placeholder">📈 현재가 · 차트 위젯 자리 (나중 연결)</div>
 
-  <h2>토론 글</h2>
+  <!-- 정렬 탭: 클릭하면 ?sort= 만 바꿔서 다시 요청 (ticker는 유지) -->
+  <div class="sort-tabs">
+    <?php foreach ($sortTabs as $key => $label): ?>
+      <!-- 지금 선택된 정렬이면 'active' 클래스를 붙여 강조 (삼항 연산자) -->
+      <a class="<?= $sort === $key ? 'active' : '' ?>"
+         href="/board/?ticker=<?= e($ticker) ?>&sort=<?= e($key) ?>"><?= e($label) ?></a>
+    <?php endforeach; ?>
+  </div>
+
   <ul class="post-list">
     <?php foreach ($posts as $p): ?>
       <li>
-        <!-- 글 보기로 이동: GET으로 id 전달 -->
-        <a href="/post/view.php?id=<?= e((string)$p['id']) ?>">
-          <?= e($p['title']) ?>
-        </a>
+        <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= e($p['title']) ?></a>
         <span class="tag"><?= e($p['sentiment']) ?></span>
+        <span class="post-stat">조회 <?= e((string)$p['views']) ?> · 댓글 <?= e((string)$p['comments']) ?></span>
       </li>
     <?php endforeach; ?>
   </ul>

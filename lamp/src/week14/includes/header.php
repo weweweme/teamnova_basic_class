@@ -31,8 +31,6 @@ $pageTitle = $pageTitle ?? '종목토론방';
     <a class="logo" href="/">📈 종목토론방</a>
     <nav>
       <a href="/">홈</a>
-      <a href="/auth/login.php">로그인</a>
-      <a href="/auth/signup.php">회원가입</a>
       <a href="/post/write.php">글쓰기</a>
     </nav>
   </header>

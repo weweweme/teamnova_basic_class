@@ -25,6 +25,9 @@
 ```
 week14/
 ├── index.php              홈: 인기글·종목 리스트          [GET]
+├── stocks.php             전체 종목 목록                   [GET]
+├── search.php             글/종목 검색  ?q=&sort=          [GET]
+├── profile.php            유저 프로필  ?user=              [GET]
 ├── includes/  (공통 조각)
 │   ├── config.php  db.php     (DB 연결 — 나중)
 │   ├── header.php  footer.php (공통 레이아웃 include)
@@ -35,8 +38,9 @@ week14/
 │          edit.php[GET]  update.php[POST·PRG]  delete.php[POST·PRG]
 ├── comment/  create.php[POST·PRG]  delete.php[POST·PRG]
 ├── vote/  sentiment.php   매수/매도 투표 [POST·PRG]
-├── auth/  signup.php[GET]  register.php[POST·PRG]
-│          login.php[GET]  authenticate.php[POST·PRG·세션]  logout.php[POST]
+├── like/  toggle.php      좋아요/추천 [POST·PRG]
+├── report/  create.php    신고 [POST·PRG]
+├── auth/  (로그인·회원가입·세션 — week14 범위 밖, 나중)
 ├── assets/  css/  js/
 └── uploads/  (이미지 — 나중)
 ```
@@ -48,7 +52,10 @@ week14/
 - 데이터 모델(→ MariaDB 테이블): users / stocks(ticker·name·market) / posts(+sentiment 매수·매도·중립) / comments / votes / watchlist
 - 차트·현재가 TradingView 위젯 실연결, 이미지 업로드 실제 저장
 
-**week14 지금 할 것:** 위 페이지들을 만들고 **GET/POST 흐름 위주**로 구현. 데이터는 더미 배열, 인증 검증은 무조건 통과(stub).
+**week14 지금 할 것 (세션/인증 없이 GET/POST만):** 데이터는 더미 배열. 작성자는 세션이 없어
+글쓰기 폼의 닉네임 입력(또는 더미)로, 좋아요·투표는 숫자만 집계(더미).
+구현 배치: ① board 정렬·심리필터·페이징 + 검색 [GET 복합] → ② 좋아요·신고·투표 [POST]
+→ ③ 글 수정·삭제·댓글 삭제 [POST] → ④ 프로필·전체 종목 목록 [GET]. (배치 안에서도 micro-step으로 하나씩)
 
 ## 환경 (LAMP, Docker 컨테이너 내부)
 - OS: Ubuntu 22.04 (도커 컨테이너 안)

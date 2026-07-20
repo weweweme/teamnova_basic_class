@@ -39,6 +39,13 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .write-form button { margin-top: 14px; padding: 9px 18px; background: #2b6cff;
   color: #fff; border: none; border-radius: 6px; cursor: pointer; }
 
+/* 정렬 탭 */
+.sort-tabs { display: flex; gap: 6px; margin: 8px 0 16px; flex-wrap: wrap; }
+.sort-tabs a { padding: 6px 12px; border: 1px solid #ddd; border-radius: 999px;
+  color: #555; font-size: 14px; text-decoration: none; }
+.sort-tabs a.active { background: #2b6cff; color: #fff; border-color: #2b6cff; }
+.post-stat { color: #aaa; font-size: 12px; margin-left: 6px; }
+
 /* 글 보기 */
 .post h1 { margin-bottom: 6px; }
 .post-meta { color: #888; font-size: 14px; margin: 0 0 16px; }

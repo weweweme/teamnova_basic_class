@@ -53,8 +53,8 @@ require __DIR__ . '/includes/header.php';
         <li>
           <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= e($p['title']) ?></a>
           <span class="tag"><?= e($p['sentiment']) ?></span>
-          <!-- 어느 종목 글인지 표시 + 그 토론방으로 바로 갈 수 있게 링크 -->
-          <a class="post-stat" href="/board/?ticker=<?= e($p['ticker']) ?>"><?= e($p['stock']) ?></a>
+          <!-- 어느 작품 글인지 표시 + 그 게시판으로 바로 갈 수 있게 링크 -->
+          <a class="post-stat" href="/board/?work=<?= e($p['work']) ?>"><?= e($p['workTitle']) ?></a>
         </li>
       <?php endforeach; ?>
     </ul>

@@ -17,9 +17,9 @@ function e(string $text): string {
 //   왜 필요? 정렬 탭을 눌러도 '종목·필터'가 살아있어야 하고,
 //            필터를 눌러도 '정렬'이 살아있어야 하니까.
 //            (안 그러면 탭 누를 때마다 다른 조건이 날아감)
-//   예) 지금 ?ticker=005930&sort=views 인 상태에서
-//       query_url('/board/', ['sentiment'=>'매수'])
-//       → /board/?ticker=005930&sort=views&sentiment=매수
+//   예) 지금 ?work=parasite&sort=views 인 상태에서
+//       query_url('/board/', ['sentiment'=>'호평'])
+//       → /board/?work=parasite&sort=views&sentiment=호평
 function query_url(string $path, array $overrides = []): string {
     // array_merge : 현재 $_GET 위에 $overrides를 덮어쓴다(같은 키면 새 값이 이김).
     $params = array_merge($_GET, $overrides);
@@ -27,7 +27,7 @@ function query_url(string $path, array $overrides = []): string {
     // 값이 빈 것('')은 주소에서 아예 빼버린다.
     //   왜 이렇게 하나?
     //   ① 지저분한 빈 파라미터 방지 — '전체' 필터를 고르면 sentiment=''가 되는데,
-    //      그대로 두면 /board/?ticker=005930&sort=new&sentiment=  처럼 꼬리가 남는다.
+    //      그대로 두면 /board/?work=parasite&sort=new&sentiment=  처럼 꼬리가 남는다.
     //   ② 상태가 주소에 정직하게 드러남 — "sentiment 항목 자체가 없음" = "필터 안 걸림".
     //      (빈 값으로 남겨두면 '필터를 건 건가 만 건가' 헷갈림)
     //   ③ 같은 화면인데 주소가 여러 개가 되는 걸 막음 —

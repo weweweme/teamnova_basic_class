@@ -19,13 +19,14 @@ if ($post === null) {
     exit;
 }
 
-$sentiments = ['매수', '중립', '매도'];
+$sentiments = ['호평', '보통', '혹평'];
 
 $pageTitle = '글 수정';
 require __DIR__ . '/../includes/header.php';
 ?>
 
   <h1>글 수정</h1>
+  <p class="muted"><?= e($post['workTitle']) ?> 게시판의 글</p>
 
   <form class="write-form" method="post" action="/post/update.php">
 
@@ -40,13 +41,12 @@ require __DIR__ . '/../includes/header.php';
     <label>내용
       <!-- ★ textarea는 value 속성이 없다!
            여는 태그와 닫는 태그 '사이'에 넣어야 미리 채워진다.
-           그리고 사이의 공백·줄바꿈이 그대로 내용이 되므로,
-           <textarea ...> 바로 뒤에 붙여 쓰고 </textarea>도 붙여 닫는다. -->
+           그리고 사이의 공백·줄바꿈이 그대로 내용이 되므로 붙여서 쓴다. -->
       <textarea name="content" rows="6" required><?= e($post['content']) ?></textarea>
     </label>
 
     <fieldset>
-      <legend>투자 심리</legend>
+      <legend>감상</legend>
       <?php foreach ($sentiments as $s): ?>
         <!-- 기존에 골랐던 값이면 checked를 붙여 '미리 선택'해 둔다 -->
         <label>

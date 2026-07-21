@@ -30,7 +30,7 @@ if ($id <= 0 || $post === null) {
 // ── 3) 삭제 (지금은 stub) ────────────────────────────────────
 //   나중엔 posts 테이블에서 DELETE (WHERE id = $id).
 
-// ── 4) PRG: 삭제된 글로는 돌아갈 수 없으니 그 종목 토론방으로 ──
-//   (삭제 전에 $post에서 ticker를 미리 꺼내둔 덕분에 어디로 갈지 알 수 있다)
-header('Location: /board/?ticker=' . urlencode($post['ticker']) . '&deleted=1');
+// ── 4) PRG: 삭제된 글로는 돌아갈 수 없으니 그 작품 게시판으로 ──
+//   (삭제 전에 $post에서 work를 미리 꺼내둔 덕분에 어디로 갈지 알 수 있다)
+header('Location: /board/?work=' . urlencode($post['work']) . '&deleted=1');
 exit;

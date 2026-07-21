@@ -26,7 +26,14 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .container h2 { font-size: 17px; margin-top: 24px; }
 .container h1 small { color: #888; font-weight: normal; font-size: 15px; }
 
-/* 위젯 자리 표시(placeholder) — 나중 TradingView 위젯으로 교체 */
+/* 작품 정보 (감독·줄거리) */
+.work-info { background: #f7f8fb; border: 1px solid #eceef5; border-radius: 10px;
+  padding: 14px 16px; margin: 10px 0 18px; }
+.work-info p { margin: 0; }
+.work-director { color: #666; font-size: 13px; margin-bottom: 6px !important; }
+.work-summary { line-height: 1.6; }
+
+/* 위젯 자리 표시(placeholder) — 없는 작품일 때만 */
 .widget-placeholder { background: #f4f6fb; border: 1px dashed #b8c2e0;
   color: #667; text-align: center; padding: 40px; border-radius: 8px; margin: 16px 0; }
 
@@ -38,6 +45,14 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .write-form fieldset label { display: inline; font-weight: normal; margin-right: 12px; }
 .write-form button { margin-top: 14px; padding: 9px 18px; background: #2b6cff;
   color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+
+/* 토론방 툴바 (개수 + 글쓰기) */
+.board-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.board-toolbar p { margin: 0; }
+.btn-write { padding: 7px 14px; background: #2b6cff; color: #fff; border-radius: 8px;
+  font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.container .btn-write { color: #fff; }
+.btn-write:hover { background: #1a56e0; }
 
 /* 프로필 통계 카드 */
 .profile-stats { display: flex; gap: 10px; margin: 14px 0 22px; }

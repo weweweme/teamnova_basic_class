@@ -60,10 +60,10 @@ $pageTitle = $pageTitle ?? '종목토론방';
 <body>
   <!-- 공통 상단 메뉴바: 어느 페이지에서든 여기로 이동 가능 -->
   <header class="topbar">
-    <a class="logo" href="/">📈 종목토론방</a>
+    <a class="logo" href="/">🎬 리뷰 커뮤니티</a>
     <nav>
       <a href="/">홈</a>
-      <a href="/stocks.php">종목</a>
+      <a href="/works.php">작품</a>
       <a href="/search.php">검색</a>
       <a href="/post/write.php">글쓰기</a>
     </nav>

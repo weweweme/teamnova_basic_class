@@ -18,11 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $id        = (int)($_POST['id'] ?? 0);
 $title     = trim($_POST['title']   ?? '');
 $content   = trim($_POST['content'] ?? '');
-$sentiment = $_POST['sentiment']    ?? '중립';
+$sentiment = $_POST['sentiment']    ?? '보통';
 
-// 심리 값은 허용된 것만 (화이트리스트)
-if (!in_array($sentiment, ['매수', '매도', '중립'], true)) {
-    $sentiment = '중립';
+// 감상 값은 허용된 것만 (화이트리스트)
+if (!in_array($sentiment, ['호평', '보통', '혹평'], true)) {
+    $sentiment = '보통';
 }
 
 // ── 2) 검증 ──────────────────────────────────────────────────

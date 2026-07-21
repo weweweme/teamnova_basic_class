@@ -1,8 +1,8 @@
 <?php
 // ============================================================
 // post/view.php — 글 보기  [GET 요청]
-//   ?id= 로 글 번호를 받아 글 하나를 보여준다. (홈·board가 링크로 보냄)
-//   ★ 글 데이터는 posts 모듈(get_post)에서 가져온다 → board와 '같은 출처'.
+//   ?id= 로 글 번호를 받아 글 하나를 보여준다. (홈·게시판이 링크로 보냄)
+//   ★ 글 데이터는 posts 모듈(get_post)에서 가져온다 → 게시판과 '같은 출처'.
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/posts.php';
@@ -24,8 +24,8 @@ if ($post === null) {
 
 // ── 더미 댓글 목록 (나중 comments 테이블에서 post_id로 조회로 교체) ──
 $comments = [
-    ['id' => 101, 'author' => '주주1', 'content' => '저도 그렇게 봅니다.'],
-    ['id' => 102, 'author' => '개미2', 'content' => '음, 신중하게 접근해야 할 듯요.'],
+    ['id' => 101, 'author' => '리뷰러',   'content' => '저도 그렇게 봤어요.'],
+    ['id' => 102, 'author' => '주말영화', 'content' => '음, 저는 조금 다르게 느꼈습니다.'],
 ];
 
 $pageTitle = $post['title'];
@@ -38,7 +38,8 @@ require __DIR__ . '/../includes/header.php';
     <p class="post-meta">
       <!-- span = 인라인 작은 상자(줄바꿈 안 함). tag 클래스로 배지 색 -->
       <span class="tag"><?= e($post['sentiment']) ?></span>
-      <?= e($post['stock']) ?> ·
+      <!-- 어느 작품 글인지 → 그 작품 게시판으로 이동 -->
+      <a href="/board/?work=<?= e($post['work']) ?>"><?= e($post['workTitle']) ?></a> ·
       <!-- 작성자 이름을 누르면 그 사람의 프로필로 (GET으로 user 전달) -->
       <a href="/profile.php?user=<?= e($post['author']) ?>"><?= e($post['author']) ?></a>
     </p>
@@ -46,7 +47,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="post-content"><?= nl2br(e($post['content'])) ?></div>
   </article>
 
-  <?php // 추천·신고 처리 후 리다이렉트해오면 완료 알림 ?>
+  <?php // 추천·신고·수정 처리 후 리다이렉트해오면 완료 알림 ?>
   <?php if (isset($_GET['liked'])): ?>
     <div class="flash">👍 추천했습니다. <small>(지금은 숫자가 실제로 늘진 않는 껍데기)</small></div>
   <?php endif; ?>
@@ -57,7 +58,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="flash">✏️ 글이 수정되었습니다. <small>(지금은 반영 안 되는 껍데기)</small></div>
   <?php endif; ?>
 
-  <!-- 글에 대한 '행동'들 — 둘 다 서버 상태를 바꾸므로 링크가 아니라 POST 폼 -->
+  <!-- 글에 대한 '행동'들 — 상태를 바꾸는 것은 링크가 아니라 POST 폼 -->
   <div class="post-actions">
 
     <!-- 추천: hidden으로 어느 글인지(post_id)를 함께 보낸다 -->
@@ -67,8 +68,7 @@ require __DIR__ . '/../includes/header.php';
     </form>
 
     <!-- 신고 버튼: 누르면 아래 팝업만 연다. (실제 전송은 팝업 안의 폼이 담당)
-         type="button" = "이 버튼은 폼 제출용이 아니다"라는 표시.
-         (이 버튼은 폼 밖에 있어서 없어도 문제는 없지만, 의도를 분명히 해둔다) -->
+         type="button" = "이 버튼은 폼 제출용이 아니다"라는 표시. -->
     <button type="button" class="btn-report" id="report-open">🚩 신고</button>
 
     <!-- 수정: '수정 폼 화면으로 이동'하는 것이므로 GET 링크가 맞다.
@@ -86,8 +86,7 @@ require __DIR__ . '/../includes/header.php';
 
   <!-- 신고 팝업 — <dialog> = HTML이 기본으로 제공하는 '모달 창' 태그.
        평소엔 숨겨져 있다가 JS의 showModal()로 열린다.
-       ★ 팝업은 '보여주는 방식'만 바꾼 것이고,
-         실제 신고는 여전히 이 안의 폼이 POST로 보낸다 (흐름은 그대로). -->
+       ★ 팝업은 '보여주는 방식'만 바꾼 것이고, 실제 신고는 이 안의 폼이 POST로 보낸다. -->
   <dialog id="report-dialog" class="modal">
     <form method="post" action="/report/create.php">
       <h3>신고하기</h3>
@@ -100,18 +99,17 @@ require __DIR__ . '/../includes/header.php';
       <select name="reason">
         <option value="스팸/광고">스팸/광고</option>
         <option value="욕설/비방">욕설/비방</option>
-        <option value="허위정보">허위정보</option>
+        <option value="스포일러">스포일러</option>
         <option value="기타">기타</option>
       </select>
 
       <div class="modal-actions">
         <!-- ★ 취소 버튼은 반드시 type="button" !
              <button>의 type 기본값은 submit 이라서, '폼 안'에 있는 버튼은
-             type을 안 적으면 누르는 순간 폼이 전송된다.
-             → 여기서 type을 빼면 '취소'를 눌렀는데 신고가 접수되는 사고가 난다. -->
+             type을 안 적으면 누르는 순간 폼이 전송된다. -->
         <button type="button" id="report-cancel" class="btn-cancel">취소</button>
 
-        <!-- 이쪽이 진짜 제출 버튼 (기본값이 submit이라 생략 가능하지만 의도를 명시) -->
+        <!-- 이쪽이 진짜 제출 버튼 -->
         <button type="submit" class="btn-danger">신고</button>
       </div>
     </form>
@@ -121,7 +119,6 @@ require __DIR__ . '/../includes/header.php';
   <section class="comments">
     <h2>댓글</h2>
 
-    <?php // comment/create.php가 ?commented=1 로 리다이렉트해오면 완료 알림 ?>
     <?php if (isset($_GET['commented'])): ?>
       <div class="flash">✅ 댓글이 등록되었습니다. <small>(지금은 저장 안 되는 껍데기)</small></div>
     <?php endif; ?>

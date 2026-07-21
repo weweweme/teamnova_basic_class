@@ -52,9 +52,11 @@ require __DIR__ . '/includes/header.php';
     <ul class="work-list">
       <?php foreach ($works as $w): ?>
         <li>
-          <!-- 작품을 클릭하면 그 작품 게시판으로 (GET으로 work 전달) -->
-          <a href="/board/?work=<?= e($w['slug']) ?>"><?= e($w['title']) ?></a>
-          <span class="post-stat"><?= e($w['genre']) ?> · <?= e((string)$w['year']) ?> · <?= e($w['director']) ?></span>
+          <?php // 작품을 클릭하면 그 작품 게시판으로 (GET으로 work 전달).
+                // 제목·감독은 검색어를 형광펜(<mark>)으로 강조해서 보여준다.
+                // ★ create_highlighted()가 이미 e() 처리를 끝냈으므로 여기서 또 감싸지 않는다. ?>
+          <a href="/board/?work=<?= e($w['slug']) ?>"><?= create_highlighted($w['title'], $q) ?></a>
+          <span class="post-stat"><?= e($w['genre']) ?> · <?= e((string)$w['year']) ?> · <?= create_highlighted($w['director'], $q) ?></span>
         </li>
       <?php endforeach; ?>
     </ul>

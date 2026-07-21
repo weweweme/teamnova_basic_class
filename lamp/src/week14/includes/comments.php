@@ -189,3 +189,29 @@ function add_comment(int $postId, string $author, string $content): int {
 function delete_comment(int $id): void {
     $_SESSION['deleted_comments'][] = $id;
 }
+
+// '지워진' 댓글 찾기 (되돌리기에서 주인 확인용). 안 지워졌거나 없으면 null.
+function get_deleted_comment(int $id): ?array {
+    $deleted = $_SESSION['deleted_comments'] ?? [];
+    if (!in_array($id, $deleted, true)) {
+        return null;
+    }
+    $all = base_comments();
+    foreach ($_SESSION['new_comments'] ?? [] as $c) {
+        $all[] = $c;
+    }
+    foreach ($all as $c) {
+        if ($c['id'] === $id) {
+            return $c;
+        }
+    }
+    return null;
+}
+
+// 댓글 삭제 되돌리기 (글 되돌리기와 같은 방식)
+function restore_comment(int $id): void {
+    $deleted = $_SESSION['deleted_comments'] ?? [];
+    $_SESSION['deleted_comments'] = array_values(
+        array_filter($deleted, fn($deletedId) => $deletedId !== $id)
+    );
+}

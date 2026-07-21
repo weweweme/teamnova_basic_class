@@ -27,6 +27,10 @@ if ($post === null) {
 // ── 이 글의 댓글 목록 (comments 모듈이 더미 + 이번 접속에 쓴 것을 합쳐서 준다) ──
 $comments = get_comments($id);
 
+// ── '최근 본 글'에 이 글을 기록 (홈에서 보여주기 위해) ──────
+//   글·댓글을 바꾸는 게 아니라 '내 열람 기록'만 남기므로 GET 화면에서 해도 된다.
+remember_recent_post($id);
+
 $pageTitle = $post['title'];
 require __DIR__ . '/../includes/header.php';
 ?>

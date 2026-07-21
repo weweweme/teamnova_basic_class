@@ -163,7 +163,9 @@ require __DIR__ . '/../includes/header.php';
     <ul class="post-list">
       <?php foreach ($pagePosts as $p): ?>
         <li>
-          <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= e($p['title']) ?></a>
+          <?php // 검색 중이면 제목에서 찾은 글자를 형광펜으로 강조한다.
+                // (create_highlighted가 e() 처리까지 끝내주므로 여기선 그대로 출력) ?>
+          <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= create_highlighted($p['title'], $q) ?></a>
           <span class="tag"><?= e($p['sentiment']) ?></span>
           <span class="post-stat">조회 <?= e((string)$p['views']) ?> · 댓글 <?= e((string)$p['comments']) ?></span>
         </li>

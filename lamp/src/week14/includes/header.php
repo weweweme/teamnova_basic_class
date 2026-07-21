@@ -94,7 +94,20 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
     $flash = take_flash();
     ?>
     <?php if ($flash !== null): ?>
-      <?php // class="flash"에 JS가 붙어서 몇 초 뒤 스르륵 사라지게 한다 ?>
-      <div class="flash flash-<?= e($flash['type']) ?>"><?= e($flash['message']) ?></div>
+      <?php // 화면 우상단에 '떠 있는' 토스트. JS가 몇 초 뒤 스르륵 걷어낸다. ?>
+      <div class="flash flash-<?= e($flash['type']) ?>">
+        <span class="flash-text"><?= e($flash['message']) ?></span>
+
+        <?php // '되돌리기' 같은 후속 동작 버튼 (있을 때만) ?>
+        <?php if (!empty($flash['action'])): ?>
+          <form method="post" action="<?= e($flash['action']['url']) ?>">
+            <?php // 어느 글을 되돌릴지 등은 hidden으로 함께 보낸다 ?>
+            <?php foreach ($flash['action']['fields'] as $name => $value): ?>
+              <input type="hidden" name="<?= e($name) ?>" value="<?= e((string)$value) ?>">
+            <?php endforeach; ?>
+            <button type="submit" class="flash-action"><?= e($flash['action']['label']) ?></button>
+          </form>
+        <?php endif; ?>
+      </div>
     <?php endif; ?>
 

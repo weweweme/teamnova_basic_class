@@ -46,6 +46,11 @@ delete_post($id);
 
 // ── 4) PRG: 삭제된 글로는 돌아갈 수 없으니 그 작품 게시판으로 ──
 //   (삭제 전에 $post에서 work를 미리 꺼내둔 덕분에 어디로 갈지 알 수 있다)
-set_flash('🗑 글이 삭제되었습니다. (임시 저장 — 브라우저를 닫으면 복구됩니다)');
+//   알림에 '되돌리기' 버튼을 함께 띄운다 → post/restore.php 로 POST.
+set_flash('🗑 글이 삭제되었습니다.', 'ok', [
+    'label'  => '되돌리기',
+    'url'    => '/post/restore.php',
+    'fields' => ['id' => $id],
+]);
 header('Location: /board/?work=' . urlencode($post['work']));
 exit;

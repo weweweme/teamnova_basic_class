@@ -46,6 +46,11 @@ if ($comment === null || !is_owner($comment['author'])) {
 delete_comment($commentId);
 
 // ── 4) PRG: 그 글로 돌아가기 (+삭제 완료 표시) ───────────────
-set_flash('🗑 댓글이 삭제되었습니다. (임시 저장 — 브라우저를 닫으면 복구됩니다)');
+//   알림에 '되돌리기' 버튼을 함께 띄운다 → comment/restore.php 로 POST.
+set_flash('🗑 댓글이 삭제되었습니다.', 'ok', [
+    'label'  => '되돌리기',
+    'url'    => '/comment/restore.php',
+    'fields' => ['comment_id' => $commentId, 'post_id' => $postId],
+]);
 header("Location: /post/view.php?id=$postId");
 exit;

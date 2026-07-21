@@ -116,6 +116,26 @@ function get_posts(): array {
     return $result;
 }
 
+// '지워진' 글 하나 찾기. 안 지워졌거나 없으면 null.
+//   되돌리기(restore)에서 "정말 지워진 글인지 + 주인이 맞는지" 확인할 때 쓴다.
+//   ★ get_post()는 지워진 글을 걸러내고 주므로 여기선 원본을 직접 뒤진다.
+function get_deleted_post(int $id): ?array {
+    $deleted = $_SESSION['deleted_posts'] ?? [];
+    if (!in_array($id, $deleted, true)) {
+        return null;                      // 지워진 적 없으면 되돌릴 것도 없다
+    }
+    $all = base_posts();
+    foreach ($_SESSION['new_posts'] ?? [] as $p) {
+        $all[] = $p;
+    }
+    foreach ($all as $p) {
+        if ($p['id'] === $id) {
+            return $p;
+        }
+    }
+    return null;
+}
+
 // id로 글 하나 찾기. 없으면 null. (Tester-Doer: 호출한 쪽에서 null 체크)
 function get_post(int $id): ?array {
     foreach (get_posts() as $p) {
@@ -163,6 +183,51 @@ function update_post(int $id, string $title, string $content, string $sentiment)
 // 글 삭제 기록  (나중: DELETE FROM posts WHERE id = ?)
 function delete_post(int $id): void {
     $_SESSION['deleted_posts'][] = $id;
+}
+
+// 삭제 되돌리기 — '지운 글 번호' 목록에서 그 번호만 빼면 글이 그대로 돌아온다.
+//   ★ 원본을 진짜로 없애지 않고 '지웠다고 표시'만 했기 때문에 복구가 가능하다.
+//     실무 DB도 DELETE 대신 deleted_at 칼럼을 채우는 '소프트 삭제'를 자주 쓴다.
+//   array_values = 빠진 자리 때문에 생긴 번호 구멍을 메워 배열을 다시 촘촘하게 만든다.
+function restore_post(int $id): void {
+    $deleted = $_SESSION['deleted_posts'] ?? [];
+    $_SESSION['deleted_posts'] = array_values(
+        array_filter($deleted, fn($deletedId) => $deletedId !== $id)
+    );
+}
+
+// ── 최근 본 글 ───────────────────────────────────────────────
+const RECENT_POSTS_MAX = 5;   // 몇 개까지 기억할지
+
+// 방금 본 글을 '최근 본 글' 맨 앞에 넣는다. (post/view.php가 호출)
+//
+//   ★ "GET 화면인데 세션에 뭘 쓰는 게 규칙 위반 아닌가?" — 아니다.
+//     GET이 지켜야 할 '안전(safe)' 규칙은 **남들이 보는 자료를 바꾸지 말라**는 뜻이다.
+//     여기서 남기는 건 '내 열람 기록'일 뿐, 글·댓글은 하나도 안 건드린다.
+//     그래서 새로고침해도, 남이 같은 주소를 열어도 결과가 달라지지 않는다.
+//     (쇼핑몰의 '최근 본 상품', 조회수 집계도 같은 이유로 GET에서 처리한다)
+function remember_recent_post(int $id): void {
+    $recent = $_SESSION['recent_posts'] ?? [];
+
+    // 이미 목록에 있으면 일단 빼낸다 → 같은 글이 여러 줄로 쌓이는 걸 막고,
+    // 아래에서 맨 앞에 다시 넣으면 자연스럽게 '가장 최근'으로 올라온다.
+    $recent = array_values(array_filter($recent, fn($seenId) => $seenId !== $id));
+
+    array_unshift($recent, $id);                                  // 맨 앞에 넣기
+    $_SESSION['recent_posts'] = array_slice($recent, 0, RECENT_POSTS_MAX);   // 넘치면 오래된 것부터 버림
+}
+
+// 최근 본 글 목록 (글 전체를 돌려준다)
+//   ★ 그 사이 지워진 글은 get_post()가 null을 주므로 자동으로 빠진다. (Tester-Doer)
+function get_recent_posts(): array {
+    $result = [];
+    foreach ($_SESSION['recent_posts'] ?? [] as $id) {
+        $post = get_post($id);
+        if ($post !== null) {
+            $result[] = $post;
+        }
+    }
+    return $result;
 }
 
 // 내가 이 글을 추천했는가?

@@ -1,0 +1,258 @@
+/* ============================================================
+   style.css — 최소 공통 스타일 (지금은 '읽기 편할 정도'만)
+   본격 꾸미기는 나중. 지금 주제는 GET/POST 흐름이라 가볍게만.
+   ============================================================ */
+* { box-sizing: border-box; }
+body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
+
+/* ── 긴 글자로 레이아웃이 깨지는 것 방지 ──────────────────────
+   'ㄱㄱㄱㄱ…' 처럼 띄어쓰기 없이 아주 긴 글자를 넣으면
+   기본 규칙상 줄바꿈이 안 돼서 화면 밖으로 삐져나간다.
+   overflow-wrap: anywhere = 필요하면 글자 중간에서라도 줄을 바꾼다. */
+.container, .post-content, .post-list li, .comment-list li,
+.work-summary, .flash, .flash-error { overflow-wrap: anywhere; }
+
+/* 상단 메뉴바 */
+.topbar { display: flex; align-items: center; gap: 14px;
+          padding: 12px 20px; background: #2b6cff; }
+.topbar .logo { font-weight: bold; color: #fff; text-decoration: none; margin-right: auto; }
+.topbar nav a { color: #fff; text-decoration: none; margin-left: 14px; }
+
+/* 본문 영역 */
+.container { max-width: 720px; margin: 0 auto; padding: 20px; }
+.container h1 { font-size: 20px; margin-top: 28px; }
+.container ul { list-style: none; padding: 0; }
+.container li { padding: 10px 0; border-bottom: 1px solid #eee; }
+.container a { color: #1a4fd6; text-decoration: none; }
+
+/* 감상 태그 */
+.tag { background: #eef1ff; color: #2b6cff; font-size: 12px;
+       padding: 2px 7px; border-radius: 4px; margin-left: 6px; }
+
+/* 소제목 · 부제 */
+.container h2 { font-size: 17px; margin-top: 24px; }
+.container h1 small { color: #888; font-weight: normal; font-size: 15px; }
+
+/* 작품 정보 (감독·줄거리) */
+.work-info { background: #f7f8fb; border: 1px solid #eceef5; border-radius: 10px;
+  padding: 14px 16px; margin: 10px 0 18px; }
+.work-info p { margin: 0; }
+.work-director { color: #666; font-size: 13px; margin-bottom: 6px !important; }
+.work-summary { line-height: 1.6; }
+
+/* 위젯 자리 표시(placeholder) — 없는 작품일 때만 */
+.widget-placeholder { background: #f4f6fb; border: 1px dashed #b8c2e0;
+  color: #667; text-align: center; padding: 40px; border-radius: 8px; margin: 16px 0; }
+
+/* 글쓰기 폼 */
+.write-form label { display: block; margin: 14px 0 4px; font-weight: 600; }
+.write-form input[type=text],
+.write-form textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
+.write-form fieldset { margin: 14px 0; border: 1px solid #ddd; border-radius: 6px; }
+.write-form fieldset label { display: inline; font-weight: normal; margin-right: 12px; }
+.write-form button { margin-top: 14px; padding: 9px 18px; background: #2b6cff;
+  color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+
+/* 게시판 툴바 (개수 + 글쓰기) */
+.board-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.board-toolbar p { margin: 0; }
+.btn-write { padding: 7px 14px; background: #2b6cff; color: #fff; border-radius: 8px;
+  font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.container .btn-write { color: #fff; }
+.btn-write:hover { background: #1a56e0; }
+
+/* 프로필 통계 카드 */
+.profile-stats { display: flex; gap: 10px; margin: 14px 0 22px; }
+.profile-stats div { flex: 1; text-align: center; padding: 14px 8px;
+  border: 1px solid #eee; border-radius: 10px; }
+.profile-stats strong { display: block; font-size: 20px; color: #2b6cff; }
+.profile-stats span { font-size: 12px; color: #888; }
+
+/* 투자심리 투표 */
+.vote-box { margin: 18px 0; padding: 16px; border: 1px solid #eee; border-radius: 10px; }
+.vote-box h2 { margin: 0 0 10px; font-size: 16px; }
+.vote-bar { display: flex; height: 30px; border-radius: 6px; overflow: hidden; font-size: 13px; }
+.vote-buy  { background: #e8433f; color: #fff; display: flex; align-items: center;
+  justify-content: center; font-weight: 600; }
+.vote-sell { background: #2b6cff; color: #fff; display: flex; align-items: center;
+  justify-content: center; font-weight: 600; }
+.vote-form { display: flex; gap: 8px; margin-top: 12px; }
+.vote-form button { flex: 1; padding: 10px; border-radius: 8px; cursor: pointer;
+  font-size: 15px; font-weight: 600; border: 1px solid #ddd; background: #fff; }
+.btn-buy  { color: #e8433f; } .btn-buy:hover  { background: #fdf0f0; }
+.btn-sell { color: #2b6cff; } .btn-sell:hover { background: #f2f5ff; }
+
+/* 검색 폼 */
+.search-form { display: flex; gap: 8px; margin: 12px 0 18px; }
+.search-form input { flex: 1; padding: 9px 12px; border: 1px solid #ccc; border-radius: 8px; }
+.search-form button { padding: 9px 18px; background: #2b6cff; color: #fff;
+  border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+/* 정렬 탭 */
+.sort-tabs { display: flex; gap: 6px; margin: 8px 0 16px; flex-wrap: wrap; }
+.sort-tabs a { padding: 6px 12px; border: 1px solid #ddd; border-radius: 999px;
+  color: #555; font-size: 14px; text-decoration: none; }
+.sort-tabs a.active { background: #2b6cff; color: #fff; border-color: #2b6cff; }
+.post-stat { color: #aaa; font-size: 12px; margin-left: 6px; }
+
+/* 심리 필터 탭 */
+.filter-tabs { display: flex; gap: 6px; margin: 0 0 12px; flex-wrap: wrap; }
+.filter-tabs a { padding: 5px 11px; border: 1px solid #ddd; border-radius: 999px;
+  color: #555; font-size: 13px; text-decoration: none; }
+.filter-tabs a.active { background: #eef1ff; color: #2b6cff; border-color: #2b6cff; font-weight: 600; }
+
+/* 페이지 이동(페이징) — 위에 구분선, 전체 가운데 정렬 */
+.pagination { display: flex; justify-content: center; align-items: center; gap: 16px;
+  margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee; flex-wrap: wrap; }
+
+/* 이전·다음: 번호와 확실히 구분되는 '버튼' 모양
+   (선택자에 .pagination 을 붙여 .container a 보다 우선순위를 높임) */
+.pagination .page-nav { padding: 8px 16px; border: 1px solid #cdd6f5; border-radius: 8px;
+  background: #fff; color: #2b6cff; font-size: 14px; font-weight: 600; text-decoration: none; }
+.pagination .page-nav:hover { background: #f2f5ff; }
+.pagination .page-nav.disabled { color: #bbb; background: #f7f7f7; border-color: #eee; }
+
+/* 가운데 페이지 번호 묶음 */
+.pagination .page-numbers { display: flex; gap: 4px; }
+.pagination .page-num { min-width: 34px; padding: 7px 0; text-align: center;
+  border: 1px solid #ddd; border-radius: 6px; color: #555; font-size: 14px; text-decoration: none; }
+.pagination .page-num:hover { background: #f5f5f5; }
+/* ★ 현재 페이지 강조 (꽉 찬 파랑 + 굵게) */
+.pagination .page-num.active { background: #2b6cff; color: #fff;
+  border-color: #2b6cff; font-weight: 700; }
+
+/* 글 보기 */
+.post h1 { margin-bottom: 6px; }
+.post-meta { color: #888; font-size: 14px; margin: 0 0 16px; }
+.post-content { line-height: 1.7; }
+.comments { margin-top: 32px; border-top: 1px solid #eee; padding-top: 16px; }
+.muted { color: #999; }
+
+/* 글 액션(추천·신고) 줄 */
+.post-actions { display: flex; gap: 12px; align-items: center; margin: 16px 0; flex-wrap: wrap; }
+.like-form, .report-form { margin: 0; display: flex; gap: 6px; align-items: center; }
+
+/* 추천(좋아요) 버튼 */
+.like-form button { padding: 9px 18px; background: #fff; color: #2b6cff; cursor: pointer;
+  border: 1px solid #cdd6f5; border-radius: 999px; font-size: 15px; font-weight: 600; }
+.like-form button:hover { background: #f2f5ff; }
+/* 내가 이미 추천한 상태 */
+.like-form button.liked { background: #2b6cff; color: #fff; border-color: #2b6cff; }
+
+/* 내가 투표한 쪽 강조 */
+.vote-form .voted-up   { background: #e8433f; color: #fff; border-color: #e8433f; }
+.vote-form .voted-down { background: #2b6cff; color: #fff; border-color: #2b6cff; }
+
+/* 수정 링크(버튼 모양) */
+.post-actions .btn-edit { padding: 8px 14px; background: #fff; color: #555;
+  border: 1px solid #ddd; border-radius: 999px; font-size: 14px;
+  font-weight: 600; text-decoration: none; }
+.post-actions .btn-edit:hover { background: #f5f5f5; }
+
+/* 삭제 버튼 */
+.post-actions .delete-form { margin: 0; }
+.btn-delete { padding: 8px 14px; background: #fff; color: #d9534f; cursor: pointer;
+  border: 1px solid #f0c8c6; border-radius: 999px; font-size: 14px; font-weight: 600; }
+.btn-delete:hover { background: #fdf3f3; }
+
+/* 댓글 삭제 (작게) */
+.comment-delete { display: inline; margin-left: 8px; }
+.comment-delete button { padding: 2px 8px; background: none; color: #aaa; cursor: pointer;
+  border: 1px solid #e5e5e5; border-radius: 5px; font-size: 12px; }
+.comment-delete button:hover { color: #d9534f; border-color: #f0c8c6; }
+
+/* 신고 버튼 */
+.btn-report { padding: 8px 14px; background: #fff; color: #d9534f; cursor: pointer;
+  border: 1px solid #f0c8c6; border-radius: 999px; font-size: 14px; font-weight: 600; }
+.btn-report:hover { background: #fdf3f3; }
+
+/* 신고 팝업(모달) */
+.modal { border: none; border-radius: 12px; padding: 22px; min-width: 300px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+.modal::backdrop { background: rgba(0,0,0,.4); }   /* 팝업 뒤 어두운 배경 */
+.modal h3 { margin: 0 0 6px; font-size: 17px; }
+.modal select { width: 100%; padding: 9px 10px; margin-top: 10px;
+  border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.btn-cancel { padding: 8px 16px; background: #f2f2f2; color: #555;
+  border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
+.btn-danger { padding: 8px 16px; background: #d9534f; color: #fff;
+  border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+
+/* 댓글 */
+.comment-list { margin: 0 0 20px; }
+.comment-list li { padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+.comment-author { font-weight: 600; margin-right: 8px; }
+.comment-form textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
+.comment-form button { margin-top: 8px; padding: 8px 16px; background: #2b6cff;
+  color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+
+/* 인증 폼 (로그인·회원가입) */
+.auth-form { max-width: 340px; }
+.auth-form label { display: block; margin: 12px 0 4px; font-weight: 600; }
+.auth-form input { width: 100%; padding: 9px 10px; border: 1px solid #ccc; border-radius: 8px; }
+.auth-form button { width: 100%; margin-top: 16px; padding: 10px; background: #2b6cff;
+  color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; }
+
+/* 상단바 로그인 상태 */
+.topbar .nav-user { color: #fff; margin-left: 14px; font-weight: 600; font-size: 14px;
+  text-decoration: none; border-bottom: 1px dotted rgba(255,255,255,.6); }
+.topbar .nav-user:hover { border-bottom-color: #fff; }
+.logout-form { display: inline; margin: 0; }
+.logout-form button { background: transparent; color: #fff; cursor: pointer; font-size: 13px;
+  border: 1px solid rgba(255,255,255,.6); border-radius: 6px; padding: 4px 10px; margin-left: 10px; }
+.logout-form button:hover { background: rgba(255,255,255,.15); }
+
+/* 실패 알림(flash-error) */
+.flash-error { background: #fdecea; border: 1px solid #f5c2bd; color: #b33a34;
+  padding: 12px 14px; border-radius: 8px; margin: 14px 0; }
+
+/* ── 알림(토스트) ────────────────────────────────────────────
+   position: fixed = '화면'에 붙박이로 고정. 스크롤해도 따라온다.
+     (기본값 static 이면 글 흐름 속에 자리를 차지해서 본문이 아래로 밀렸다)
+   top/right = 화면 오른쪽 위에서 얼마나 떨어질지.
+   z-index = 겹칠 때 누가 위로 올라오나. 숫자가 클수록 앞. */
+.flash { position: fixed; top: 20px; right: 20px; z-index: 100;
+  display: flex; align-items: center; gap: 12px;
+  max-width: 380px;
+  background: #e8f6ee; border: 1px solid #b6e0c6; color: #1b7a43;
+  padding: 13px 16px; border-radius: 10px;
+  /* box-shadow = 그림자. 화면 위에 '떠 있는' 느낌을 준다 */
+  box-shadow: 0 6px 20px rgba(0,0,0,0.13);
+  /* transition = '값이 바뀔 때 확 바뀌지 말고 이 시간 동안 서서히 바꿔라'.
+     JS가 .fade-out 을 붙이면 아래 .fade-out 값들로 0.4초에 걸쳐 부드럽게 넘어간다. */
+  transition: opacity 0.4s, transform 0.4s; }
+
+.flash-text { flex: 1; }   /* 글자가 남는 공간을 다 차지 → 버튼은 오른쪽 끝으로 */
+
+/* 거부·실패 알림은 빨강 (set_flash(…, 'error') → class="flash flash-error") */
+.flash.flash-error { background: #fdecea; border-color: #f5c2bd; color: #b33a34; }
+
+/* 알림 안의 '되돌리기' 버튼 */
+.flash-action { background: none; border: 1px solid currentColor; color: inherit;
+  padding: 5px 12px; border-radius: 6px; cursor: pointer;
+  font-size: 13px; font-weight: 600; white-space: nowrap; }
+.flash-action:hover { background: rgba(0,0,0,0.06); }
+
+/* JS가 붙이는 '사라지는 중' 상태.
+   opacity 0 = 완전히 투명 / translateX(20px) = 오른쪽으로 밀려나며 사라지는 느낌 */
+.flash.fade-out { opacity: 0; transform: translateX(20px); }
+
+/* ── 삭제 확인 모달 ──────────────────────────────────────────
+   신고 팝업(.modal)과 같은 <dialog> 를 쓴다. */
+.confirm-text { margin: 8px 0 4px; }
+.confirm-sub { color: #888; font-size: 13px; margin: 0 0 4px; }
+
+/* 하단 */
+.foot { text-align: center; color: #999; padding: 24px; }
+
+/* 글자 수 카운터 — 입력칸 오른쪽 아래에 작게 */
+.char-counter { text-align: right; font-size: 12px; color: #aaa; margin-top: 4px; }
+.char-counter.near-limit { color: #e8433f; font-weight: 600; }
+
+/* 검색어 강조(형광펜) */
+mark { background: #fff3a3; color: inherit; padding: 0 2px; border-radius: 3px; }
+
+/* 최근 본 글 */
+.recent-list li { font-size: 14px; }
+.recent-list .post-stat { margin-left: 4px; }

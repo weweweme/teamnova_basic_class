@@ -7,19 +7,15 @@
 // ============================================================
 
 require_once __DIR__ . '/includes/util.php';
+require_once __DIR__ . '/includes/posts.php';    // 글 모듈
+require_once __DIR__ . '/includes/stocks.php';   // 종목 모듈
 
-// 더미 종목 목록 (나중 stocks 테이블 대체)
-$stocks = [
-    ['ticker' => '005930', 'name' => '삼성전자'],
-    ['ticker' => '000660', 'name' => 'SK하이닉스'],
-    ['ticker' => 'AAPL',   'name' => '애플'],
-];
+// 종목 목록 (stocks 모듈에서 — 더 이상 여기서 직접 들고 있지 않는다)
+$stocks = get_stocks();
 
-// 더미 인기 글 (나중 posts 테이블 대체)
-$posts = [
-    ['id' => 1, 'title' => '삼성전자 지금 들어가도 될까요?', 'stock' => '삼성전자'],
-    ['id' => 2, 'title' => '하이닉스 실적 발표 한줄 정리',   'stock' => 'SK하이닉스'],
-];
+// 인기 글 3개 = 전체 글을 '인기순'으로 정렬한 뒤 앞에서 3개만 자르기.
+//   board·search에서 쓰던 정렬·자르기 함수를 그대로 재사용 (모듈로 빼둔 덕분!)
+$posts = paginate_posts(sort_posts(get_posts(), 'hot'), 1, 3);
 
 // 탭 제목을 정하고 → 공통 상단(header)을 불러온다.
 $pageTitle = '홈 · 종목토론방';

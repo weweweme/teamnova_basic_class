@@ -5,7 +5,8 @@
 //   → 파라미터 4개가 한 주소에 겹치는 'GET 복합'의 완성형.
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
-require_once __DIR__ . '/../includes/posts.php';   // 글 데이터·필터·정렬·페이징 모듈
+require_once __DIR__ . '/../includes/posts.php';    // 글 데이터·필터·정렬·페이징 모듈
+require_once __DIR__ . '/../includes/stocks.php';   // 종목 데이터 모듈
 
 // 한 페이지에 보여줄 글 수. (매직값 금지 — 이름 붙인 상수로)
 const POSTS_PER_PAGE = 3;
@@ -34,13 +35,14 @@ if ($ticker === '') {
     exit;
 }
 
-// ── 3) ticker → 종목명 (더미, 나중 stocks 테이블 조회) ───────
-$stockNames = ['005930' => '삼성전자', '000660' => 'SK하이닉스', 'AAPL' => '애플'];
-$name = $stockNames[$ticker] ?? '알 수 없는 종목';
+// ── 3) ticker → 종목명 (stocks 모듈에서 조회) ────────────────
+$name = get_stock_name($ticker) ?? '알 수 없는 종목';
 
-// ── 4) 목록 만들기: 가져오기 → 걸러내기 → 정렬 → 페이지 자르기 ──
-//   ★ 순서 중요! 거르고 정렬한 '전체 결과'가 나와야 총 페이지 수를 셀 수 있다.
+// ── 4) 목록 만들기: 종목으로 추리기 → 심리 필터 → 정렬 → 페이지 자르기 ──
+//   ★ 종목 토론방이므로 '그 종목 글만' 추리는 게 첫 단계.
+//   ★ 순서 중요! 다 거르고 정렬한 '전체 결과'가 나와야 총 페이지 수를 셀 수 있다.
 $posts = get_posts();
+$posts = filter_posts_by_ticker($posts, $ticker);
 $posts = filter_posts_by_sentiment($posts, $sentiment);
 $posts = sort_posts($posts, $sort);
 

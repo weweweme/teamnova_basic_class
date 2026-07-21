@@ -39,6 +39,12 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .write-form button { margin-top: 14px; padding: 9px 18px; background: #2b6cff;
   color: #fff; border: none; border-radius: 6px; cursor: pointer; }
 
+/* 검색 폼 */
+.search-form { display: flex; gap: 8px; margin: 12px 0 18px; }
+.search-form input { flex: 1; padding: 9px 12px; border: 1px solid #ccc; border-radius: 8px; }
+.search-form button { padding: 9px 18px; background: #2b6cff; color: #fff;
+  border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
 /* 정렬 탭 */
 .sort-tabs { display: flex; gap: 6px; margin: 8px 0 16px; flex-wrap: wrap; }
 .sort-tabs a { padding: 6px 12px; border: 1px solid #ddd; border-radius: 999px;

@@ -51,6 +51,9 @@ require __DIR__ . '/../includes/header.php';
   <?php if (isset($_GET['reported'])): ?>
     <div class="flash">🚩 신고가 접수되었습니다. <small>(지금은 저장 안 되는 껍데기)</small></div>
   <?php endif; ?>
+  <?php if (isset($_GET['updated'])): ?>
+    <div class="flash">✏️ 글이 수정되었습니다. <small>(지금은 반영 안 되는 껍데기)</small></div>
+  <?php endif; ?>
 
   <!-- 글에 대한 '행동'들 — 둘 다 서버 상태를 바꾸므로 링크가 아니라 POST 폼 -->
   <div class="post-actions">
@@ -65,6 +68,10 @@ require __DIR__ . '/../includes/header.php';
          type="button" = "이 버튼은 폼 제출용이 아니다"라는 표시.
          (이 버튼은 폼 밖에 있어서 없어도 문제는 없지만, 의도를 분명히 해둔다) -->
     <button type="button" class="btn-report" id="report-open">🚩 신고</button>
+
+    <!-- 수정: '수정 폼 화면으로 이동'하는 것이므로 GET 링크가 맞다.
+         (실제 수정 저장은 그 폼이 POST로 보낸다 — 조회는 GET / 변경은 POST) -->
+    <a class="btn-edit" href="/post/edit.php?id=<?= e((string)$id) ?>">✏️ 수정</a>
 
   </div>
 

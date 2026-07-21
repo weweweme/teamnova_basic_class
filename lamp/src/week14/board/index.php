@@ -36,8 +36,17 @@ if ($ticker === '') {
     exit;
 }
 
-// ── 3) ticker → 종목명 (stocks 모듈에서 조회) ────────────────
-$name = get_stock_name($ticker) ?? '알 수 없는 종목';
+// ── 3) 종목 정보 (stocks 모듈에서 조회) ──────────────────────
+$stock = get_stock($ticker);                  // 없으면 null
+$name  = $stock['name'] ?? '알 수 없는 종목';
+
+// 투자심리 투표 집계 → 퍼센트 계산
+//   round() = 반올림. 총 투표가 0이면 나눗셈을 못 하니 먼저 확인(Tester-Doer).
+$buyVotes   = $stock['buyVotes']  ?? 0;
+$sellVotes  = $stock['sellVotes'] ?? 0;
+$totalVotes = $buyVotes + $sellVotes;
+$buyPct     = $totalVotes > 0 ? (int)round($buyVotes / $totalVotes * 100) : 0;
+$sellPct    = 100 - $buyPct;   // 나머지가 매도 (합이 항상 100이 되도록)
 
 // ── 4) 목록 만들기: 종목으로 추리기 → 심리 필터 → 정렬 → 페이지 자르기 ──
 //   ★ 종목 토론방이므로 '그 종목 글만' 추리는 게 첫 단계.
@@ -65,6 +74,37 @@ require __DIR__ . '/../includes/header.php';
 
   <h1><?= e($name) ?> <small>(<?= e($ticker) ?>)</small></h1>
   <div class="widget-placeholder">📈 현재가 · 차트 위젯 자리 (나중 연결)</div>
+
+  <?php // vote/sentiment.php가 ?voted=1 로 리다이렉트해오면 완료 알림 ?>
+  <?php if (isset($_GET['voted'])): ?>
+    <div class="flash">🗳️ 투표했습니다. <small>(지금은 숫자가 실제로 반영되진 않는 껍데기)</small></div>
+  <?php endif; ?>
+
+  <!-- 종목 투자심리 투표 — '글'이 아니라 '종목'에 대한 POST -->
+  <section class="vote-box">
+    <h2>투자 심리</h2>
+
+    <?php if ($totalVotes > 0): ?>
+      <!-- 막대그래프: 두 칸의 너비(%)를 style로 직접 지정해 비율을 표현 -->
+      <div class="vote-bar">
+        <div class="vote-buy"  style="width: <?= $buyPct ?>%">매수 <?= $buyPct ?>%</div>
+        <div class="vote-sell" style="width: <?= $sellPct ?>%">매도 <?= $sellPct ?>%</div>
+      </div>
+      <p class="muted">총 <?= $totalVotes ?>표</p>
+    <?php else: ?>
+      <p class="muted">아직 투표가 없습니다.</p>
+    <?php endif; ?>
+
+    <!-- 투표 = 서버 상태를 바꾸는 동작 → POST.
+         ★ 새로운 기법: 제출 버튼에 name과 value를 달면 '어느 버튼을 눌렀는지'가 전송된다.
+           (앞에서 '버튼은 name이 없어서 전송 안 된다'고 했던 그 반대 경우!)
+           덕분에 폼 하나로 버튼 두 개를 구분해서 처리할 수 있다 → $_POST['choice'] -->
+    <form class="vote-form" method="post" action="/vote/sentiment.php">
+      <input type="hidden" name="ticker" value="<?= e($ticker) ?>">
+      <button type="submit" name="choice" value="매수" class="btn-buy">📈 매수</button>
+      <button type="submit" name="choice" value="매도" class="btn-sell">📉 매도</button>
+    </form>
+  </section>
 
   <!-- 이 토론방 '안에서만' 글 검색 (종목 검색은 상단 메뉴의 '검색')
        ★ GET 폼의 함정: 폼을 제출하면 주소의 기존 파라미터가 전부 사라지고

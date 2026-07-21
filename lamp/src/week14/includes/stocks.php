@@ -6,12 +6,23 @@
 // ============================================================
 
 // 우리가 다루는 종목 목록 (나중 stocks 테이블 조회로 교체)
+//   buyVotes/sellVotes = 투자심리 투표 집계 (나중 votes 테이블에서 세어올 값)
 function get_stocks(): array {
     return [
-        ['ticker' => '005930', 'name' => '삼성전자',   'market' => 'KOSPI'],
-        ['ticker' => '000660', 'name' => 'SK하이닉스', 'market' => 'KOSPI'],
-        ['ticker' => 'AAPL',   'name' => '애플',       'market' => 'NASDAQ'],
+        ['ticker' => '005930', 'name' => '삼성전자',   'market' => 'KOSPI',  'buyVotes' => 128, 'sellVotes' => 72],
+        ['ticker' => '000660', 'name' => 'SK하이닉스', 'market' => 'KOSPI',  'buyVotes' => 95,  'sellVotes' => 105],
+        ['ticker' => 'AAPL',   'name' => '애플',       'market' => 'NASDAQ', 'buyVotes' => 60,  'sellVotes' => 40],
     ];
+}
+
+// ticker로 종목 '한 건 전체'를 찾는다. 없으면 null.
+function get_stock(string $ticker): ?array {
+    foreach (get_stocks() as $s) {
+        if ($s['ticker'] === $ticker) {
+            return $s;
+        }
+    }
+    return null;
 }
 
 // 검색어(q)가 '종목명 또는 종목코드'에 들어있는 종목만 걸러낸다.

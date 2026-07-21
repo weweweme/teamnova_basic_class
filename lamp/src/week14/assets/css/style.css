@@ -39,6 +39,20 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .write-form button { margin-top: 14px; padding: 9px 18px; background: #2b6cff;
   color: #fff; border: none; border-radius: 6px; cursor: pointer; }
 
+/* 투자심리 투표 */
+.vote-box { margin: 18px 0; padding: 16px; border: 1px solid #eee; border-radius: 10px; }
+.vote-box h2 { margin: 0 0 10px; font-size: 16px; }
+.vote-bar { display: flex; height: 30px; border-radius: 6px; overflow: hidden; font-size: 13px; }
+.vote-buy  { background: #e8433f; color: #fff; display: flex; align-items: center;
+  justify-content: center; font-weight: 600; }
+.vote-sell { background: #2b6cff; color: #fff; display: flex; align-items: center;
+  justify-content: center; font-weight: 600; }
+.vote-form { display: flex; gap: 8px; margin-top: 12px; }
+.vote-form button { flex: 1; padding: 10px; border-radius: 8px; cursor: pointer;
+  font-size: 15px; font-weight: 600; border: 1px solid #ddd; background: #fff; }
+.btn-buy  { color: #e8433f; } .btn-buy:hover  { background: #fdf0f0; }
+.btn-sell { color: #2b6cff; } .btn-sell:hover { background: #f2f5ff; }
+
 /* 검색 폼 */
 .search-form { display: flex; gap: 8px; margin: 12px 0 18px; }
 .search-form input { flex: 1; padding: 9px 12px; border: 1px solid #ccc; border-radius: 8px; }

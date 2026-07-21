@@ -44,17 +44,39 @@ require __DIR__ . '/../includes/header.php';
     <div class="post-content"><?= nl2br(e($post['content'])) ?></div>
   </article>
 
-  <?php // like/toggle.php가 ?liked=1 로 리다이렉트해오면 완료 알림 ?>
+  <?php // 추천·신고 처리 후 리다이렉트해오면 완료 알림 ?>
   <?php if (isset($_GET['liked'])): ?>
     <div class="flash">👍 추천했습니다. <small>(지금은 숫자가 실제로 늘진 않는 껍데기)</small></div>
   <?php endif; ?>
+  <?php if (isset($_GET['reported'])): ?>
+    <div class="flash">🚩 신고가 접수되었습니다. <small>(지금은 저장 안 되는 껍데기)</small></div>
+  <?php endif; ?>
 
-  <!-- 추천(좋아요): '상태를 바꾸는' 동작이라 링크(GET)가 아니라 POST 폼 버튼.
-       hidden으로 어느 글인지(post_id)를 함께 보낸다. -->
-  <form class="like-form" method="post" action="/like/toggle.php">
-    <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
-    <button type="submit">👍 추천 <?= e((string)$post['likes']) ?></button>
-  </form>
+  <!-- 글에 대한 '행동'들 — 둘 다 서버 상태를 바꾸므로 링크가 아니라 POST 폼 -->
+  <div class="post-actions">
+
+    <!-- 추천: hidden으로 어느 글인지(post_id)를 함께 보낸다 -->
+    <form class="like-form" method="post" action="/like/toggle.php">
+      <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
+      <button type="submit">👍 추천 <?= e((string)$post['likes']) ?></button>
+    </form>
+
+    <!-- 신고: '왜 신고하는지' 사유를 함께 보낸다.
+         select = 여러 선택지 중 하나를 고르는 드롭다운(접혀 있다가 펼쳐지는 목록).
+         option의 value 가 실제로 서버에 전송되는 값 → $_POST['reason'] 으로 받는다.
+         (화면에 보이는 글자와 전송되는 값을 다르게 할 수도 있다) -->
+    <form class="report-form" method="post" action="/report/create.php">
+      <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
+      <select name="reason">
+        <option value="스팸/광고">스팸/광고</option>
+        <option value="욕설/비방">욕설/비방</option>
+        <option value="허위정보">허위정보</option>
+        <option value="기타">기타</option>
+      </select>
+      <button type="submit">🚩 신고</button>
+    </form>
+
+  </div>
 
   <!-- section = '주제로 묶인 한 구획'(여기선 댓글 구역) -->
   <section class="comments">

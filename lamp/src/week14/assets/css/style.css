@@ -85,11 +85,20 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .comments { margin-top: 32px; border-top: 1px solid #eee; padding-top: 16px; }
 .muted { color: #999; }
 
+/* 글 액션(추천·신고) 줄 */
+.post-actions { display: flex; gap: 12px; align-items: center; margin: 16px 0; flex-wrap: wrap; }
+.like-form, .report-form { margin: 0; display: flex; gap: 6px; align-items: center; }
+
 /* 추천(좋아요) 버튼 */
-.like-form { margin: 16px 0; }
 .like-form button { padding: 9px 18px; background: #fff; color: #2b6cff; cursor: pointer;
   border: 1px solid #cdd6f5; border-radius: 999px; font-size: 15px; font-weight: 600; }
 .like-form button:hover { background: #f2f5ff; }
+
+/* 신고 (사유 선택 + 버튼) */
+.report-form select { padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+.report-form button { padding: 8px 14px; background: #fff; color: #d9534f; cursor: pointer;
+  border: 1px solid #f0c8c6; border-radius: 999px; font-size: 14px; font-weight: 600; }
+.report-form button:hover { background: #fdf3f3; }
 
 /* 댓글 */
 .comment-list { margin: 0 0 20px; }

@@ -12,11 +12,11 @@ require_once __DIR__ . '/../includes/works.php';   // 작품 데이터 모듈
 const POSTS_PER_PAGE = 3;
 
 // ── 1) 파라미터 받기 ─────────────────────────────────────────
-$work      = $_GET['work'] ?? '';
-$q         = trim($_GET['q'] ?? '');       // 이 게시판 '안에서' 글 검색어
-$sort      = $_GET['sort'] ?? 'new';       // new | hot | views | comments
-$sentiment = $_GET['sentiment'] ?? '';     // '' = 전체 | 호평 | 보통 | 혹평
-$page      = (int)($_GET['page'] ?? 1);    // 1부터 시작
+$work      = get_str('work', '');
+$q         = mb_substr(trim(get_str('q')), 0, SEARCH_QUERY_MAX);       // 이 게시판 '안에서' 글 검색어
+$sort      = get_str('sort', 'new');       // new | hot | views | comments
+$sentiment = get_str('sentiment', '');     // '' = 전체 | 호평 | 보통 | 혹평
+$page      = get_int('page', 1);    // 1부터 시작
 
 // 감상 값 검증: 허용된 값만 인정하고, 이상한 값이 오면 '전체'로 되돌린다.
 if (!in_array($sentiment, ['호평', '보통', '혹평'], true)) {
@@ -129,7 +129,7 @@ require __DIR__ . '/../includes/header.php';
          → 작품(work)을 hidden으로 같이 실어 보내야 "그 작품 게시판"이 유지된다. -->
   <form class="search-form" method="get" action="/board/">
     <input type="hidden" name="work" value="<?= e($work) ?>">
-    <input type="text" name="q" value="<?= e($q) ?>" placeholder="이 작품 글 검색">
+    <input type="text" name="q" maxlength="50" value="<?= e($q) ?>" placeholder="이 작품 글 검색">
     <button type="submit">검색</button>
   </form>
 

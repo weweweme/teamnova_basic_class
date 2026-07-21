@@ -20,10 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // ── 1) 값 받기 ───────────────────────────────────────────────
-$id        = (int)($_POST['id'] ?? 0);
-$title     = trim($_POST['title']   ?? '');
-$content   = trim($_POST['content'] ?? '');
-$sentiment = $_POST['sentiment']    ?? '보통';
+$id        = post_int('id', 0);
+$title     = trim(post_str('title'));
+$content   = trim(post_str('content'));
+$sentiment = post_str('sentiment', '보통');
 
 // 감상 값은 허용된 것만 (화이트리스트)
 if (!in_array($sentiment, ['호평', '보통', '혹평'], true)) {
@@ -46,6 +46,11 @@ if (!is_owner($target['author'])) {
 // 제목·내용이 비었으면 수정 폼으로 되돌린다.
 if ($title === '' || $content === '') {
     header("Location: /post/edit.php?id=$id");
+    exit;
+}
+// 길이 제한도 서버에서 다시 확인 (브라우저 maxlength는 우회 가능)
+if (mb_strlen($title) > POST_TITLE_MAX || mb_strlen($content) > POST_CONTENT_MAX) {
+    header("Location: /post/edit.php?id=$id&toolong=1");
     exit;
 }
 

@@ -10,7 +10,7 @@ require_once __DIR__ . '/../includes/posts.php';
 
 // ── 1) id 받기 ───────────────────────────────────────────────
 //   (int) = 정수로 강제 형변환. ?id=abc → 0, ?id=5 → 5. (숫자 아닌 입력 방어)
-$id = (int)($_GET['id'] ?? 0);
+$id = get_int('id', 0);
 
 // ── 2) 그 글 찾기 (posts 모듈에 맡김) ────────────────────────
 //   get_post()는 없으면 null을 돌려줌 → null이면 안내 후 종료 (Tester-Doer).
@@ -167,7 +167,7 @@ require __DIR__ . '/../includes/header.php';
       <form class="comment-form" method="post" action="/comment/create.php">
         <!-- hidden = 화면엔 안 보이지만 함께 전송되는 값. 이 댓글이 '몇 번 글'인지 알려줌. -->
         <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
-        <textarea name="content" rows="3" placeholder="댓글을 입력하세요" required></textarea>
+        <textarea name="content" rows="3" maxlength="500" placeholder="댓글을 입력하세요" required></textarea>
         <button type="submit">댓글 등록</button>
       </form>
     <?php else: ?>

@@ -15,8 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // ── 1) 값 받기 ───────────────────────────────────────────────
 //   비밀번호는 trim하지 않는다 — 앞뒤 공백도 비밀번호의 일부일 수 있으므로.
-$username = trim($_POST['username'] ?? '');
-$password = $_POST['password'] ?? '';
+$username = trim(post_str('username'));
+$password = post_str('password', '');
 
 // ── 2) 검증 ──────────────────────────────────────────────────
 $user = verify_login($username, $password);

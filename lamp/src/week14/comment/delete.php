@@ -18,8 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // ── 1) 값 받기 ───────────────────────────────────────────────
 //   comment_id = 지울 댓글 / post_id = 돌아갈 글 (둘 다 hidden으로 옴)
-$commentId = (int)($_POST['comment_id'] ?? 0);
-$postId    = (int)($_POST['post_id']    ?? 0);
+$commentId = post_int('comment_id', 0);
+$postId    = post_int('post_id', 0);
 
 // ── 2) 검증 ──────────────────────────────────────────────────
 if ($postId <= 0) {

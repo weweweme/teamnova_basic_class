@@ -25,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // ── 1) 값 받기 ───────────────────────────────────────────────
 //   choice = 어느 버튼을 눌렀는지. (버튼에 name/value를 달아두면 그 값이 전송된다)
-$work   = $_POST['work']   ?? '';
-$choice = $_POST['choice'] ?? '';
+$work   = post_str('work', '');
+$choice = post_str('choice', '');
 
 // ── 2) 검증 ──────────────────────────────────────────────────
 if ($work === '') {

@@ -20,11 +20,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // ── 1) 값 받기 ───────────────────────────────────────────────
 //   post_id = 이 댓글이 달릴 '글 번호' (폼의 hidden으로 넘어옴).
 //   (int)로 정수 강제 → 숫자 아닌 값 방어.
-$postId  = (int)($_POST['post_id'] ?? 0);
-$content = trim($_POST['content'] ?? '');
+$postId  = post_int('post_id', 0);
+$content = trim(post_str('content'));
 
-// ── 2) 검증: 글 번호가 없거나 내용이 비면 되돌린다 ───────────
-if ($postId <= 0 || $content === '') {
+// 댓글 최대 길이 (긴 댓글로 화면을 도배하는 것 방지)
+const COMMENT_MAX = 500;
+
+// ── 2) 검증: 글 번호가 없거나 내용이 비거나 너무 길면 되돌린다 ──
+if ($postId <= 0 || $content === '' || mb_strlen($content) > COMMENT_MAX) {
     // 글 번호가 있으면 그 글로, 없으면 홈으로.
     //   "..$postId.." → 큰따옴표 안에서는 $변수가 값으로 '치환'된다(문자열 보간).
     $back = $postId > 0 ? "/post/view.php?id=$postId" : '/';

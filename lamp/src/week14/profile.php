@@ -8,7 +8,7 @@ require_once __DIR__ . '/includes/util.php';
 require_once __DIR__ . '/includes/posts.php';
 
 // ── 1) 누구의 프로필인지 받기 ────────────────────────────────
-$user = trim($_GET['user'] ?? '');
+$user = trim(get_str('user'));
 
 if ($user === '') {
     $pageTitle = '프로필';

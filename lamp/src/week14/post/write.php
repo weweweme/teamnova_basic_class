@@ -12,7 +12,7 @@ require_once __DIR__ . '/../includes/works.php';   // 작품 목록을 고르게
 require_login();
 
 // 게시판에서 넘어온 작품 (없으면 빈 값 → 사용자가 직접 고름)
-$work  = $_GET['work'] ?? '';
+$work  = get_str('work', '');
 $works = get_works();
 
 $pageTitle = '글쓰기';
@@ -20,6 +20,11 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
   <h1>글쓰기</h1>
+
+  <?php // create.php에서 길이 초과로 거절당하면 여기로 돌아온다 ?>
+  <?php if (isset($_GET['toolong'])): ?>
+    <div class="flash-error">❌ 제목은 100자, 내용은 5,000자까지만 쓸 수 있어요.</div>
+  <?php endif; ?>
 
   <!-- 폼(form) = 사용자 입력을 모아 서버로 '제출'하는 상자.
        method="post" : POST로 보낸다 (데이터가 주소에 안 보이고 '봉투 안'으로).
@@ -42,12 +47,12 @@ require __DIR__ . '/../includes/header.php';
 
     <!-- label = 입력칸 설명표. input의 name = 서버에서 값 꺼낼 '열쇠'($_POST['title']) -->
     <label>제목
-      <input type="text" name="title" required>
+      <input type="text" name="title" maxlength="100" required>
     </label>
 
     <!-- textarea = 여러 줄 입력칸 (내용용) -->
     <label>내용
-      <textarea name="content" rows="6" required></textarea>
+      <textarea name="content" rows="6" maxlength="5000" required></textarea>
     </label>
 
     <!-- radio = 여러 개 중 하나만 선택. 같은 name이면 한 묶음. -->

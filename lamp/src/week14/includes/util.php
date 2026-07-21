@@ -16,6 +16,42 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// ── 입력을 '안전하게' 받는 헬퍼 ──────────────────────────────
+//   [문제] $_GET·$_POST의 값이 항상 문자열일 거라 믿으면 안 된다.
+//     주소를 이렇게 보내면 값이 '배열'이 되어버린다:  /search.php?q[]=x
+//     그 상태로 trim($_GET['q']) 를 하면 → 치명적 오류(Fatal error)로 페이지가 통째로 깨진다.
+//     (실제로 우리 사이트도 이걸로 터졌었다)
+//
+//   [해결] 값을 꺼낼 때 '문자열이 맞는지' 먼저 확인하고, 아니면 기본값을 쓴다.
+//     is_string() = 이 값이 문자열이냐?  is_scalar() = 숫자·문자열·불린 같은 '단일 값'이냐?
+//     → 배열이 오면 조용히 기본값으로 처리하고 넘어간다. (Tester-Doer)
+//
+//   앞으로 입력은 반드시 이 함수들로 받는다. ($_GET / $_POST 직접 접근 금지)
+
+// 주소(?key=값)에서 문자열 하나 꺼내기
+function get_str(string $key, string $default = ''): string {
+    $value = $_GET[$key] ?? $default;
+    return is_string($value) ? $value : $default;
+}
+
+// 주소에서 정수 하나 꺼내기
+function get_int(string $key, int $default = 0): int {
+    $value = $_GET[$key] ?? null;
+    return is_scalar($value) ? (int)$value : $default;
+}
+
+// 폼(POST)에서 문자열 하나 꺼내기
+function post_str(string $key, string $default = ''): string {
+    $value = $_POST[$key] ?? $default;
+    return is_string($value) ? $value : $default;
+}
+
+// 폼(POST)에서 정수 하나 꺼내기
+function post_int(string $key, int $default = 0): int {
+    $value = $_POST[$key] ?? null;
+    return is_scalar($value) ? (int)$value : $default;
+}
+
 // e() : 사용자 입력을 화면에 '안전하게' 출력하는 함수.
 //   왜 필요? 사용자가 글에 <script>나쁜코드</script> 를 적으면,
 //   그대로 화면에 꽂을 때 브라우저가 진짜 실행해버림(= XSS 공격).

@@ -5,6 +5,13 @@
 * { box-sizing: border-box; }
 body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 
+/* ── 긴 글자로 레이아웃이 깨지는 것 방지 ──────────────────────
+   'ㄱㄱㄱㄱ…' 처럼 띄어쓰기 없이 아주 긴 글자를 넣으면
+   기본 규칙상 줄바꿈이 안 돼서 화면 밖으로 삐져나간다.
+   overflow-wrap: anywhere = 필요하면 글자 중간에서라도 줄을 바꾼다. */
+.container, .post-content, .post-list li, .comment-list li,
+.work-summary, .flash, .flash-error { overflow-wrap: anywhere; }
+
 /* 상단 메뉴바 */
 .topbar { display: flex; align-items: center; gap: 14px;
           padding: 12px 20px; background: #2b6cff; }

@@ -12,7 +12,7 @@ require_once __DIR__ . '/../includes/posts.php';
 require_login();
 
 // ── 1) 수정할 글 찾기 ────────────────────────────────────────
-$id   = (int)($_GET['id'] ?? 0);
+$id   = get_int('id', 0);
 $post = get_post($id);
 
 if ($post === null) {
@@ -40,6 +40,10 @@ require __DIR__ . '/../includes/header.php';
   <h1>글 수정</h1>
   <p class="muted"><?= e($post['workTitle']) ?> 게시판의 글</p>
 
+  <?php if (isset($_GET['toolong'])): ?>
+    <div class="flash-error">❌ 제목은 100자, 내용은 5,000자까지만 쓸 수 있어요.</div>
+  <?php endif; ?>
+
   <form class="write-form" method="post" action="/post/update.php">
 
     <!-- 어느 글을 수정하는지 서버에 알려준다 (화면엔 안 보이지만 함께 전송) -->
@@ -47,14 +51,14 @@ require __DIR__ . '/../includes/header.php';
 
     <label>제목
       <!-- input은 value="..." 속성에 기존 값을 넣어 '미리 채운다' -->
-      <input type="text" name="title" value="<?= e($post['title']) ?>" required>
+      <input type="text" name="title" maxlength="100" value="<?= e($post['title']) ?>" required>
     </label>
 
     <label>내용
       <!-- ★ textarea는 value 속성이 없다!
            여는 태그와 닫는 태그 '사이'에 넣어야 미리 채워진다.
            그리고 사이의 공백·줄바꿈이 그대로 내용이 되므로 붙여서 쓴다. -->
-      <textarea name="content" rows="6" required><?= e($post['content']) ?></textarea>
+      <textarea name="content" rows="6" maxlength="5000" required><?= e($post['content']) ?></textarea>
     </label>
 
     <fieldset>

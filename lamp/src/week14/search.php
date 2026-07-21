@@ -13,7 +13,7 @@ require_once __DIR__ . '/includes/util.php';
 require_once __DIR__ . '/includes/works.php';   // 작품 데이터·검색 모듈
 
 // ── 1) 검색어 받기 ───────────────────────────────────────────
-$q = trim($_GET['q'] ?? '');
+$q = mb_substr(trim(get_str('q')), 0, 50);
 
 // ── 2) 작품 검색 (검색어 없으면 전체 작품) ───────────────────
 $works = search_works(get_works(), $q);

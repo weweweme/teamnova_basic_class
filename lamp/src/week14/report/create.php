@@ -25,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // ── 1) 값 받기 ───────────────────────────────────────────────
-$postId = (int)($_POST['post_id'] ?? 0);
-$reason = $_POST['reason'] ?? '';
+$postId = post_int('post_id', 0);
+$reason = post_str('reason', '');
 
 // ── 2) 검증 ──────────────────────────────────────────────────
 if ($postId <= 0) {

@@ -12,7 +12,7 @@ require_once __DIR__ . '/includes/works.php';   // 작품 데이터 모듈
 require_once __DIR__ . '/includes/posts.php';   // 글 수를 세려고 함께 사용
 
 // ── 1) 장르 필터 받기 + 화이트리스트 검증 ────────────────────
-$genre = $_GET['genre'] ?? '';
+$genre = get_str('genre', '');
 if (!in_array($genre, ['영화', '드라마'], true)) {
     $genre = '';   // 이상한 값이면 '전체'로
 }

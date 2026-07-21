@@ -13,8 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // ── 1) 값 받기 ───────────────────────────────────────────────
-$username = trim($_POST['username'] ?? '');
-$password = $_POST['password'] ?? '';
+$username = trim(post_str('username'));
+$password = post_str('password', '');
 
 // ── 2) 검증 ──────────────────────────────────────────────────
 //   브라우저의 required·minlength는 1차 검사일 뿐, 서버에서 다시 확인한다.

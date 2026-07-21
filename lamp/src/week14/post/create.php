@@ -7,6 +7,7 @@
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/works.php';   // 작품이 실제로 있는지 확인하려고
+require_once __DIR__ . '/../includes/posts.php';   // 길이 제한 상수(POST_TITLE_MAX 등)
 
 // ★ 로그인 필수 — 화면에서 버튼을 숨겨도 요청은 조작할 수 있으므로
 //   '처리하는 쪽'에서 반드시 다시 확인한다. (안 했으면 로그인 페이지로 보내고 중단)
@@ -24,10 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // ── 1) POST로 온 값 받기 ($_GET이 아니라 $_POST!) ────────────
 //   trim() = 앞뒤 공백 제거. ?? '' = 값이 없으면 빈 문자열.
-$work      = $_POST['work']         ?? '';   // 어느 작품 글인지
-$title     = trim($_POST['title']   ?? '');
-$content   = trim($_POST['content'] ?? '');
-$sentiment = $_POST['sentiment']    ?? '보통';
+$work      = post_str('work', '');   // 어느 작품 글인지
+$title     = trim(post_str('title'));
+$content   = trim(post_str('content'));
+$sentiment = post_str('sentiment', '보통');
 
 // 감상 값은 허용된 것만 (화이트리스트)
 if (!in_array($sentiment, ['호평', '보통', '혹평'], true)) {
@@ -37,6 +38,12 @@ if (!in_array($sentiment, ['호평', '보통', '혹평'], true)) {
 // ── 2) 검증: 제목/내용이 비었으면 다시 폼으로 ────────────────
 if ($title === '' || $content === '') {
     header('Location: /post/write.php');
+    exit;
+}
+// 길이 제한 (mb_strlen = 한글도 1글자로 정확히 세는 글자 수)
+//   ★ 브라우저의 maxlength는 개발자도구로 지울 수 있으므로 서버에서 반드시 확인.
+if (mb_strlen($title) > POST_TITLE_MAX || mb_strlen($content) > POST_CONTENT_MAX) {
+    header('Location: /post/write.php?toolong=1');
     exit;
 }
 // 작품 검증: 실제로 존재하는 작품이어야 한다.

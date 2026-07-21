@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // ── 1) 어느 글에 대한 추천인지 받기 (폼의 hidden으로 옴) ─────
-$postId = (int)($_POST['post_id'] ?? 0);
+$postId = post_int('post_id', 0);
 
 // ── 2) 검증 ──────────────────────────────────────────────────
 if ($postId <= 0) {

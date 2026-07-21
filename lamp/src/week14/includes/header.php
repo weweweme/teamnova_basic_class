@@ -85,3 +85,16 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
 
   <!-- 각 페이지의 '실제 내용'은 이 아래(main)에 채워진다 -->
   <main class="container">
+
+    <?php
+    // ── 플래시 알림 ──────────────────────────────────────────
+    //   액션 파일(create/delete/…)이 set_flash()로 남긴 쪽지를 꺼내 보여준다.
+    //   ★ 여기 한 군데서만 그린다 → 페이지마다 알림 코드를 복붙할 필요가 없다.
+    //   take_flash()는 꺼내면서 지우므로, 새로고침하면 다시 뜨지 않는다.
+    $flash = take_flash();
+    ?>
+    <?php if ($flash !== null): ?>
+      <?php // class="flash"에 JS가 붙어서 몇 초 뒤 스르륵 사라지게 한다 ?>
+      <div class="flash flash-<?= e($flash['type']) ?>"><?= e($flash['message']) ?></div>
+    <?php endif; ?>
+

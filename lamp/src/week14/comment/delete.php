@@ -35,7 +35,8 @@ if ($commentId <= 0) {
 // ★ 소유권 확인: 남의 댓글은 지울 수 없다 (화면에서 버튼을 숨겨도 요청은 조작 가능)
 $comment = get_comment($commentId);
 if ($comment === null || !is_owner($comment['author'])) {
-    header("Location: /post/view.php?id=$postId&denied=1");
+    set_flash('본인이 쓴 댓글만 삭제할 수 있습니다.', 'error');
+    header("Location: /post/view.php?id=$postId");
     exit;
 }
 
@@ -45,5 +46,6 @@ if ($comment === null || !is_owner($comment['author'])) {
 delete_comment($commentId);
 
 // ── 4) PRG: 그 글로 돌아가기 (+삭제 완료 표시) ───────────────
-header("Location: /post/view.php?id=$postId&cdeleted=1");
+set_flash('🗑 댓글이 삭제되었습니다. (임시 저장 — 브라우저를 닫으면 복구됩니다)');
+header("Location: /post/view.php?id=$postId");
 exit;

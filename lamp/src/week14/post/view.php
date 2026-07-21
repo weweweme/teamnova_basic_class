@@ -46,20 +46,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="post-content"><?= nl2br(e($post['content'])) ?></div>
   </article>
 
-  <?php // 추천·신고·수정 처리 후 리다이렉트해오면 완료 알림 ?>
-  <?php if (isset($_GET['liked'])): ?>
-    <div class="flash">👍 추천했습니다. <small>(임시 저장 — 브라우저를 닫으면 초기화됩니다)</small></div>
-  <?php endif; ?>
-  <?php if (isset($_GET['reported'])): ?>
-    <div class="flash">🚩 신고가 접수되었습니다. <small>(임시 저장 — 브라우저를 닫으면 초기화됩니다)</small></div>
-  <?php endif; ?>
-  <?php if (isset($_GET['updated'])): ?>
-    <div class="flash">✏️ 글이 수정되었습니다. <small>(임시 저장 — 브라우저를 닫으면 초기화됩니다)</small></div>
-  <?php endif; ?>
-  <?php // 남의 글을 수정·삭제하려다 서버에 막히면 여기로 돌아온다 ?>
-  <?php if (isset($_GET['denied'])): ?>
-    <div class="flash-error">🔒 본인이 쓴 글만 수정·삭제할 수 있습니다.</div>
-  <?php endif; ?>
+  <?php // 추천·신고·수정·권한거부 알림은 header.php가 세션에서 꺼내 그린다 (set_flash) ?>
 
   <!-- 글에 대한 '행동'들 — 상태를 바꾸는 것은 링크가 아니라 POST 폼 -->
   <div class="post-actions">
@@ -135,13 +122,6 @@ require __DIR__ . '/../includes/header.php';
   <!-- section = '주제로 묶인 한 구획'(여기선 댓글 구역) -->
   <section class="comments">
     <h2>댓글</h2>
-
-    <?php if (isset($_GET['commented'])): ?>
-      <div class="flash">✅ 댓글이 등록되었습니다. <small>(임시 저장 — 브라우저를 닫으면 초기화됩니다)</small></div>
-    <?php endif; ?>
-    <?php if (isset($_GET['cdeleted'])): ?>
-      <div class="flash">🗑 댓글이 삭제되었습니다. <small>(임시 저장 — 브라우저를 닫으면 복구됩니다)</small></div>
-    <?php endif; ?>
 
     <?php if (!$comments): ?>
       <p class="muted">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</p>

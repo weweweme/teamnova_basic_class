@@ -27,7 +27,8 @@ if ($post === null) {
 //   화면에서 '수정' 버튼을 안 보여주는 것만으론 부족하다 —
 //   주소(/post/edit.php?id=3)를 직접 쳐서 들어올 수 있으므로 여기서 막는다.
 if (!is_owner($post['author'])) {
-    header('Location: /post/view.php?id=' . $id . '&denied=1');
+    set_flash('본인이 쓴 글만 수정·삭제할 수 있습니다.', 'error');
+    header('Location: /post/view.php?id=' . $id);
     exit;
 }
 
@@ -39,10 +40,6 @@ require __DIR__ . '/../includes/header.php';
 
   <h1>글 수정</h1>
   <p class="muted"><?= e($post['workTitle']) ?> 게시판의 글</p>
-
-  <?php if (isset($_GET['toolong'])): ?>
-    <div class="flash-error">❌ 제목은 100자, 내용은 5,000자까지만 쓸 수 있어요.</div>
-  <?php endif; ?>
 
   <form class="write-form" method="post" action="/post/update.php">
 

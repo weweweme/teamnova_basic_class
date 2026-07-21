@@ -21,10 +21,7 @@ require __DIR__ . '/../includes/header.php';
 
   <h1>글쓰기</h1>
 
-  <?php // create.php에서 길이 초과로 거절당하면 여기로 돌아온다 ?>
-  <?php if (isset($_GET['toolong'])): ?>
-    <div class="flash-error">❌ 제목은 100자, 내용은 5,000자까지만 쓸 수 있어요.</div>
-  <?php endif; ?>
+  <?php // 길이 초과 거절 안내는 header.php가 세션에서 꺼내 그린다 ?>
 
   <!-- 폼(form) = 사용자 입력을 모아 서버로 '제출'하는 상자.
        method="post" : POST로 보낸다 (데이터가 주소에 안 보이고 '봉투 안'으로).

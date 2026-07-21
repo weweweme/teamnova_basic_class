@@ -25,7 +25,8 @@ if ($user === null) {
     // ★ 실패 이유를 "아이디가 없음 / 비번이 틀림"으로 나눠 알려주지 않는다.
     //   나누면 공격자가 "이 아이디는 존재하는구나"를 알아낼 수 있기 때문(계정 열거).
     //   그래서 항상 뭉뚱그려 하나의 메시지로 돌려보낸다.
-    header('Location: /auth/login.php?error=1');
+    set_flash('❌ 아이디 또는 비밀번호가 올바르지 않습니다.', 'error');
+    header('Location: /auth/login.php');
     exit;
 }
 
@@ -33,5 +34,6 @@ if ($user === null) {
 login_user($user['username']);
 
 // ── 4) PRG: 홈으로 리다이렉트 ────────────────────────────────
-header('Location: /?loggedin=1');
+set_flash('👋 로그인되었습니다.');
+header('Location: /');
 exit;

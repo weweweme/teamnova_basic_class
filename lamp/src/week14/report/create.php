@@ -43,5 +43,6 @@ if (!in_array($reason, ALLOWED_REASONS, true)) {
 //   나중엔 reports 테이블에 (post_id, reason, 신고자, 시각)을 INSERT 한다.
 
 // ── 4) PRG: 그 글로 다시 리다이렉트 (+접수 완료 표시) ────────
-header("Location: /post/view.php?id=$postId&reported=1");
+set_flash('🚩 신고가 접수되었습니다. (임시 저장 — 브라우저를 닫으면 초기화됩니다)');
+header("Location: /post/view.php?id=$postId");
 exit;

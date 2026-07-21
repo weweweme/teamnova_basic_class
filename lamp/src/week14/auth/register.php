@@ -20,12 +20,14 @@ $password = post_str('password', '');
 //   브라우저의 required·minlength는 1차 검사일 뿐, 서버에서 다시 확인한다.
 //   mb_strlen = 글자 수 세기 (mb_ = 한글도 1글자로 정확히 셈).
 if ($username === '' || mb_strlen($password) < 4) {
-    header('Location: /auth/signup.php?error=1');
+    set_flash('❌ 아이디를 입력하고, 비밀번호는 4자 이상으로 정해 주세요.', 'error');
+    header('Location: /auth/signup.php');
     exit;
 }
 // 이미 있는 아이디면 거절 (중복 가입 방지)
 if (find_user($username) !== null) {
-    header('Location: /auth/signup.php?error=1');
+    set_flash('❌ 이미 있는 아이디입니다.', 'error');
+    header('Location: /auth/signup.php');
     exit;
 }
 
@@ -35,5 +37,6 @@ if (find_user($username) !== null) {
 //   (평문 저장 절대 금지 — DB가 유출되면 비밀번호가 그대로 새어나간다)
 
 // ── 4) PRG: 로그인 페이지로 (+가입 완료 표시) ────────────────
-header('Location: /auth/login.php?registered=1');
+set_flash('🎉 회원가입이 완료되었습니다. 로그인해 주세요.');
+header('Location: /auth/login.php');
 exit;

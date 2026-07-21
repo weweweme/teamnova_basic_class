@@ -53,3 +53,30 @@ deleteForms.forEach(function (form) {
         }
     });
 });
+
+
+// ── 알림 자동으로 사라지게 하기 ──────────────────────────────
+//   완료 알림("글이 등록되었습니다")이 화면에 계속 남아 있으면 거슬린다.
+//   ★ 알림 '내용'은 서버(PHP)가 세션에서 꺼내 이미 그려놨고,
+//     JS는 그걸 몇 초 뒤 '보이지 않게 하는 연출'만 담당한다.
+//     (GET/POST 흐름과는 아무 상관 없음 — 순수하게 보여주기)
+
+const FLASH_STAY_MS  = 3000;   // 3초 동안 보여주고
+const FLASH_FADE_MS  = 400;    // 0.4초에 걸쳐 흐려진 뒤 (CSS의 transition 시간과 맞춤)
+
+const flash = document.querySelector('.flash');
+
+// 알림이 없는 페이지가 대부분이니 '있는지 먼저 확인'(Tester-Doer).
+if (flash) {
+    // setTimeout(할 일, 밀리초) = "이만큼 기다렸다가 이 일을 해라" (예약 실행)
+    setTimeout(function () {
+        // 클래스만 붙이면 CSS의 transition이 알아서 부드럽게 흐리게 만든다.
+        flash.classList.add('fade-out');
+
+        // 다 흐려진 뒤엔 아예 걷어낸다.
+        //   왜 지우나? 투명해도 자리는 그대로 차지해서 아래 내용이 밀려 있기 때문.
+        setTimeout(function () {
+            flash.remove();
+        }, FLASH_FADE_MS);
+    }, FLASH_STAY_MS);
+}

@@ -87,16 +87,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
   <?php endif; ?>
 
-  <?php // vote/sentiment.php가 ?voted=1 로 리다이렉트해오면 완료 알림 ?>
-  <?php if (isset($_GET['voted'])): ?>
-    <div class="flash">🗳️ 투표했습니다. <small>(임시 저장 — 브라우저를 닫으면 초기화됩니다)</small></div>
-  <?php endif; ?>
-  <?php if (isset($_GET['deleted'])): ?>
-    <div class="flash">🗑 글이 삭제되었습니다. <small>(임시 저장 — 브라우저를 닫으면 복구됩니다)</small></div>
-  <?php endif; ?>
-  <?php if (isset($_GET['posted'])): ?>
-    <div class="flash">✅ 글이 등록되었습니다. <small>(임시 저장 — 브라우저를 닫으면 초기화됩니다)</small></div>
-  <?php endif; ?>
+  <?php // 투표·글등록·삭제 완료 알림은 header.php가 세션에서 꺼내 그린다 (set_flash) ?>
 
   <!-- 작품 추천/비추천 투표 — '글'이 아니라 '작품'에 대한 POST -->
   <section class="vote-box">

@@ -87,3 +87,34 @@ function query_url(string $path, array $overrides = []): string {
     // http_build_query : 배열을 'a=1&b=2' 형태 쿼리문자열로 (한글·특수문자 자동 인코딩).
     return $params ? $path . '?' . http_build_query($params) : $path;
 }
+
+// ── 플래시 메시지 ────────────────────────────────────────────
+//   '한 번만 보여주고 사라지는 알림' (등록됨 / 삭제됨 / 권한없음 …)
+//
+//   [왜 세션에 담나 — 주소(?posted=1)로 넘기면 생기는 문제]
+//     ① 주소가 지저분해진다.
+//     ② 새로고침하면 알림이 또 뜬다 (주소에 계속 남아있으니까).
+//     ③ ★ 제일 나쁨: query_url()이 기존 파라미터를 유지하기 때문에,
+//        알림을 띄운 뒤 정렬·필터를 누르면 ?deleted=1 이 계속 따라다닌다.
+//
+//   [해결] 알림을 '서버 쪽 세션'에 잠깐 맡겼다가, 화면에 꺼내 쓰면서 즉시 지운다.
+//          → 주소는 깨끗하고, 딱 한 번만 뜬다. (Rails·Laravel 등이 쓰는 실무 표준 방식)
+//
+//   비유: 문 앞에 붙여둔 포스트잇. 다음 사람이 읽으면서 떼어간다 → 그 다음 사람은 못 본다.
+
+// 알림 남기기 (액션 파일이 리다이렉트하기 '직전'에 호출)
+//   $type: 'ok' = 성공(초록) / 'error' = 거부·실패(빨강)
+function set_flash(string $message, string $type = 'ok'): void {
+    $_SESSION['flash'] = ['message' => $message, 'type' => $type];
+}
+
+// 알림 꺼내기 (header.php가 화면에 그릴 때 호출). 없으면 null.
+//   ★ 꺼내면서 지우는 게 핵심 — 그래서 새로고침해도 다시 안 뜬다.
+function take_flash(): ?array {
+    if (!isset($_SESSION['flash'])) {
+        return null;
+    }
+    $flash = $_SESSION['flash'];
+    unset($_SESSION['flash']);   // 읽었으니 떼어낸다
+    return $flash;
+}

@@ -80,7 +80,8 @@ function is_logged_in(): bool {
 //     (화면 숨김 = 편의, 서버 확인 = 진짜 보안)
 function require_login(): void {
     if (!is_logged_in()) {
-        header('Location: /auth/login.php?need=1');
+        set_flash('🔒 로그인이 필요한 기능입니다.', 'error');
+        header('Location: /auth/login.php');
         exit;
     }
 }

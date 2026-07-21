@@ -17,9 +17,7 @@ require __DIR__ . '/../includes/header.php';
 
   <h1>회원가입</h1>
 
-  <?php if (isset($_GET['error'])): ?>
-    <div class="flash-error">❌ 이미 있는 아이디이거나 입력이 올바르지 않습니다.</div>
-  <?php endif; ?>
+  <?php // 가입 실패 안내는 header.php가 세션에서 꺼내 그린다 ?>
 
   <form class="auth-form" method="post" action="/auth/register.php">
     <label>아이디

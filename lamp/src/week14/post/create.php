@@ -43,7 +43,8 @@ if ($title === '' || $content === '') {
 // 길이 제한 (mb_strlen = 한글도 1글자로 정확히 세는 글자 수)
 //   ★ 브라우저의 maxlength는 개발자도구로 지울 수 있으므로 서버에서 반드시 확인.
 if (mb_strlen($title) > POST_TITLE_MAX || mb_strlen($content) > POST_CONTENT_MAX) {
-    header('Location: /post/write.php?toolong=1');
+    set_flash('제목 또는 내용이 너무 깁니다. 줄여서 다시 시도해 주세요.', 'error');
+    header('Location: /post/write.php');
     exit;
 }
 // 작품 검증: 실제로 존재하는 작품이어야 한다.
@@ -68,5 +69,6 @@ add_post($work, $workTitle, $title, $content, $sentiment, (string)$author);
 //   ⚠️ header()는 화면(HTML)이 한 글자라도 출력되기 전에 불러야 한다.
 //   왜 redirect? 처리 화면을 그대로 보여주면 '새로고침' 시 POST 재전송 → 글 중복 등록.
 //   글은 '그 작품'에 속하므로, 홈이 아니라 그 작품 게시판으로 돌려보낸다.
-header('Location: /board/?work=' . urlencode($work) . '&posted=1');
+set_flash('✅ 글이 등록되었습니다. (임시 저장 — 브라우저를 닫으면 초기화됩니다)');
+header('Location: /board/?work=' . urlencode($work));
 exit;

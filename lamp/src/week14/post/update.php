@@ -40,7 +40,8 @@ if ($id <= 0 || $target === null) {
 }
 // ★ 소유권 확인: 남의 글은 수정할 수 없다 (요청 조작 방어)
 if (!is_owner($target['author'])) {
-    header('Location: /post/view.php?id=' . $id . '&denied=1');
+    set_flash('본인이 쓴 글만 수정·삭제할 수 있습니다.', 'error');
+    header('Location: /post/view.php?id=' . $id);
     exit;
 }
 // 제목·내용이 비었으면 수정 폼으로 되돌린다.
@@ -50,7 +51,8 @@ if ($title === '' || $content === '') {
 }
 // 길이 제한도 서버에서 다시 확인 (브라우저 maxlength는 우회 가능)
 if (mb_strlen($title) > POST_TITLE_MAX || mb_strlen($content) > POST_CONTENT_MAX) {
-    header("Location: /post/edit.php?id=$id&toolong=1");
+    set_flash('제목 또는 내용이 너무 깁니다. 줄여서 다시 시도해 주세요.', 'error');
+    header("Location: /post/edit.php?id=$id");
     exit;
 }
 
@@ -60,5 +62,6 @@ if (mb_strlen($title) > POST_TITLE_MAX || mb_strlen($content) > POST_CONTENT_MAX
 update_post($id, $title, $content, $sentiment);
 
 // ── 4) PRG: 수정한 글 보기로 리다이렉트 (+완료 표시) ─────────
-header("Location: /post/view.php?id=$id&updated=1");
+set_flash('✏️ 글이 수정되었습니다. (임시 저장 — 브라우저를 닫으면 초기화됩니다)');
+header("Location: /post/view.php?id=$id");
 exit;

@@ -34,7 +34,8 @@ if ($id <= 0 || $post === null) {
 
 // ★ 소유권 확인: 남의 글은 삭제할 수 없다 (요청 조작 방어)
 if (!is_owner($post['author'])) {
-    header('Location: /post/view.php?id=' . $id . '&denied=1');
+    set_flash('본인이 쓴 글만 수정·삭제할 수 있습니다.', 'error');
+    header('Location: /post/view.php?id=' . $id);
     exit;
 }
 
@@ -45,5 +46,6 @@ delete_post($id);
 
 // ── 4) PRG: 삭제된 글로는 돌아갈 수 없으니 그 작품 게시판으로 ──
 //   (삭제 전에 $post에서 work를 미리 꺼내둔 덕분에 어디로 갈지 알 수 있다)
-header('Location: /board/?work=' . urlencode($post['work']) . '&deleted=1');
+set_flash('🗑 글이 삭제되었습니다. (임시 저장 — 브라우저를 닫으면 복구됩니다)');
+header('Location: /board/?work=' . urlencode($post['work']));
 exit;

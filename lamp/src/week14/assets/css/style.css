@@ -207,10 +207,19 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .flash-error { background: #fdecea; border: 1px solid #f5c2bd; color: #b33a34;
   padding: 12px 14px; border-radius: 8px; margin: 14px 0; }
 
-/* 완료 알림(flash) */
+/* 완료 알림(flash) — 기본은 초록(성공) */
 .flash { background: #e8f6ee; border: 1px solid #b6e0c6; color: #1b7a43;
-  padding: 12px 14px; border-radius: 8px; margin: 14px 0; }
-.flash small { color: #6a9a7d; }
+  padding: 12px 14px; border-radius: 8px; margin: 14px 0;
+  /* transition = '값이 바뀔 때 확 바뀌지 말고 이 시간 동안 서서히 바꿔라'.
+     JS가 .fade-out 클래스를 붙이면 아래 값들로 0.4초에 걸쳐 부드럽게 넘어간다. */
+  transition: opacity 0.4s, transform 0.4s; }
+
+/* 거부·실패 알림은 빨강 (set_flash(…, 'error') → class="flash flash-error") */
+.flash.flash-error { background: #fdecea; border-color: #f5c2bd; color: #b33a34; }
+
+/* JS가 붙이는 '사라지는 중' 상태.
+   opacity 0 = 완전히 투명 / translateY(-6px) = 살짝 위로 뜨면서 사라지는 느낌 */
+.flash.fade-out { opacity: 0; transform: translateY(-6px); }
 
 /* 하단 */
 .foot { text-align: center; color: #999; padding: 24px; }

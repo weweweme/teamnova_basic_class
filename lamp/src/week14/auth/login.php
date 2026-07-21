@@ -18,20 +18,7 @@ require __DIR__ . '/../includes/header.php';
 
   <h1>로그인</h1>
 
-  <?php // register.php에서 가입 후 넘어오면 안내 ?>
-  <?php if (isset($_GET['registered'])): ?>
-    <div class="flash">✅ 가입 완료! 로그인해 주세요.</div>
-  <?php endif; ?>
-
-  <?php // authenticate.php에서 실패해 되돌아오면 에러 표시 ?>
-  <?php if (isset($_GET['error'])): ?>
-    <div class="flash-error">❌ 아이디 또는 비밀번호가 올바르지 않습니다.</div>
-  <?php endif; ?>
-
-  <?php // require_login()에 막혀서 넘어온 경우 ?>
-  <?php if (isset($_GET['need'])): ?>
-    <div class="flash-error">🔒 로그인이 필요한 기능입니다.</div>
-  <?php endif; ?>
+  <?php // 가입 완료 / 로그인 실패 / 로그인 필요 안내는 header.php가 세션에서 꺼내 그린다 ?>
 
   <!-- 로그인 정보는 민감하므로 반드시 POST (주소에 비밀번호가 남으면 큰일) -->
   <form class="auth-form" method="post" action="/auth/authenticate.php">

@@ -47,5 +47,6 @@ if (!in_array($choice, ALLOWED_CHOICES, true)) {
 set_vote($work, $choice);
 
 // ── 4) PRG: 그 작품 게시판으로 리다이렉트 (+투표 완료 표시) ──
-header('Location: /board/?work=' . urlencode($work) . '&voted=1');
+set_flash('🗳️ 투표했습니다. (임시 저장 — 브라우저를 닫으면 초기화됩니다)');
+header('Location: /board/?work=' . urlencode($work));
 exit;

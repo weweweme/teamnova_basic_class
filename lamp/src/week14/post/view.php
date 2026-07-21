@@ -38,7 +38,9 @@ require __DIR__ . '/../includes/header.php';
     <p class="post-meta">
       <!-- span = 인라인 작은 상자(줄바꿈 안 함). tag 클래스로 배지 색 -->
       <span class="tag"><?= e($post['sentiment']) ?></span>
-      <?= e($post['stock']) ?> · <?= e($post['author']) ?>
+      <?= e($post['stock']) ?> ·
+      <!-- 작성자 이름을 누르면 그 사람의 프로필로 (GET으로 user 전달) -->
+      <a href="/profile.php?user=<?= e($post['author']) ?>"><?= e($post['author']) ?></a>
     </p>
     <!-- nl2br(e(...)) : e()로 먼저 안전 처리 → nl2br로 줄바꿈(\n)을 <br>로. (순서 중요) -->
     <div class="post-content"><?= nl2br(e($post['content'])) ?></div>

@@ -39,6 +39,13 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .write-form button { margin-top: 14px; padding: 9px 18px; background: #2b6cff;
   color: #fff; border: none; border-radius: 6px; cursor: pointer; }
 
+/* 프로필 통계 카드 */
+.profile-stats { display: flex; gap: 10px; margin: 14px 0 22px; }
+.profile-stats div { flex: 1; text-align: center; padding: 14px 8px;
+  border: 1px solid #eee; border-radius: 10px; }
+.profile-stats strong { display: block; font-size: 20px; color: #2b6cff; }
+.profile-stats span { font-size: 12px; color: #888; }
+
 /* 투자심리 투표 */
 .vote-box { margin: 18px 0; padding: 16px; border: 1px solid #eee; border-radius: 10px; }
 .vote-box h2 { margin: 0 0 10px; font-size: 16px; }

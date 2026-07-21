@@ -5,6 +5,7 @@
 //   ★ 글 데이터는 posts 모듈(get_post)에서 가져온다 → 게시판과 '같은 출처'.
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
+require_once __DIR__ . '/../includes/auth.php';   // 로그인·소유권에 따라 화면이 달라지므로
 require_once __DIR__ . '/../includes/posts.php';
 
 // ── 1) id 받기 ───────────────────────────────────────────────
@@ -24,8 +25,8 @@ if ($post === null) {
 
 // ── 더미 댓글 목록 (나중 comments 테이블에서 post_id로 조회로 교체) ──
 $comments = [
-    ['id' => 101, 'author' => '리뷰러',   'content' => '저도 그렇게 봤어요.'],
-    ['id' => 102, 'author' => '주말영화', 'content' => '음, 저는 조금 다르게 느꼈습니다.'],
+    ['id' => 101, 'author' => '리뷰러', 'content' => '저도 그렇게 봤어요.'],
+    ['id' => 102, 'author' => '영화광', 'content' => '공감합니다. 저도 그 장면이 인상 깊었어요.'],
 ];
 
 $pageTitle = $post['title'];
@@ -57,30 +58,45 @@ require __DIR__ . '/../includes/header.php';
   <?php if (isset($_GET['updated'])): ?>
     <div class="flash">✏️ 글이 수정되었습니다. <small>(지금은 반영 안 되는 껍데기)</small></div>
   <?php endif; ?>
+  <?php // 남의 글을 수정·삭제하려다 서버에 막히면 여기로 돌아온다 ?>
+  <?php if (isset($_GET['denied'])): ?>
+    <div class="flash-error">🔒 본인이 쓴 글만 수정·삭제할 수 있습니다.</div>
+  <?php endif; ?>
 
   <!-- 글에 대한 '행동'들 — 상태를 바꾸는 것은 링크가 아니라 POST 폼 -->
   <div class="post-actions">
 
-    <!-- 추천: hidden으로 어느 글인지(post_id)를 함께 보낸다 -->
-    <form class="like-form" method="post" action="/like/toggle.php">
-      <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
-      <button type="submit">👍 추천 <?= e((string)$post['likes']) ?></button>
-    </form>
+    <?php if (is_logged_in()): ?>
 
-    <!-- 신고 버튼: 누르면 아래 팝업만 연다. (실제 전송은 팝업 안의 폼이 담당)
-         type="button" = "이 버튼은 폼 제출용이 아니다"라는 표시. -->
-    <button type="button" class="btn-report" id="report-open">🚩 신고</button>
+      <!-- 추천: hidden으로 어느 글인지(post_id)를 함께 보낸다 -->
+      <form class="like-form" method="post" action="/like/toggle.php">
+        <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
+        <button type="submit">👍 추천 <?= e((string)$post['likes']) ?></button>
+      </form>
 
-    <!-- 수정: '수정 폼 화면으로 이동'하는 것이므로 GET 링크가 맞다.
-         (실제 수정 저장은 그 폼이 POST로 보낸다 — 조회는 GET / 변경은 POST) -->
-    <a class="btn-edit" href="/post/edit.php?id=<?= e((string)$id) ?>">✏️ 수정</a>
+      <!-- 신고 버튼: 누르면 아래 팝업만 연다. type="button" = 폼 제출용이 아님 -->
+      <button type="button" class="btn-report" id="report-open">🚩 신고</button>
 
-    <!-- 삭제: 되돌릴 수 없는 동작이라 링크(GET)가 아니라 반드시 POST 폼.
-         class="delete-form" 을 보고 JS가 '정말 삭제할까요?' 확인창을 띄운다. -->
-    <form class="delete-form" method="post" action="/post/delete.php">
-      <input type="hidden" name="id" value="<?= e((string)$id) ?>">
-      <button type="submit" class="btn-delete">🗑 삭제</button>
-    </form>
+      <?php // ★ 수정·삭제는 '내가 쓴 글'에만 보여준다 (소유권).
+            //   단, 화면에서 숨기는 건 편의일 뿐 — 서버(edit/update/delete)에서도 다시 확인한다. ?>
+      <?php if (is_owner($post['author'])): ?>
+
+        <!-- 수정: '수정 폼 화면으로 이동'하는 것이므로 GET 링크가 맞다. -->
+        <a class="btn-edit" href="/post/edit.php?id=<?= e((string)$id) ?>">✏️ 수정</a>
+
+        <!-- 삭제: 되돌릴 수 없는 동작이라 반드시 POST 폼.
+             class="delete-form" 을 보고 JS가 '정말 삭제할까요?' 확인창을 띄운다. -->
+        <form class="delete-form" method="post" action="/post/delete.php">
+          <input type="hidden" name="id" value="<?= e((string)$id) ?>">
+          <button type="submit" class="btn-delete">🗑 삭제</button>
+        </form>
+
+      <?php endif; ?>
+
+    <?php else: ?>
+      <!-- 비로그인: 버튼 대신 안내 (서버에서도 막히지만, 미리 알려주는 게 친절) -->
+      <p class="muted"><a href="/auth/login.php">로그인</a>하면 추천·신고·댓글을 남길 수 있어요.</p>
+    <?php endif; ?>
 
   </div>
 
@@ -132,23 +148,31 @@ require __DIR__ . '/../includes/header.php';
         <li>
           <span class="comment-author"><?= e($c['author']) ?></span>
           <?= e($c['content']) ?>
-          <!-- 댓글 삭제: 어느 댓글인지(comment_id)와 돌아갈 글(post_id)을 함께 보낸다 -->
-          <form class="delete-form comment-delete" method="post" action="/comment/delete.php">
-            <input type="hidden" name="comment_id" value="<?= e((string)$c['id']) ?>">
-            <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
-            <button type="submit">삭제</button>
-          </form>
+          <?php // 댓글도 '내가 쓴 것'만 삭제 버튼을 보여준다 ?>
+          <?php if (is_owner($c['author'])): ?>
+            <!-- 댓글 삭제: 어느 댓글인지(comment_id)와 돌아갈 글(post_id)을 함께 보낸다 -->
+            <form class="delete-form comment-delete" method="post" action="/comment/delete.php">
+              <input type="hidden" name="comment_id" value="<?= e((string)$c['id']) ?>">
+              <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
+              <button type="submit">삭제</button>
+            </form>
+          <?php endif; ?>
         </li>
       <?php endforeach; ?>
     </ul>
 
-    <!-- 댓글 작성 폼 → comment/create.php 로 POST -->
-    <form class="comment-form" method="post" action="/comment/create.php">
-      <!-- hidden = 화면엔 안 보이지만 함께 전송되는 값. 이 댓글이 '몇 번 글'인지 알려줌. -->
-      <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
-      <textarea name="content" rows="3" placeholder="댓글을 입력하세요" required></textarea>
-      <button type="submit">댓글 등록</button>
-    </form>
+    <?php if (is_logged_in()): ?>
+      <!-- 댓글 작성 폼 → comment/create.php 로 POST
+           ★ 작성자는 폼에 없다! 서버가 세션에서 가져온다(위조 방지). -->
+      <form class="comment-form" method="post" action="/comment/create.php">
+        <!-- hidden = 화면엔 안 보이지만 함께 전송되는 값. 이 댓글이 '몇 번 글'인지 알려줌. -->
+        <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
+        <textarea name="content" rows="3" placeholder="댓글을 입력하세요" required></textarea>
+        <button type="submit">댓글 등록</button>
+      </form>
+    <?php else: ?>
+      <p class="muted"><a href="/auth/login.php">로그인</a> 후 댓글을 남길 수 있어요.</p>
+    <?php endif; ?>
   </section>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

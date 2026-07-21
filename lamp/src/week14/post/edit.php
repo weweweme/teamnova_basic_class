@@ -5,7 +5,11 @@
 //   실제 수정 저장은 update.php(POST)가 담당 — 뷰/액션 분리.
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/posts.php';
+
+// ★ 로그인해야 수정 화면에 들어올 수 있다.
+require_login();
 
 // ── 1) 수정할 글 찾기 ────────────────────────────────────────
 $id   = (int)($_GET['id'] ?? 0);
@@ -16,6 +20,14 @@ if ($post === null) {
     require __DIR__ . '/../includes/header.php';
     echo '<p>존재하지 않는 글입니다. <a href="/">홈으로</a></p>';
     require __DIR__ . '/../includes/footer.php';
+    exit;
+}
+
+// ★ 소유권 확인: 남의 글은 수정할 수 없다.
+//   화면에서 '수정' 버튼을 안 보여주는 것만으론 부족하다 —
+//   주소(/post/edit.php?id=3)를 직접 쳐서 들어올 수 있으므로 여기서 막는다.
+if (!is_owner($post['author'])) {
+    header('Location: /post/view.php?id=' . $id . '&denied=1');
     exit;
 }
 

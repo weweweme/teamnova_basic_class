@@ -70,3 +70,23 @@ function current_user(): ?string {
 function is_logged_in(): bool {
     return current_user() !== null;
 }
+
+// ── 접근 제어 ────────────────────────────────────────────────
+
+// 로그인 안 했으면 로그인 페이지로 보내고 실행을 멈춘다.
+//   ★ 화면에서 버튼을 숨기는 것만으로는 절대 부족하다.
+//     사용자는 주소를 직접 치거나 요청을 조작해 보낼 수 있으므로,
+//     '처리하는 쪽(서버)'에서 반드시 다시 확인해야 한다.
+//     (화면 숨김 = 편의, 서버 확인 = 진짜 보안)
+function require_login(): void {
+    if (!is_logged_in()) {
+        header('Location: /auth/login.php?need=1');
+        exit;
+    }
+}
+
+// 이 글/댓글의 주인이 지금 로그인한 사람인가?
+//   남의 글을 수정·삭제하지 못하게 막을 때 쓴다.
+function is_owner(string $author): bool {
+    return is_logged_in() && current_user() === $author;
+}

@@ -6,7 +6,12 @@
 //   ★ 새 글 쓰기(create.php)와 거의 같지만, '어느 글인지(id)'가 함께 온다는 점이 다르다.
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/posts.php';
+
+// ★ 로그인 필수 — 화면에서 버튼을 숨겨도 요청은 조작할 수 있으므로
+//   '처리하는 쪽'에서 반드시 다시 확인한다. (안 했으면 로그인 페이지로 보내고 중단)
+require_login();
 
 // ── 0) POST로 온 게 맞나? ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -28,8 +33,14 @@ if (!in_array($sentiment, ['호평', '보통', '혹평'], true)) {
 // ── 2) 검증 ──────────────────────────────────────────────────
 //   ★ '그 글이 실제로 있는지'까지 확인한다.
 //     없는 id를 보내 엉뚱한 걸 수정하려는 시도를 막기 위함.
-if ($id <= 0 || get_post($id) === null) {
+$target = get_post($id);
+if ($id <= 0 || $target === null) {
     header('Location: /');
+    exit;
+}
+// ★ 소유권 확인: 남의 글은 수정할 수 없다 (요청 조작 방어)
+if (!is_owner($target['author'])) {
+    header('Location: /post/view.php?id=' . $id . '&denied=1');
     exit;
 }
 // 제목·내용이 비었으면 수정 폼으로 되돌린다.

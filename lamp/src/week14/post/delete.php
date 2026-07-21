@@ -9,7 +9,12 @@
 //     → 상태를 바꾸는 동작(특히 삭제)은 반드시 POST.
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/posts.php';
+
+// ★ 로그인 필수 — 화면에서 버튼을 숨겨도 요청은 조작할 수 있으므로
+//   '처리하는 쪽'에서 반드시 다시 확인한다. (안 했으면 로그인 페이지로 보내고 중단)
+require_login();
 
 // ── 0) POST로 온 게 맞나? ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -24,6 +29,12 @@ $post = get_post($id);
 // ── 2) 검증: 실제로 있는 글인지 확인 ─────────────────────────
 if ($id <= 0 || $post === null) {
     header('Location: /');
+    exit;
+}
+
+// ★ 소유권 확인: 남의 글은 삭제할 수 없다 (요청 조작 방어)
+if (!is_owner($post['author'])) {
+    header('Location: /post/view.php?id=' . $id . '&denied=1');
     exit;
 }
 

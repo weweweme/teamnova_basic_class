@@ -5,7 +5,11 @@
 //   ?work=parasite 로 들어오면(게시판에서 '글쓰기'를 누른 경우) 그 작품이 미리 선택된다.
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/works.php';   // 작품 목록을 고르게 하려고
+
+// ★ 로그인해야 글을 쓸 수 있다. (안 했으면 로그인 페이지로)
+require_login();
 
 // 게시판에서 넘어온 작품 (없으면 빈 값 → 사용자가 직접 고름)
 $work  = $_GET['work'] ?? '';

@@ -13,6 +13,7 @@ const POSTS_PER_PAGE = 3;
 
 // ── 1) 파라미터 받기 ─────────────────────────────────────────
 $ticker    = $_GET['ticker'] ?? '';
+$q         = trim($_GET['q'] ?? '');       // 이 토론방 '안에서' 글 검색어
 $sort      = $_GET['sort'] ?? 'new';       // new | hot | views | comments
 $sentiment = $_GET['sentiment'] ?? '';     // '' = 전체 | 매수 | 매도 | 중립
 $page      = (int)($_GET['page'] ?? 1);    // 1부터 시작
@@ -42,9 +43,10 @@ $name = get_stock_name($ticker) ?? '알 수 없는 종목';
 //   ★ 종목 토론방이므로 '그 종목 글만' 추리는 게 첫 단계.
 //   ★ 순서 중요! 다 거르고 정렬한 '전체 결과'가 나와야 총 페이지 수를 셀 수 있다.
 $posts = get_posts();
-$posts = filter_posts_by_ticker($posts, $ticker);
-$posts = filter_posts_by_sentiment($posts, $sentiment);
-$posts = sort_posts($posts, $sort);
+$posts = filter_posts_by_ticker($posts, $ticker);       // ① 이 종목 글만
+$posts = search_posts($posts, $q);                      // ② 그 안에서 검색어로 추리기
+$posts = filter_posts_by_sentiment($posts, $sentiment); // ③ 매수/매도 심리로 추리기
+$posts = sort_posts($posts, $sort);                     // ④ 정렬
 
 $totalCount = count($posts);                                        // 조건에 맞는 전체 개수
 $totalPages = max(1, (int)ceil($totalCount / POSTS_PER_PAGE));      // 총 페이지 수(올림)
@@ -63,6 +65,24 @@ require __DIR__ . '/../includes/header.php';
 
   <h1><?= e($name) ?> <small>(<?= e($ticker) ?>)</small></h1>
   <div class="widget-placeholder">📈 현재가 · 차트 위젯 자리 (나중 연결)</div>
+
+  <!-- 이 토론방 '안에서만' 글 검색 (종목 검색은 상단 메뉴의 '검색')
+       ★ GET 폼의 함정: 폼을 제출하면 주소의 기존 파라미터가 전부 사라지고
+         '폼 안의 입력칸들'만 새 주소가 된다.
+         → 종목(ticker)을 hidden으로 같이 실어 보내야 "그 종목 토론방"이 유지된다.
+         (정렬·심리필터·페이지는 새로 검색하는 것이니 초기화되는 게 자연스러워 일부러 안 넣음) -->
+  <form class="search-form" method="get" action="/board/">
+    <input type="hidden" name="ticker" value="<?= e($ticker) ?>">
+    <input type="text" name="q" value="<?= e($q) ?>" placeholder="이 종목 글 검색">
+    <button type="submit">검색</button>
+  </form>
+
+  <?php if ($q !== ''): ?>
+    <p class="muted">
+      '<?= e($q) ?>' 검색 중 —
+      <a href="<?= e(query_url('/board/', ['q' => '', 'page' => ''])) ?>">검색 해제</a>
+    </p>
+  <?php endif; ?>
 
   <!-- 정렬 탭: ?sort= 만 바꾼다.
        ★ 'page' => '' 를 같이 넘겨 페이지를 1로 리셋한다.

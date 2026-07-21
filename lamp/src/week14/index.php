@@ -27,7 +27,7 @@ require __DIR__ . '/includes/header.php';
   //   메시지 '내용'은 여기(div), '생김새'(초록 박스)는 style.css 의 .flash 규칙.
   ?>
   <?php if (isset($_GET['posted'])): ?>
-    <div class="flash">✅ 글이 등록되었습니다. <small>(지금은 저장 안 되는 껍데기예요)</small></div>
+    <div class="flash">✅ 글이 등록되었습니다. <small>(임시 저장 — 브라우저를 닫으면 초기화됩니다)</small></div>
   <?php endif; ?>
   <?php if (isset($_GET['loggedin'])): ?>
     <div class="flash">👋 <?= e((string)current_user()) ?>님, 환영합니다!</div>

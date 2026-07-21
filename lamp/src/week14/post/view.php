@@ -48,13 +48,13 @@ require __DIR__ . '/../includes/header.php';
 
   <?php // 추천·신고·수정 처리 후 리다이렉트해오면 완료 알림 ?>
   <?php if (isset($_GET['liked'])): ?>
-    <div class="flash">👍 추천했습니다. <small>(지금은 숫자가 실제로 늘진 않는 껍데기)</small></div>
+    <div class="flash">👍 추천했습니다. <small>(임시 저장 — 브라우저를 닫으면 초기화됩니다)</small></div>
   <?php endif; ?>
   <?php if (isset($_GET['reported'])): ?>
-    <div class="flash">🚩 신고가 접수되었습니다. <small>(지금은 저장 안 되는 껍데기)</small></div>
+    <div class="flash">🚩 신고가 접수되었습니다. <small>(임시 저장 — 브라우저를 닫으면 초기화됩니다)</small></div>
   <?php endif; ?>
   <?php if (isset($_GET['updated'])): ?>
-    <div class="flash">✏️ 글이 수정되었습니다. <small>(지금은 반영 안 되는 껍데기)</small></div>
+    <div class="flash">✏️ 글이 수정되었습니다. <small>(임시 저장 — 브라우저를 닫으면 초기화됩니다)</small></div>
   <?php endif; ?>
   <?php // 남의 글을 수정·삭제하려다 서버에 막히면 여기로 돌아온다 ?>
   <?php if (isset($_GET['denied'])): ?>
@@ -134,10 +134,10 @@ require __DIR__ . '/../includes/header.php';
     <h2>댓글</h2>
 
     <?php if (isset($_GET['commented'])): ?>
-      <div class="flash">✅ 댓글이 등록되었습니다. <small>(지금은 저장 안 되는 껍데기)</small></div>
+      <div class="flash">✅ 댓글이 등록되었습니다. <small>(임시 저장 — 브라우저를 닫으면 초기화됩니다)</small></div>
     <?php endif; ?>
     <?php if (isset($_GET['cdeleted'])): ?>
-      <div class="flash">🗑 댓글이 삭제되었습니다. <small>(지금은 실제로 지워지진 않는 껍데기)</small></div>
+      <div class="flash">🗑 댓글이 삭제되었습니다. <small>(임시 저장 — 브라우저를 닫으면 복구됩니다)</small></div>
     <?php endif; ?>
 
     <?php if (!$comments): ?>

@@ -8,6 +8,7 @@
 // e() 함수가 필요하니 util을 먼저 불러온다.
 //   require_once = "이미 불러왔으면 또 안 부른다"(중복 방지).
 require_once __DIR__ . '/util.php';
+require_once __DIR__ . '/auth.php';   // 로그인 상태에 따라 메뉴가 달라지므로
 
 // 페이지 제목: include 하기 전에 $pageTitle 을 정해주면 그게 뜨고,
 //   안 정했으면 기본값을 쓴다. (?? = '왼쪽이 없으면 오른쪽')
@@ -65,7 +66,18 @@ $pageTitle = $pageTitle ?? '종목토론방';
       <a href="/">홈</a>
       <a href="/works.php">작품</a>
       <a href="/search.php">검색</a>
-      <a href="/post/write.php">글쓰기</a>
+      <?php // 세션에 로그인 정보가 있으면 메뉴가 달라진다 ?>
+      <?php if (is_logged_in()): ?>
+        <a href="/post/write.php">글쓰기</a>
+        <span class="nav-user"><?= e(current_user()) ?>님</span>
+        <!-- 로그아웃은 '상태를 바꾸는' 동작이라 링크(GET)가 아니라 POST 폼 버튼 -->
+        <form class="logout-form" method="post" action="/auth/logout.php">
+          <button type="submit">로그아웃</button>
+        </form>
+      <?php else: ?>
+        <a href="/auth/login.php">로그인</a>
+        <a href="/auth/signup.php">회원가입</a>
+      <?php endif; ?>
     </nav>
   </header>
 

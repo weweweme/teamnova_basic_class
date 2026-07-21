@@ -29,6 +29,9 @@ require __DIR__ . '/includes/header.php';
   <?php if (isset($_GET['posted'])): ?>
     <div class="flash">✅ 글이 등록되었습니다. <small>(지금은 저장 안 되는 껍데기예요)</small></div>
   <?php endif; ?>
+  <?php if (isset($_GET['loggedin'])): ?>
+    <div class="flash">👋 <?= e((string)current_user()) ?>님, 환영합니다!</div>
+  <?php endif; ?>
 
   <h1>작품</h1>
   <ul class="work-list">

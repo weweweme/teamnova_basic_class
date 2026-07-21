@@ -9,53 +9,62 @@
 ## 현재 진행 상황
 - `week13/` : `phpinfo()` 띄우기 (PHP 동작 확인) — 완료
 - `week14/` : **지금 여기**. 핵심은 **GET/POST(HTTP 메서드)를 다양한 상태로 최대한 써보기**.
-  - 목표: **게시판 "껍데기"**(회원가입·로그인·글목록·글보기·글쓰기·검색 UI + 페이지 이동 흐름)를 만들되,
-    **알맹이(DB검증·실제 로그인 등)는 "됐다고 치고" stub 처리**. 예: 로그인 버튼 누르면 검증 없이 로그인.
+  - 목표: **커뮤니티 "껍데기"**(작품목록·게시판·글보기·글쓰기·검색·프로필 UI + 페이지 이동 흐름)를 만들되,
+    **알맹이(DB 저장 등)는 "됐다고 치고" stub 처리**. 예: 글 등록 눌러도 실제로 저장은 안 됨.
+  - 컨셉: **영화·드라마 리뷰 커뮤니티** (원래 종목토론방이었으나 실시간 시세 문제로 전환 — 아래 설계 참고).
   - 방식: 폼을 GET/POST로 보내고 PHP `$_GET`/`$_POST`로 받아 화면에 반영.
     Android **Intent**(화면전환 + putExtra)에 비유하면 사용자가 빠르게 이해함.
   - **PHP가 이번 주 편입됨**(폼 처리용). **MariaDB·실제 CRUD 저장은 여전히 이후 주차**로 미룬다.
   - HTML/CSS/JS 개념은 별도 **발표자료**로 병행 정리 중(빅테크 시니어→중학생 톤, 비유 중심).
 
-## week14 게시판 껍데기 설계 (종목토론방 컨셉)
-> 컨셉: **종목별 토론 커뮤니티**(네이버 종목토론방/토스 커뮤니티 스타일). 유저가 종목별 게시판에서
-> 글·의견·매수/매도 심리를 나눔. **차트·현재가는 TradingView 무료 위젯(실시간)**, 종목목록은 DB 큐레이션.
-> week14 핵심 = **GET/POST를 최대한 다양하게 써보기**. 알맹이(DB·실제 검증)는 stub.
+## week14 커뮤니티 설계 (영화·드라마 리뷰 컨셉)
+> 컨셉: **작품(영화·드라마)별 리뷰 커뮤니티**. 유저가 작품별 게시판에서 감상(호평·보통·혹평)을
+> 나누고, 작품에 추천/비추천 투표를 한다. **외부 API 의존 0** — 전부 더미 데이터.
+> week14 핵심 = **GET/POST를 최대한 다양하게 써보기**. 알맹이(DB 저장)는 stub.
+>
+> ※ 원래 '종목토론방' 컨셉이었으나 **KRX 실시간 시세는 TradingView 임베드가 막혀 있고**
+>   증권사 API는 계좌·재배포 약관 문제가 있어, **리뷰 커뮤니티로 전환**(2026-07).
+>   GET/POST 구조는 그대로 재사용했고 용어·더미데이터만 교체함.
 
 **폴더/파일 구조 (뷰=GET, 액션=POST·PRG):**
 ```
 week14/
-├── index.php              홈: 인기글·종목 리스트          [GET]
-├── stocks.php             전체 종목 목록                   [GET]
-├── search.php             글/종목 검색  ?q=&sort=          [GET]
-├── profile.php            유저 프로필  ?user=              [GET]
+├── index.php              홈: 작품 리스트 · 인기글            [GET]
+├── works.php              전체 작품 목록  ?genre=             [GET]
+├── search.php             작품 검색  ?q= (제목·감독)           [GET]
+├── profile.php            유저 프로필  ?user=                 [GET]
 ├── includes/  (공통 조각)
-│   ├── config.php  db.php     (DB 연결 — 나중)
-│   ├── header.php  footer.php (공통 레이아웃 include)
-│   └── util.php               (이스케이프 등 헬퍼)
-├── board/index.php        종목 토론방                     [GET] ★핵심
-│                          ?ticker=&sort=&sentiment=&page=  (+현재가·차트 위젯)
+│   ├── header.php  footer.php  (공통 레이아웃 + CSS/JS 캐시버스팅)
+│   ├── util.php                (e() 이스케이프, query_url() 파라미터 유지)
+│   ├── works.php               (작품 도메인: get_works/get_work/search/filter)
+│   └── posts.php               (글 도메인: get/filter/search/sort/paginate)
+├── board/index.php        작품 게시판                        [GET] ★핵심
+│                          ?work=&q=&sort=&sentiment=&page=   (파라미터 5개 조합)
 ├── post/  view.php[GET]  write.php[GET]  create.php[POST·PRG]
 │          edit.php[GET]  update.php[POST·PRG]  delete.php[POST·PRG]
 ├── comment/  create.php[POST·PRG]  delete.php[POST·PRG]
-├── vote/  sentiment.php   매수/매도 투표 [POST·PRG]
-├── like/  toggle.php      좋아요/추천 [POST·PRG]
+├── vote/  sentiment.php   작품 추천/비추천 투표 [POST·PRG]
+├── like/  toggle.php      글 추천 [POST·PRG]
 ├── report/  create.php    신고 [POST·PRG]
-├── auth/  (로그인·회원가입·세션 — week14 범위 밖, 나중)
-├── assets/  css/  js/
+├── auth/  (로그인·회원가입 — 다음 단계)
+├── assets/  css/style.css  js/main.js
 └── uploads/  (이미지 — 나중)
 ```
 - 왜 뷰/액션 분리: 실무 컨트롤러 방식(보여주는 URL vs 처리하는 URL). 각 파일이 딱 한 일만.
 - POST 처리 후엔 반드시 **redirect(PRG)** → 새로고침 중복 제출 방지.
+- 목록 파이프라인 순서: **작품 → 검색 → 감상필터 → 정렬 → 페이징** (다 거른 뒤라야 총 페이지 수를 셈)
 
-**나중에 구현할 것 (지금은 stub/생략):**
-- 실무 FM 원칙: 뷰/액션 분리+PRG, 공통 레이아웃 include, 세션 인증, 출력 이스케이프(XSS 방지), 입력 검증
-- 데이터 모델(→ MariaDB 테이블): users / stocks(ticker·name·market) / posts(+sentiment 매수·매도·중립) / comments / votes / watchlist
-- 차트·현재가 TradingView 위젯 실연결, 이미지 업로드 실제 저장
+**구현 완료 (week14):**
+- **GET**: 홈 / 작품목록(장르필터) / 작품검색(제목·감독) / 게시판(작품·글검색·정렬4종·감상필터·페이징)
+  / 글보기 / 프로필(활동통계) / 글쓰기·수정 폼
+- **POST(전부 PRG)**: 글 작성·수정·삭제 / 댓글 작성·삭제 / 글 추천 / 신고(모달+사유) / 작품 투표
+- **JS**: 신고 모달(`<dialog>`), 삭제 확인(`confirm` + `preventDefault`)
+- **품질**: 출력 이스케이프, 화이트리스트 검증, `(int)` 형변환, POST 전용 차단, 존재 확인, CSS/JS 캐시버스팅
 
-**week14 지금 할 것 (세션/인증 없이 GET/POST만):** 데이터는 더미 배열. 작성자는 세션이 없어
-글쓰기 폼의 닉네임 입력(또는 더미)로, 좋아요·투표는 숫자만 집계(더미).
-구현 배치: ① board 정렬·심리필터·페이징 + 검색 [GET 복합] → ② 좋아요·신고·투표 [POST]
-→ ③ 글 수정·삭제·댓글 삭제 [POST] → ④ 프로필·전체 종목 목록 [GET]. (배치 안에서도 micro-step으로 하나씩)
+**나중에 구현할 것:**
+- **세션 인증(로그인 유지)** / MariaDB 연결 + 실제 CRUD
+- 데이터 모델(→ 테이블): users / works(slug·title·genre·year·director) / posts(+sentiment) / comments / votes / likes / reports
+- 이미지 업로드 실제 저장
 
 ## 환경 (LAMP, Docker 컨테이너 내부)
 - OS: Ubuntu 22.04 (도커 컨테이너 안)

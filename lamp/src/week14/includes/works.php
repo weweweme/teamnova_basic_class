@@ -96,10 +96,17 @@ function my_vote(string $slug): ?string {
     return $_SESSION['my_vote'][$slug] ?? null;
 }
 
-// 투표하기 (이미 했으면 '갈아타기' — 추천 눌렀다가 비추천 누르면 옮겨감)
-//   나중 DB에선: votes 테이블에 (work, user_id) 있으면 UPDATE, 없으면 INSERT.
-function set_vote(string $slug, string $choice): void {
-    $_SESSION['my_vote'][$slug] = $choice;
+// 투표 토글 — 글 추천(toggle_like)과 같은 규칙으로 맞춘다.
+//   · 안 한 상태에서 누르면      → 투표
+//   · 누른 걸 또 누르면          → 취소
+//   · 반대쪽을 누르면            → 갈아타기 (총 표는 그대로, 한쪽에서 다른 쪽으로 옮겨감)
+//   나중 DB에선: votes 테이블의 (work, user_id) 행을 DELETE / INSERT / UPDATE.
+function toggle_vote(string $slug, string $choice): void {
+    if (my_vote($slug) === $choice) {
+        unset($_SESSION['my_vote'][$slug]);      // 같은 걸 또 눌렀다 = 취소
+    } else {
+        $_SESSION['my_vote'][$slug] = $choice;   // 처음 투표하거나 반대쪽으로 갈아탐
+    }
 }
 
 // slug로 작품 '한 건 전체'를 찾는다. 없으면 null.

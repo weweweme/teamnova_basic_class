@@ -42,11 +42,14 @@ if (!in_array($choice, ALLOWED_CHOICES, true)) {
 }
 
 // ── 3) 저장 ──────────────────────────────────────────────────
-//   ★ '1인 1표' — 이미 투표했으면 그 표를 옮긴다(추천 ↔ 비추천 갈아타기).
-//   나중 DB에선: votes 테이블에 (work, user_id)가 있으면 UPDATE, 없으면 INSERT.
-set_vote($work, $choice);
+//   ★ '1인 1표' 토글 — 누른 걸 또 누르면 취소, 반대쪽을 누르면 갈아타기.
+//   나중 DB에선: votes 테이블의 (work, user_id) 행을 DELETE / INSERT / UPDATE.
+toggle_vote($work, $choice);
 
-// ── 4) PRG: 그 작품 게시판으로 리다이렉트 (+투표 완료 표시) ──
-set_flash('🗳️ 투표했습니다. (임시 저장 — 브라우저를 닫으면 초기화됩니다)');
+// ── 4) PRG: 그 작품 게시판으로 리다이렉트 (+결과 알림) ───────
+//   저장한 '뒤'에 다시 물어봐야 투표인지 취소인지 정확히 알 수 있다.
+set_flash(my_vote($work) === null
+    ? '투표를 취소했습니다.'
+    : '🗳️ ' . $choice . '에 투표했습니다. (임시 저장 — 브라우저를 닫으면 초기화됩니다)');
 header('Location: /board/?work=' . urlencode($work));
 exit;

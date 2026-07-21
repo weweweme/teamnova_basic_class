@@ -34,6 +34,6 @@ if ($user === null) {
 login_user($user['username']);
 
 // ── 4) PRG: 홈으로 리다이렉트 ────────────────────────────────
-set_flash('👋 로그인되었습니다.');
+set_flash('👋 ' . $user['username'] . '님, 환영합니다!');
 header('Location: /');
 exit;

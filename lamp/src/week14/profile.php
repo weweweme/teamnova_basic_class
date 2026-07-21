@@ -1,10 +1,12 @@
 <?php
 // ============================================================
 // profile.php — 유저 프로필  [GET 요청]
-//   ?user=개미1  →  그 사람이 쓴 글 목록 + 간단한 활동 통계
-//   ★ 로그인이 없으니 '내 프로필'이 아니라 '누구나 구경하는 공개 프로필'.
+//   ?user=영화광  →  그 사람이 쓴 글 목록 + 간단한 활동 통계
+//   ★ 누구나 볼 수 있는 '공개 프로필'이지만,
+//     지금 로그인한 사람 본인이면 '내 프로필'로 표시해준다.
 // ============================================================
 require_once __DIR__ . '/includes/util.php';
+require_once __DIR__ . '/includes/auth.php';   // 내 프로필인지 판별하려고
 require_once __DIR__ . '/includes/posts.php';
 
 // ── 1) 누구의 프로필인지 받기 ────────────────────────────────
@@ -30,11 +32,24 @@ $postCount  = count($posts);
 $totalViews = array_sum(array_column($posts, 'views'));
 $totalLikes = array_sum(array_column($posts, 'likes'));
 
-$pageTitle = $user . ' 님의 프로필';
+// 지금 보고 있는 프로필이 '내 것'인가? (로그인한 사람과 이름이 같으면)
+$isMe = is_owner($user);
+
+$pageTitle = $isMe ? '내 프로필' : $user . ' 님의 프로필';
 require __DIR__ . '/includes/header.php';
 ?>
 
-  <h1><?= e($user) ?> <small>님의 프로필</small></h1>
+  <h1>
+    <?= e($user) ?>
+    <small><?= $isMe ? '— 내 프로필' : '님의 프로필' ?></small>
+  </h1>
+
+  <?php // 내 프로필일 때만 보이는 바로가기 ?>
+  <?php if ($isMe): ?>
+    <p class="muted">
+      내가 쓴 글을 모아 봅니다. <a href="/post/write.php">✏️ 새 글 쓰기</a>
+    </p>
+  <?php endif; ?>
 
   <!-- 활동 통계 카드 3개 -->
   <div class="profile-stats">

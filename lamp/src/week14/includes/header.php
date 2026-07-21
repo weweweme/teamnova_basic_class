@@ -69,7 +69,9 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
       <?php // 세션에 로그인 정보가 있으면 메뉴가 달라진다 ?>
       <?php if (is_logged_in()): ?>
         <a href="/post/write.php">글쓰기</a>
-        <span class="nav-user"><?= e(current_user()) ?>님</span>
+        <!-- 내 이름을 누르면 내 프로필로 (GET으로 user 전달)
+             urlencode = 한글 아이디를 주소에 안전하게 넣기 위해 변환 -->
+        <a class="nav-user" href="/profile.php?user=<?= urlencode((string)current_user()) ?>"><?= e(current_user()) ?>님</a>
         <!-- 로그아웃은 '상태를 바꾸는' 동작이라 링크(GET)가 아니라 POST 폼 버튼 -->
         <form class="logout-form" method="post" action="/auth/logout.php">
           <button type="submit">로그아웃</button>

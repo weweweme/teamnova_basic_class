@@ -28,6 +28,48 @@ function base_works(): array {
             'summary' => '황폐해진 지구를 떠나 인류의 새로운 터전을 찾아 우주로 향하는 탐사대의 여정.',
             'upVotes' => 160, 'downVotes' => 40,
         ],
+        [
+            'slug' => 'oldboy', 'title' => '올드보이', 'genre' => '영화',
+            'year' => 2003, 'director' => '박찬욱',
+            'summary' => '영문도 모른 채 15년간 감금됐던 남자가 풀려나 복수의 실마리를 쫓는다.',
+            'upVotes' => 142, 'downVotes' => 38,
+        ],
+        [
+            'slug' => 'memories', 'title' => '살인의 추억', 'genre' => '영화',
+            'year' => 2003, 'director' => '봉준호',
+            'summary' => '1980년대 시골 마을에서 벌어진 연쇄살인을 쫓는 두 형사의 이야기.',
+            'upVotes' => 151, 'downVotes' => 29,
+        ],
+        [
+            'slug' => 'inception', 'title' => '인셉션', 'genre' => '영화',
+            'year' => 2010, 'director' => '크리스토퍼 놀란',
+            'summary' => '타인의 꿈에 들어가 생각을 훔치는 남자가, 이번엔 생각을 심어야 하는 임무를 맡는다.',
+            'upVotes' => 173, 'downVotes' => 47,
+        ],
+        [
+            'slug' => 'lalaland', 'title' => '라라랜드', 'genre' => '영화',
+            'year' => 2016, 'director' => '데이미언 셔젤',
+            'summary' => '꿈을 좇는 배우 지망생과 재즈 피아니스트가 LA에서 만나 사랑에 빠진다.',
+            'upVotes' => 118, 'downVotes' => 62,
+        ],
+        [
+            'slug' => 'mrsunshine', 'title' => '미스터 션샤인', 'genre' => '드라마',
+            'year' => 2018, 'director' => '이응복',
+            'summary' => '노비의 아들로 태어나 미국 군인이 된 남자가 구한말 조선으로 돌아온다.',
+            'upVotes' => 88, 'downVotes' => 32,
+        ],
+        [
+            'slug' => 'signal', 'title' => '시그널', 'genre' => '드라마',
+            'year' => 2016, 'director' => '김원석',
+            'summary' => '낡은 무전기로 과거의 형사와 연결된 프로파일러가 미제 사건을 파헤친다.',
+            'upVotes' => 134, 'downVotes' => 26,
+        ],
+        [
+            'slug' => 'myahjussi', 'title' => '나의 아저씨', 'genre' => '드라마',
+            'year' => 2018, 'director' => '김원석',
+            'summary' => '삶의 무게를 견디던 중년 남자와 상처투성이 젊은 여자가 서로를 알아본다.',
+            'upVotes' => 147, 'downVotes' => 33,
+        ],
     ];
 }
 

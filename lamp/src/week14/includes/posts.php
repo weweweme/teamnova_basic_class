@@ -20,20 +20,63 @@ const SEARCH_QUERY_MAX = 50;
 
 // ── ① 처음부터 있는 더미 글 (코드에 박힌 원본) ───────────────
 function base_posts(): array {
+    // created = 클수록 최신 (최신순 정렬에 쓰는 값). id가 작을수록 최신이 되도록 45 - id 로 맞춤.
+    // comments 칸은 여기 없다 — 실제 댓글을 세어서 get_posts()가 채운다.
     return [
-        // ── 기생충 ──
-        ['id'=>1,'work'=>'parasite','workTitle'=>'기생충','title'=>'계단 연출이 진짜 미쳤다','author'=>'영화광','sentiment'=>'호평','views'=>320,'comments'=>12,'likes'=>45,'created'=>10,'content'=>"위아래로 오르내리는 계단이 계급을 그대로 보여주더라고요.\n두 번째 보니 더 잘 보입니다."],
-        ['id'=>2,'work'=>'parasite','workTitle'=>'기생충','title'=>'결말 해석 정리해봤어요','author'=>'해석러','sentiment'=>'보통','views'=>210,'comments'=>5,'likes'=>12,'created'=>9,'content'=>"마지막 장면이 현실인지 상상인지 의견이 갈리는데,\n저는 상상 쪽에 가깝다고 봅니다."],
-        ['id'=>3,'work'=>'parasite','workTitle'=>'기생충','title'=>'후반부는 좀 과했다고 봅니다','author'=>'쓴소리','sentiment'=>'혹평','views'=>540,'comments'=>8,'likes'=>30,'created'=>8,'content'=>"전반부 긴장감은 최고였는데 후반이 급하게 느껴졌어요."],
-        ['id'=>4,'work'=>'parasite','workTitle'=>'기생충','title'=>'음악이 이렇게 좋았나요','author'=>'영화광','sentiment'=>'호평','views'=>150,'comments'=>25,'likes'=>8,'created'=>7,'content'=>"OST 따로 듣는데 장면이 계속 떠오릅니다."],
-        ['id'=>5,'work'=>'parasite','workTitle'=>'기생충','title'=>'솔직히 과대평가 아닌가요','author'=>'삐딱이','sentiment'=>'혹평','views'=>420,'comments'=>18,'likes'=>22,'created'=>6,'content'=>"잘 만든 건 맞는데 이 정도 열광은 좀 과한 듯."],
-        // ── 오징어 게임 ──
-        ['id'=>6,'work'=>'squidgame','workTitle'=>'오징어 게임','title'=>'1화부터 몰입도 미쳤음','author'=>'정주행러','sentiment'=>'호평','views'=>380,'comments'=>22,'likes'=>51,'created'=>5,'content'=>"밤새 다 봤습니다. 첫 게임 장면이 압권."],
-        ['id'=>7,'work'=>'squidgame','workTitle'=>'오징어 게임','title'=>'후반 전개가 아쉬워요','author'=>'쓴소리','sentiment'=>'혹평','views'=>260,'comments'=>14,'likes'=>17,'created'=>4,'content'=>"캐릭터 소모가 좀 심했다고 느꼈습니다."],
-        ['id'=>8,'work'=>'squidgame','workTitle'=>'오징어 게임','title'=>'해외 반응 모아봤습니다','author'=>'정보통','sentiment'=>'보통','views'=>90,'comments'=>40,'likes'=>5,'created'=>3,'content'=>"관련 리뷰들 정리해서 공유합니다."],
-        // ── 인터스텔라 ──
-        ['id'=>9,'work'=>'interstellar','workTitle'=>'인터스텔라','title'=>'도킹 장면은 극장에서 봐야 함','author'=>'영화광','sentiment'=>'호평','views'=>300,'comments'=>9,'likes'=>26,'created'=>2,'content'=>"음향까지 합쳐지니 완전히 다른 경험이었어요."],
-        ['id'=>10,'work'=>'interstellar','workTitle'=>'인터스텔라','title'=>'과학 고증 어디까지 맞나요','author'=>'질문러','sentiment'=>'보통','views'=>120,'comments'=>3,'likes'=>9,'created'=>1,'content'=>"블랙홀 묘사가 실제 이론과 얼마나 가까운지 궁금합니다."],
+        // ── 기생충 (7개) ──
+        ['id'=>1,'work'=>'parasite','workTitle'=>'기생충','title'=>'계단 연출이 진짜 미쳤다','author'=>'영화광','sentiment'=>'호평','views'=>320,'likes'=>45,'created'=>44,'content'=>"위아래로 오르내리는 계단이 계급을 그대로 보여주더라고요.\n두 번째 보니 더 잘 보입니다."],
+        ['id'=>2,'work'=>'parasite','workTitle'=>'기생충','title'=>'결말 해석 정리해봤어요','author'=>'해석러','sentiment'=>'보통','views'=>210,'likes'=>12,'created'=>43,'content'=>"마지막 장면이 현실인지 상상인지 의견이 갈리는데,\n저는 상상 쪽에 가깝다고 봅니다."],
+        ['id'=>3,'work'=>'parasite','workTitle'=>'기생충','title'=>'후반부는 좀 과했다고 봅니다','author'=>'쓴소리','sentiment'=>'혹평','views'=>540,'likes'=>30,'created'=>42,'content'=>"전반부 긴장감은 최고였는데 후반이 급하게 느껴졌어요."],
+        ['id'=>4,'work'=>'parasite','workTitle'=>'기생충','title'=>'음악이 이렇게 좋았나요','author'=>'영화광','sentiment'=>'호평','views'=>150,'likes'=>8,'created'=>41,'content'=>"OST 따로 듣는데 장면이 계속 떠오릅니다."],
+        ['id'=>5,'work'=>'parasite','workTitle'=>'기생충','title'=>'솔직히 과대평가 아닌가요','author'=>'삐딱이','sentiment'=>'혹평','views'=>420,'likes'=>22,'created'=>40,'content'=>"잘 만든 건 맞는데 이 정도 열광은 좀 과한 듯."],
+        ['id'=>6,'work'=>'parasite','workTitle'=>'기생충','title'=>'지하실 반전 처음 봤을 때','author'=>'팝콘각','sentiment'=>'호평','views'=>275,'likes'=>33,'created'=>39,'content'=>"아무 정보 없이 봐서 그 장면에서 진짜 소리 질렀습니다."],
+        ['id'=>7,'work'=>'parasite','workTitle'=>'기생충','title'=>'냄새라는 소재가 핵심인 듯','author'=>'해석러','sentiment'=>'호평','views'=>198,'likes'=>19,'created'=>38,'content'=>"돈으로도 못 지우는 게 냄새라는 설정이 잔인하면서 정확합니다."],
+        // ── 오징어 게임 (6개) ──
+        ['id'=>8,'work'=>'squidgame','workTitle'=>'오징어 게임','title'=>'1화부터 몰입도 미쳤음','author'=>'정주행러','sentiment'=>'호평','views'=>380,'likes'=>51,'created'=>37,'content'=>"밤새 다 봤습니다. 첫 게임 장면이 압권."],
+        ['id'=>9,'work'=>'squidgame','workTitle'=>'오징어 게임','title'=>'달고나 실제로 해봤습니다','author'=>'영화광','sentiment'=>'호평','views'=>610,'likes'=>88,'created'=>36,'content'=>"우산 모양은 진짜 불가능에 가깝네요. 세 번 실패했습니다."],
+        ['id'=>10,'work'=>'squidgame','workTitle'=>'오징어 게임','title'=>'후반 전개가 아쉬워요','author'=>'쓴소리','sentiment'=>'혹평','views'=>260,'likes'=>17,'created'=>35,'content'=>"캐릭터 소모가 좀 심했다고 느꼈습니다."],
+        ['id'=>11,'work'=>'squidgame','workTitle'=>'오징어 게임','title'=>'해외 반응 모아봤습니다','author'=>'정보통','sentiment'=>'보통','views'=>90,'likes'=>5,'created'=>34,'content'=>"관련 리뷰들 정리해서 공유합니다."],
+        ['id'=>12,'work'=>'squidgame','workTitle'=>'오징어 게임','title'=>'캐릭터 서사가 아까웠다','author'=>'삐딱이','sentiment'=>'혹평','views'=>233,'likes'=>14,'created'=>33,'content'=>"몇몇 인물은 조금만 더 풀어줬으면 훨씬 좋았을 텐데요."],
+        ['id'=>13,'work'=>'squidgame','workTitle'=>'오징어 게임','title'=>'미술·세트가 진짜 대단함','author'=>'주말영화','sentiment'=>'호평','views'=>187,'likes'=>26,'created'=>32,'content'=>"계단 미로 색감은 보자마자 기억에 박히더라고요."],
+        // ── 인터스텔라 (5개) ──
+        ['id'=>14,'work'=>'interstellar','workTitle'=>'인터스텔라','title'=>'도킹 장면은 극장에서 봐야 함','author'=>'심야극장','sentiment'=>'호평','views'=>300,'likes'=>26,'created'=>31,'content'=>"음향까지 합쳐지니 완전히 다른 경험이었어요."],
+        ['id'=>15,'work'=>'interstellar','workTitle'=>'인터스텔라','title'=>'과학 고증 어디까지 맞나요','author'=>'영화광','sentiment'=>'보통','views'=>120,'likes'=>9,'created'=>30,'content'=>"블랙홀 묘사가 실제 이론과 얼마나 가까운지 궁금합니다."],
+        ['id'=>16,'work'=>'interstellar','workTitle'=>'인터스텔라','title'=>'시간 개념 정리해봤습니다','author'=>'해석러','sentiment'=>'호평','views'=>445,'likes'=>62,'created'=>29,'content'=>"중력이 셀수록 시간이 느리게 간다는 것만 잡으면 나머지는 따라옵니다."],
+        ['id'=>17,'work'=>'interstellar','workTitle'=>'인터스텔라','title'=>'감정선이 과하다는 의견에 대해','author'=>'리뷰러','sentiment'=>'보통','views'=>156,'likes'=>11,'created'=>28,'content'=>"저는 그 감정선이 있어서 과학 얘기가 남는다고 봅니다."],
+        ['id'=>18,'work'=>'interstellar','workTitle'=>'인터스텔라','title'=>'후반 5차원 공간은 좀...','author'=>'삐딱이','sentiment'=>'혹평','views'=>289,'likes'=>20,'created'=>27,'content'=>"거기서부터는 설득이 아니라 우겨넣기처럼 느껴졌어요."],
+        // ── 올드보이 (4개) ──
+        ['id'=>19,'work'=>'oldboy','workTitle'=>'올드보이','title'=>'복도 액션이 아직도 회자되는 이유','author'=>'심야극장','sentiment'=>'호평','views'=>512,'likes'=>71,'created'=>26,'content'=>"컷을 안 나누니까 지치는 게 그대로 전해집니다."],
+        ['id'=>20,'work'=>'oldboy','workTitle'=>'올드보이','title'=>'20년 지나도 안 낡았다','author'=>'주말영화','sentiment'=>'호평','views'=>234,'likes'=>29,'created'=>25,'content'=>"어제 다시 봤는데 촬영이 지금 기준으로도 세련됐어요."],
+        ['id'=>21,'work'=>'oldboy','workTitle'=>'올드보이','title'=>'결말 해석이 너무 무겁다','author'=>'영화광','sentiment'=>'보통','views'=>178,'likes'=>15,'created'=>24,'content'=>"완성도는 인정하는데 다시 볼 엄두는 잘 안 나네요."],
+        ['id'=>22,'work'=>'oldboy','workTitle'=>'올드보이','title'=>'지금 보면 호불호 갈릴 듯','author'=>'쓴소리','sentiment'=>'혹평','views'=>145,'likes'=>9,'created'=>23,'content'=>"수위가 세서 처음 보는 분께 권하긴 어렵습니다."],
+        // ── 살인의 추억 (4개) ──
+        ['id'=>23,'work'=>'memories','workTitle'=>'살인의 추억','title'=>'마지막 그 표정 하나로 끝냄','author'=>'해석러','sentiment'=>'호평','views'=>398,'likes'=>55,'created'=>22,'content'=>"카메라를 정면으로 보는 그 컷이 관객한테 묻는 것 같았어요."],
+        ['id'=>24,'work'=>'memories','workTitle'=>'살인의 추억','title'=>'실화 기반이라 더 먹먹함','author'=>'정보통','sentiment'=>'호평','views'=>267,'likes'=>31,'created'=>21,'content'=>"사건 배경을 알고 보면 장면마다 무게가 다릅니다."],
+        ['id'=>25,'work'=>'memories','workTitle'=>'살인의 추억','title'=>'형사 캐릭터 대비가 훌륭','author'=>'리뷰러','sentiment'=>'호평','views'=>189,'likes'=>18,'created'=>20,'content'=>"둘이 서서히 서로를 닮아가는 흐름이 좋았습니다."],
+        ['id'=>26,'work'=>'memories','workTitle'=>'살인의 추억','title'=>'중반부 늘어진다는 느낌','author'=>'삐딱이','sentiment'=>'보통','views'=>132,'likes'=>7,'created'=>19,'content'=>"수사 반복 구간이 조금 길게 느껴졌어요."],
+        // ── 인셉션 (5개) ──
+        ['id'=>27,'work'=>'inception','workTitle'=>'인셉션','title'=>'킥 개념 아직도 헷갈립니다','author'=>'질문러','sentiment'=>'보통','views'=>356,'likes'=>24,'created'=>18,'content'=>"떨어지는 충격으로 깨어난다는 건 알겠는데 층마다 타이밍이 어렵네요."],
+        ['id'=>28,'work'=>'inception','workTitle'=>'인셉션','title'=>'팽이 결말 드디어 이해함','author'=>'영화광','sentiment'=>'호평','views'=>723,'likes'=>96,'created'=>17,'content'=>"팽이가 아니라 마지막에 카메라가 어디를 향했는지가 핵심이더라고요."],
+        ['id'=>29,'work'=>'inception','workTitle'=>'인셉션','title'=>'복도 회전 액션은 실제 세트','author'=>'정보통','sentiment'=>'호평','views'=>291,'likes'=>37,'created'=>16,'content'=>"통째로 돌아가는 세트를 만들어 찍었다고 합니다."],
+        ['id'=>30,'work'=>'inception','workTitle'=>'인셉션','title'=>'설명이 너무 친절해서 아쉬움','author'=>'쓴소리','sentiment'=>'혹평','views'=>167,'likes'=>12,'created'=>15,'content'=>"대사로 규칙을 다 알려주니 추리할 여지가 줄었어요."],
+        ['id'=>31,'work'=>'inception','workTitle'=>'인셉션','title'=>'음악이 시간 개념을 살린다','author'=>'팝콘각','sentiment'=>'호평','views'=>205,'likes'=>22,'created'=>14,'content'=>"느려지는 층마다 음악도 같이 늘어지는 게 소름이었습니다."],
+        // ── 라라랜드 (4개) ──
+        ['id'=>32,'work'=>'lalaland','workTitle'=>'라라랜드','title'=>'오프닝 고속도로 씬 실화냐','author'=>'주말영화','sentiment'=>'호평','views'=>342,'likes'=>48,'created'=>13,'content'=>"진짜 고속도로를 막고 찍었다는 게 아직도 안 믿깁니다."],
+        ['id'=>33,'work'=>'lalaland','workTitle'=>'라라랜드','title'=>'결말 때문에 며칠 앓았습니다','author'=>'영화광','sentiment'=>'호평','views'=>468,'likes'=>67,'created'=>12,'content'=>"해피엔딩이 아닌데 이상하게 위로가 되는 결말이었어요."],
+        ['id'=>34,'work'=>'lalaland','workTitle'=>'라라랜드','title'=>'뮤지컬 싫어해도 볼만한가요','author'=>'질문러','sentiment'=>'보통','views'=>121,'likes'=>6,'created'=>11,'content'=>"노래가 계속 나오는 영화는 잘 안 맞는데 고민 중입니다."],
+        ['id'=>35,'work'=>'lalaland','workTitle'=>'라라랜드','title'=>'스토리는 평범하다고 봅니다','author'=>'삐딱이','sentiment'=>'혹평','views'=>176,'likes'=>13,'created'=>10,'content'=>"연출과 음악이 좋은 거지 이야기 자체는 익숙했어요."],
+        // ── 미스터 션샤인 (3개) ──
+        ['id'=>36,'work'=>'mrsunshine','workTitle'=>'미스터 션샤인','title'=>'영상미 하나는 최고였다','author'=>'리뷰러','sentiment'=>'호평','views'=>254,'likes'=>33,'created'=>9,'content'=>"화면을 정지시켜도 그림 같은 장면이 많았습니다."],
+        ['id'=>37,'work'=>'mrsunshine','workTitle'=>'미스터 션샤인','title'=>'역사 고증 논란 정리','author'=>'정보통','sentiment'=>'보통','views'=>312,'likes'=>28,'created'=>8,'content'=>"창작과 사실이 섞인 부분을 따로 정리해봤습니다."],
+        ['id'=>38,'work'=>'mrsunshine','workTitle'=>'미스터 션샤인','title'=>'초반 진입장벽이 좀 있어요','author'=>'쓴소리','sentiment'=>'보통','views'=>98,'likes'=>5,'created'=>7,'content'=>"인물이 한꺼번에 나와서 3화까지는 정리가 안 되더군요."],
+        // ── 시그널 (3개) ──
+        ['id'=>39,'work'=>'signal','workTitle'=>'시그널','title'=>'무전기 설정이 반칙급으로 좋음','author'=>'정주행러','sentiment'=>'호평','views'=>411,'likes'=>59,'created'=>6,'content'=>"과거를 바꾸면 현재가 바뀐다는 규칙을 끝까지 지키는 게 대단합니다."],
+        ['id'=>40,'work'=>'signal','workTitle'=>'시그널','title'=>'시즌2는 언제 나오나요','author'=>'영화광','sentiment'=>'보통','views'=>288,'likes'=>21,'created'=>5,'content'=>"몇 년째 기다리는 중입니다. 소식 아시는 분 계신가요."],
+        ['id'=>41,'work'=>'signal','workTitle'=>'시그널','title'=>'실제 사건 모티프 정리','author'=>'정보통','sentiment'=>'호평','views'=>199,'likes'=>17,'created'=>4,'content'=>"각 에피소드가 어떤 사건을 참고했는지 모아봤습니다."],
+        // ── 나의 아저씨 (3개) ──
+        ['id'=>42,'work'=>'myahjussi','workTitle'=>'나의 아저씨','title'=>'제목만 보고 넘겼던 게 후회됨','author'=>'심야극장','sentiment'=>'호평','views'=>377,'likes'=>52,'created'=>3,'content'=>"제목 때문에 몇 년을 미뤘는데 보고 나서 제 편견을 반성했습니다."],
+        ['id'=>43,'work'=>'myahjussi','workTitle'=>'나의 아저씨','title'=>'대사 하나하나가 위로였다','author'=>'자막러','sentiment'=>'호평','views'=>263,'likes'=>38,'created'=>2,'content'=>"별말 아닌 대사인데 상황이 얹히니까 계속 곱씹게 되네요."],
+        ['id'=>44,'work'=>'myahjussi','workTitle'=>'나의 아저씨','title'=>'초반이 무겁다는 평에 대해','author'=>'리뷰러','sentiment'=>'보통','views'=>141,'likes'=>10,'created'=>1,'content'=>"초반을 넘기면 분위기가 달라지니 4화까지는 보시길 권합니다."],
     ];
 }
 

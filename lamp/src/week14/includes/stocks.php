@@ -25,6 +25,20 @@ function get_stock(string $ticker): ?array {
     return null;
 }
 
+// 시장(KOSPI / NASDAQ)으로 종목을 걸러낸다. 빈 문자열이면 '전체'.
+function filter_stocks_by_market(array $stocks, string $market): array {
+    if ($market === '') {
+        return $stocks;
+    }
+    $result = [];
+    foreach ($stocks as $s) {
+        if ($s['market'] === $market) {
+            $result[] = $s;
+        }
+    }
+    return $result;
+}
+
 // 검색어(q)가 '종목명 또는 종목코드'에 들어있는 종목만 걸러낸다.
 //   예) '삼성' → 삼성전자 / '005930' → 삼성전자 / '하이' → SK하이닉스
 //   mb_stripos = 한글 안전한 '문자열 포함 여부' 찾기. 못 찾으면 false.

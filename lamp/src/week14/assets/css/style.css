@@ -94,11 +94,23 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
   border: 1px solid #cdd6f5; border-radius: 999px; font-size: 15px; font-weight: 600; }
 .like-form button:hover { background: #f2f5ff; }
 
-/* 신고 (사유 선택 + 버튼) */
-.report-form select { padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
-.report-form button { padding: 8px 14px; background: #fff; color: #d9534f; cursor: pointer;
+/* 신고 버튼 */
+.btn-report { padding: 8px 14px; background: #fff; color: #d9534f; cursor: pointer;
   border: 1px solid #f0c8c6; border-radius: 999px; font-size: 14px; font-weight: 600; }
-.report-form button:hover { background: #fdf3f3; }
+.btn-report:hover { background: #fdf3f3; }
+
+/* 신고 팝업(모달) */
+.modal { border: none; border-radius: 12px; padding: 22px; min-width: 300px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+.modal::backdrop { background: rgba(0,0,0,.4); }   /* 팝업 뒤 어두운 배경 */
+.modal h3 { margin: 0 0 6px; font-size: 17px; }
+.modal select { width: 100%; padding: 9px 10px; margin-top: 10px;
+  border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.btn-cancel { padding: 8px 16px; background: #f2f2f2; color: #555;
+  border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
+.btn-danger { padding: 8px 16px; background: #d9534f; color: #fff;
+  border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
 
 /* 댓글 */
 .comment-list { margin: 0 0 20px; }

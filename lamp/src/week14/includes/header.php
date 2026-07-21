@@ -46,6 +46,16 @@ $pageTitle = $pageTitle ?? '종목토론방';
   $cssVer  = file_exists($cssPath) ? filemtime($cssPath) : '1';
   ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=<?= e((string)$cssVer) ?>">
+
+  <?php
+  // JS도 CSS와 같은 이유로 캐시 무력화(?v=수정시각)
+  $jsPath = __DIR__ . '/../assets/js/main.js';
+  $jsVer  = file_exists($jsPath) ? filemtime($jsPath) : '1';
+  ?>
+  <!-- defer = "HTML을 다 읽은 뒤에 실행해라".
+       이게 없으면 <head>에서 JS가 먼저 돌아 아직 만들어지지 않은 요소를 못 찾는다.
+       (예전에 <script>를 body 맨 아래 뒀던 이유와 같은 문제를, defer로 더 깔끔하게 해결) -->
+  <script src="/assets/js/main.js?v=<?= e((string)$jsVer) ?>" defer></script>
 </head>
 <body>
   <!-- 공통 상단 메뉴바: 어느 페이지에서든 여기로 이동 가능 -->

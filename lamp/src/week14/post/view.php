@@ -61,22 +61,45 @@ require __DIR__ . '/../includes/header.php';
       <button type="submit">👍 추천 <?= e((string)$post['likes']) ?></button>
     </form>
 
-    <!-- 신고: '왜 신고하는지' 사유를 함께 보낸다.
-         select = 여러 선택지 중 하나를 고르는 드롭다운(접혀 있다가 펼쳐지는 목록).
-         option의 value 가 실제로 서버에 전송되는 값 → $_POST['reason'] 으로 받는다.
-         (화면에 보이는 글자와 전송되는 값을 다르게 할 수도 있다) -->
-    <form class="report-form" method="post" action="/report/create.php">
+    <!-- 신고 버튼: 누르면 아래 팝업만 연다. (실제 전송은 팝업 안의 폼이 담당)
+         type="button" = "이 버튼은 폼 제출용이 아니다"라는 표시.
+         (이 버튼은 폼 밖에 있어서 없어도 문제는 없지만, 의도를 분명히 해둔다) -->
+    <button type="button" class="btn-report" id="report-open">🚩 신고</button>
+
+  </div>
+
+  <!-- 신고 팝업 — <dialog> = HTML이 기본으로 제공하는 '모달 창' 태그.
+       평소엔 숨겨져 있다가 JS의 showModal()로 열린다.
+       ★ 팝업은 '보여주는 방식'만 바꾼 것이고,
+         실제 신고는 여전히 이 안의 폼이 POST로 보낸다 (흐름은 그대로). -->
+  <dialog id="report-dialog" class="modal">
+    <form method="post" action="/report/create.php">
+      <h3>신고하기</h3>
+      <p class="muted">신고 사유를 선택해 주세요.</p>
+
       <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
+
+      <!-- select = 여러 선택지 중 하나를 고르는 드롭다운.
+           option의 value 가 실제로 전송되는 값 → $_POST['reason'] -->
       <select name="reason">
         <option value="스팸/광고">스팸/광고</option>
         <option value="욕설/비방">욕설/비방</option>
         <option value="허위정보">허위정보</option>
         <option value="기타">기타</option>
       </select>
-      <button type="submit">🚩 신고</button>
-    </form>
 
-  </div>
+      <div class="modal-actions">
+        <!-- ★ 취소 버튼은 반드시 type="button" !
+             <button>의 type 기본값은 submit 이라서, '폼 안'에 있는 버튼은
+             type을 안 적으면 누르는 순간 폼이 전송된다.
+             → 여기서 type을 빼면 '취소'를 눌렀는데 신고가 접수되는 사고가 난다. -->
+        <button type="button" id="report-cancel" class="btn-cancel">취소</button>
+
+        <!-- 이쪽이 진짜 제출 버튼 (기본값이 submit이라 생략 가능하지만 의도를 명시) -->
+        <button type="submit" class="btn-danger">신고</button>
+      </div>
+    </form>
+  </dialog>
 
   <!-- section = '주제로 묶인 한 구획'(여기선 댓글 구역) -->
   <section class="comments">

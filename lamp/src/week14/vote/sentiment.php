@@ -9,6 +9,7 @@
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/works.php';   // add_vote()
 
 // 허용된 선택지 (화이트리스트 — 폼을 조작해 아무 값이나 보낼 수 있으므로)
 const ALLOWED_CHOICES = ['추천', '비추천'];
@@ -40,9 +41,11 @@ if (!in_array($choice, ALLOWED_CHOICES, true)) {
     exit;
 }
 
-// ── 3) 저장 (지금은 stub) ────────────────────────────────────
+// ── 3) 저장 ──────────────────────────────────────────────────
+//   임시 보관함(세션)에 1표를 더한다 → 막대그래프 비율이 바로 바뀐다.
 //   나중엔 votes 테이블에 (work, user_id, choice)를 INSERT 하고,
 //   이미 투표했으면 바꿔치기(UPDATE) 한다.
+add_vote($work, $choice);
 
 // ── 4) PRG: 그 작품 게시판으로 리다이렉트 (+투표 완료 표시) ──
 header('Location: /board/?work=' . urlencode($work) . '&voted=1');

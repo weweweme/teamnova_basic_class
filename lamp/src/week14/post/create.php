@@ -53,13 +53,14 @@ if (get_work($work) === null) {
     exit;
 }
 
-// ── 3) 저장 (지금은 stub) ────────────────────────────────────
+// ── 3) 저장 ──────────────────────────────────────────────────
 //   ★ 작성자는 폼에서 받지 않는다! 세션에 있는 '지금 로그인한 사람'을 쓴다.
 //     폼으로 받으면 남의 이름으로 글을 쓸 수 있기 때문(위조 방지).
-$author = current_user();
+$author    = current_user();
+$workTitle = get_work($work)['title'];
 
-//   여기서 DB(posts 테이블)에 INSERT '했다 치고' 넘어간다.
-//   (work, title, content, sentiment, author 를 저장)
+//   임시 보관함(세션)에 저장한다. 나중 DB를 붙이면 이 한 줄이 INSERT로 바뀐다.
+add_post($work, $workTitle, $title, $content, $sentiment, (string)$author);
 
 // ── 4) PRG: 처리 끝나면 반드시 redirect (GET 페이지로) ───────
 //   header() = PHP 내장 함수. 'HTTP 응답 헤더'(브라우저에 주는 지시문)를 보낸다.

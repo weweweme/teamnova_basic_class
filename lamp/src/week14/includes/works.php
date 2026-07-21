@@ -5,10 +5,10 @@
 //   지금은 더미 배열이지만, 나중 DB를 붙이면 이 함수들 '속'만 works 테이블 조회로 바꾸면 됨.
 // ============================================================
 
-// 우리가 다루는 작품 목록 (나중 works 테이블 조회로 교체)
+// ① 처음부터 있는 더미 작품 (코드에 박힌 원본)
 //   slug = 주소에 쓰는 짧은 영문 이름 (예: /board/?work=parasite)
 //   upVotes/downVotes = 추천/비추천 투표 집계 (나중 votes 테이블에서 세어올 값)
-function get_works(): array {
+function base_works(): array {
     return [
         [
             'slug' => 'parasite', 'title' => '기생충', 'genre' => '영화',
@@ -29,6 +29,23 @@ function get_works(): array {
             'upVotes' => 160, 'downVotes' => 40,
         ],
     ];
+}
+
+// ② 원본 + 이번 접속에서 누른 투표를 '합쳐서' 돌려준다
+//   (posts.php와 같은 방식. 나중 DB가 생기면 votes 테이블 COUNT로 바뀐다)
+function get_works(): array {
+    $result = [];
+    foreach (base_works() as $w) {
+        $w['upVotes']   += $_SESSION['votes'][$w['slug']]['추천']   ?? 0;
+        $w['downVotes'] += $_SESSION['votes'][$w['slug']]['비추천'] ?? 0;
+        $result[] = $w;
+    }
+    return $result;
+}
+
+// 투표 1표 추가  (나중: INSERT INTO votes …)
+function add_vote(string $slug, string $choice): void {
+    $_SESSION['votes'][$slug][$choice] = ($_SESSION['votes'][$slug][$choice] ?? 0) + 1;
 }
 
 // slug로 작품 '한 건 전체'를 찾는다. 없으면 null.

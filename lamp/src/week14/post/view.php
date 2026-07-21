@@ -7,6 +7,7 @@
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';   // 로그인·소유권에 따라 화면이 달라지므로
 require_once __DIR__ . '/../includes/posts.php';
+require_once __DIR__ . '/../includes/comments.php';   // 이 글의 댓글 목록
 
 // ── 1) id 받기 ───────────────────────────────────────────────
 //   (int) = 정수로 강제 형변환. ?id=abc → 0, ?id=5 → 5. (숫자 아닌 입력 방어)
@@ -23,11 +24,8 @@ if ($post === null) {
     exit;
 }
 
-// ── 더미 댓글 목록 (나중 comments 테이블에서 post_id로 조회로 교체) ──
-$comments = [
-    ['id' => 101, 'author' => '리뷰러', 'content' => '저도 그렇게 봤어요.'],
-    ['id' => 102, 'author' => '영화광', 'content' => '공감합니다. 저도 그 장면이 인상 깊었어요.'],
-];
+// ── 이 글의 댓글 목록 (comments 모듈이 더미 + 이번 접속에 쓴 것을 합쳐서 준다) ──
+$comments = get_comments($id);
 
 $pageTitle = $post['title'];
 require __DIR__ . '/../includes/header.php';
@@ -142,7 +140,11 @@ require __DIR__ . '/../includes/header.php';
       <div class="flash">🗑 댓글이 삭제되었습니다. <small>(지금은 실제로 지워지진 않는 껍데기)</small></div>
     <?php endif; ?>
 
-    <!-- 더미 댓글 목록 -->
+    <?php if (!$comments): ?>
+      <p class="muted">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</p>
+    <?php endif; ?>
+
+    <!-- 댓글 목록 -->
     <ul class="comment-list">
       <?php foreach ($comments as $c): ?>
         <li>

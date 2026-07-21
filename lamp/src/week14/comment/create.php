@@ -6,6 +6,7 @@
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/comments.php';   // add_comment(), COMMENT_MAX
 
 // ★ 로그인 필수 — 화면에서 버튼을 숨겨도 요청은 조작할 수 있으므로
 //   '처리하는 쪽'에서 반드시 다시 확인한다. (안 했으면 로그인 페이지로 보내고 중단)
@@ -23,10 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $postId  = post_int('post_id', 0);
 $content = trim(post_str('content'));
 
-// 댓글 최대 길이 (긴 댓글로 화면을 도배하는 것 방지)
-const COMMENT_MAX = 500;
-
 // ── 2) 검증: 글 번호가 없거나 내용이 비거나 너무 길면 되돌린다 ──
+//   (COMMENT_MAX는 comments 모듈에 정의돼 있다)
 if ($postId <= 0 || $content === '' || mb_strlen($content) > COMMENT_MAX) {
     // 글 번호가 있으면 그 글로, 없으면 홈으로.
     //   "..$postId.." → 큰따옴표 안에서는 $변수가 값으로 '치환'된다(문자열 보간).
@@ -35,11 +34,13 @@ if ($postId <= 0 || $content === '' || mb_strlen($content) > COMMENT_MAX) {
     exit;
 }
 
-// ── 3) 저장 (지금은 stub) ────────────────────────────────────
+// ── 3) 저장 ──────────────────────────────────────────────────
 //   ★ 작성자는 폼이 아니라 세션에서 가져온다 (남의 이름으로 쓰는 위조 방지).
 $author = current_user();
 
-//   나중 comments 테이블에 INSERT '했다 치고' 넘어간다. (post_id, content, author)
+//   임시 보관함(세션)에 저장 → 그 글로 돌아가면 댓글이 실제로 보인다.
+//   나중엔 이 한 줄이 INSERT INTO comments … 로 바뀐다.
+add_comment($postId, (string)$author, $content);
 
 // ── 4) PRG: '그 글'로 다시 리다이렉트 (+댓글 완료 표시) ───────
 //   글쓰기는 홈으로 갔지만, 댓글은 '방금 그 글'로 돌아가야 자연스럽다.

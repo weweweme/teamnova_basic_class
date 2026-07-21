@@ -54,8 +54,10 @@ if (mb_strlen($title) > POST_TITLE_MAX || mb_strlen($content) > POST_CONTENT_MAX
     exit;
 }
 
-// ── 3) 저장 (지금은 stub) ────────────────────────────────────
-//   나중엔 posts 테이블을 UPDATE 한다 (WHERE id = $id).
+// ── 3) 저장 ──────────────────────────────────────────────────
+//   임시 보관함(세션)에 '수정 내용'을 기록한다.
+//   나중엔 이 한 줄이 UPDATE posts SET … WHERE id = ? 로 바뀐다.
+update_post($id, $title, $content, $sentiment);
 
 // ── 4) PRG: 수정한 글 보기로 리다이렉트 (+완료 표시) ─────────
 header("Location: /post/view.php?id=$id&updated=1");

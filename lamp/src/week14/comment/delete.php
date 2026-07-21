@@ -5,6 +5,7 @@
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/comments.php';   // get_comment(), delete_comment()
 
 // ★ 로그인 필수 — 화면에서 버튼을 숨겨도 요청은 조작할 수 있으므로
 //   '처리하는 쪽'에서 반드시 다시 확인한다. (안 했으면 로그인 페이지로 보내고 중단)
@@ -31,8 +32,17 @@ if ($commentId <= 0) {
     exit;
 }
 
-// ── 3) 삭제 (지금은 stub) ────────────────────────────────────
-//   나중엔 comments 테이블에서 DELETE (WHERE id = $commentId).
+// ★ 소유권 확인: 남의 댓글은 지울 수 없다 (화면에서 버튼을 숨겨도 요청은 조작 가능)
+$comment = get_comment($commentId);
+if ($comment === null || !is_owner($comment['author'])) {
+    header("Location: /post/view.php?id=$postId&denied=1");
+    exit;
+}
+
+// ── 3) 삭제 ──────────────────────────────────────────────────
+//   임시 보관함(세션)에 '지운 댓글 번호'를 기록해 목록에서 빠지게 한다.
+//   나중엔 이 한 줄이 DELETE FROM comments WHERE id = ? 로 바뀐다.
+delete_comment($commentId);
 
 // ── 4) PRG: 그 글로 돌아가기 (+삭제 완료 표시) ───────────────
 header("Location: /post/view.php?id=$postId&cdeleted=1");

@@ -1,24 +1,22 @@
 <?php
 // ============================================================
 // posts.php — '글(post)' 데이터 + 관련 동작을 모아둔 도메인 모듈
-//   ★ util.php(어디서나 쓰는 범용 헬퍼)와 달리, 여기는 '글' 주제 전용.
-//   지금은 더미 배열이지만, 나중 DB를 붙이면 이 함수들 '속'만 SELECT로 바꾸면 됨.
-//   → 바깥 페이지(board·view·search…)는 안 바뀜 = 관심사 분리의 이점.
+//
+// ★ 지금은 DB가 없어서 두 곳에서 데이터를 가져온다:
+//     ① base_posts()  — 처음부터 있는 더미 글 (코드에 박아둠)
+//     ② $_SESSION     — 이번 접속에서 사용자가 새로 쓰거나 고친 것 (임시 보관함)
+//   get_posts()가 이 둘을 '합쳐서' 돌려주므로, 바깥 페이지는 DB가 있는 것처럼 쓸 수 있다.
+//   → 나중에 MariaDB를 붙이면 이 파일 '속'만 SQL로 바꾸면 되고, 페이지들은 그대로다.
+//   ※ 세션이라 브라우저를 닫거나 로그아웃하면 초기화된다 (시연/연습용).
 // ============================================================
 
 // ── 입력 길이 제한 (매직값 금지 — 이름 붙인 상수로) ──────────
-//   왜 필요? 제한이 없으면 제목에 5,000자를 넣어 목록 화면을 망가뜨리거나,
-//   서버·DB에 쓸데없이 큰 데이터를 밀어넣을 수 있다(용량 낭비·성능 저하).
-//   HTML의 maxlength는 브라우저 1차 방어일 뿐이므로 서버에서 반드시 다시 확인한다.
 const POST_TITLE_MAX   = 100;
 const POST_CONTENT_MAX = 5000;
 const SEARCH_QUERY_MAX = 50;
 
-// 더미 글 전체. 호출할 때마다 '새 배열'을 돌려준다(get_ 이지만 더미라 매번 생성).
-//   work      = 어느 작품 게시판의 글인지 (works 모듈의 slug와 짝)
-//   sentiment = 호평 / 보통 / 혹평
-//   정렬이 눈에 보이게 views·comments·created를 일부러 다르게 둠.
-function get_posts(): array {
+// ── ① 처음부터 있는 더미 글 (코드에 박힌 원본) ───────────────
+function base_posts(): array {
     return [
         // ── 기생충 ──
         ['id'=>1,'work'=>'parasite','workTitle'=>'기생충','title'=>'계단 연출이 진짜 미쳤다','author'=>'영화광','sentiment'=>'호평','views'=>320,'comments'=>12,'likes'=>45,'created'=>10,'content'=>"위아래로 오르내리는 계단이 계급을 그대로 보여주더라고요.\n두 번째 보니 더 잘 보입니다."],
@@ -36,6 +34,38 @@ function get_posts(): array {
     ];
 }
 
+// ── ② 원본 + 임시 보관함(세션)을 '합쳐서' 돌려준다 ───────────
+//   나중에 DB가 생기면 이 함수는 "SELECT * FROM posts" 한 줄로 바뀐다.
+function get_posts(): array {
+    $posts = base_posts();
+
+    // 이번 접속에서 새로 쓴 글을 뒤에 붙인다
+    foreach ($_SESSION['new_posts'] ?? [] as $p) {
+        $posts[] = $p;
+    }
+
+    $edited  = $_SESSION['edited_posts']  ?? [];   // [글번호 => 바뀐 값들]
+    $deleted = $_SESSION['deleted_posts'] ?? [];   // [지운 글번호, …]
+    $likes   = $_SESSION['likes']         ?? [];   // [글번호 => 누른 횟수]
+
+    $result = [];
+    foreach ($posts as $p) {
+        // 지운 글은 건너뛴다
+        if (in_array($p['id'], $deleted, true)) {
+            continue;
+        }
+        // 수정한 내용이 있으면 덮어쓴다 (array_merge = 같은 키면 뒤엣것이 이김)
+        if (isset($edited[$p['id']])) {
+            $p = array_merge($p, $edited[$p['id']]);
+        }
+        // 이번 접속에서 누른 추천 수를 더한다
+        $p['likes'] += $likes[$p['id']] ?? 0;
+
+        $result[] = $p;
+    }
+    return $result;
+}
+
 // id로 글 하나 찾기. 없으면 null. (Tester-Doer: 호출한 쪽에서 null 체크)
 function get_post(int $id): ?array {
     foreach (get_posts() as $p) {
@@ -45,6 +75,52 @@ function get_post(int $id): ?array {
     }
     return null;
 }
+
+// ── 임시 보관함에 쓰기 (나중엔 INSERT/UPDATE/DELETE로 교체) ──
+
+// 다음 글 번호 만들기 (지금 있는 것 중 가장 큰 번호 + 1)
+function next_post_id(): int {
+    $max = 0;
+    foreach (base_posts() as $p) {
+        $max = max($max, $p['id']);
+    }
+    foreach ($_SESSION['new_posts'] ?? [] as $p) {
+        $max = max($max, $p['id']);
+    }
+    return $max + 1;
+}
+
+// 새 글 저장 → 새 글 번호를 돌려준다  (나중: INSERT INTO posts …)
+function add_post(string $work, string $workTitle, string $title, string $content, string $sentiment, string $author): int {
+    $id = next_post_id();
+    $_SESSION['new_posts'][] = [
+        'id' => $id, 'work' => $work, 'workTitle' => $workTitle,
+        'title' => $title, 'content' => $content, 'sentiment' => $sentiment,
+        'author' => $author,
+        'views' => 0, 'comments' => 0, 'likes' => 0,
+        'created' => time(),   // 최신순 정렬에서 맨 위로 오도록 현재 시각
+    ];
+    return $id;
+}
+
+// 글 수정 내용 기록  (나중: UPDATE posts SET … WHERE id = ?)
+function update_post(int $id, string $title, string $content, string $sentiment): void {
+    $_SESSION['edited_posts'][$id] = [
+        'title' => $title, 'content' => $content, 'sentiment' => $sentiment,
+    ];
+}
+
+// 글 삭제 기록  (나중: DELETE FROM posts WHERE id = ?)
+function delete_post(int $id): void {
+    $_SESSION['deleted_posts'][] = $id;
+}
+
+// 추천 1 증가  (나중: INSERT INTO likes …)
+function add_like(int $postId): void {
+    $_SESSION['likes'][$postId] = ($_SESSION['likes'][$postId] ?? 0) + 1;
+}
+
+// ── 목록 가공 함수들 (필터·검색·정렬·페이징) ─────────────────
 
 // 특정 작성자(author)의 글만 걸러낸다. (프로필 페이지에서 사용)
 function filter_posts_by_author(array $posts, string $author): array {
@@ -89,22 +165,20 @@ function search_posts(array $posts, string $q): array {
 
 // 글 목록에서 '그 페이지에 해당하는 분량'만 잘라낸다.
 //   $page는 1부터 시작. array_slice(배열, 시작위치, 개수)로 자른다.
-//   예) perPage=3 일 때  1페이지→0번부터 3개, 2페이지→3번부터 3개
 function paginate_posts(array $posts, int $page, int $perPage): array {
     $offset = ($page - 1) * $perPage;   // 몇 번째부터 자를지
     return array_slice($posts, $offset, $perPage);
 }
 
-// 감상(호평/보통/혹평)으로 글을 걸러낸다.
-//   $sentiment가 빈 문자열이면 '전체'라는 뜻 → 거르지 않고 그대로 돌려준다.
+// 감상(호평/보통/혹평)으로 글을 걸러낸다. 빈 문자열이면 '전체'.
 function filter_posts_by_sentiment(array $posts, string $sentiment): array {
     if ($sentiment === '') {
-        return $posts;              // 전체 = 필터 없음
+        return $posts;
     }
     $result = [];
     foreach ($posts as $p) {
         if ($p['sentiment'] === $sentiment) {
-            $result[] = $p;         // 조건에 맞는 것만 새 배열에 담는다
+            $result[] = $p;
         }
     }
     return $result;

@@ -116,11 +116,18 @@ require __DIR__ . '/../includes/header.php';
     <!-- 투표 = 서버 상태를 바꾸는 동작 → POST.
          ★ 제출 버튼에 name과 value를 달면 '어느 버튼을 눌렀는지'가 전송된다.
            덕분에 폼 하나로 버튼 두 개를 구분해서 처리할 수 있다 → $_POST['choice'] -->
+    <?php // 내가 이 작품에 이미 투표했다면 그 버튼을 채워서 표시 (1인 1표) ?>
+    <?php $myVote = my_vote($work); ?>
     <form class="vote-form" method="post" action="/vote/sentiment.php">
       <input type="hidden" name="work" value="<?= e($work) ?>">
-      <button type="submit" name="choice" value="추천" class="btn-buy">👍 추천</button>
-      <button type="submit" name="choice" value="비추천" class="btn-sell">👎 비추천</button>
+      <button type="submit" name="choice" value="추천"
+              class="btn-buy <?= $myVote === '추천' ? 'voted-up' : '' ?>">👍 추천</button>
+      <button type="submit" name="choice" value="비추천"
+              class="btn-sell <?= $myVote === '비추천' ? 'voted-down' : '' ?>">👎 비추천</button>
     </form>
+    <?php if ($myVote !== null): ?>
+      <p class="muted">내 선택: <strong><?= e($myVote) ?></strong> (다른 쪽을 누르면 바꿀 수 있어요)</p>
+    <?php endif; ?>
   </section>
 
   <!-- 이 게시판 '안에서만' 글 검색 (작품 검색은 상단 메뉴의 '검색')

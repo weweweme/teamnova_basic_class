@@ -11,7 +11,7 @@
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';
-require_once __DIR__ . '/../includes/posts.php';   // add_like()
+require_once __DIR__ . '/../includes/posts.php';   // toggle_like()
 
 // ★ 로그인 필수 — 화면에서 버튼을 숨겨도 요청은 조작할 수 있으므로
 //   '처리하는 쪽'에서 반드시 다시 확인한다. (안 했으면 로그인 페이지로 보내고 중단)
@@ -33,10 +33,9 @@ if ($postId <= 0) {
 }
 
 // ── 3) 저장 ──────────────────────────────────────────────────
-//   임시 보관함(세션)에서 추천 수를 1 올린다.
-//   나중엔 likes 테이블에 (user_id, post_id)를 INSERT 하고,
-//   이미 눌렀으면 DELETE 해서 '토글(눌렀다 취소)'로 만든다.
-add_like($postId);
+//   ★ '토글' — 이미 추천했으면 취소, 아니면 추천. (1인 1회)
+//   나중 DB에선: likes 테이블에 (user_id, post_id)가 있으면 DELETE, 없으면 INSERT.
+toggle_like($postId);
 
 // ── 4) PRG: 그 글로 다시 리다이렉트 (+추천 완료 표시) ────────
 header("Location: /post/view.php?id=$postId&liked=1");

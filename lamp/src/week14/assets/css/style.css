@@ -136,6 +136,12 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .like-form button { padding: 9px 18px; background: #fff; color: #2b6cff; cursor: pointer;
   border: 1px solid #cdd6f5; border-radius: 999px; font-size: 15px; font-weight: 600; }
 .like-form button:hover { background: #f2f5ff; }
+/* 내가 이미 추천한 상태 */
+.like-form button.liked { background: #2b6cff; color: #fff; border-color: #2b6cff; }
+
+/* 내가 투표한 쪽 강조 */
+.vote-form .voted-up   { background: #e8433f; color: #fff; border-color: #e8433f; }
+.vote-form .voted-down { background: #2b6cff; color: #fff; border-color: #2b6cff; }
 
 /* 수정 링크(버튼 모양) */
 .post-actions .btn-edit { padding: 8px 14px; background: #fff; color: #555;

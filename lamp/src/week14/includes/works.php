@@ -36,16 +36,28 @@ function base_works(): array {
 function get_works(): array {
     $result = [];
     foreach (base_works() as $w) {
-        $w['upVotes']   += $_SESSION['votes'][$w['slug']]['추천']   ?? 0;
-        $w['downVotes'] += $_SESSION['votes'][$w['slug']]['비추천'] ?? 0;
+        // ★ 투표도 '1인 1표'. 내가 고른 쪽에만 1표를 더한다.
+        //   (여러 번 눌러도 표가 계속 늘면 안 되므로 '내가 무엇을 골랐나'만 기록)
+        $mine = my_vote($w['slug']);
+        if ($mine === '추천') {
+            $w['upVotes']++;
+        } elseif ($mine === '비추천') {
+            $w['downVotes']++;
+        }
         $result[] = $w;
     }
     return $result;
 }
 
-// 투표 1표 추가  (나중: INSERT INTO votes …)
-function add_vote(string $slug, string $choice): void {
-    $_SESSION['votes'][$slug][$choice] = ($_SESSION['votes'][$slug][$choice] ?? 0) + 1;
+// 내가 이 작품에 무엇을 투표했나? ('추천' / '비추천' / 안 했으면 null)
+function my_vote(string $slug): ?string {
+    return $_SESSION['my_vote'][$slug] ?? null;
+}
+
+// 투표하기 (이미 했으면 '갈아타기' — 추천 눌렀다가 비추천 누르면 옮겨감)
+//   나중 DB에선: votes 테이블에 (work, user_id) 있으면 UPDATE, 없으면 INSERT.
+function set_vote(string $slug, string $choice): void {
+    $_SESSION['my_vote'][$slug] = $choice;
 }
 
 // slug로 작품 '한 건 전체'를 찾는다. 없으면 null.

@@ -66,10 +66,13 @@ require __DIR__ . '/../includes/header.php';
 
     <?php if (is_logged_in()): ?>
 
-      <!-- 추천: hidden으로 어느 글인지(post_id)를 함께 보낸다 -->
+      <!-- 추천: hidden으로 어느 글인지(post_id)를 함께 보낸다.
+           ★ 1인 1회 — 이미 눌렀으면 버튼이 채워지고, 다시 누르면 취소된다. -->
       <form class="like-form" method="post" action="/like/toggle.php">
         <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
-        <button type="submit">👍 추천 <?= e((string)$post['likes']) ?></button>
+        <button type="submit" class="<?= has_liked($id) ? 'liked' : '' ?>">
+          <?= has_liked($id) ? '👍 추천함' : '👍 추천' ?> <?= e((string)$post['likes']) ?>
+        </button>
       </form>
 
       <!-- 신고 버튼: 누르면 아래 팝업만 연다. type="button" = 폼 제출용이 아님 -->

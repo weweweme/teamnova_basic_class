@@ -49,7 +49,6 @@ function get_posts(): array {
 
     $edited  = $_SESSION['edited_posts']  ?? [];   // [글번호 => 바뀐 값들]
     $deleted = $_SESSION['deleted_posts'] ?? [];   // [지운 글번호, …]
-    $likes   = $_SESSION['likes']         ?? [];   // [글번호 => 누른 횟수]
 
     $result = [];
     foreach ($posts as $p) {
@@ -61,8 +60,9 @@ function get_posts(): array {
         if (isset($edited[$p['id']])) {
             $p = array_merge($p, $edited[$p['id']]);
         }
-        // 이번 접속에서 누른 추천 수를 더한다
-        $p['likes'] += $likes[$p['id']] ?? 0;
+        // ★ 추천은 '1인 1회'다. 내가 눌렀으면 +1, 안 눌렀으면 그대로.
+        //   (여러 번 눌러도 계속 오르면 안 되므로 '횟수'가 아니라 '눌렀나/안 눌렀나'로 관리)
+        $p['likes'] += has_liked($p['id']) ? 1 : 0;
 
         // ★ 댓글 수는 '실제 댓글을 세어서' 채운다 → 목록의 숫자와 실물이 항상 일치한다.
         //   (댓글을 달면 목록의 '댓글 N'도 같이 올라간다)
@@ -122,9 +122,21 @@ function delete_post(int $id): void {
     $_SESSION['deleted_posts'][] = $id;
 }
 
-// 추천 1 증가  (나중: INSERT INTO likes …)
-function add_like(int $postId): void {
-    $_SESSION['likes'][$postId] = ($_SESSION['likes'][$postId] ?? 0) + 1;
+// 내가 이 글을 추천했는가?
+//   세션은 '이 브라우저 = 이 사용자'의 공간이므로, 여기 기록이 곧 '내 추천 여부'다.
+function has_liked(int $postId): bool {
+    return !empty($_SESSION['my_likes'][$postId]);
+}
+
+// 추천 토글: 이미 눌렀으면 취소, 안 눌렀으면 추천.
+//   ★ 실제 서비스도 이렇게 동작한다(1인 1회, 다시 누르면 취소).
+//   나중 DB에선: likes 테이블에 (user_id, post_id) 있으면 DELETE, 없으면 INSERT.
+function toggle_like(int $postId): void {
+    if (has_liked($postId)) {
+        unset($_SESSION['my_likes'][$postId]);   // 추천 취소
+    } else {
+        $_SESSION['my_likes'][$postId] = true;   // 추천
+    }
 }
 
 // ── 목록 가공 함수들 (필터·검색·정렬·페이징) ─────────────────

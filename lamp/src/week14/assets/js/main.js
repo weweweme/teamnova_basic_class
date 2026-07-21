@@ -31,3 +31,25 @@ if (reportOpen && reportDialog && reportCancel) {
         reportDialog.close();
     });
 }
+
+
+// ── 삭제 전 확인창 ───────────────────────────────────────────
+//   삭제는 되돌릴 수 없으니 보내기 전에 한 번 더 묻는다.
+//   querySelectorAll = 조건에 맞는 요소를 '전부' 고른다 (querySelector는 첫 하나만).
+//   글 삭제 폼과 댓글 삭제 폼 모두 class="delete-form" 을 갖고 있어 한 번에 처리된다.
+const deleteForms = document.querySelectorAll('.delete-form');
+
+deleteForms.forEach(function (form) {
+    // 'submit' = 폼이 전송되기 '직전'에 발생하는 이벤트.
+    //   여기서 막으면 전송이 취소된다.
+    form.addEventListener('submit', function (event) {
+        // confirm() = 확인/취소 창을 띄우고, 확인이면 true / 취소면 false를 돌려준다.
+        const ok = confirm('정말 삭제할까요? 되돌릴 수 없습니다.');
+
+        if (!ok) {
+            // preventDefault() = '원래 일어날 일'(= 폼 전송)을 막는다.
+            //   이게 없으면 취소를 눌러도 그냥 전송돼버린다.
+            event.preventDefault();
+        }
+    });
+});

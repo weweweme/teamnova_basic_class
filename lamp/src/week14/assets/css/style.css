@@ -114,6 +114,18 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
   font-weight: 600; text-decoration: none; }
 .post-actions .btn-edit:hover { background: #f5f5f5; }
 
+/* 삭제 버튼 */
+.post-actions .delete-form { margin: 0; }
+.btn-delete { padding: 8px 14px; background: #fff; color: #d9534f; cursor: pointer;
+  border: 1px solid #f0c8c6; border-radius: 999px; font-size: 14px; font-weight: 600; }
+.btn-delete:hover { background: #fdf3f3; }
+
+/* 댓글 삭제 (작게) */
+.comment-delete { display: inline; margin-left: 8px; }
+.comment-delete button { padding: 2px 8px; background: none; color: #aaa; cursor: pointer;
+  border: 1px solid #e5e5e5; border-radius: 5px; font-size: 12px; }
+.comment-delete button:hover { color: #d9534f; border-color: #f0c8c6; }
+
 /* 신고 버튼 */
 .btn-report { padding: 8px 14px; background: #fff; color: #d9534f; cursor: pointer;
   border: 1px solid #f0c8c6; border-radius: 999px; font-size: 14px; font-weight: 600; }

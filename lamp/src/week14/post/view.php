@@ -24,8 +24,8 @@ if ($post === null) {
 
 // ── 더미 댓글 목록 (나중 comments 테이블에서 post_id로 조회로 교체) ──
 $comments = [
-    ['author' => '주주1', 'content' => '저도 그렇게 봅니다.'],
-    ['author' => '개미2', 'content' => '음, 신중하게 접근해야 할 듯요.'],
+    ['id' => 101, 'author' => '주주1', 'content' => '저도 그렇게 봅니다.'],
+    ['id' => 102, 'author' => '개미2', 'content' => '음, 신중하게 접근해야 할 듯요.'],
 ];
 
 $pageTitle = $post['title'];
@@ -73,6 +73,13 @@ require __DIR__ . '/../includes/header.php';
          (실제 수정 저장은 그 폼이 POST로 보낸다 — 조회는 GET / 변경은 POST) -->
     <a class="btn-edit" href="/post/edit.php?id=<?= e((string)$id) ?>">✏️ 수정</a>
 
+    <!-- 삭제: 되돌릴 수 없는 동작이라 링크(GET)가 아니라 반드시 POST 폼.
+         class="delete-form" 을 보고 JS가 '정말 삭제할까요?' 확인창을 띄운다. -->
+    <form class="delete-form" method="post" action="/post/delete.php">
+      <input type="hidden" name="id" value="<?= e((string)$id) ?>">
+      <button type="submit" class="btn-delete">🗑 삭제</button>
+    </form>
+
   </div>
 
   <!-- 신고 팝업 — <dialog> = HTML이 기본으로 제공하는 '모달 창' 태그.
@@ -116,6 +123,9 @@ require __DIR__ . '/../includes/header.php';
     <?php if (isset($_GET['commented'])): ?>
       <div class="flash">✅ 댓글이 등록되었습니다. <small>(지금은 저장 안 되는 껍데기)</small></div>
     <?php endif; ?>
+    <?php if (isset($_GET['cdeleted'])): ?>
+      <div class="flash">🗑 댓글이 삭제되었습니다. <small>(지금은 실제로 지워지진 않는 껍데기)</small></div>
+    <?php endif; ?>
 
     <!-- 더미 댓글 목록 -->
     <ul class="comment-list">
@@ -123,6 +133,12 @@ require __DIR__ . '/../includes/header.php';
         <li>
           <span class="comment-author"><?= e($c['author']) ?></span>
           <?= e($c['content']) ?>
+          <!-- 댓글 삭제: 어느 댓글인지(comment_id)와 돌아갈 글(post_id)을 함께 보낸다 -->
+          <form class="delete-form comment-delete" method="post" action="/comment/delete.php">
+            <input type="hidden" name="comment_id" value="<?= e((string)$c['id']) ?>">
+            <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
+            <button type="submit">삭제</button>
+          </form>
         </li>
       <?php endforeach; ?>
     </ul>

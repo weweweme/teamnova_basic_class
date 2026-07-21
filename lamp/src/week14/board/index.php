@@ -79,6 +79,10 @@ require __DIR__ . '/../includes/header.php';
   <?php if (isset($_GET['voted'])): ?>
     <div class="flash">🗳️ 투표했습니다. <small>(지금은 숫자가 실제로 반영되진 않는 껍데기)</small></div>
   <?php endif; ?>
+  <?php // post/delete.php가 글 삭제 후 이 토론방으로 보내면서 ?deleted=1 을 붙인다 ?>
+  <?php if (isset($_GET['deleted'])): ?>
+    <div class="flash">🗑 글이 삭제되었습니다. <small>(지금은 실제로 지워지진 않는 껍데기)</small></div>
+  <?php endif; ?>
 
   <!-- 종목 투자심리 투표 — '글'이 아니라 '종목'에 대한 POST -->
   <section class="vote-box">

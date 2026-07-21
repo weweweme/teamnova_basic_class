@@ -25,11 +25,11 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .container li { padding: 10px 0; border-bottom: 1px solid #eee; }
 .container a { color: #1a4fd6; text-decoration: none; }
 
-/* 종목 태그 */
+/* 감상 태그 */
 .tag { background: #eef1ff; color: #2b6cff; font-size: 12px;
        padding: 2px 7px; border-radius: 4px; margin-left: 6px; }
 
-/* 소제목 · 종목코드 */
+/* 소제목 · 부제 */
 .container h2 { font-size: 17px; margin-top: 24px; }
 .container h1 small { color: #888; font-weight: normal; font-size: 15px; }
 
@@ -53,7 +53,7 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .write-form button { margin-top: 14px; padding: 9px 18px; background: #2b6cff;
   color: #fff; border: none; border-radius: 6px; cursor: pointer; }
 
-/* 토론방 툴바 (개수 + 글쓰기) */
+/* 게시판 툴바 (개수 + 글쓰기) */
 .board-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .board-toolbar p { margin: 0; }
 .btn-write { padding: 7px 14px; background: #2b6cff; color: #fff; border-radius: 8px;

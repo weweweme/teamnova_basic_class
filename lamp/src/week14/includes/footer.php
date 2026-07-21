@@ -4,7 +4,7 @@
        header.php에서 열어둔 <main> 을 여기서 닫고, body/html도 닫는다.
        ============================================================ -->
   <footer class="foot">
-    <small>종목토론방 · week14 GET/POST 연습용 (데이터는 아직 더미)</small>
+    <small>리뷰 커뮤니티 · week14 GET/POST 연습용 (데이터는 아직 더미)</small>
   </footer>
 </body>
 </html>

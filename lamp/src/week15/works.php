@@ -16,15 +16,15 @@ $genre  = get_str('genre', '');                 // '' = 전체(인기작)
 if ($genre !== '' && !isset($genres[$genre])) {
     $genre = '';                                // 이상한 값이면 전체로
 }
-$media  = get_str('media', 'all');              // all | movie | tv
-if (!in_array($media, ['all', 'movie', 'tv'], true)) {
+$media  = get_str('media', 'all');              // all | movie | tv | anime
+if (!in_array($media, ['all', 'movie', 'tv', 'anime'], true)) {
     $media = 'all';
 }
 
 // ── 2) 첫 페이지 작품 (나머지는 무한 스크롤로) ──────────────
 $works = discover_by_genre($genre, $media, 1);
 
-$mediaTabs = ['all' => '전체', 'movie' => '영화', 'tv' => '드라마'];
+$mediaTabs = ['all' => '전체', 'movie' => '영화', 'tv' => '드라마', 'anime' => '애니'];
 
 $pageTitle = '작품 둘러보기';
 require __DIR__ . '/includes/header.php';

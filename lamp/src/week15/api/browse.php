@@ -17,7 +17,7 @@ header('Content-Type: application/json; charset=utf-8');
 // ── 파라미터 받기 (works.php와 같은 규칙) ────────────────────
 $genre = get_str('genre', '');
 $media = get_str('media', 'all');
-if (!in_array($media, ['all', 'movie', 'tv'], true)) {
+if (!in_array($media, ['all', 'movie', 'tv', 'anime'], true)) {
     $media = 'all';
 }
 $page = get_int('page', 1);

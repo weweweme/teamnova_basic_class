@@ -159,7 +159,6 @@ function tmdb_genres(): array {
         '스릴러'  => [53,   null],
         '미스터리'=> [9648, 9648],
         '공포'    => [27,   null],
-        '애니'    => [16,   16],
         '범죄'    => [80,   80],
         '다큐'    => [99,   99],
     ];
@@ -169,8 +168,27 @@ function tmdb_genres(): array {
 //   $genre: 우리 장르 이름 (tmdb_genres의 키). ''이면 인기작 전체.
 //   $media: 'movie' | 'tv' | 'all'(둘 다 합침)
 //   $page : 페이지 (무한 스크롤에서 1,2,3… 늘려가며 부름)
+const TMDB_ANIME_GENRE = 16;   // 애니메이션 장르 코드 (영화·드라마 공통)
+
 function discover_by_genre(string $genre, string $media, int $page = 1): array {
     $map = tmdb_genres();
+
+    // ── '애니' 타입: 애니메이션 장르(16)를 강제로 걸고 영화+드라마를 합친다 ──
+    //   타입 필터지만 실제로는 '장르16' 필터. 추가 장르가 선택됐으면 함께 건다(AND).
+    //   (예: 애니 + SF → 장르 16 AND 878)
+    if ($media === 'anime') {
+        $extra = ($genre !== '' && isset($map[$genre])) ? $map[$genre] : [null, null];
+        $result = [];
+        // 애니 영화 (장르16 [+ 추가장르])
+        $movieGenres = TMDB_ANIME_GENRE . ($extra[0] !== null ? ',' . $extra[0] : '');
+        $result = array_merge($result,
+            tmdb_list_page('/discover/movie', 'movie', $page, ['with_genres' => $movieGenres]));
+        // 애니 드라마
+        $tvGenres = TMDB_ANIME_GENRE . ($extra[1] !== null ? ',' . $extra[1] : '');
+        $result = array_merge($result,
+            tmdb_list_page('/discover/tv', 'tv', $page, ['with_genres' => $tvGenres]));
+        return $result;
+    }
 
     // '전체 장르'면 그냥 인기작 (장르 필터 없음)
     if ($genre === '' || !isset($map[$genre])) {

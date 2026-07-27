@@ -639,3 +639,43 @@ mark { background: #7a6000; color: #fff3a3; }
 
 /* 감상 태그(호평/보통/혹평) 색 구분 — 다크에서 잘 보이게 */
 .tag { background: #24304f; color: #9fbcff; }
+
+/* ── 검색 결과 / 폼 / 프로필 (중앙 정렬 + 다크) ─────────────── */
+
+/* 폼·검색 페이지 콘텐츠 폭 (중앙) */
+.search-page, .auth-page, .write-page { max-width: 760px; margin: 0 auto; }
+.container > h1 { max-width: 760px; margin-left: auto; margin-right: auto; }
+
+/* 검색(작품) 결과 리스트 — 포스터+정보, 다크 */
+.media-list { max-width: 760px; margin: 12px auto 0; }
+.media-list li { border-bottom: 1px solid #232323; }
+.media-list a { color: #eaeaea; }
+.media-info strong { color: #f0f0f0; font-size: 15px; }
+
+/* 로그인·회원가입 폼 — 카드 형태 */
+.auth-form {
+  background: rgba(31,31,38,0.6); backdrop-filter: blur(3px);
+  border: 1px solid #2c2c38; border-radius: 12px; padding: 22px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.auth-form label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; color: #ddd; }
+.auth-form input { padding: 10px 12px; font-size: 15px; }
+.auth-form button { padding: 11px; background: #2b6cff; color: #fff; border: none;
+  border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 700; }
+.auth-form button:hover { background: #1a56e0; }
+code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+
+/* 글쓰기 폼 — 다크 입력창 */
+.write-form input[type=text], .write-form textarea { background: #2a2a2a; color: #f0f0f0; border-color: #444; }
+.write-form fieldset { border-color: #333; }
+.write-form label { color: #ddd; }
+
+/* 프로필 헤더 정렬 */
+.profile-head { justify-content: flex-start; }
+
+/* ── 좁은 페이지: 콘텐츠 전체를 760px 중앙 컬럼에 담기 ──────
+   .container에 narrow 클래스를 주면, 그 안의 모든 직속 요소가
+   같은 폭·같은 왼쪽 라인으로 중앙 정렬된다. (검색·로그인·회원가입 등) */
+.container.narrow > * {
+  max-width: 760px; margin-left: auto; margin-right: auto;
+}

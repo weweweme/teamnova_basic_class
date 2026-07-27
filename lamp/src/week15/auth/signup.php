@@ -12,6 +12,7 @@ if (is_logged_in()) {
 }
 
 $pageTitle = '회원가입';
+$containerClass = 'narrow';
 require __DIR__ . '/../includes/header.php';
 ?>
 

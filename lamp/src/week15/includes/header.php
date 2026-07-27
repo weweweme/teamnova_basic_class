@@ -10,6 +10,9 @@
 require_once __DIR__ . '/util.php';
 require_once __DIR__ . '/auth.php';   // 로그인 상태에 따라 메뉴가 달라지므로
 
+// 컨테이너에 붙일 추가 클래스 (페이지가 정해줄 수 있음).
+//   예) 좁은 페이지는 $containerClass = 'narrow' 로 콘텐츠를 중앙 컬럼에 담는다.
+$containerClass = $containerClass ?? '';
 // 페이지 제목: include 하기 전에 $pageTitle 을 정해주면 그게 뜨고,
 //   안 정했으면 기본값을 쓴다. (?? = '왼쪽이 없으면 오른쪽')
 $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
@@ -84,7 +87,7 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
   </header>
 
   <!-- 각 페이지의 '실제 내용'은 이 아래(main)에 채워진다 -->
-  <main class="container">
+  <main class="container <?= e($containerClass) ?>">
 
     <?php
     // ── 플래시 알림 ──────────────────────────────────────────

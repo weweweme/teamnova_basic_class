@@ -13,6 +13,7 @@ if (is_logged_in()) {
 }
 
 $pageTitle = '로그인';
+$containerClass = 'narrow';
 require __DIR__ . '/../includes/header.php';
 ?>
 

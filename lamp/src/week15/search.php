@@ -20,6 +20,7 @@ $hasQuery = $q !== '';
 $works    = $hasQuery ? search_tmdb($q) : [];   // TMDB 실시간 검색
 
 $pageTitle = $q === '' ? '작품 검색' : "'{$q}' 검색결과";
+$containerClass = 'narrow';
 require __DIR__ . '/includes/header.php';
 ?>
 

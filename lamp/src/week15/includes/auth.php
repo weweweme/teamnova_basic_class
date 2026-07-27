@@ -1,9 +1,10 @@
 <?php
 // ============================================================
 // auth.php — '인증(로그인)' 도메인 모듈
-//   더미 사용자 목록 + 로그인 확인 + 세션 읽기/쓰기를 모아둔 곳.
-//   나중 DB를 붙이면 get_users() 속만 users 테이블 조회로 바꾸면 된다.
+//   회원 조회 + 로그인 확인 + 세션 읽기/쓰기를 모아둔 곳.
 // ============================================================
+
+require_once __DIR__ . '/db.php';   // current_user_id()가 users 표를 조회하므로
 
 // 더미 사용자 (나중 users 테이블)
 //   ★★ 비밀번호는 '절대' 그대로 저장하지 않는다.
@@ -64,6 +65,17 @@ function logout_user(): void {
 // 지금 로그인한 사용자 이름. 로그인 안 했으면 null.
 function current_user(): ?string {
     return $_SESSION['user'] ?? null;
+}
+
+// 지금 로그인한 사용자의 DB id. 로그인 안 했으면 0.
+//   likes·votes 표는 user_id(번호)를 쓰므로, 닉네임을 id로 바꿔줄 때 쓴다.
+//   (세션엔 닉네임만 있고, 번호는 users 표에서 찾아온다)
+function current_user_id(): int {
+    $username = current_user();
+    if ($username === null) {
+        return 0;
+    }
+    return (int) db_scalar('SELECT id FROM users WHERE username = ?', [$username]);
 }
 
 // 로그인 상태인가?

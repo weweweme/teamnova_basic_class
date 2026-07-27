@@ -42,6 +42,7 @@ CREATE TABLE posts (
     sentiment  ENUM('호평','보통','혹평') NOT NULL,   -- 감상. 셋 중 하나만 허용 (DB가 검사)
     views      INT DEFAULT 0,                          -- 조회수. 새 글은 0
     created_at DATETIME DEFAULT NOW(),
+    deleted_at DATETIME DEFAULT NULL,                  -- 소프트삭제. NULL=살아있음, 값=지워짐(되돌리기 가능)
 
     -- 외래키 선언: 이 열이 다른 표의 기본키를 가리킨다고 DB에 알린다.
     --   → 없는 회원/작품 번호를 넣으면 DB가 거부한다 (데이터 무결성을 DB가 지켜줌).

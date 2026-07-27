@@ -41,3 +41,13 @@ function db(): PDO {
 
     return $pdo;
 }
+
+// ── 값 하나만 꺼내는 편의 함수 ──────────────────────────────
+//   "SELECT id FROM ... WHERE ..." 처럼 결과가 값 하나일 때, 매번
+//   prepare→execute→fetchColumn 세 줄 쓰기 번거로워서 한 줄로 감쌌다.
+//   없으면 false를 돌려준다. (호출한 쪽에서 (int) 형변환 등으로 처리)
+function db_scalar(string $sql, array $params = []): mixed {
+    $stmt = db()->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchColumn();
+}

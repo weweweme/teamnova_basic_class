@@ -10,8 +10,9 @@
 //   ※ 세션이라 브라우저를 닫거나 로그아웃하면 초기화된다 (시연/연습용).
 // ============================================================
 
-//   댓글 수는 comments 모듈에서 '실제 댓글을 세어서' 채운다 (숫자만 따로 박아두면 실물과 어긋남).
-require_once __DIR__ . '/comments.php';
+require_once __DIR__ . '/db.php';         // DB 연결
+require_once __DIR__ . '/auth.php';       // current_user_id() (추천 여부 확인)
+require_once __DIR__ . '/comments.php';   // 댓글 모듈 (일부 함수에서 사용)
 
 // ── 입력 길이 제한 (매직값 금지 — 이름 붙인 상수로) ──────────
 const POST_TITLE_MAX   = 100;
@@ -80,120 +81,109 @@ function base_posts(): array {
     ];
 }
 
-// ── ② 원본 + 임시 보관함(세션)을 '합쳐서' 돌려준다 ───────────
-//   나중에 DB가 생기면 이 함수는 "SELECT * FROM posts" 한 줄로 바뀐다.
+// ── ② 모든 글을 DB에서 가져온다 (JOIN으로 여러 표를 합쳐서) ──
+//   ★ 정규화로 '나눠 둔' 표들을 화면용으로 '다시 합치는' 게 JOIN. (발표자료의 그 JOIN)
+//     · 글(posts)     — 제목·내용·감상·조회수
+//     · 작품(media)   — slug·제목      ← posts.media_id = media.id 로 연결
+//     · 회원(users)   — 닉네임          ← posts.author_id = users.id 로 연결
+//     · 댓글 수·추천 수 — 하위질의(서브쿼리)로 그 글의 개수를 세어 붙인다
+//   반환 배열의 '모양'은 week14와 똑같게 맞춘다(work·workTitle·author·comments·likes…)
+//   → 그래야 board·필터·정렬 함수가 한 줄도 안 바뀐다. ('함수 속만 바꾼다'의 핵심)
 function get_posts(): array {
-    $posts = base_posts();
-
-    // 이번 접속에서 새로 쓴 글을 뒤에 붙인다
-    foreach ($_SESSION['new_posts'] ?? [] as $p) {
-        $posts[] = $p;
-    }
-
-    $edited  = $_SESSION['edited_posts']  ?? [];   // [글번호 => 바뀐 값들]
-    $deleted = $_SESSION['deleted_posts'] ?? [];   // [지운 글번호, …]
-
-    $result = [];
-    foreach ($posts as $p) {
-        // 지운 글은 건너뛴다
-        if (in_array($p['id'], $deleted, true)) {
-            continue;
-        }
-        // 수정한 내용이 있으면 덮어쓴다 (array_merge = 같은 키면 뒤엣것이 이김)
-        if (isset($edited[$p['id']])) {
-            $p = array_merge($p, $edited[$p['id']]);
-        }
-        // ★ 추천은 '1인 1회'다. 내가 눌렀으면 +1, 안 눌렀으면 그대로.
-        //   (여러 번 눌러도 계속 오르면 안 되므로 '횟수'가 아니라 '눌렀나/안 눌렀나'로 관리)
-        $p['likes'] += has_liked($p['id']) ? 1 : 0;
-
-        // ★ 댓글 수는 '실제 댓글을 세어서' 채운다 → 목록의 숫자와 실물이 항상 일치한다.
-        //   (댓글을 달면 목록의 '댓글 N'도 같이 올라간다)
-        $p['comments'] = count_comments($p['id']);
-
-        $result[] = $p;
-    }
-    return $result;
+    $sql = "
+        SELECT
+            p.id,
+            m.slug        AS work,        -- 주소용 작품 이름 (?work=...)
+            m.title       AS workTitle,   -- 작품 제목
+            p.title,
+            u.username    AS author,      -- 작성자 닉네임
+            p.sentiment,
+            p.views,
+            p.content,
+            UNIX_TIMESTAMP(p.created_at) AS created,   -- 정렬용 숫자(최신일수록 큼)
+            (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments,  -- 이 글의 댓글 수
+            (SELECT COUNT(*) FROM likes    l WHERE l.post_id = p.id) AS likes      -- 이 글의 추천 수
+        FROM posts p
+        JOIN media m ON p.media_id  = m.id   -- 글 ↔ 작품 잇기
+        JOIN users u ON p.author_id = u.id   -- 글 ↔ 회원 잇기
+        WHERE p.deleted_at IS NULL           -- 소프트삭제: 지워진 글은 뺀다
+        ORDER BY p.id DESC                    -- 기본은 최신 글이 위 (정렬 탭이 다시 정할 수 있음)
+    ";
+    // query()는 결과를 돌려주고, fetchAll()로 '전부 배열로' 받는다.
+    //   (FETCH_ASSOC 설정이라 각 줄이 ['title'=>…, 'author'=>…] 모양 = week14와 동일)
+    return db()->query($sql)->fetchAll();
 }
 
-// '지워진' 글 하나 찾기. 안 지워졌거나 없으면 null.
-//   되돌리기(restore)에서 "정말 지워진 글인지 + 주인이 맞는지" 확인할 때 쓴다.
-//   ★ get_post()는 지워진 글을 걸러내고 주므로 여기선 원본을 직접 뒤진다.
+// '지워진' 글 하나 찾기 (되돌리기에서 주인 확인용). 안 지워졌거나 없으면 null.
+//   소프트삭제라 글이 DB에 그대로 있다 → deleted_at 이 '있는'(지워진) 것만 찾는다.
 function get_deleted_post(int $id): ?array {
-    $deleted = $_SESSION['deleted_posts'] ?? [];
-    if (!in_array($id, $deleted, true)) {
-        return null;                      // 지워진 적 없으면 되돌릴 것도 없다
-    }
-    $all = base_posts();
-    foreach ($_SESSION['new_posts'] ?? [] as $p) {
-        $all[] = $p;
-    }
-    foreach ($all as $p) {
-        if ($p['id'] === $id) {
-            return $p;
-        }
-    }
-    return null;
+    $sql = "SELECT p.id, u.username AS author
+            FROM posts p JOIN users u ON p.author_id = u.id
+            WHERE p.id = ? AND p.deleted_at IS NOT NULL";
+    $stmt = db()->prepare($sql);
+    $stmt->execute([$id]);
+    $row = $stmt->fetch();
+    return $row !== false ? $row : null;
 }
 
 // id로 글 하나 찾기. 없으면 null. (Tester-Doer: 호출한 쪽에서 null 체크)
+//   get_posts()와 같은 JOIN이지만 WHERE p.id = ? 로 한 건만 가져온다.
 function get_post(int $id): ?array {
-    foreach (get_posts() as $p) {
-        if ($p['id'] === $id) {
-            return $p;
-        }
-    }
-    return null;
+    $sql = "
+        SELECT
+            p.id, m.slug AS work, m.title AS workTitle, p.title,
+            u.username AS author, p.sentiment, p.views, p.content,
+            UNIX_TIMESTAMP(p.created_at) AS created,
+            (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments,
+            (SELECT COUNT(*) FROM likes    l WHERE l.post_id = p.id) AS likes
+        FROM posts p
+        JOIN media m ON p.media_id  = m.id
+        JOIN users u ON p.author_id = u.id
+        WHERE p.id = ? AND p.deleted_at IS NULL
+    ";
+    $stmt = db()->prepare($sql);
+    $stmt->execute([$id]);
+    $row = $stmt->fetch();
+    return $row !== false ? $row : null;
 }
 
-// ── 임시 보관함에 쓰기 (나중엔 INSERT/UPDATE/DELETE로 교체) ──
+// ── DB에 쓰기 (INSERT / UPDATE / 소프트삭제) ─────────────────
+//   글 번호(id)는 AUTO_INCREMENT가 자동으로 매기므로 next_post_id 같은 건 필요 없다.
 
-// 다음 글 번호 만들기 (지금 있는 것 중 가장 큰 번호 + 1)
-function next_post_id(): int {
-    $max = 0;
-    foreach (base_posts() as $p) {
-        $max = max($max, $p['id']);
-    }
-    foreach ($_SESSION['new_posts'] ?? [] as $p) {
-        $max = max($max, $p['id']);
-    }
-    return $max + 1;
-}
-
-// 새 글 저장 → 새 글 번호를 돌려준다  (나중: INSERT INTO posts …)
+// 새 글 저장 → 새 글 번호(id)를 돌려준다
+//   $work=작품 slug, $author=작성자 닉네임 → DB엔 번호로 저장하므로 각각 id로 바꾼다.
+//   (작품은 글쓰기 전에 media 표에 이미 있어야 한다 — create.php가 ensure_media로 보장)
 function add_post(string $work, string $workTitle, string $title, string $content, string $sentiment, string $author): int {
-    $id = next_post_id();
-    $_SESSION['new_posts'][] = [
-        'id' => $id, 'work' => $work, 'workTitle' => $workTitle,
-        'title' => $title, 'content' => $content, 'sentiment' => $sentiment,
-        'author' => $author,
-        'views' => 0, 'comments' => 0, 'likes' => 0,
-        'created' => time(),   // 최신순 정렬에서 맨 위로 오도록 현재 시각
-    ];
-    return $id;
-}
+    // slug → media.id,  닉네임 → users.id 로 변환 (외래키는 번호로 저장하므로)
+    $mediaId  = (int) db_scalar('SELECT id FROM media WHERE slug = ?', [$work]);
+    $authorId = (int) db_scalar('SELECT id FROM users WHERE username = ?', [$author]);
 
-// 글 수정 내용 기록  (나중: UPDATE posts SET … WHERE id = ?)
-function update_post(int $id, string $title, string $content, string $sentiment): void {
-    $_SESSION['edited_posts'][$id] = [
-        'title' => $title, 'content' => $content, 'sentiment' => $sentiment,
-    ];
-}
-
-// 글 삭제 기록  (나중: DELETE FROM posts WHERE id = ?)
-function delete_post(int $id): void {
-    $_SESSION['deleted_posts'][] = $id;
-}
-
-// 삭제 되돌리기 — '지운 글 번호' 목록에서 그 번호만 빼면 글이 그대로 돌아온다.
-//   ★ 원본을 진짜로 없애지 않고 '지웠다고 표시'만 했기 때문에 복구가 가능하다.
-//     실무 DB도 DELETE 대신 deleted_at 칼럼을 채우는 '소프트 삭제'를 자주 쓴다.
-//   array_values = 빠진 자리 때문에 생긴 번호 구멍을 메워 배열을 다시 촘촘하게 만든다.
-function restore_post(int $id): void {
-    $deleted = $_SESSION['deleted_posts'] ?? [];
-    $_SESSION['deleted_posts'] = array_values(
-        array_filter($deleted, fn($deletedId) => $deletedId !== $id)
+    $stmt = db()->prepare(
+        'INSERT INTO posts (author_id, media_id, title, content, sentiment)
+         VALUES (?, ?, ?, ?, ?)'
     );
+    $stmt->execute([$authorId, $mediaId, $title, $content, $sentiment]);
+    return (int) db()->lastInsertId();
+}
+
+// 글 수정 (UPDATE posts SET … WHERE id = ?)
+function update_post(int $id, string $title, string $content, string $sentiment): void {
+    $stmt = db()->prepare(
+        'UPDATE posts SET title = ?, content = ?, sentiment = ? WHERE id = ?'
+    );
+    $stmt->execute([$title, $content, $sentiment, $id]);
+}
+
+// 글 삭제 — ★ 소프트삭제: 진짜 지우지 않고 deleted_at 에 '지운 시각'을 적는다.
+//   글은 DB에 그대로 있고, get_posts()가 deleted_at IS NULL 로 걸러 화면에서만 사라진다.
+//   → 그 시각을 다시 NULL 로 되돌리면 복구(되돌리기). 실무의 흔한 방식.
+function delete_post(int $id): void {
+    db()->prepare('UPDATE posts SET deleted_at = NOW() WHERE id = ?')->execute([$id]);
+}
+
+// 삭제 되돌리기 — deleted_at 을 다시 NULL 로 (지운 표시를 지운다).
+function restore_post(int $id): void {
+    db()->prepare('UPDATE posts SET deleted_at = NULL WHERE id = ?')->execute([$id]);
 }
 
 // ── 최근 본 글 ───────────────────────────────────────────────
@@ -231,19 +221,34 @@ function get_recent_posts(): array {
 }
 
 // 내가 이 글을 추천했는가?
-//   세션은 '이 브라우저 = 이 사용자'의 공간이므로, 여기 기록이 곧 '내 추천 여부'다.
+//   likes 표에 (내 user_id, 이 글 post_id) 조합이 있으면 추천한 것.
 function has_liked(int $postId): bool {
-    return !empty($_SESSION['my_likes'][$postId]);
+    $userId = current_user_id();
+    if ($userId === 0) {
+        return false;                     // 로그인 안 했으면 추천했을 리 없다
+    }
+    $found = db_scalar(
+        'SELECT 1 FROM likes WHERE user_id = ? AND post_id = ?',
+        [$userId, $postId]
+    );
+    return $found !== false;
 }
 
-// 추천 토글: 이미 눌렀으면 취소, 안 눌렀으면 추천.
-//   ★ 실제 서비스도 이렇게 동작한다(1인 1회, 다시 누르면 취소).
-//   나중 DB에선: likes 테이블에 (user_id, post_id) 있으면 DELETE, 없으면 INSERT.
+// 추천 토글: 이미 눌렀으면 취소(DELETE), 안 눌렀으면 추천(INSERT).
+//   ★ likes 표의 복합 기본키 (user_id, post_id) 덕분에 '1인 1회'가 구조로 보장된다.
 function toggle_like(int $postId): void {
+    $userId = current_user_id();
+    if ($userId === 0) {
+        return;                           // 로그인 안 했으면 아무것도 안 함
+    }
     if (has_liked($postId)) {
-        unset($_SESSION['my_likes'][$postId]);   // 추천 취소
+        // 이미 추천함 → 그 줄을 지운다 (추천 취소)
+        db()->prepare('DELETE FROM likes WHERE user_id = ? AND post_id = ?')
+            ->execute([$userId, $postId]);
     } else {
-        $_SESSION['my_likes'][$postId] = true;   // 추천
+        // 아직 안 함 → 줄을 넣는다 (추천)
+        db()->prepare('INSERT INTO likes (user_id, post_id) VALUES (?, ?)')
+            ->execute([$userId, $postId]);
     }
 }
 

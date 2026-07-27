@@ -30,22 +30,61 @@ if ($community) {
     $hero['slug'] = 'tmdb-' . $hero['tmdb_id'];
 }
 
+// ── 사이드바 데이터 ──────────────────────────────────────────
+//   B) 지금 뜨는 글 = 조회수 순 상위 4개 (우리 커뮤니티 = 우리 정체성)
+$hotPosts = paginate_posts(sort_posts(get_posts(), 'views'), 1, 4);
+//   D) 오늘의 발견 = 인기작 중 하나 (매 요청 무작위면 산만하니, 인기작 앞쪽에서 하나)
+$pickPool = $trending ?: $movies;
+$pick     = $pickPool[array_rand($pickPool)] ?? null;   // 새로고침마다 바뀜(발견의 재미)
+
 $pageTitle = '홈 · 리뷰 커뮤니티';
 require __DIR__ . '/includes/header.php';
 ?>
 
   <?php // 로그인·글등록 완료 알림은 header.php가 세션에서 꺼내 그린다 (set_flash) ?>
 
-  <?php // ── 히어로 배너 (넷플릭스 첫 화면식 큰 배경) ─────────────── ?>
+  <?php // ── 히어로 영역: 넓으면 [히어로 | 사이드바] 2단, 좁으면 세로 1단 ── ?>
   <?php if ($hero && !empty($hero['backdrop_url'])): ?>
-    <a class="hero" href="/board/?work=<?= e($hero['slug']) ?>"
-       style="background-image: url('<?= e($hero['backdrop_url']) ?>')">
-      <div class="hero-inner">
-        <h1 class="hero-title"><?= e($hero['title']) ?></h1>
-        <p class="hero-desc"><?= e(mb_substr($hero['overview'] ?? '', 0, 110)) ?>…</p>
-        <span class="hero-cta">리뷰 보러 가기 →</span>
-      </div>
-    </a>
+    <div class="hero-area">
+      <!-- 왼쪽: 큰 히어로 배너 -->
+      <a class="hero" href="/board/?work=<?= e($hero['slug']) ?>"
+         style="background-image: url('<?= e($hero['backdrop_url']) ?>')">
+        <div class="hero-inner">
+          <h1 class="hero-title"><?= e($hero['title']) ?></h1>
+          <p class="hero-desc"><?= e(mb_substr($hero['overview'] ?? '', 0, 110)) ?>…</p>
+          <span class="hero-cta">리뷰 보러 가기 →</span>
+        </div>
+      </a>
+
+      <!-- 오른쪽: 사이드바 (넓은 화면에서만 옆에, 좁으면 아래로) -->
+      <aside class="hero-side">
+        <?php // B) 지금 뜨는 글 (조회순) — 우리 커뮤니티 ?>
+        <?php if ($hotPosts): ?>
+          <section class="side-box">
+            <h3>🔥 지금 뜨는 글</h3>
+            <ol class="side-hot">
+              <?php foreach ($hotPosts as $p): ?>
+                <li>
+                  <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= e($p['title']) ?></a>
+                  <span class="side-meta"><?= e($p['workTitle']) ?> · 조회 <?= (int)$p['views'] ?></span>
+                </li>
+              <?php endforeach; ?>
+            </ol>
+          </section>
+        <?php endif; ?>
+
+        <?php // D) 오늘의 발견 — 랜덤 작품 하나 ?>
+        <?php if ($pick): ?>
+          <section class="side-box">
+            <h3>🎲 오늘의 발견</h3>
+            <a class="side-pick" href="/board/?work=tmdb-<?= e((string)$pick['tmdb_id']) ?>">
+              <img src="<?= e($pick['poster_url']) ?>" alt="" loading="lazy">
+              <span class="side-pick-title"><?= e($pick['title']) ?></span>
+            </a>
+          </section>
+        <?php endif; ?>
+      </aside>
+    </div>
   <?php endif; ?>
 
   <?php

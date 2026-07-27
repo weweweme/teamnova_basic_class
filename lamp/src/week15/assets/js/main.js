@@ -180,3 +180,52 @@ if (writeForm) {
         }
     });
 }
+
+
+// ── 작품 가로 줄: 좌우 화살표 + 마우스휠 가로 스크롤 ─────────
+//   [문제] 스크롤바를 숨겨서, 일반 마우스(세로 휠만)로는 옆으로 못 넘긴다.
+//     (터치·트랙패드는 원래 잘 됨. 데스크톱 마우스만 문제)
+//   [해결] ① 넷플릭스식 ‹ › 버튼을 넣고  ② 줄 위에서 세로 휠을 가로로 바꿔준다.
+
+document.querySelectorAll('.row-scroll').forEach(function (scroll) {
+    // ① 줄을 감싸는 상자를 만들어 그 안에 넣는다 (화살표를 얹을 기준).
+    const wrap = document.createElement('div');
+    wrap.className = 'row-wrap';
+    scroll.parentNode.insertBefore(wrap, scroll);
+    wrap.appendChild(scroll);
+
+    // ② 좌우 버튼 만들기
+    const prev = document.createElement('button');
+    const next = document.createElement('button');
+    prev.className = 'row-arrow prev'; prev.textContent = '‹'; prev.type = 'button';
+    next.className = 'row-arrow next'; next.textContent = '›'; next.type = 'button';
+    wrap.append(prev, next);
+
+    // 한 번에 얼마나 넘길지 = 보이는 폭의 85% (거의 한 화면씩)
+    function step() { return scroll.clientWidth * 0.85; }
+
+    prev.addEventListener('click', function () {
+        scroll.scrollBy({ left: -step(), behavior: 'smooth' });
+    });
+    next.addEventListener('click', function () {
+        scroll.scrollBy({ left: step(), behavior: 'smooth' });
+    });
+
+    // 끝에 닿으면 그쪽 화살표는 숨긴다 (더 갈 곳 없으니).
+    function updateArrows() {
+        prev.hidden = scroll.scrollLeft <= 0;
+        // scrollWidth(전체) - clientWidth(보이는) = 최대 스크롤 위치. -1은 반올림 여유.
+        next.hidden = scroll.scrollLeft >= scroll.scrollWidth - scroll.clientWidth - 1;
+    }
+    scroll.addEventListener('scroll', updateArrows);
+    updateArrows();   // 처음 상태
+
+    // ③ 세로 휠 → 가로 스크롤 (데스크톱 마우스 편의)
+    scroll.addEventListener('wheel', function (e) {
+        // 이미 가로 입력(트랙패드)이면 놔둔다. 세로 휠일 때만 가로로 바꾼다.
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+            scroll.scrollLeft += e.deltaY;
+            e.preventDefault();   // 페이지가 세로로 스크롤되는 것 막기
+        }
+    }, { passive: false });
+});

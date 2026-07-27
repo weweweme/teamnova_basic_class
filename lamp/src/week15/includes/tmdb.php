@@ -13,6 +13,8 @@ const TMDB_API_BASE    = 'https://api.themoviedb.org/3';
 //   포스터 이미지 주소. TMDB는 poster_path(예: /abc.jpg)만 주므로 앞에 이 주소를 붙여야 실제 이미지가 됨.
 //   w342 = 가로 342px 크기 (w92·w185·w500 등 선택 가능. 목록엔 342면 충분)
 const TMDB_IMAGE_BASE  = 'https://image.tmdb.org/t/p/w342';
+//   배경(backdrop) = 가로형 큰 이미지. 히어로 배너용. w1280 = 넓게.
+const TMDB_BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
 
 // ── TMDB에 GET 요청을 보내고 결과(배열)를 돌려주는 공통 함수 ──
 //   $path  : '/search/movie' 같은 엔드포인트
@@ -174,14 +176,17 @@ function build_media_from_tmdb(array $item): array {
     $year  = $date !== '' ? (int) substr($date, 0, 4) : null;   // '2019-05-30' → 2019
 
     // 포스터: TMDB는 '/abc.jpg' 조각만 주므로 앞에 이미지 주소를 붙인다. 없으면 빈 문자열.
-    $poster = !empty($item['poster_path']) ? TMDB_IMAGE_BASE . $item['poster_path'] : '';
+    $poster   = !empty($item['poster_path'])   ? TMDB_IMAGE_BASE . $item['poster_path']     : '';
+    // 배경(가로 큰 이미지) — 히어로 배너용. 없으면 빈 문자열.
+    $backdrop = !empty($item['backdrop_path']) ? TMDB_BACKDROP_BASE . $item['backdrop_path'] : '';
 
     return [
-        'tmdb_id'    => $item['id'] ?? 0,
-        'title'      => $title,
-        'genre'      => $isMovie ? '영화' : '드라마',
-        'year'       => $year,
-        'overview'   => $item['overview'] ?? '',      // 줄거리
-        'poster_url' => $poster,
+        'tmdb_id'      => $item['id'] ?? 0,
+        'title'        => $title,
+        'genre'        => $isMovie ? '영화' : '드라마',
+        'year'         => $year,
+        'overview'     => $item['overview'] ?? '',      // 줄거리
+        'poster_url'   => $poster,
+        'backdrop_url' => $backdrop,
     ];
 }

@@ -18,11 +18,35 @@ $movies    = tmdb_popular('movie');               // TMDB — 인기 영화
 $tv        = tmdb_popular('tv');                  // TMDB — 인기 드라마
 $recent    = paginate_posts(get_posts(), 1, 8);   // 최근 글 8개 (get_posts는 최신순)
 
+// ── 히어로 배너: 우리 커뮤니티 1위(글 최다). 없으면 이번 주 인기작 1위. ──
+//   backdrop(가로 큰 이미지)이 DB엔 없으므로, tmdb_id로 TMDB 상세를 가져와 채운다.
+$hero = null;
+if ($community) {
+    $topSlug = $community[0]['slug'];                        // 글 제일 많은 작품
+    $hero = tmdb_find_by_id((int) substr($topSlug, 5));      // 'tmdb-496243' → 496243
+    if ($hero) { $hero['slug'] = $topSlug; }
+} elseif ($trending) {
+    $hero = $trending[0];
+    $hero['slug'] = 'tmdb-' . $hero['tmdb_id'];
+}
+
 $pageTitle = '홈 · 리뷰 커뮤니티';
 require __DIR__ . '/includes/header.php';
 ?>
 
   <?php // 로그인·글등록 완료 알림은 header.php가 세션에서 꺼내 그린다 (set_flash) ?>
+
+  <?php // ── 히어로 배너 (넷플릭스 첫 화면식 큰 배경) ─────────────── ?>
+  <?php if ($hero && !empty($hero['backdrop_url'])): ?>
+    <a class="hero" href="/board/?work=<?= e($hero['slug']) ?>"
+       style="background-image: url('<?= e($hero['backdrop_url']) ?>')">
+      <div class="hero-inner">
+        <h1 class="hero-title"><?= e($hero['title']) ?></h1>
+        <p class="hero-desc"><?= e(mb_substr($hero['overview'] ?? '', 0, 110)) ?>…</p>
+        <span class="hero-cta">리뷰 보러 가기 →</span>
+      </div>
+    </a>
+  <?php endif; ?>
 
   <?php
     // ── 우리 커뮤니티 (대형 카드로 강조) ──────────────────────

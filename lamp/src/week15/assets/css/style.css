@@ -18,7 +18,7 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .topbar .logo { font-weight: bold; color: #fff; text-decoration: none; margin-right: auto; }
 .topbar nav a { color: #fff; text-decoration: none; margin-left: 14px; }
 
-/* 본문 영역 */
+/* 본문 영역 (기본 폭 — 다크 테마에서 넓게 덮어씀) */
 .container { max-width: 720px; margin: 0 auto; padding: 20px; }
 .container h1 { font-size: 20px; margin-top: 28px; }
 .container ul { list-style: none; padding: 0; }
@@ -286,38 +286,181 @@ mark { background: #fff3a3; color: inherit; padding: 0 2px; border-radius: 3px; 
 .btn-upload:hover { background: #f2f5ff; }
 
 /* ── 넷플릭스식 작품 가로 줄 ─────────────────────────────── */
-.media-row { margin: 22px 0; }
-.media-row h2 { font-size: 18px; margin: 0 0 10px; }
+.media-row { margin: 26px 0; }
+.media-row h2 { font-size: 18px; margin: 0 0 12px; color: #f5f5f5; }
+/* 대형 줄(우리 커뮤니티)은 제목도 더 크게·강조 */
+.media-row-lg h2 { font-size: 22px; }
 
 /* 가로 스크롤 영역 — 넘치면 옆으로 스크롤 */
 .row-scroll {
-  display: flex; gap: 12px;
-  overflow-x: auto;               /* 가로 스크롤 */
-  padding: 4px 2px 12px;
-  scroll-snap-type: x proximity;  /* 카드 단위로 착 붙게 */
+  display: flex; gap: 14px;
+  overflow-x: auto;
+  padding: 4px 2px 14px;
+  scroll-snap-type: x proximity;
 }
-/* 스크롤바 얇게 (넷플릭스처럼 깔끔) */
 .row-scroll::-webkit-scrollbar { height: 8px; }
-.row-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+.row-scroll::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+.row-scroll::-webkit-scrollbar-track { background: transparent; }
 
-/* 포스터 카드 */
+/* 포스터 카드 (공통) */
 .row-card {
-  flex: 0 0 auto; width: 140px;   /* 고정 너비, 줄어들지 않음 */
+  flex: 0 0 auto;
   scroll-snap-align: start;
-  text-decoration: none; color: inherit;
-  transition: transform 0.18s;    /* hover 확대를 부드럽게 */
+  text-decoration: none; color: #ddd;
+  transition: transform 0.18s;
 }
-.row-card:hover { transform: scale(1.06); z-index: 2; }  /* 넷플릭스식 확대 */
+.row-card:hover { transform: scale(1.06); z-index: 2; }
 
 .row-poster {
-  width: 140px; height: 210px;    /* 영화 포스터 2:3 비율 */
+  width: 100%; aspect-ratio: 2/3;   /* 영화 포스터 2:3 */
   object-fit: cover; border-radius: 8px;
-  background: #eee; display: block;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  background: #333; display: block;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.5);
 }
 .row-title {
-  display: block; margin-top: 6px; font-size: 13px; font-weight: 600;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;  /* 길면 … */
+  display: block; margin-top: 7px; font-weight: 600; color: #f0f0f0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 /* 우리 커뮤니티 지표 (💬 글수 · 👍 %) */
-.row-meta { display: block; font-size: 12px; color: #2b6cff; margin-top: 2px; }
+.row-meta { display: block; color: #7fa8ff; margin-top: 2px; }
+
+/* ── 크기: 대형(lg=우리 커뮤니티) / 소형(sm=TMDB) ────────── */
+.media-row-lg .row-card  { width: 200px; }
+.media-row-lg .row-title { font-size: 15px; }
+.media-row-lg .row-meta  { font-size: 13px; }
+
+.media-row-sm .row-card  { width: 120px; }
+.media-row-sm .row-title { font-size: 12px; }
+.media-row-sm .row-meta  { font-size: 11px; }
+
+/* 작품 둘러보기 — 포스터 그리드 (여러 줄로 감쌈) */
+.poster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 18px; margin-top: 16px;
+}
+.poster-grid .row-card { width: 100%; }
+.poster-grid .row-title { font-size: 14px; }
+
+/* ════════════════════════════════════════════════════════════
+   다크 테마 (전체) — 넷플릭스 감성. 기존 밝은 컴포넌트를 덮어쓴다.
+   ════════════════════════════════════════════════════════════ */
+body { background: #141414; color: #e5e5e5; }
+
+/* 본문 링크·제목 */
+.container a { color: #7fa8ff; }
+.container h1, .container h2 { color: #f5f5f5; }
+.muted { color: #9a9a9a; }
+h1 small, .container h1 small { color: #9a9a9a; }
+
+/* 리스트 구분선 어둡게 */
+.container li { border-bottom: 1px solid #2a2a2a; }
+.container li a { color: #7fa8ff; }
+.post-stat { color: #8a8a8a; }
+
+/* 홈 게시판(최근 글) */
+.home-board { margin-top: 30px; padding-top: 6px; border-top: 1px solid #2a2a2a; }
+.home-board h2 { font-size: 18px; }
+
+/* 카드·패널류 → 어두운 패널로 */
+.work-info, .vote-box, .profile-stats div, .widget-placeholder,
+.modal, .comments, .post-content {
+  background: #1f1f1f; border-color: #333; color: #e5e5e5;
+}
+.work-summary, .post-content { color: #d5d5d5; }
+.comments { border-top-color: #333; }
+.comment-list li { border-bottom-color: #2a2a2a; }
+
+/* 입력창 (검색·글쓰기·댓글·로그인) */
+input[type=text], input[type=password], textarea, select {
+  background: #2a2a2a; color: #f0f0f0; border-color: #444;
+}
+input::placeholder, textarea::placeholder { color: #888; }
+
+/* 태그·배지 */
+.tag { background: #2a3556; color: #9fbcff; }
+
+/* 정렬·필터 탭 */
+.sort-tabs a, .filter-tabs a { background: #1f1f1f; border-color: #3a3a3a; color: #bbb; }
+.sort-tabs a.active { background: #2b6cff; color: #fff; border-color: #2b6cff; }
+.filter-tabs a.active { background: #2a3556; color: #9fbcff; border-color: #4a6; }
+
+/* 페이지네이션 */
+.pagination { border-top-color: #333; }
+.pagination .page-num { background: #1f1f1f; border-color: #3a3a3a; color: #bbb; }
+.pagination .page-nav { background: #1f1f1f; border-color: #3a4a7a; color: #9fbcff; }
+.pagination .page-num.active { background: #2b6cff; color: #fff; }
+
+/* 추천/수정/삭제 버튼 (윤곽선형) */
+.like-form button, .post-actions .btn-edit {
+  background: #1f1f1f; border-color: #3a4a7a; color: #9fbcff;
+}
+.vote-form button { background: #1f1f1f; border-color: #444; }
+
+/* 프로필 통계 숫자 */
+.profile-stats strong { color: #7fa8ff; }
+.profile-stats span { color: #9a9a9a; }
+
+/* 검색 결과(작품) 리스트 hover */
+.media-list a:hover { background: #1f1f1f; }
+
+/* 플래시(토스트)는 밝게 유지해도 잘 보임 — 그대로 둠 */
+
+/* 검색어 하이라이트 */
+mark { background: #7a6000; color: #fff3a3; }
+
+/* ── 다크 테마 마감: 메뉴바·폭·스크롤바 ─────────────────────── */
+
+/* 상단 메뉴바 — 파란 바 → 배경에 녹아드는 다크 (넷플릭스식) */
+.topbar { background: #0b0b0b; border-bottom: 1px solid #262626; }
+.topbar .logo { color: #fff; font-size: 20px; letter-spacing: -0.5px; }
+.topbar nav a { color: #cfcfcf; font-size: 14px; transition: color 0.15s; }
+.topbar nav a:hover { color: #fff; }
+/* 로그아웃 버튼도 링크처럼 */
+.topbar .logout-form button, .topbar .nav-user {
+  background: none; border: none; color: #cfcfcf; cursor: pointer;
+  font-size: 14px; margin-left: 14px; }
+.topbar .nav-user { color: #fff; font-weight: 600; }
+
+/* 본문 폭: 홈·작품·게시판은 넓게 */
+.container { max-width: 1100px; }
+/* 단, '글 읽기·폼'은 좁은 폭이 읽기 좋다 → 그 안의 요소만 폭 제한 */
+.post, .write-form, .auth-form, .comments, .home-board .post-list,
+.board-toolbar, .search-form, .sort-tabs, .filter-tabs, .pagination,
+.post-list, .comment-list, .profile-stats, .profile-head, .vote-box, .work-info {
+  max-width: 760px;
+}
+
+/* 가로 스크롤바 숨기기 (넷플릭스처럼 깔끔하게) — 스크롤은 그대로 됨 */
+.row-scroll {
+  scrollbar-width: none;           /* 파이어폭스 */
+  -ms-overflow-style: none;        /* 옛 엣지 */
+}
+.row-scroll::-webkit-scrollbar { display: none; }  /* 크롬·사파리 */
+
+/* ── 반응형: 화면 폭에 맞춰 포스터·여백·글씨 조정 ──────────── */
+
+/* 태블릿 이하 (~1024px): 본문 여백 줄이고 대형 카드 살짝 축소 */
+@media (max-width: 1024px) {
+  .container { padding: 16px; }
+  .media-row-lg .row-card { width: 170px; }
+}
+
+/* 모바일 (~600px): 포스터 더 작게, 여백 최소, 메뉴 줄바꿈 허용 */
+@media (max-width: 600px) {
+  .container { padding: 12px; }
+  .topbar { flex-wrap: wrap; gap: 8px 12px; padding: 10px 14px; }
+  .topbar nav a { margin-left: 10px; font-size: 13px; }
+
+  .media-row-lg .row-card { width: 130px; }
+  .media-row-sm .row-card { width: 96px; }
+  .media-row-lg h2 { font-size: 18px; }
+  .media-row h2 { font-size: 16px; }
+
+  /* 작품 그리드도 칸을 더 촘촘히 */
+  .poster-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; }
+
+  /* 게시판 투표·툴바 세로로 */
+  .board-toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
+  .h1, .container h1 { font-size: 18px; }
+}

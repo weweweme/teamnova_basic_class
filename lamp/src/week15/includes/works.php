@@ -146,42 +146,6 @@ function get_community_works(): array {
     return $rows;
 }
 
-// ── 우리 DB에 있는 모든 작품 (작품목록에서 사용) ────────────
-//   ★ 의미가 바뀌었다: 예전엔 '고정 더미 10개'였지만, 이제 '누군가 글을 써서
-//     우리 DB에 들어온 작품들'이다. (TMDB엔 수십만 개지만 우리가 다루는 건 이것들)
-function get_works(): array {
-    $rows = db()->query('SELECT * FROM media ORDER BY id DESC')->fetchAll();
-    $result = [];
-    foreach ($rows as $row) {
-        $counts = media_vote_counts((int) $row['id']);
-        $result[] = [
-            'slug'       => $row['slug'],
-            'title'      => $row['title'],
-            'genre'      => $row['genre'],
-            'year'       => $row['year'],
-            'summary'    => $row['overview'] ?? '',
-            'poster_url' => $row['poster_url'] ?? '',
-            'upVotes'    => $counts['up'],
-            'downVotes'  => $counts['down'],
-        ];
-    }
-    return $result;
-}
-
-// 장르(영화/드라마)로 걸러낸다. 빈 문자열이면 전체. (배열 연산이라 week14 그대로)
-function filter_works_by_genre(array $works, string $genre): array {
-    if ($genre === '') {
-        return $works;
-    }
-    $result = [];
-    foreach ($works as $w) {
-        if ($w['genre'] === $genre) {
-            $result[] = $w;
-        }
-    }
-    return $result;
-}
-
 // ── slug로 작품 제목만 (없으면 null) ────────────────────────
 function get_work_title(string $slug): ?string {
     $work = get_work($slug);

@@ -1,35 +1,34 @@
 <?php
 // ============================================================
-// works.php — 전체 작품 목록  [GET 요청]
-//   ?genre=영화 / 드라마 로 장르를 걸러 본다.
-//   각 작품의 '글 수'와 '추천 비율'까지 함께 보여준다.
+// works.php — 작품 둘러보기  [GET 요청]
+//   ?genre=영화 / 드라마 로 TMDB 인기작을 포스터 그리드로 보여준다.
+//   ★ 데이터는 TMDB(전체 카탈로그). 우리 media 표는 '글 저장 시 참조'로만 쓴다.
+//     각 작품을 누르면 그 작품 게시판(/board/?work=tmdb-<id>)으로 간다.
 //
 //   ※ 파일 이름이 includes/works.php(모듈)와 같지만 폴더가 달라 서로 다른 파일이다.
-//     이 파일 = 화면(페이지) / includes/works.php = 데이터·기능 모듈.
 // ============================================================
 require_once __DIR__ . '/includes/util.php';
-require_once __DIR__ . '/includes/works.php';   // 작품 데이터 모듈
-require_once __DIR__ . '/includes/posts.php';   // 글 수를 세려고 함께 사용
+require_once __DIR__ . '/includes/tmdb.php';   // 인기 영화·드라마
 
-// ── 1) 장르 필터 받기 + 화이트리스트 검증 ────────────────────
-$genre = get_str('genre', '');
+// ── 1) 장르 받기 (기본: 영화) + 화이트리스트 ────────────────
+$genre = get_str('genre', '영화');
 if (!in_array($genre, ['영화', '드라마'], true)) {
-    $genre = '';   // 이상한 값이면 '전체'로
+    $genre = '영화';
 }
 
-// ── 2) 작품 목록 걸러내기 + 글 목록 미리 가져오기 ────────────
-$works    = filter_works_by_genre(get_works(), $genre);
-$allPosts = get_posts();   // 반복문 안에서 매번 부르지 않도록 '한 번만' 가져와 재사용
+// ── 2) TMDB에서 그 장르 인기작 가져오기 ─────────────────────
+//   영화면 'movie', 드라마면 'tv' 엔드포인트.
+$works = tmdb_popular($genre === '영화' ? 'movie' : 'tv');
 
-$genres = ['' => '전체', '영화' => '영화', '드라마' => '드라마'];
+$genres = ['영화' => '영화', '드라마' => '드라마'];
 
-$pageTitle = '전체 작품';
+$pageTitle = '작품 둘러보기';
 require __DIR__ . '/includes/header.php';
 ?>
 
-  <h1>전체 작품</h1>
+  <h1>작품 둘러보기</h1>
 
-  <!-- 장르 필터: ?genre= 만 바꾼다 -->
+  <!-- 장르 탭: ?genre= 만 바꾼다 -->
   <div class="filter-tabs">
     <?php foreach ($genres as $key => $label): ?>
       <a class="<?= $genre === $key ? 'active' : '' ?>"
@@ -37,29 +36,19 @@ require __DIR__ . '/includes/header.php';
     <?php endforeach; ?>
   </div>
 
-  <p class="muted">총 <?= count($works) ?>개 작품</p>
-
   <?php if (!$works): ?>
-    <p class="muted">해당 장르의 작품이 없습니다.</p>
+    <p class="muted">작품을 불러오지 못했습니다.</p>
   <?php else: ?>
-    <ul class="work-list">
+    <!-- 포스터 그리드 (넷플릭스식 카드) -->
+    <div class="poster-grid">
       <?php foreach ($works as $w): ?>
-        <?php
-          // 이 작품의 글 수 (posts 모듈 재사용)
-          $postCount = count(filter_posts_by_work($allPosts, $w['slug']));
-
-          // 추천 비율 (0으로 나누기 방지 — 먼저 확인)
-          $totalVotes = $w['upVotes'] + $w['downVotes'];
-          $upPct      = $totalVotes > 0 ? (int)round($w['upVotes'] / $totalVotes * 100) : 0;
-        ?>
-        <li>
-          <!-- 작품명을 누르면 그 작품 게시판으로 -->
-          <a href="/board/?work=<?= e($w['slug']) ?>"><?= e($w['title']) ?></a>
-          <span class="tag">추천 <?= $upPct ?>%</span>
-          <span class="post-stat"><?= e($w['genre']) ?> · <?= e((string)$w['year']) ?> · 글 <?= $postCount ?>개</span>
-        </li>
+        <a class="row-card" href="/board/?work=tmdb-<?= e((string)$w['tmdb_id']) ?>">
+          <img class="row-poster" src="<?= e($w['poster_url']) ?>" alt="" loading="lazy">
+          <span class="row-title"><?= e($w['title']) ?></span>
+          <span class="post-stat"><?= e((string)($w['year'] ?? '')) ?></span>
+        </a>
       <?php endforeach; ?>
-    </ul>
+    </div>
   <?php endif; ?>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>

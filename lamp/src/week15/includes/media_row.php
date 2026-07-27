@@ -8,12 +8,13 @@
 // $title  : 줄 제목 (예: "🎬 인기 영화")
 // $items  : 작품 배열. 링크용 slug가 있으면 그걸, 없으면(TMDB 결과) tmdb_id로 slug를 만든다.
 //           선택적으로 postCount·upPct(우리 커뮤니티 지표).
-function render_media_row(string $title, array $items): void {
+// $size   : 'lg'(대형 — 우리 커뮤니티) | 'sm'(소형 — TMDB 둘러보기). CSS 클래스로 크기 결정.
+function render_media_row(string $title, array $items, string $size = 'sm'): void {
     if (!$items) {
         return;                          // 빈 줄은 아예 안 그린다
     }
     ?>
-    <section class="media-row">
+    <section class="media-row media-row-<?= e($size) ?>">
       <h2><?= e($title) ?></h2>
       <div class="row-scroll">
         <?php foreach ($items as $m): ?>

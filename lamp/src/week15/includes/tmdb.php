@@ -18,10 +18,27 @@ const TMDB_IMAGE_BASE  = 'https://image.tmdb.org/t/p/w342';
 //   $path  : '/search/movie' 같은 엔드포인트
 //   $params: ['query' => '기생충', ...] 쿼리 파라미터
 //   ★ v4 토큰을 'Authorization: Bearer ...' 헤더로 보낸다 (URL에 키를 노출하지 않음).
+const TMDB_CACHE_DIR = __DIR__ . '/../cache/tmdb';
+const TMDB_CACHE_TTL = 1800;   // 캐시 유효시간(초) = 30분
+
 function tmdb_get(string $path, array $params = []): ?array {
     // 파라미터를 URL 쿼리문자열로 (한글·특수문자 자동 인코딩)
     $params['language'] = 'ko-KR';                       // 항상 한국어로
     $url = TMDB_API_BASE . $path . '?' . http_build_query($params);
+
+    // ── 캐시 확인 ────────────────────────────────────────────
+    //   [문제] 인기작 목록은 자주 안 바뀌는데, 홈을 열 때마다 TMDB를 여러 번 부르면 느리다.
+    //   [해결] 같은 요청 결과를 파일에 잠깐(30분) 저장해두고 재사용한다.
+    //     URL을 md5로 짧게 줄여 파일명으로. (같은 요청 = 같은 파일명)
+    $cacheFile = TMDB_CACHE_DIR . '/' . md5($url) . '.json';
+    //   파일이 있고 30분이 안 지났으면 → TMDB 안 부르고 그걸 그대로 쓴다.
+    if (is_file($cacheFile) && (time() - filemtime($cacheFile)) < TMDB_CACHE_TTL) {
+        $cached = file_get_contents($cacheFile);
+        $data   = json_decode($cached, true);
+        if (is_array($data)) {
+            return $data;
+        }
+    }
 
     // 요청에 헤더를 실어 보내기 위한 '설정 봉투'(context)
     //   file_get_contents는 기본이 GET. 헤더만 얹으면 된다.
@@ -39,6 +56,9 @@ function tmdb_get(string $path, array $params = []): ?array {
     if ($body === false) {
         return null;                                    // 네트워크 실패 등 → null
     }
+
+    // 다음을 위해 캐시에 저장 (성공한 응답만)
+    @file_put_contents($cacheFile, $body);
 
     // JSON 문자열 → PHP 배열
     $data = json_decode($body, true);
@@ -72,6 +92,9 @@ function search_tmdb(string $query): array {
     return $result;
 }
 
+// 한 줄에 몇 페이지까지 이어붙일지 (TMDB 1페이지 = 20개). 3이면 약 60개.
+const TMDB_PAGES = 3;
+
 // ── 이번 주 인기작 (영화+드라마 섞여서) ────────────────────
 //   TMDB가 전 세계 데이터로 집계한 '요즘 뜨는' 작품들. 매주 바뀐다.
 function tmdb_trending(): array {
@@ -85,24 +108,35 @@ function tmdb_popular(string $type): array {
 }
 
 // ── 목록 엔드포인트 공통 처리 → 우리 형식 배열로 ────────────
+//   여러 페이지(TMDB_PAGES)를 이어붙여 '길게' 만든다 → 오래 스크롤 가능.
 //   $forceType: 결과에 media_type이 없을 때(popular은 안 줌) 강제로 지정.
 function tmdb_list(string $path, string $forceType = ''): array {
-    $data = tmdb_get($path);
-    if ($data === null || empty($data['results'])) {
-        return [];
-    }
     $result = [];
-    foreach ($data['results'] as $item) {
-        // trending은 media_type을 주지만 person(인물)도 섞임 → 영화·드라마만.
-        // popular은 media_type이 없으므로 $forceType으로 채운다.
-        $type = $item['media_type'] ?? $forceType;
-        if ($type !== 'movie' && $type !== 'tv') {
-            continue;
+    $seen   = [];   // 같은 작품이 여러 페이지에 겹쳐 나올 때 중복 제거용
+
+    for ($page = 1; $page <= TMDB_PAGES; $page++) {
+        $data = tmdb_get($path, ['page' => $page]);
+        if ($data === null || empty($data['results'])) {
+            break;                        // 더 없으면 멈춘다
         }
-        $item['media_type'] = $type;
-        $m = build_media_from_tmdb($item);
-        if ($m['poster_url'] !== '') {   // 포스터 없는 건 목록에서 뺀다 (화면이 빈칸 없게)
-            $result[] = $m;
+        foreach ($data['results'] as $item) {
+            // trending은 media_type을 주지만 person(인물)도 섞임 → 영화·드라마만.
+            // popular은 media_type이 없으므로 $forceType으로 채운다.
+            $type = $item['media_type'] ?? $forceType;
+            if ($type !== 'movie' && $type !== 'tv') {
+                continue;
+            }
+            $id = $item['id'] ?? 0;
+            if (isset($seen[$id])) {
+                continue;                 // 이미 담은 작품이면 건너뜀
+            }
+            $seen[$id] = true;
+
+            $item['media_type'] = $type;
+            $m = build_media_from_tmdb($item);
+            if ($m['poster_url'] !== '') {  // 포스터 없는 건 뺀다 (화면 빈칸 방지)
+                $result[] = $m;
+            }
         }
     }
     return $result;

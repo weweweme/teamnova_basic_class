@@ -8,13 +8,15 @@
 require_once __DIR__ . '/includes/util.php';
 require_once __DIR__ . '/includes/tmdb.php';       // 인기작·인기영화·인기드라마
 require_once __DIR__ . '/includes/works.php';      // 우리 커뮤니티 작품
+require_once __DIR__ . '/includes/posts.php';      // 최근 글 (게시판)
 require_once __DIR__ . '/includes/media_row.php';  // 가로 줄 렌더링 조각
 
-// 각 줄의 데이터 (TMDB 3줄 + 우리 DB 1줄)
-$community = get_community_works();   // 우리 DB — 글 달린 작품 + 지표
-$trending  = tmdb_trending();        // TMDB — 이번 주 인기작
-$movies    = tmdb_popular('movie');  // TMDB — 인기 영화
-$tv        = tmdb_popular('tv');     // TMDB — 인기 드라마
+// 각 줄의 데이터 (우리 DB + TMDB)
+$community = get_community_works();               // 우리 DB — 글 달린 작품 + 지표
+$trending  = tmdb_trending();                     // TMDB — 이번 주 인기작
+$movies    = tmdb_popular('movie');               // TMDB — 인기 영화
+$tv        = tmdb_popular('tv');                  // TMDB — 인기 드라마
+$recent    = paginate_posts(get_posts(), 1, 8);   // 최근 글 8개 (get_posts는 최신순)
 
 $pageTitle = '홈 · 리뷰 커뮤니티';
 require __DIR__ . '/includes/header.php';
@@ -23,13 +25,31 @@ require __DIR__ . '/includes/header.php';
   <?php // 로그인·글등록 완료 알림은 header.php가 세션에서 꺼내 그린다 (set_flash) ?>
 
   <?php
-    // ── 넷플릭스식 줄들 (조각 재사용) ──────────────────────────
-    //   ★ 우리 커뮤니티 줄을 '맨 위'에 — TMDB 포스터에 우리 게 묻히지 않도록.
-    //     (글이 하나도 없으면 render_media_row가 알아서 안 그린다)
-    render_media_row('💬 우리 커뮤니티에서 이야기 중', $community);
-    render_media_row('🔥 이번 주 인기작',              $trending);
-    render_media_row('🎬 인기 영화',                   $movies);
-    render_media_row('📺 인기 드라마',                 $tv);
+    // ── 우리 커뮤니티 (대형 카드로 강조) ──────────────────────
+    //   ★ 우리 것을 '맨 위·크게' — TMDB 포스터에 정체성이 묻히지 않도록.
+    render_media_row('🔥 우리 커뮤니티에서 이야기 중', $community, 'lg');
+
+    // ── TMDB 둘러보기 (소형 카드, 리사이클러뷰처럼 여러 줄) ──
+    render_media_row('이번 주 인기작', $trending, 'sm');
+    render_media_row('인기 영화',      $movies,   'sm');
+    render_media_row('인기 드라마',    $tv,       'sm');
   ?>
+
+  <!-- ── 게시판: 최근 올라온 글 ──────────────────────────────── -->
+  <?php if ($recent): ?>
+    <section class="home-board">
+      <h2>📋 최근 올라온 글</h2>
+      <ul class="post-list">
+        <?php foreach ($recent as $p): ?>
+          <li>
+            <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= e($p['title']) ?></a>
+            <span class="tag"><?= e($p['sentiment']) ?></span>
+            <a class="post-stat" href="/board/?work=<?= e($p['work']) ?>"><?= e($p['workTitle']) ?></a>
+            <span class="post-stat">· <?= e($p['author']) ?> · 💬 <?= (int)$p['comments'] ?></span>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    </section>
+  <?php endif; ?>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>

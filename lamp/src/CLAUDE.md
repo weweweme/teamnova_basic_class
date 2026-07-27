@@ -91,7 +91,10 @@ week14/
   → PHP는 반드시 브라우저(`http://localhost/파일.php`)로 실행해서 확인한다.
 - DB: **MariaDB 12.3.2** — **같은 컨테이너 안**에 설치됨(`/usr/local/mariadb`, 커스텀 빌드).
   - **CLI는 있음**: `/usr/local/mariadb/bin/{mariadb,mysql}` (예전 메모의 "mysql CLI 없음"은 틀림).
-  - **자동 실행 아님** — 컨테이너 재시작하면 꺼진다. 수동으로 다시 켜야 함:
+  - **자동 실행 설정됨** — `apachectl`(PID 1)에 자동시작 블록을 주입해서, 컨테이너
+    재시작 시 MariaDB가 접속 불가면 `mariadbd-safe`로 자동 기동한다.
+    (백업: `apachectl.pre-mariadb`. ※ 컨테이너 '삭제 후 재생성'하면 사라짐 → 이미지엔 없음)
+    수동 기동이 필요하면:
     `/usr/local/mariadb/bin/mariadbd-safe --datadir=/usr/local/mariadb/data --user=root --socket=/tmp/mysql.sock --port=3306 --bind-address=0.0.0.0 &`
   - **데이터 위치**: `/usr/local/mariadb/data` (컨테이너 안 — 컨테이너 삭제 시 소실. 볼륨 미연결).
   - **접속정보**: host `localhost`/`127.0.0.1`, port `3306`, DB `review_community`(utf8mb4).

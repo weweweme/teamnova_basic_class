@@ -17,7 +17,8 @@ week14의 "세션 임시 저장" 껍데기를, **진짜 MariaDB**로 바꾼 버�
 | DB | **MariaDB 12.3.2** (같은 컨테이너, `/usr/local/mariadb`) |
 | DocumentRoot | `/var/www/html/week15` |
 
-**DB 서버 켜기** (컨테이너 재시작하면 꺼지므로 수동 실행):
+**DB 서버**: 컨테이너 시작 시 `apachectl`이 **자동으로 MariaDB를 켠다**.
+혹시 수동으로 켜야 하면:
 ```bash
 /usr/local/mariadb/bin/mariadbd-safe --datadir=/usr/local/mariadb/data \
   --user=root --socket=/tmp/mysql.sock --port=3306 --bind-address=0.0.0.0 &

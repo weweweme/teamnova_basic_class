@@ -72,6 +72,42 @@ function search_tmdb(string $query): array {
     return $result;
 }
 
+// ── 이번 주 인기작 (영화+드라마 섞여서) ────────────────────
+//   TMDB가 전 세계 데이터로 집계한 '요즘 뜨는' 작품들. 매주 바뀐다.
+function tmdb_trending(): array {
+    return tmdb_list('/trending/all/week');
+}
+
+// ── 인기 영화 / 인기 드라마 ─────────────────────────────────
+//   $type: 'movie'(영화) | 'tv'(드라마). TMDB의 누적 인기도(popularity) 순.
+function tmdb_popular(string $type): array {
+    return tmdb_list("/$type/popular", $type);
+}
+
+// ── 목록 엔드포인트 공통 처리 → 우리 형식 배열로 ────────────
+//   $forceType: 결과에 media_type이 없을 때(popular은 안 줌) 강제로 지정.
+function tmdb_list(string $path, string $forceType = ''): array {
+    $data = tmdb_get($path);
+    if ($data === null || empty($data['results'])) {
+        return [];
+    }
+    $result = [];
+    foreach ($data['results'] as $item) {
+        // trending은 media_type을 주지만 person(인물)도 섞임 → 영화·드라마만.
+        // popular은 media_type이 없으므로 $forceType으로 채운다.
+        $type = $item['media_type'] ?? $forceType;
+        if ($type !== 'movie' && $type !== 'tv') {
+            continue;
+        }
+        $item['media_type'] = $type;
+        $m = build_media_from_tmdb($item);
+        if ($m['poster_url'] !== '') {   // 포스터 없는 건 목록에서 뺀다 (화면이 빈칸 없게)
+            $result[] = $m;
+        }
+    }
+    return $result;
+}
+
 // ── tmdb_id로 작품 하나 상세 조회 ──────────────────────────
 //   슬러그(tmdb-496243)만 있고 우리 DB에 아직 없을 때, TMDB에서 정보를 가져온다.
 //   ★ 슬러그엔 영화/드라마 구분이 없다 → /movie/{id} 먼저 시도, 없으면 /tv/{id}.

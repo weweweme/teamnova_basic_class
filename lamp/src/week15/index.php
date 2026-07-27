@@ -1,67 +1,35 @@
 <?php
 // ============================================================
-// index.php — 홈 화면  [GET 요청]
-//   주소창에 그냥 접속(http://localhost/) = GET 요청.
-//   지금은 DB가 없으니 '더미(가짜) 데이터'를 모듈에서 가져와 쓴다.
+// index.php — 홈 화면  [GET 요청]  (넷플릭스식 가로 스크롤 줄)
+//   · TMDB에서 인기작을 가져와 포스터 줄로 보여준다 (둘러보기).
+//   · 맨 위엔 '우리 커뮤니티에서 이야기 중'인 작품 줄 (우리 DB = 우리 정체성).
+//   ★ media 표는 화면 목록이 아니라 '글이 저장될 때 참조하는 내부 저장소'로만 쓴다.
 // ============================================================
 require_once __DIR__ . '/includes/util.php';
-require_once __DIR__ . '/includes/posts.php';    // 글 모듈
-require_once __DIR__ . '/includes/works.php';    // 작품 모듈
+require_once __DIR__ . '/includes/tmdb.php';       // 인기작·인기영화·인기드라마
+require_once __DIR__ . '/includes/works.php';      // 우리 커뮤니티 작품
+require_once __DIR__ . '/includes/media_row.php';  // 가로 줄 렌더링 조각
 
-// 작품 목록 (works 모듈에서 — 더 이상 여기서 직접 들고 있지 않는다)
-$works = get_works();
+// 각 줄의 데이터 (TMDB 3줄 + 우리 DB 1줄)
+$community = get_community_works();   // 우리 DB — 글 달린 작품 + 지표
+$trending  = tmdb_trending();        // TMDB — 이번 주 인기작
+$movies    = tmdb_popular('movie');  // TMDB — 인기 영화
+$tv        = tmdb_popular('tv');     // TMDB — 인기 드라마
 
-// 인기 글 3개 = 전체 글을 '인기순'으로 정렬한 뒤 앞에서 3개만 자르기.
-//   board·search에서 쓰던 정렬·자르기 함수를 그대로 재사용 (모듈로 빼둔 덕분!)
-$posts = paginate_posts(sort_posts(get_posts(), 'hot'), 1, 3);
-
-// 이 브라우저에서 최근에 열어본 글 (세션에 쌓인 기록)
-$recentPosts = get_recent_posts();
-
-// 탭 제목을 정하고 → 공통 상단(header)을 불러온다.
 $pageTitle = '홈 · 리뷰 커뮤니티';
 require __DIR__ . '/includes/header.php';
 ?>
 
   <?php // 로그인·글등록 완료 알림은 header.php가 세션에서 꺼내 그린다 (set_flash) ?>
 
-  <?php // ── 최근 본 글 ─────────────────────────────────────────
-        //   글을 한 번도 안 열었으면 이 구역 자체를 그리지 않는다.
-        //   (빈 상자만 덩그러니 있으면 화면만 지저분해지므로) ?>
-  <?php if ($recentPosts): ?>
-    <h1>최근 본 글</h1>
-    <ul class="recent-list">
-      <?php foreach ($recentPosts as $p): ?>
-        <li>
-          <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= e($p['title']) ?></a>
-          <span class="post-stat"><?= e($p['workTitle']) ?></span>
-        </li>
-      <?php endforeach; ?>
-    </ul>
-  <?php endif; ?>
+  <?php
+    // ── 넷플릭스식 줄들 (조각 재사용) ──────────────────────────
+    //   ★ 우리 커뮤니티 줄을 '맨 위'에 — TMDB 포스터에 우리 게 묻히지 않도록.
+    //     (글이 하나도 없으면 render_media_row가 알아서 안 그린다)
+    render_media_row('💬 우리 커뮤니티에서 이야기 중', $community);
+    render_media_row('🔥 이번 주 인기작',              $trending);
+    render_media_row('🎬 인기 영화',                   $movies);
+    render_media_row('📺 인기 드라마',                 $tv);
+  ?>
 
-  <h1>작품</h1>
-  <ul class="work-list">
-    <?php foreach ($works as $w): ?>
-      <!-- 작품 게시판으로 이동: GET으로 work를 주소에 실어 보냄 (?work=...) -->
-      <li>
-        <a href="/board/?work=<?= e($w['slug']) ?>"><?= e($w['title']) ?></a>
-        <span class="post-stat"><?= e($w['genre']) ?> · <?= e((string)$w['year']) ?></span>
-      </li>
-    <?php endforeach; ?>
-  </ul>
-
-  <h1>인기 글</h1>
-  <ul class="post-list">
-    <?php foreach ($posts as $p): ?>
-      <!-- 글 보기로 이동: GET으로 id를 주소에 실어 보냄 (?id=...) -->
-      <li>
-        <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= e($p['title']) ?></a>
-        <span class="tag"><?= e($p['workTitle']) ?></span>
-      </li>
-    <?php endforeach; ?>
-  </ul>
-
-<?php
-// 공통 하단(footer)을 불러와 문서를 닫는다.
-require __DIR__ . '/includes/footer.php';
+<?php require __DIR__ . '/includes/footer.php'; ?>

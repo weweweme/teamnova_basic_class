@@ -125,7 +125,28 @@ function ensure_media_by_slug(string $slug): int {
     return 0;                            // 저장할 수 없음
 }
 
-// ── 우리 DB에 있는 모든 작품 (홈·작품목록에서 사용) ─────────
+// ── 우리 커뮤니티에서 '이야기 중인' 작품 (홈의 우리 줄) ─────
+//   글이 1개 이상 달린 작품만, 글 많은 순. 각 작품에 커뮤니티 지표(글 수·투표)를 붙인다.
+//   ★ TMDB 목록과 달리 이건 '우리 것' — 우리 유저 반응이 있는 작품.
+function get_community_works(): array {
+    $sql = "
+        SELECT m.slug, m.title, m.genre, m.year, m.poster_url,
+               (SELECT COUNT(*) FROM posts p WHERE p.media_id = m.id AND p.deleted_at IS NULL) AS postCount
+        FROM media m
+        HAVING postCount > 0          -- 글 달린 작품만
+        ORDER BY postCount DESC        -- 이야기 많은 순
+        LIMIT 20
+    ";
+    $rows = db()->query($sql)->fetchAll();
+    foreach ($rows as &$row) {
+        $counts = media_vote_counts((int) db_scalar('SELECT id FROM media WHERE slug = ?', [$row['slug']]));
+        $total = $counts['up'] + $counts['down'];
+        $row['upPct'] = $total > 0 ? (int) round($counts['up'] / $total * 100) : null;  // 투표 없으면 null
+    }
+    return $rows;
+}
+
+// ── 우리 DB에 있는 모든 작품 (작품목록에서 사용) ────────────
 //   ★ 의미가 바뀌었다: 예전엔 '고정 더미 10개'였지만, 이제 '누군가 글을 써서
 //     우리 DB에 들어온 작품들'이다. (TMDB엔 수십만 개지만 우리가 다루는 건 이것들)
 function get_works(): array {

@@ -19,8 +19,8 @@
   - 목표: **MariaDB 연결 + 실제 CRUD**. 세션 임시저장 → 진짜 DB로 교체. **핵심 전환 완료.**
   - 방식: `includes/` 도메인 모듈 함수의 '속'만 SQL로 바꿈 (화면 파일은 거의 그대로).
     반환 배열 모양을 week14와 동일하게 유지 → 필터·정렬·페이징·화면 코드 재사용.
-  - **DB 표 6개**: users · media · posts · comments · likes · votes
-    (+ posts·comments·media는 소프트삭제/부가열. schema.sql·seed.sql로 재생성 가능)
+  - **DB 표 7개**: users · media · posts · comments · likes · votes · reports
+    (+ posts·comments는 소프트삭제, users는 avatar. schema.sql·seed.sql로 재생성 가능)
     - likes·votes는 **복합 기본키**(user_id, post_id/media_id)로 '1인 1회' 보장.
     - 삭제는 **소프트삭제**(deleted_at) → 되돌리기 유지.
     - 외래키 삭제정책: 글→댓글·추천 CASCADE, 회원 참조는 RESTRICT.
@@ -29,8 +29,11 @@
     - **글·투표 시 그 작품을 media 표에 자동 저장**(ensure_media_by_slug).
     - slug 규칙: `tmdb-<tmdb_id>` (예: tmdb-496243 = 기생충).
   - **구현 완료**: 로그인·회원가입(users, password_hash) / 글 CRUD(JOIN 조회) /
-    댓글 / 추천(likes) / 투표(votes) / 소유권·권한 서버 확인 / 검색→게시판→글쓰기 전 흐름.
-  - **아직**: reports 표(신고는 접수만) / 이미지 업로드.
+    댓글 / 추천(likes) / 투표(votes) / 신고(reports) / 소유권·권한 서버 확인 /
+    검색→게시판→글쓰기 전 흐름 / **프로필 이미지 업로드**(uploads/avatars/, 다층 방어).
+  - **이미지 업로드 보안 3중**: ①MIME(내용)으로 진짜 이미지만(finfo) ②파일명 강제
+    재생성(user<id>.<ext>) ③httpd.conf에서 uploads 폴더 PHP 실행 차단(다층 방어).
+  - **DB 전환 완료** — 세션에 남은 건 로그인 상태·플래시·최근 본 글뿐.
   - **DB 이론 발표자료 병행 제작 중**(DB란/정규화/ER/B+트리/SQL·CRUD/JOIN 등).
     근거는 영문 위키·MariaDB 공식문서 기반. 톤은 빅테크 시니어→중학생.
     ※ JOIN 슬라이드는 아직 미완성(도입 논리 다듬다 중단).

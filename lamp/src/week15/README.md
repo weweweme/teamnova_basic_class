@@ -66,6 +66,7 @@ users ──┬─< posts >──┬── media
 | **comments** | 댓글 | `post_id`·`author_id` 외래키 |
 | **likes** | 글 추천 | **복합키**(user_id, post_id) = 1인 1회 |
 | **votes** | 작품 투표 | **복합키**(user_id, media_id) + choice |
+| **reports** | 글 신고 | (reporter_id, post_id) UNIQUE = 1인 1회 |
 
 **삭제 정책**: 글을 지우면 그 댓글·추천도 함께(`ON DELETE CASCADE`).
 회원은 함부로 못 지우게(`RESTRICT`). 글·댓글 자체는 **소프트삭제**(`deleted_at`)라 되돌리기 가능.
@@ -125,13 +126,15 @@ week14와 **똑같은 모양의 배열**을 돌려준다 → 그 위의 필터·
 | 권한 | 수정·삭제는 화면에서 숨기고 **서버에서 소유권 재확인**(`is_owner`) |
 | GET으로 변경 차단 | 액션 파일은 POST 아니면 즉시 리다이렉트 |
 | 세션 고정 공격 | 로그인 시 `session_regenerate_id(true)` |
+| **이미지 업로드** | ①MIME 검사(finfo) ②파일명 강제 재생성 ③업로드 폴더 PHP 실행 차단 |
 
 **세션은 로그인 상태·플래시 알림·최근 본 글에만** 남았다. 나머지 데이터는 전부 DB.
 
 ---
 
-## 7. 다음에 할 것
+## 7. 남은 것 (선택)
 
-- `reports` 표 (신고를 실제 저장 — 지금은 접수 처리만)
-- 이미지 업로드
-- DB 자동 시작 (컨테이너 시작 시 mariadbd 자동 실행)
+- 글에 이미지 첨부 (지금은 프로필 이미지만)
+- DB 이론 발표자료 마무리 (JOIN 슬라이드 등)
+
+> DB 자동 시작은 `apachectl`에 설정 완료 — 컨테이너 재시작 시 MariaDB가 자동 기동.

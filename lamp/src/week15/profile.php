@@ -35,20 +35,40 @@ $totalLikes = array_sum(array_column($posts, 'likes'));
 // 지금 보고 있는 프로필이 '내 것'인가? (로그인한 사람과 이름이 같으면)
 $isMe = is_owner($user);
 
+// 이 회원의 아바타(프로필 이미지) 주소. 없으면 null.
+$userRow = find_user($user);
+$avatar  = $userRow['avatar'] ?? null;
+
 $pageTitle = $isMe ? '내 프로필' : $user . ' 님의 프로필';
 require __DIR__ . '/includes/header.php';
 ?>
 
-  <h1>
-    <?= e($user) ?>
-    <small><?= $isMe ? '— 내 프로필' : '님의 프로필' ?></small>
-  </h1>
+  <div class="profile-head">
+    <!-- 아바타: 있으면 이미지, 없으면 이름 첫 글자로 만든 자리표시 -->
+    <?php if ($avatar): ?>
+      <img class="avatar" src="<?= e($avatar) ?>" alt="">
+    <?php else: ?>
+      <span class="avatar avatar-empty"><?= e(mb_substr($user, 0, 1)) ?></span>
+    <?php endif; ?>
 
-  <?php // 내 프로필일 때만 보이는 바로가기 ?>
+    <h1>
+      <?= e($user) ?>
+      <small><?= $isMe ? '— 내 프로필' : '님의 프로필' ?></small>
+    </h1>
+  </div>
+
+  <?php // 내 프로필일 때만: 이미지 변경 폼 + 새 글 바로가기 ?>
   <?php if ($isMe): ?>
-    <p class="muted">
-      내가 쓴 글을 모아 봅니다. <a href="/post/write.php">✏️ 새 글 쓰기</a>
-    </p>
+    <!-- 파일 업로드 폼: enctype="multipart/form-data" 필수 (파일을 담아 보내는 방식) -->
+    <form class="avatar-form" method="post" action="/profile/avatar.php" enctype="multipart/form-data">
+      <label class="btn-upload">
+        프로필 이미지 변경
+        <!-- accept="image/*" = 파일 선택창에서 이미지만 보이게 (편의. 진짜 검증은 서버) -->
+        <input type="file" name="avatar" accept="image/*" onchange="this.form.submit()" hidden>
+      </label>
+      <span class="muted">JPG·PNG·GIF·WebP · 2MB 이하</span>
+    </form>
+    <p class="muted"><a href="/post/write.php">✏️ 새 글 쓰기</a></p>
   <?php endif; ?>
 
   <!-- 활동 통계 카드 3개 -->

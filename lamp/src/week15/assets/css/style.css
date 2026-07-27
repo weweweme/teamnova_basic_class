@@ -270,3 +270,17 @@ mark { background: #fff3a3; color: inherit; padding: 0 2px; border-radius: 3px; 
   font-size: 11px; color: #aaa; }
 .media-info { display: flex; flex-direction: column; gap: 4px; }
 .media-info strong { font-size: 15px; }
+
+/* 프로필 아바타 */
+.profile-head { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+.profile-head h1 { margin: 0; }
+.avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover;
+  background: #eee; flex-shrink: 0; }
+.avatar-empty { display: flex; align-items: center; justify-content: center;
+  font-size: 30px; font-weight: 700; color: #fff; background: #2b6cff; }
+/* 이미지 변경 버튼 (label을 버튼처럼) */
+.avatar-form { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+.btn-upload { display: inline-block; padding: 7px 14px; background: #fff;
+  border: 1px solid #cdd6f5; border-radius: 8px; color: #2b6cff;
+  font-size: 14px; font-weight: 600; cursor: pointer; }
+.btn-upload:hover { background: #f2f5ff; }

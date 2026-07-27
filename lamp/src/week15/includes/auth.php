@@ -31,6 +31,11 @@ function create_user(string $username, string $password): int {
     return (int) db()->lastInsertId();
 }
 
+// 회원의 아바타(프로필 이미지) 주소를 저장한다.
+function set_avatar(int $userId, string $url): void {
+    db()->prepare('UPDATE users SET avatar = ? WHERE id = ?')->execute([$url, $userId]);
+}
+
 // 아이디+비밀번호가 맞는지 확인. 맞으면 회원 배열, 틀리면 null.
 //   password_verify(입력한 비번, 저장된 해시) = 해시와 대조해 맞는지 확인.
 //     ★ 해시를 '풀어서' 비교하는 게 아니라, 입력값을 같은 방식으로 뒤섞어 비교한다.

@@ -14,6 +14,7 @@ CREATE TABLE users (
     id         INT AUTO_INCREMENT PRIMARY KEY,   -- 기본키. 안 넣으면 1,2,3… 자동 부여
     username   VARCHAR(20)  NOT NULL UNIQUE,      -- 아이디. 비면 거부, 중복도 거부
     password   VARCHAR(255) NOT NULL,             -- password_hash() 결과 (해시라 길어서 255)
+    avatar     VARCHAR(255) DEFAULT NULL,         -- 프로필 이미지 주소 (uploads/avatars/). 없으면 NULL
     joined_at  DATETIME     DEFAULT NOW()         -- 가입 시각. 안 넣으면 '지금'이 자동으로 들어감
 );
 

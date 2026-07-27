@@ -60,6 +60,7 @@ CREATE TABLE comments (
     author_id  INT NOT NULL,                    -- 누가 → users.id
     content    VARCHAR(500) NOT NULL,           -- 댓글 내용. 최대 500자를 아니까 VARCHAR
     created_at DATETIME DEFAULT NOW(),
+    deleted_at DATETIME DEFAULT NULL,            -- 소프트삭제 (글과 동일)
 
     FOREIGN KEY (post_id)   REFERENCES posts(id) ON DELETE CASCADE,  -- 글 지우면 댓글도 삭제
     FOREIGN KEY (author_id) REFERENCES users(id)                     -- 회원은 함부로 못 지우게 기본값

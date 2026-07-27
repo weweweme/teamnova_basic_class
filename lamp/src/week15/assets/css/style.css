@@ -324,10 +324,19 @@ mark { background: #fff3a3; color: inherit; padding: 0 2px; border-radius: 3px; 
 /* 우리 커뮤니티 지표 (💬 글수 · 👍 %) */
 .row-meta { display: block; color: #7fa8ff; margin-top: 2px; }
 
-/* ── 크기: 대형(lg=우리 커뮤니티) / 소형(sm=TMDB) ────────── */
-.media-row-lg .row-card  { width: 200px; }
-.media-row-lg .row-title { font-size: 15px; }
+/* ── 대형(lg=우리 커뮤니티): 가로 스크롤 대신 '폭에 딱 맞는 5칸 그리드' ──
+   작품 수가 적으니 옆으로 넘기지 않고 화면을 꽉 채운다. 카드가 커지면
+   포스터도 aspect-ratio 2/3라 세로로 함께 커진다. (딱 맞춤) */
+.media-row-lg .row-scroll {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 16px; overflow: visible;              /* 스크롤 없음 */
+}
+.media-row-lg .row-card  { width: auto; }    /* 칸(1fr)에 맞춤 */
+.media-row-lg .row-title { font-size: 16px; }
 .media-row-lg .row-meta  { font-size: 13px; }
+/* 좁아지면 칸 수를 줄여 카드가 너무 작아지지 않게 */
+@media (max-width: 1100px) { .media-row-lg .row-scroll { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 640px)  { .media-row-lg .row-scroll { grid-template-columns: repeat(2, 1fr); } }
 
 .media-row-sm .row-card  { width: 120px; }
 .media-row-sm .row-title { font-size: 12px; }
@@ -422,8 +431,8 @@ mark { background: #7a6000; color: #fff3a3; }
   font-size: 14px; margin-left: 14px; }
 .topbar .nav-user { color: #fff; font-weight: 600; }
 
-/* 본문 폭: 홈·작품·게시판은 넓게 */
-.container { max-width: 1100px; }
+/* 본문 폭: 홈·작품·게시판은 넓게 (커뮤니티 대형 카드 5개가 다 보이게) */
+.container { max-width: 1400px; }
 /* 단, '글 읽기·폼'은 좁은 폭이 읽기 좋다 → 그 안의 요소만 폭 제한 */
 .post, .write-form, .auth-form, .comments, .home-board .post-list,
 .board-toolbar, .search-form, .sort-tabs, .filter-tabs, .pagination,
@@ -517,9 +526,8 @@ mark { background: #7a6000; color: #fff3a3; }
 
 /* ── 넓은 화면: 포스터·히어로 키우기 ────────────────────────── */
 @media (min-width: 1400px) {
-  .media-row-lg .row-card { width: 230px; }
+  /* lg는 5칸 그리드라 카드 폭을 고정하지 않는다 (그리드가 폭을 채움) */
   .media-row-sm .row-card { width: 150px; }
-  .hero { height: 460px; }
   .hero-title { font-size: 48px; }
 }
 

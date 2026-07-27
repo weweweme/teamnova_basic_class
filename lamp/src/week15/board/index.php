@@ -7,6 +7,7 @@
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/posts.php';   // 글 데이터·필터·정렬·페이징 모듈
 require_once __DIR__ . '/../includes/works.php';   // 작품 데이터 모듈
+require_once __DIR__ . '/../includes/tmdb.php';    // 작품 상세(감독·출연·예고편)
 
 // 한 페이지에 보여줄 글 수. (매직값 금지 — 이름 붙인 상수로)
 const POSTS_PER_PAGE = 3;
@@ -39,6 +40,13 @@ if ($work === '') {
 // ── 3) 작품 정보 (works 모듈에서 조회) ───────────────────────
 $workInfo = get_work($work);                    // 없으면 null
 $title    = $workInfo['title'] ?? '알 수 없는 작품';
+
+// 작품 상세(감독·출연·예고편·분량) — 'tmdb-번호' 슬러그일 때만 TMDB에서 가져온다.
+//   (우리 DB에만 있는 작품이면 상세가 없으니 $detail은 null → 화면에서 알아서 건너뜀)
+$detail = null;
+if (str_starts_with($work, 'tmdb-')) {
+    $detail = build_tmdb_detail((int) substr($work, 5));
+}
 
 // 추천/비추천 투표 집계 → 퍼센트 계산
 //   round() = 반올림. 총 투표가 0이면 나눗셈을 못 하니 먼저 확인(Tester-Doer).
@@ -73,11 +81,12 @@ require __DIR__ . '/../includes/header.php';
 
   <h1 class="narrow-title"><?= e($title) ?>
     <?php if ($workInfo !== null): ?>
-      <small>(<?= e($workInfo['genre']) ?> · <?= e((string)$workInfo['year']) ?>)</small>
+      <small>(<?= e($workInfo['genre']) ?> · <?= e((string)$workInfo['year']) ?><?php
+        if ($detail !== null && $detail['runtimeText'] !== ''): ?> · <?= e($detail['runtimeText']) ?><?php endif; ?>)</small>
     <?php endif; ?>
   </h1>
 
-  <!-- 작품 정보 (포스터 + 장르·연도 + 줄거리) -->
+  <!-- 작품 정보 (포스터 + 감독·출연·분량 + 줄거리 + 예고편) -->
   <?php if ($workInfo === null): ?>
     <div class="widget-placeholder">존재하지 않는 작품입니다</div>
   <?php else: ?>
@@ -85,7 +94,21 @@ require __DIR__ . '/../includes/header.php';
       <?php if (!empty($workInfo['poster_url'])): ?>
         <img class="poster" src="<?= e($workInfo['poster_url']) ?>" alt="" loading="lazy">
       <?php endif; ?>
-      <p class="work-summary"><?= e($workInfo['summary']) ?></p>
+      <div class="work-detail">
+        <?php // 감독(영화)/제작(드라마) — 이름이 있을 때만 ?>
+        <?php if ($detail !== null && $detail['creditName'] !== ''): ?>
+          <p class="work-credit"><span class="k"><?= e($detail['creditLabel']) ?></span><?= e($detail['creditName']) ?></p>
+        <?php endif; ?>
+        <?php // 출연진 — 있을 때만, 가운뎃점으로 이어 붙여서 ?>
+        <?php if ($detail !== null && $detail['cast']): ?>
+          <p class="work-credit"><span class="k">출연</span><?= e(implode(' · ', $detail['cast'])) ?></p>
+        <?php endif; ?>
+        <p class="work-summary"><?= e($workInfo['summary']) ?></p>
+        <?php // 예고편 버튼 — 유튜브 영상이 있을 때만. data-trailer에 영상 키를 실어 JS가 읽는다. ?>
+        <?php if ($detail !== null && $detail['trailerKey'] !== ''): ?>
+          <button type="button" class="btn-trailer" data-trailer="<?= e($detail['trailerKey']) ?>">▶ 예고편 보기</button>
+        <?php endif; ?>
+      </div>
     </div>
   <?php endif; ?>
 
@@ -197,6 +220,19 @@ require __DIR__ . '/../includes/header.php';
         <span class="page-nav disabled">다음 →</span>
       <?php endif; ?>
     </nav>
+  <?php endif; ?>
+
+  <?php // ── 예고편 모달: 버튼을 누르면 이 <dialog>가 페이지 위에 뜬다 (신고 모달과 같은 방식) ──
+        //   ★ iframe src를 비워둔다 → 페이지 로드 때 유튜브를 미리 안 불러 빠르다.
+        //     버튼을 누르는 '그 순간' JS가 src를 채워 재생하고, 닫으면 다시 비워 정지시킨다. ?>
+  <?php if ($detail !== null && $detail['trailerKey'] !== ''): ?>
+    <dialog id="trailer-modal" class="trailer-modal">
+      <div class="trailer-frame">
+        <iframe id="trailer-iframe" src="" title="예고편"
+                allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+      </div>
+      <form method="dialog"><button class="trailer-close">닫기 ✕</button></form>
+    </dialog>
   <?php endif; ?>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

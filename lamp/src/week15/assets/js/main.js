@@ -298,3 +298,31 @@ if (grid && sentinel) {
 
     observer.observe(sentinel);
 }
+
+// ── 예고편 모달: '▶ 예고편 보기'를 누르면 유튜브를 dialog 안에서 재생 ──
+//   버튼의 data-trailer(영상 키)를 읽어 유튜브 embed 주소를 만든다.
+//   ★ src는 '열 때' 넣고 '닫을 때' 비운다 → 미리 로딩 안 함(빠름) + 닫으면 소리 정지.
+const trailerModal = document.getElementById('trailer-modal');
+if (trailerModal) {
+    const iframe = document.getElementById('trailer-iframe');
+
+    document.querySelectorAll('.btn-trailer').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const key = btn.dataset.trailer;
+            // youtube-nocookie = 추적 쿠키 없는 유튜브 임베드. autoplay=1 자동재생, rel=0 관련영상 최소화.
+            iframe.src = 'https://www.youtube-nocookie.com/embed/' + key + '?autoplay=1&rel=0';
+            trailerModal.showModal();
+        });
+    });
+
+    // 닫힐 때(닫기 버튼·ESC·바깥클릭 모두) src를 비워 재생을 멈춘다.
+    trailerModal.addEventListener('close', function () {
+        iframe.src = '';
+    });
+    // 모달 바깥(어두운 배경)을 클릭하면 닫기
+    trailerModal.addEventListener('click', function (e) {
+        if (e.target === trailerModal) {
+            trailerModal.close();
+        }
+    });
+}

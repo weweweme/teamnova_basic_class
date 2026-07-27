@@ -383,6 +383,9 @@ h1 small, .container h1 small { color: #9a9a9a; }
 /* 홈 게시판(최근 글) */
 .home-board { margin-top: 30px; padding-top: 6px; border-top: 1px solid #2a2a2a; }
 .home-board h2 { font-size: 18px; }
+/* 홈의 최근 글 목록만 예외: 위 제목·포스터 줄과 왼쪽 라인을 맞춰 전체 폭으로 편다.
+   (글 읽기 페이지의 좁은 760px 가운데 정렬은 그대로 두고, 넓은 홈에서만 쏠림 제거) */
+.home-board .post-list { max-width: none; margin-left: 0; margin-right: 0; }
 
 /* 카드·패널류 → 어두운 패널로 (글 본문·댓글은 제외 — 미니멀하게 여백/선으로) */
 .work-info, .vote-box, .profile-stats div, .widget-placeholder, .modal {
@@ -617,10 +620,29 @@ mark { background: #7a6000; color: #fff3a3; }
 /* 작품 제목 */
 .container h1 small { font-size: 16px; }
 
-/* 작품 정보: 포스터(왼) + 줄거리(오른) 가로 배치 */
+/* 작품 정보: 포스터(왼) + 감독·출연·줄거리·예고편(오른) 가로 배치 */
 .work-info { display: flex; gap: 18px; align-items: flex-start; padding: 18px; }
 .work-info .poster { width: 110px; height: 165px; border-radius: 8px; flex-shrink: 0; }
-.work-info .work-summary { flex: 1; line-height: 1.7; color: #cfcfcf; align-self: center; }
+.work-detail { flex: 1; min-width: 0; }   /* min-width:0 = 긴 줄이 칸을 넘치지 않고 줄바꿈되게 */
+/* 감독·출연 한 줄: 왼쪽 라벨(회색 고정폭) + 값 */
+.work-credit { margin: 0 0 6px; color: #d8d8d8; font-size: 14px; line-height: 1.5; }
+.work-credit .k { display: inline-block; width: 44px; color: #8a8a8a; font-size: 13px; }
+.work-info .work-summary { margin: 10px 0 0; line-height: 1.7; color: #cfcfcf; }
+/* 예고편 버튼 — 유튜브 느낌의 빨강 */
+.btn-trailer { margin-top: 14px; padding: 9px 16px; border: 0; border-radius: 8px;
+  background: #e50914; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; }
+.btn-trailer:hover { background: #f6121d; }
+
+/* 예고편 모달 — 배경은 투명하게 두고 안의 영상만 보이게, 배경막은 어둡게 */
+.trailer-modal { border: 0; background: transparent; padding: 0; width: min(880px, 92vw); }
+.trailer-modal::backdrop { background: rgba(0, 0, 0, 0.8); }
+/* 16:9 비율 유지 — aspect-ratio가 가로에 맞춰 세로를 자동 계산 */
+.trailer-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; }
+.trailer-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%;
+  border: 0; border-radius: 10px; }
+.trailer-close { display: block; margin: 10px auto 0; padding: 8px 18px;
+  border: 1px solid #555; border-radius: 8px; background: #222; color: #eee; cursor: pointer; }
+.trailer-close:hover { background: #333; }
 
 /* 투표 박스 — 여백·정렬 정리 */
 .vote-box { padding: 18px; }

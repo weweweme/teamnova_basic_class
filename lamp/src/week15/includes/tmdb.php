@@ -260,6 +260,102 @@ function tmdb_find_by_id(int $tmdbId): ?array {
     return null;                          // 둘 다 없으면 진짜 없는 것
 }
 
+// ── tmdb_id로 '상세 정보'(감독·출연·예고편) 가져오기 ───────
+//   tmdb_find_by_id가 포스터·줄거리까지라면, 이건 그 위에 사람·영상을 더 얹는다.
+//   ★ append_to_response=credits,videos → 기본정보+출연진+영상을 '한 번의 호출'로 받는다.
+//     (안 그러면 /movie/id, /movie/id/credits, /movie/id/videos 를 3번 따로 불러야 함)
+//   슬러그엔 영화/드라마 구분이 없으므로 /movie 먼저, 없으면 /tv 로 시도한다.
+//   반환: creditLabel(감독/제작) · creditName · cast(이름 배열) · trailerKey(유튜브)
+//         · backdropUrl · runtimeText  — 화면이 그대로 뿌리기 좋은 형태.
+function build_tmdb_detail(int $tmdbId): ?array {
+    $params = ['append_to_response' => 'credits,videos'];
+
+    // ① 영화로 시도
+    $movie = tmdb_get("/movie/$tmdbId", $params);
+    if ($movie !== null && !empty($movie['id'])) {
+        return build_detail_common($movie, 'movie');
+    }
+    // ② 없으면 드라마로 시도
+    $tv = tmdb_get("/tv/$tmdbId", $params);
+    if ($tv !== null && !empty($tv['id'])) {
+        return build_detail_common($tv, 'tv');
+    }
+    return null;
+}
+
+// ── 영화/드라마 상세 원본 → 우리 형식으로 통일 ─────────────
+//   영화와 드라마는 '감독'을 담는 자리가 다르다:
+//     영화: credits.crew 중 job이 'Director'인 사람
+//     드라마: created_by (기획자) — crew엔 감독이 회차마다 달라 안 들어감
+function build_detail_common(array $item, string $type): array {
+    $isMovie = ($type === 'movie');
+
+    // 감독(영화) / 제작(드라마) 이름 뽑기
+    $creditLabel = $isMovie ? '감독' : '제작';
+    $creditName  = '';
+    if ($isMovie) {
+        // crew 배열에서 job이 'Director'인 첫 사람 (Tester-Doer: 있으면만 꺼냄)
+        foreach ($item['credits']['crew'] ?? [] as $person) {
+            if (($person['job'] ?? '') === 'Director') {
+                $creditName = $person['name'] ?? '';
+                break;
+            }
+        }
+    } else {
+        // 드라마는 created_by[0] (기획자)
+        $creators = $item['created_by'] ?? [];
+        $creditName = $creators[0]['name'] ?? '';
+    }
+
+    // 출연진 상위 5명 이름만 (credits.cast는 비중 순으로 정렬돼 옴)
+    $cast = [];
+    foreach (array_slice($item['credits']['cast'] ?? [], 0, 5) as $actor) {
+        $name = $actor['name'] ?? '';
+        if ($name !== '') {
+            $cast[] = $name;
+        }
+    }
+
+    // 예고편: videos.results 중 '유튜브 + Trailer'를 우선, 없으면 아무 유튜브 영상
+    $trailerKey = '';
+    $fallback   = '';
+    foreach ($item['videos']['results'] ?? [] as $v) {
+        if (($v['site'] ?? '') !== 'YouTube') {
+            continue;
+        }
+        if ($fallback === '') {
+            $fallback = $v['key'] ?? '';        // 유튜브면 일단 후보로
+        }
+        if (($v['type'] ?? '') === 'Trailer') {
+            $trailerKey = $v['key'] ?? '';       // 진짜 '예고편'이면 확정하고 멈춤
+            break;
+        }
+    }
+    if ($trailerKey === '') {
+        $trailerKey = $fallback;                 // 예고편이 없으면 아무 유튜브 영상이라도
+    }
+
+    // 러닝타임(영화) / 시즌 수(드라마) — 한 줄 정보로
+    $runtimeText = '';
+    if ($isMovie && !empty($item['runtime'])) {
+        $runtimeText = $item['runtime'] . '분';
+    } elseif (!$isMovie && !empty($item['number_of_seasons'])) {
+        $runtimeText = '시즌 ' . $item['number_of_seasons'] . '개';
+    }
+
+    $backdrop = !empty($item['backdrop_path'])
+        ? TMDB_BACKDROP_BASE . $item['backdrop_path'] : '';
+
+    return [
+        'creditLabel' => $creditLabel,
+        'creditName'  => $creditName,
+        'cast'        => $cast,         // 이름 배열
+        'trailerKey'  => $trailerKey,   // 유튜브 영상 키 ('' = 없음)
+        'backdropUrl' => $backdrop,
+        'runtimeText' => $runtimeText,
+    ];
+}
+
 // ── TMDB 원본 한 건 → 우리 형식으로 변환 ───────────────────
 //   영화(movie)와 드라마(tv)는 필드 이름이 다르다:
 //     영화: title, release_date  /  드라마: name, first_air_date

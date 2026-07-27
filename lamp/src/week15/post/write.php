@@ -11,15 +11,26 @@ require_once __DIR__ . '/../includes/works.php';   // 작품 목록을 고르게
 // ★ 로그인해야 글을 쓸 수 있다. (안 했으면 로그인 페이지로)
 require_login();
 
-// 게시판에서 넘어온 작품 (없으면 빈 값 → 사용자가 직접 고름)
-$work  = get_str('work', '');
-$works = get_works();
+// 어느 작품에 쓰는 글인지 — 게시판에서 ?work=slug 로 넘어온다.
+//   글쓰기는 항상 '특정 작품 게시판'에서 시작하므로, 작품은 고정이다(고르는 게 아니라).
+$work     = get_str('work', '');
+$workInfo = get_work($work);   // DB에 있으면 그 정보, 없으면 TMDB에서 (폴백)
+
+// 작품이 정해지지 않았으면(주소로 직접 들어옴 등) → 검색으로 안내
+if ($workInfo === null) {
+    $pageTitle = '글쓰기';
+    require __DIR__ . '/../includes/header.php';
+    echo '<p class="muted">먼저 <a href="/search.php">작품을 검색</a>해 게시판에 들어간 뒤 글쓰기를 눌러주세요.</p>';
+    require __DIR__ . '/../includes/footer.php';
+    exit;
+}
 
 $pageTitle = '글쓰기';
 require __DIR__ . '/../includes/header.php';
 ?>
 
   <h1>글쓰기</h1>
+  <p class="muted"><strong><?= e($workInfo['title']) ?></strong> 에 리뷰를 씁니다.</p>
 
   <?php // 길이 초과 거절 안내는 header.php가 세션에서 꺼내 그린다 ?>
 
@@ -28,19 +39,9 @@ require __DIR__ . '/../includes/header.php';
        action="/post/create.php" : 제출하면 이 파일이 처리한다. -->
   <form class="write-form" method="post" action="/post/create.php">
 
-    <!-- 어느 작품 글인지 고른다.
-         게시판에서 넘어왔다면(?work=) 그 작품이 미리 선택되도록 selected를 붙인다. -->
-    <label>작품
-      <select name="work" required>
-        <option value="">— 작품 선택 —</option>
-        <?php foreach ($works as $w): ?>
-          <option value="<?= e($w['slug']) ?>"
-                  <?= $work === $w['slug'] ? 'selected' : '' ?>>
-            <?= e($w['title']) ?> (<?= e($w['genre']) ?> · <?= e((string)$w['year']) ?>)
-          </option>
-        <?php endforeach; ?>
-      </select>
-    </label>
+    <!-- 어느 작품 글인지는 고정 — 게시판에서 넘어온 그 작품. hidden으로 slug를 함께 보낸다.
+         (dropdown이 아닌 이유: 글쓰기는 특정 작품 게시판에서만 시작하므로 작품이 이미 정해짐) -->
+    <input type="hidden" name="work" value="<?= e($work) ?>">
 
     <!-- label = 입력칸 설명표. input의 name = 서버에서 값 꺼낼 '열쇠'($_POST['title']) -->
     <label>제목

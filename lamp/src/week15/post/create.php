@@ -47,9 +47,11 @@ if (mb_strlen($title) > POST_TITLE_MAX || mb_strlen($content) > POST_CONTENT_MAX
     header('Location: /post/write.php');
     exit;
 }
-// 작품 검증: 실제로 존재하는 작품이어야 한다.
-//   (select엔 3개뿐이지만, 요청을 조작하면 아무 값이나 보낼 수 있으므로 서버에서 확인)
-if (get_work($work) === null) {
+// 작품 검증 + 우리 DB에 보장: 실제로 존재하는 작품이어야 한다.
+//   ★ ensure_media_by_slug: 그 작품이 media 표에 없으면(아직 아무도 글 안 씀)
+//     TMDB에서 가져와 저장하고 media.id를 준다. 0이면 진짜 없는 작품 → 폼으로.
+//     (글의 media_id 외래키가 걸리려면 작품이 먼저 DB에 있어야 하므로)
+if (ensure_media_by_slug($work) === 0) {
     header('Location: /post/write.php');
     exit;
 }
@@ -60,7 +62,7 @@ if (get_work($work) === null) {
 $author    = current_user();
 $workTitle = get_work($work)['title'];
 
-//   임시 보관함(세션)에 저장한다. 나중 DB를 붙이면 이 한 줄이 INSERT로 바뀐다.
+//   DB의 posts 표에 INSERT (add_post가 slug·닉네임을 media.id·users.id로 바꿔 저장).
 add_post($work, $workTitle, $title, $content, $sentiment, (string)$author);
 
 // ── 4) PRG: 처리 끝나면 반드시 redirect (GET 페이지로) ───────
@@ -69,6 +71,6 @@ add_post($work, $workTitle, $title, $content, $sentiment, (string)$author);
 //   ⚠️ header()는 화면(HTML)이 한 글자라도 출력되기 전에 불러야 한다.
 //   왜 redirect? 처리 화면을 그대로 보여주면 '새로고침' 시 POST 재전송 → 글 중복 등록.
 //   글은 '그 작품'에 속하므로, 홈이 아니라 그 작품 게시판으로 돌려보낸다.
-set_flash('✅ 글이 등록되었습니다. (임시 저장 — 브라우저를 닫으면 초기화됩니다)');
+set_flash('✅ 글이 등록되었습니다.');
 header('Location: /board/?work=' . urlencode($work));
 exit;

@@ -7,8 +7,9 @@
 // ============================================================
 
 require_once __DIR__ . '/db.php';
-require_once __DIR__ . '/auth.php';   // current_user_id()
-require_once __DIR__ . '/tmdb.php';   // TMDB 폴백·저장
+require_once __DIR__ . '/auth.php';    // current_user_id()
+require_once __DIR__ . '/tmdb.php';    // TMDB 폴백 조회
+require_once __DIR__ . '/media.php';   // ensure_media() — 작품을 우리 DB에 저장
 
 // ── 작품 하나 조회 (우리 DB 먼저, 없으면 TMDB) ──────────────
 //   board가 /board/?work=tmdb-496243 로 들어올 때 쓴다.

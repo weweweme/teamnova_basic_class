@@ -1,7 +1,7 @@
 <?php
 // ============================================================
 // auth/register.php — 회원가입 처리  [POST 요청 → PRG]
-//   지금은 저장할 DB가 없어 '가입된 셈 치고' 로그인 페이지로 보낸다.
+//   users 표에 새 회원을 저장한다 (비밀번호는 해시로).
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';
@@ -31,10 +31,16 @@ if (find_user($username) !== null) {
     exit;
 }
 
-// ── 3) 저장 (지금은 stub) ────────────────────────────────────
-//   나중엔 users 테이블에 INSERT 한다. 이때 비밀번호는 반드시
-//   password_hash($password, PASSWORD_DEFAULT) 로 '해시'해서 저장한다.
-//   (평문 저장 절대 금지 — DB가 유출되면 비밀번호가 그대로 새어나간다)
+// ── 3) 저장 ──────────────────────────────────────────────────
+//   create_user가 비밀번호를 password_hash로 해시해 users 표에 INSERT 한다.
+//   (평문 저장 절대 금지 — DB가 유출돼도 원래 비번을 알 수 없게)
+$newId = create_user($username, $password);
+if ($newId === 0) {
+    // 위에서 중복 검사를 했지만, 그 찰나에 같은 아이디가 들어올 수도 있어 한 번 더 방어
+    set_flash('❌ 이미 있는 아이디입니다.', 'error');
+    header('Location: /auth/signup.php');
+    exit;
+}
 
 // ── 4) PRG: 로그인 페이지로 (+가입 완료 표시) ────────────────
 set_flash('🎉 회원가입이 완료되었습니다. 로그인해 주세요.');

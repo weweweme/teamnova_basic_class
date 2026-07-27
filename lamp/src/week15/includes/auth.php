@@ -6,30 +6,32 @@
 
 require_once __DIR__ . '/db.php';   // current_user_id()가 users 표를 조회하므로
 
-// 더미 사용자 (나중 users 테이블)
-//   ★★ 비밀번호는 '절대' 그대로 저장하지 않는다.
-//      password_hash()로 만든 '해시'(단방향으로 뒤섞은 값)만 저장한다.
-//      해시는 되돌릴 수 없어서, DB가 털려도 원래 비밀번호를 알 수 없다.
-//      (실무 철칙. 평문 저장은 사고 나면 그대로 유출)
-//   테스트 계정:  영화광 / 1234        ·  admin / admin1234
-function get_users(): array {
-    return [
-        ['username' => '영화광', 'passwordHash' => '$2y$12$0TjGD.ZDDHTWGRc4zCPaxeKviHRa4PxEg5nmlPJ8GT5X8SGdFn5cG'],
-        ['username' => 'admin',  'passwordHash' => '$2y$12$lRkvX788AuKPJdH1CAihFuLn680SATlMtCiQL.JQfRTWsPqmcB48G'],
-    ];
-}
+// ★★ 비밀번호는 '절대' 그대로 저장하지 않는다.
+//    password_hash()로 만든 '해시'(단방향으로 뒤섞은 값)만 users.password에 저장한다.
+//    해시는 되돌릴 수 없어서, DB가 털려도 원래 비밀번호를 알 수 없다. (실무 철칙)
+//    테스트 계정(seed): 영화광 / 1234
 
-// 아이디로 사용자 찾기. 없으면 null.
+// 아이디로 회원 한 명 찾기 (users 표에서). 없으면 null.
 function find_user(string $username): ?array {
-    foreach (get_users() as $u) {
-        if ($u['username'] === $username) {
-            return $u;
-        }
-    }
-    return null;
+    $stmt = db()->prepare('SELECT * FROM users WHERE username = ?');
+    $stmt->execute([$username]);
+    $row = $stmt->fetch();
+    return $row !== false ? $row : null;
 }
 
-// 아이디+비밀번호가 맞는지 확인. 맞으면 사용자 배열, 틀리면 null.
+// 새 회원 저장 (회원가입). 성공하면 새 회원 id, 아이디 중복이면 0.
+function create_user(string $username, string $password): int {
+    if (find_user($username) !== null) {
+        return 0;                         // 이미 있는 아이디
+    }
+    // 평문 비번을 해시로 바꿔 저장 (원본 비번은 어디에도 안 남긴다)
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+    $stmt = db()->prepare('INSERT INTO users (username, password) VALUES (?, ?)');
+    $stmt->execute([$username, $hash]);
+    return (int) db()->lastInsertId();
+}
+
+// 아이디+비밀번호가 맞는지 확인. 맞으면 회원 배열, 틀리면 null.
 //   password_verify(입력한 비번, 저장된 해시) = 해시와 대조해 맞는지 확인.
 //     ★ 해시를 '풀어서' 비교하는 게 아니라, 입력값을 같은 방식으로 뒤섞어 비교한다.
 function verify_login(string $username, string $password): ?array {
@@ -39,8 +41,8 @@ function verify_login(string $username, string $password): ?array {
     if ($user === null) {
         return null;
     }
-    // 비밀번호가 틀리면 실패
-    if (!password_verify($password, $user['passwordHash'])) {
+    // 비밀번호가 틀리면 실패 (users 표의 password 열에 해시가 들어있음)
+    if (!password_verify($password, $user['password'])) {
         return null;
     }
     return $user;

@@ -8,14 +8,18 @@
 
 ## 현재 진행 상황
 - `week13/` : `phpinfo()` 띄우기 (PHP 동작 확인) — 완료
-- `week14/` : **지금 여기**. 핵심은 **GET/POST(HTTP 메서드)를 다양한 상태로 최대한 써보기**.
-  - 목표: **커뮤니티 "껍데기"**(작품목록·게시판·글보기·글쓰기·검색·프로필 UI + 페이지 이동 흐름)를 만들되,
-    **알맹이(DB 저장 등)는 "됐다고 치고" stub 처리**. 예: 글 등록 눌러도 실제로 저장은 안 됨.
+- `week14/` : **완료**. 핵심은 **GET/POST(HTTP 메서드)를 다양한 상태로 최대한 써보기**.
+  - 커뮤니티 "껍데기" 완성(작품·게시판·글·댓글·검색·프로필·로그인 UI + GET/POST 흐름).
+    알맹이(DB 저장)는 **세션에 임시 저장**으로 "동작하는 것처럼" 시연 가능하게 구현.
   - 컨셉: **영화·드라마 리뷰 커뮤니티** (원래 종목토론방이었으나 실시간 시세 문제로 전환 — 아래 설계 참고).
   - 방식: 폼을 GET/POST로 보내고 PHP `$_GET`/`$_POST`로 받아 화면에 반영.
     Android **Intent**(화면전환 + putExtra)에 비유하면 사용자가 빠르게 이해함.
-  - **PHP가 이번 주 편입됨**(폼 처리용). **MariaDB·실제 CRUD 저장은 여전히 이후 주차**로 미룬다.
-  - HTML/CSS/JS 개념은 별도 **발표자료**로 병행 정리 중(빅테크 시니어→중학생 톤, 비유 중심).
+  - 발표자료(`week14/발표대본.md` 포함) + README 완비. **제출 완료본이므로 week14는 건드리지 않는다.**
+- `week15/` : **지금 여기**. week14를 통째로 복사(`cp -a`)해서 시작.
+  - 목표: **MariaDB 연결 + 실제 CRUD**. 세션 임시저장 → 진짜 DB로 교체.
+  - 방식: `includes/` 도메인 모듈 함수의 '속'만 SQL로 바꾼다 (화면 파일은 안 고침).
+  - **DB 이론 발표자료 병행 제작 중**(DB란/정규화/ER/B+트리/SQL·CRUD/JOIN 등).
+    근거는 영문 위키·MariaDB 공식문서 기반. 톤은 빅테크 시니어→중학생.
 
 ## week14 커뮤니티 설계 (영화·드라마 리뷰 컨셉)
 > 컨셉: **작품(영화·드라마)별 리뷰 커뮤니티**. 유저가 작품별 게시판에서 감상(호평·보통·혹평)을
@@ -71,9 +75,24 @@ week14/
 - 웹서버: **Apache httpd** (`/usr/local/apache2`), 포트 80, 실행 중
 - PHP: **8.5.8** — `mod_php`로 Apache에 내장. **`php` CLI 명령어는 없음.**
   → PHP는 반드시 브라우저(`http://localhost/파일.php`)로 실행해서 확인한다.
-- DB: **MariaDB** (별도 컨테이너로 추정). `mysql` CLI 없음. 접속정보는 DB 붙일 때 확정.
+- DB: **MariaDB 12.3.2** — **같은 컨테이너 안**에 설치됨(`/usr/local/mariadb`, 커스텀 빌드).
+  - **CLI는 있음**: `/usr/local/mariadb/bin/{mariadb,mysql}` (예전 메모의 "mysql CLI 없음"은 틀림).
+  - **자동 실행 아님** — 컨테이너 재시작하면 꺼진다. 수동으로 다시 켜야 함:
+    `/usr/local/mariadb/bin/mariadbd-safe --datadir=/usr/local/mariadb/data --user=root --socket=/tmp/mysql.sock --port=3306 --bind-address=0.0.0.0 &`
+  - **데이터 위치**: `/usr/local/mariadb/data` (컨테이너 안 — 컨테이너 삭제 시 소실. 볼륨 미연결).
+  - **접속정보**: host `localhost`/`127.0.0.1`, port `3306`, DB `review_community`(utf8mb4).
+    계정 `dev`/`dev1234`(원격·앱용, `%`), 로컬관리 `root`/`root1234`. 익명계정·test DB 제거함.
+  - **DBeaver**(맥·윈도우 데스크톱 앱)로 접속해 표·데이터를 눈으로 보며 개발. SSL은 끈다.
+  - DB 데이터는 Git으로 안 옮김 → **`week15/sql/schema.sql`+`seed.sql`을 Git에 두고** 각 기기서 재생성.
+- **TMDB API** (영화·드라마 데이터): media 표를 채우고 검색에 사용. v4 토큰 헤더 방식(`Authorization: Bearer`).
+  - 키는 `week15/includes/config.php`에 있음(PHP가 읽음). **학습용 읽기전용 키라 CLAUDE.md에도 명시**:
+    - v4 Read Access Token: `eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmMDYwZTlmYzhjZjllYzk2YmMyZTM0Zjc5OTAxYzMwYyIsIm5iZiI6MTc4NTE0NzM1Mi45NzksInN1YiI6IjZhNjcyZmQ4NmZiMDc2M2U3Mzk3ZmZkMSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rQChMikxT0pxMU89a-6cTdBX5JSTGBkMUDf5YyHKp9Q`
+    - v3 API Key(안 쓰지만 기록): `f060e9fc8cf9ec96bc2e34f79901c30c`
+  - 엔드포인트 예: `https://api.themoviedb.org/3/search/movie?query=기생충&language=ko-KR` (헤더에 Bearer 토큰).
 - DocumentRoot: `/usr/local/apache2/conf/httpd.conf`에 지정됨.
-  현재 `/var/www/html/week13`을 가리킴. **주차가 바뀌면 그 폴더로 변경 + Apache 재시작** 필요.
+  현재 **`/var/www/html/week15`**를 가리킴(`-k restart`로 반영, graceful은 안 먹힘).
+  주차가 바뀌면 그 폴더로 변경 + Apache 재시작 필요. 백업 `httpd.conf.pre-week15` 존재.
+- 접속 주소: **`http://localhost:8081/`** (도커 포트 매핑 8081→80).
 - 설정 백업 존재: `httpd.conf.bak`, `conf/original/`. 수정 시 백업 유지.
 - `sqlite3`도 설치돼 있으나, 과제 필수 스택이 MariaDB라 사용하지 않는다.
 

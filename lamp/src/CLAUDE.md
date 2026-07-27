@@ -28,6 +28,20 @@
     - 검색(search.php)은 TMDB 실시간, 게시판은 DB에 없으면 TMDB 폴백(tmdb_find_by_id).
     - **글·투표 시 그 작품을 media 표에 자동 저장**(ensure_media_by_slug).
     - slug 규칙: `tmdb-<tmdb_id>` (예: tmdb-496243 = 기생충).
+    - **홈·작품목록은 TMDB 인기작을 직접 보여준다**(넷플릭스식). media 표는 화면 목록이
+      아니라 '글이 저장될 때만 참조하는 내부 저장소' — 즉 "글 달린 작품"만 우리 DB에 존재.
+    - `tmdb.php`: search_tmdb / tmdb_trending / tmdb_popular(movie·tv) / tmdb_find_by_id /
+      build_media_from_tmdb(poster·backdrop). 목록은 3페이지(~60개)까지 이어붙임.
+    - **응답 캐싱**: `tmdb_get`이 결과를 `cache/tmdb/`에 30분 저장 → 홈 로딩 4.5초→0.2초.
+      (cache 폴더는 .gitignore. 캐싱 없으면 홈이 TMDB를 10여 번 불러 느림)
+    - 키는 `includes/config.php`의 TMDB_TOKEN(v4). config.php·CLAUDE.md에 학습용 키 명시.
+  - **UI/디자인**: 전체 **다크 테마**(#141414 + 은은한 라디얼 글로우·그라데이션 fixed 배경).
+    - 홈: **히어로 배너**(커뮤니티 1위 작품 backdrop) + 사이드바(🔥지금 뜨는 글·🎲오늘의 발견)
+      → 넓으면 2단, 좁으면 1단(1100px 기준). 아래 커뮤니티 5칸 그리드 + TMDB 가로 줄 + 최근 글.
+    - 가로 줄: 스크롤바 숨김 + JS로 ‹ › 화살표·마우스휠→가로 스크롤(main.js). 본문 폭 1400px
+      (글 읽기·폼은 760px 유지). 반응형 미디어 쿼리로 모바일 축소.
+    - 상단바·사이드바는 반투명(backdrop-filter)으로 배경 글로우가 비침. 로고 흰색.
+    - `includes/media_row.php`: 작품 가로 줄 렌더링 조각(lg=커뮤니티 그리드 / sm=TMDB 줄).
   - **구현 완료**: 로그인·회원가입(users, password_hash) / 글 CRUD(JOIN 조회) /
     댓글 / 추천(likes) / 투표(votes) / 신고(reports) / 소유권·권한 서버 확인 /
     검색→게시판→글쓰기 전 흐름 / **프로필 이미지 업로드**(uploads/avatars/, 다층 방어).

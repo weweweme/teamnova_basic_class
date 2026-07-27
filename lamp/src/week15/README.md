@@ -90,6 +90,14 @@ users ──┬─< posts >──┬── media
 - TMDB 키는 `includes/config.php` (v4 토큰, 헤더 `Authorization: Bearer`)
 - 영화(`title`)와 드라마(`name`)의 필드 차이는 `build_media_from_tmdb`가 흡수
 
+**홈·작품목록도 TMDB로** (넷플릭스식):
+- 홈 = 히어로 배너 + 사이드바(지금 뜨는 글·오늘의 발견) + 커뮤니티 줄 + TMDB 인기작 줄들 + 최근 글
+- 작품목록 = TMDB 인기 영화/드라마 그리드
+- `media` 표는 화면 목록이 **아니고**, "글 달린 작품"만 담는 내부 저장소
+
+**캐싱**: `tmdb_get`이 응답을 `cache/tmdb/`에 30분 저장 → 홈 로딩 4.5초 → 0.2초.
+(TMDB를 홈 한 번에 10여 회 호출하므로 캐시가 필수. `cache/`는 Git 제외)
+
 ---
 
 ## 5. 코드 구조 — "함수 속만 SQL로"
@@ -98,14 +106,17 @@ week14 대비 **화면 파일은 거의 그대로**다. `includes/` 모듈 함�
 
 ```
 includes/
-├── config.php    비밀 설정 (TMDB 토큰 · DB 접속정보, Git 제외 대상)
-├── db.php        PDO 연결(static 재사용) · db_scalar() 헬퍼
-├── tmdb.php      TMDB 호출 (검색 · id 조회 · 형식 변환)
-├── media.php     작품 저장/조회 (ensure_media)
-├── auth.php      로그인·회원가입 (users 표, password_hash)
-├── posts.php     글 CRUD (조회는 JOIN, 삭제는 소프트삭제)
-├── comments.php  댓글 CRUD
-├── works.php     작품 조회 + 투표 (DB + TMDB 폴백)
+├── config.php     비밀 설정 (TMDB 토큰 · DB 접속정보, Git 제외 대상)
+├── db.php         PDO 연결(static 재사용) · db_scalar() 헬퍼
+├── tmdb.php       TMDB 호출 (검색·인기작·상세·형식변환) + 30분 캐싱
+├── media.php      작품 저장/조회 (ensure_media)
+├── auth.php       로그인·회원가입 (users 표, password_hash) · 아바타
+├── posts.php      글 CRUD (조회는 JOIN, 삭제는 소프트삭제)
+├── comments.php   댓글 CRUD
+├── works.php      작품 조회·투표 (DB+TMDB 폴백) · 커뮤니티 작품
+├── reports.php    신고 저장 (1인 1회)
+├── upload.php     프로필 이미지 업로드 (MIME 검증·파일명 재생성)
+├── media_row.php  작품 가로 줄 렌더링 조각 (홈에서 재사용)
 └── util.php · header.php · footer.php
 ```
 
@@ -114,7 +125,21 @@ week14와 **똑같은 모양의 배열**을 돌려준다 → 그 위의 필터·
 
 ---
 
-## 6. 안전장치
+## 6. UI / 디자인 (넷플릭스식 다크)
+
+- **다크 테마**: 배경 `#141414` + 은은한 라디얼 글로우·그라데이션(`fixed`).
+  사이드바·상단바는 반투명(`backdrop-filter`)이라 배경 글로우가 비침.
+- **홈 레이아웃**:
+  - 히어로 배너 (커뮤니티 1위 작품의 TMDB backdrop) + 사이드바(🔥지금 뜨는 글·🎲오늘의 발견)
+  - → 넓으면 2단, 좁으면 1단 (1100px 기준)
+  - 아래: 커뮤니티 5칸 그리드 → TMDB 인기작 가로 줄들 → 최근 글 게시판
+- **가로 줄**: 스크롤바 숨김 + JS로 `‹ ›` 화살표 · 마우스휠→가로 스크롤 (`main.js`).
+- **폭**: 본문 1400px (홈·게시판·목록), 글 읽기·폼은 760px 유지.
+- **반응형**: 미디어 쿼리로 태블릿·모바일에서 포스터·여백·칸 수 축소.
+
+---
+
+## 7. 안전장치
 
 | 항목 | 방법 |
 |---|---|
@@ -132,7 +157,7 @@ week14와 **똑같은 모양의 배열**을 돌려준다 → 그 위의 필터·
 
 ---
 
-## 7. 남은 것 (선택)
+## 8. 남은 것 (선택)
 
 - 글에 이미지 첨부 (지금은 프로필 이미지만)
 - DB 이론 발표자료 마무리 (JOIN 슬라이드 등)

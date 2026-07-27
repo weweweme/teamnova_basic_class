@@ -679,3 +679,19 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 .container.narrow > * {
   max-width: 760px; margin-left: auto; margin-right: auto;
 }
+
+/* ── 작품 둘러보기: 장르 탭(메인) + 영화/드라마 필터(보조) ──── */
+.genre-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 14px; }
+.genre-tabs a { padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 600;
+  color: #cfcfcf; background: #1f1f26; border: 1px solid #2c2c36; text-decoration: none;
+  transition: background 0.12s; }
+.genre-tabs a:hover { background: #2a2a34; }
+.genre-tabs a.active { background: #fff; color: #141414; border-color: #fff; }
+
+.media-filter { display: flex; gap: 6px; margin: 0 0 18px; }
+.media-filter a { padding: 5px 14px; border-radius: 8px; font-size: 13px;
+  color: #9a9a9a; background: transparent; border: 1px solid #2c2c36; text-decoration: none; }
+.media-filter a.active { color: #7fa8ff; border-color: #3a4a7a; background: #1a2030; }
+
+/* 무한 스크롤 감지용 (2단계에서 활성화). 지금은 숨김 */
+.browse-sentinel { text-align: center; color: #666; padding: 24px; font-size: 14px; display: none; }

@@ -144,6 +144,84 @@ function tmdb_list(string $path, string $forceType = ''): array {
     return $result;
 }
 
+// ── 장르 매핑 (우리 이름 → TMDB 코드) ──────────────────────
+//   ★ 영화와 드라마는 같은 장르라도 코드가 다르다 (SF: 영화878 / 드라마10765).
+//     그래서 [영화코드, 드라마코드]로 짝지어 둔다. null = 그쪽엔 해당 장르 없음.
+//   화면 탭에 쓸 '흔한 장르'만 골랐다.
+function tmdb_genres(): array {
+    return [
+        // 우리이름     => [movie, tv]
+        '액션'    => [28,   10759],   // 드라마는 'Action & Adventure'
+        'SF'      => [878,  10765],   // 드라마는 'Sci-Fi & Fantasy'
+        '코미디'  => [35,   35],
+        '드라마'  => [18,   18],
+        '로맨스'  => [10749, null],   // 드라마엔 별도 로맨스 코드 없음 → 영화만
+        '스릴러'  => [53,   null],
+        '미스터리'=> [9648, 9648],
+        '공포'    => [27,   null],
+        '애니'    => [16,   16],
+        '범죄'    => [80,   80],
+        '다큐'    => [99,   99],
+    ];
+}
+
+// ── 장르로 작품 둘러보기 (discover) ─────────────────────────
+//   $genre: 우리 장르 이름 (tmdb_genres의 키). ''이면 인기작 전체.
+//   $media: 'movie' | 'tv' | 'all'(둘 다 합침)
+//   $page : 페이지 (무한 스크롤에서 1,2,3… 늘려가며 부름)
+function discover_by_genre(string $genre, string $media, int $page = 1): array {
+    $map = tmdb_genres();
+
+    // '전체 장르'면 그냥 인기작 (장르 필터 없음)
+    if ($genre === '' || !isset($map[$genre])) {
+        if ($media === 'tv')  return tmdb_list_page('/tv/popular',    'tv',    $page);
+        if ($media === 'movie') return tmdb_list_page('/movie/popular', 'movie', $page);
+        // all: 영화+드라마 인기작 합침
+        return array_merge(
+            tmdb_list_page('/movie/popular', 'movie', $page),
+            tmdb_list_page('/tv/popular',    'tv',    $page)
+        );
+    }
+
+    [$movieCode, $tvCode] = $map[$genre];
+    $result = [];
+    // 영화 쪽
+    if ($media !== 'tv' && $movieCode !== null) {
+        $result = array_merge($result,
+            tmdb_list_page('/discover/movie', 'movie', $page, ['with_genres' => $movieCode]));
+    }
+    // 드라마 쪽
+    if ($media !== 'movie' && $tvCode !== null) {
+        $result = array_merge($result,
+            tmdb_list_page('/discover/tv', 'tv', $page, ['with_genres' => $tvCode]));
+    }
+    return $result;
+}
+
+// ── 한 페이지만 가져오기 (tmdb_list는 여러 페이지, 이건 딱 한 페이지) ──
+//   무한 스크롤에서 '다음 한 페이지'만 받아올 때 쓴다.
+function tmdb_list_page(string $path, string $forceType, int $page, array $params = []): array {
+    $params['page'] = $page;
+    $params['sort_by'] = $params['sort_by'] ?? 'popularity.desc';   // discover는 정렬 지정
+    $data = tmdb_get($path, $params);
+    if ($data === null || empty($data['results'])) {
+        return [];
+    }
+    $result = [];
+    foreach ($data['results'] as $item) {
+        $type = $item['media_type'] ?? $forceType;
+        if ($type !== 'movie' && $type !== 'tv') {
+            continue;
+        }
+        $item['media_type'] = $type;
+        $m = build_media_from_tmdb($item);
+        if ($m['poster_url'] !== '') {
+            $result[] = $m;
+        }
+    }
+    return $result;
+}
+
 // ── tmdb_id로 작품 하나 상세 조회 ──────────────────────────
 //   슬러그(tmdb-496243)만 있고 우리 DB에 아직 없을 때, TMDB에서 정보를 가져온다.
 //   ★ 슬러그엔 영화/드라마 구분이 없다 → /movie/{id} 먼저 시도, 없으면 /tv/{id}.

@@ -30,7 +30,7 @@ $pageTitle = '작품 둘러보기';
 require __DIR__ . '/includes/header.php';
 ?>
 
-  <h1>작품 둘러보기</h1>
+  <h1 class="wide-title">작품 둘러보기</h1>
 
   <!-- 메인 축: 장르 탭 -->
   <div class="genre-tabs">

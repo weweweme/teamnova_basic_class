@@ -229,3 +229,72 @@ document.querySelectorAll('.row-scroll').forEach(function (scroll) {
         }
     }, { passive: false });
 });
+
+
+// ── 작품 둘러보기: 무한 스크롤 ───────────────────────────────
+//   [문제] 첫 페이지(20~40개)만 서버가 그려준다. 더 보려면 계속 불러와야 한다.
+//   [해결] 화면 맨 아래 '감지용 요소(sentinel)'가 보이면(스크롤 도달),
+//     JS가 api/browse.php에서 다음 페이지를 받아와(fetch) 그리드에 이어붙인다.
+//   ★ IntersectionObserver = '이 요소가 화면에 보이나?'를 감시하는 브라우저 기능.
+//     스크롤 이벤트를 매번 계산하는 것보다 가볍고 정확하다. (무한스크롤 표준)
+
+const grid     = document.querySelector('#browse-grid');
+const sentinel = document.querySelector('#browse-sentinel');
+
+if (grid && sentinel) {
+    sentinel.style.display = 'block';   // JS가 있을 때만 감지용 요소를 보이게
+
+    let page    = 1;       // 첫 페이지는 서버가 이미 그렸으니 다음은 2부터
+    let loading = false;   // 중복 요청 방지 (한 번에 하나만)
+    let done    = false;   // 더 없으면 멈춤
+
+    const genre = grid.dataset.genre || '';
+    const media = grid.dataset.media || 'all';
+
+    // 포스터 카드 하나를 만들어 그리드에 추가
+    function addCard(item) {
+        const a = document.createElement('a');
+        a.className = 'row-card';
+        a.href = '/board/?work=tmdb-' + item.tmdb_id;
+        a.innerHTML =
+            '<img class="row-poster" src="' + item.poster_url + '" alt="" loading="lazy">' +
+            '<span class="row-title"></span>' +
+            '<span class="post-stat"></span>';
+        // 제목·연도는 textContent로 넣는다 (사용자 데이터를 HTML로 안 박아 XSS 방지)
+        a.querySelector('.row-title').textContent = item.title;
+        a.querySelector('.post-stat').textContent = item.year || '';
+        grid.appendChild(a);
+    }
+
+    // 다음 페이지 불러오기
+    async function loadNext() {
+        if (loading || done) return;
+        loading = true;
+        page += 1;
+
+        const url = '/api/browse.php?genre=' + encodeURIComponent(genre)
+                  + '&media=' + encodeURIComponent(media) + '&page=' + page;
+        try {
+            const res  = await fetch(url);
+            const data = await res.json();
+            if (!data.items || data.items.length === 0) {
+                done = true;                       // 더 없음
+                sentinel.textContent = '마지막까지 다 봤어요';
+            } else {
+                data.items.forEach(addCard);
+            }
+        } catch (e) {
+            sentinel.textContent = '불러오기에 실패했어요';
+        }
+        loading = false;
+    }
+
+    // sentinel이 화면에 들어오면 다음 페이지 로드
+    const observer = new IntersectionObserver(function (entries) {
+        if (entries[0].isIntersecting) {
+            loadNext();
+        }
+    }, { rootMargin: '400px' });   // 400px 미리 감지 → 끊김 없이 이어짐
+
+    observer.observe(sentinel);
+}

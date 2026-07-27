@@ -695,3 +695,6 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 
 /* 무한 스크롤 감지용 (2단계에서 활성화). 지금은 숨김 */
 .browse-sentinel { text-align: center; color: #666; padding: 24px; font-size: 14px; display: none; }
+
+/* 작품 둘러보기 제목 — 그리드와 같은 전체 폭 (760 중앙정렬 무시) */
+.container > h1.wide-title { max-width: none; margin-left: 0; margin-right: 0; }

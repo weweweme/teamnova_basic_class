@@ -256,3 +256,17 @@ mark { background: #fff3a3; color: inherit; padding: 0 2px; border-radius: 3px; 
 /* 최근 본 글 */
 .recent-list li { font-size: 14px; }
 .recent-list .post-stat { margin-left: 4px; }
+
+/* 작품 검색 결과 — 포스터 + 정보 (TMDB) */
+.media-list { list-style: none; padding: 0; }
+.media-list li { border-bottom: 1px solid #eee; }
+.media-list a { display: flex; align-items: center; gap: 14px;
+  padding: 10px 4px; text-decoration: none; color: inherit; }
+.media-list a:hover { background: #f7f8fb; }
+/* 포스터 이미지 — 세로로 긴 영화 포스터 비율(2:3) */
+.poster { width: 60px; height: 90px; object-fit: cover; border-radius: 6px;
+  background: #eee; flex-shrink: 0; }
+.poster-empty { display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: #aaa; }
+.media-info { display: flex; flex-direction: column; gap: 4px; }
+.media-info strong { font-size: 15px; }

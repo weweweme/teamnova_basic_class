@@ -1,27 +1,23 @@
 <?php
 // ============================================================
 // search.php — 작품 검색  [GET 요청]
-//   ?q=기생  → 작품 제목·감독으로 찾아서 목록 표시 → 클릭하면 그 작품 게시판으로.
+//   ?q=기생  → TMDB(영화·드라마 API)에서 실시간 검색 → 목록 표시.
+//   클릭하면 그 작품 게시판으로 이동 (/board/?work=tmdb-<id>).
 //
-//   ★ 왜 '글 검색'이 아니라 '작품 검색'인가?
-//     리뷰 커뮤니티에서 검색의 주인공은 '작품'이다.
-//     "기생충" 검색 → 작품 찾기 → 그 작품 게시판으로 이동.
-//     글 검색은 각 게시판 '안에서' 한다 (board/?work=..&q=..).
-//     모든 작품의 글을 통째로 뒤지면 엉뚱한 작품 글이 섞여 쓸모가 없다.
+//   ★ week14와 달라진 점: 더미 데이터(works.php)가 아니라 진짜 TMDB에서 가져온다.
+//     검색 결과는 아직 우리 DB에 저장되지 않는다 — 누군가 글을 쓰는 순간에만
+//     media 표에 저장된다(ensure_media). 즉 검색은 'TMDB 실시간 조회'일 뿐.
 // ============================================================
 require_once __DIR__ . '/includes/util.php';
-require_once __DIR__ . '/includes/works.php';   // 작품 데이터·검색 모듈
+require_once __DIR__ . '/includes/tmdb.php';   // TMDB 검색 모듈
 
 // ── 1) 검색어 받기 ───────────────────────────────────────────
 $q = mb_substr(trim(get_str('q')), 0, 50);
 
-// ── 2) 검색어가 있을 때만 찾는다 ─────────────────────────────
-//   ★ 검색어가 없으면 아무것도 안 보여준다.
-//     전체 목록은 '작품' 메뉴(works.php)의 몫 — 두 페이지가 같은 걸 보여주면
-//     메뉴가 나뉘어 있을 이유가 없다. (각 화면은 한 가지 일만)
-//   '검색 전'과 '검색했는데 결과 없음'은 서로 다른 상태라서, 아래 화면에서도 구분해 안내한다.
+// ── 2) 검색어가 있을 때만 TMDB에 물어본다 ────────────────────
+//   검색 전 / 결과 없음 / 결과 있음 — 세 상태를 아래에서 구분해 안내한다.
 $hasQuery = $q !== '';
-$works    = $hasQuery ? search_works(get_works(), $q) : [];
+$works    = $hasQuery ? search_tmdb($q) : [];   // TMDB 실시간 검색
 
 $pageTitle = $q === '' ? '작품 검색' : "'{$q}' 검색결과";
 require __DIR__ . '/includes/header.php';
@@ -29,34 +25,37 @@ require __DIR__ . '/includes/header.php';
 
   <h1>작품 검색</h1>
 
-  <!-- ★ 검색 폼은 method="get" (글쓰기·댓글 폼이 POST였던 것과 대조)
-       GET 폼은 제출하면 입력값이 '주소'에 자동으로 붙는다:
-         '기생' 입력 + 전송  →  /search.php?q=기생
-       그래서 검색 결과 주소를 그대로 공유·북마크할 수 있다. -->
+  <!-- 검색 폼은 method="get" — 검색어가 주소에 붙어 공유·북마크 가능 (/search.php?q=기생) -->
   <form class="search-form" method="get" action="/search.php">
-    <input type="text" name="q" value="<?= e($q) ?>" placeholder="작품 제목 또는 감독 (예: 기생충, 놀란)">
+    <input type="text" name="q" value="<?= e($q) ?>" placeholder="영화·드라마 제목 (예: 기생충, 인셉션)">
     <button type="submit">검색</button>
   </form>
 
-  <?php // 상태가 셋이라 3갈래로 안내한다: ① 검색 전 ② 결과 없음 ③ 결과 있음 ?>
+  <?php // 상태가 셋이라 3갈래로 안내: ① 검색 전 ② 결과 없음 ③ 결과 있음 ?>
   <?php if (!$hasQuery): ?>
-    <p class="muted">작품 제목이나 감독 이름으로 검색해 보세요. (예: 기생충, 놀란)</p>
-    <p class="muted">전체 작품은 <a href="/works.php">작품 목록</a>에서 볼 수 있어요.</p>
+    <p class="muted">영화·드라마 제목으로 검색해 보세요. (예: 기생충, 인셉션)</p>
 
   <?php elseif (!$works): ?>
     <p class="muted">'<?= e($q) ?>'와 일치하는 작품이 없습니다.</p>
-    <p class="muted"><a href="/works.php">전체 작품 보기</a></p>
 
   <?php else: ?>
     <p class="muted">'<?= e($q) ?>' 검색결과 <?= count($works) ?>개</p>
-    <ul class="work-list">
+    <ul class="media-list">
       <?php foreach ($works as $w): ?>
+        <?php // TMDB엔 우리 slug가 없으므로 'tmdb-<번호>'로 링크. 글 쓰는 순간 이 slug로 저장된다. ?>
         <li>
-          <?php // 작품을 클릭하면 그 작품 게시판으로 (GET으로 work 전달).
-                // 제목·감독은 검색어를 형광펜(<mark>)으로 강조해서 보여준다.
-                // ★ create_highlighted()가 이미 e() 처리를 끝냈으므로 여기서 또 감싸지 않는다. ?>
-          <a href="/board/?work=<?= e($w['slug']) ?>"><?= create_highlighted($w['title'], $q) ?></a>
-          <span class="post-stat"><?= e($w['genre']) ?> · <?= e((string)$w['year']) ?> · <?= create_highlighted($w['director'], $q) ?></span>
+          <a href="/board/?work=tmdb-<?= e((string)$w['tmdb_id']) ?>">
+            <?php if ($w['poster_url'] !== ''): ?>
+              <!-- 포스터. loading=lazy = 화면에 보일 때만 이미지를 받아 초기 로딩을 가볍게 -->
+              <img class="poster" src="<?= e($w['poster_url']) ?>" alt="" loading="lazy">
+            <?php else: ?>
+              <span class="poster poster-empty">No Image</span>
+            <?php endif; ?>
+            <span class="media-info">
+              <strong><?= create_highlighted($w['title'], $q) ?></strong>
+              <span class="post-stat"><?= e($w['genre']) ?> · <?= e((string)($w['year'] ?? '')) ?></span>
+            </span>
+          </a>
         </li>
       <?php endforeach; ?>
     </ul>

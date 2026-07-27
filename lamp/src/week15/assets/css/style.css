@@ -450,7 +450,10 @@ mark { background: #7a6000; color: #fff3a3; }
 .board-toolbar, .search-form, .sort-tabs, .filter-tabs, .pagination,
 .post-list, .comment-list, .profile-stats, .profile-head, .vote-box, .work-info {
   max-width: 760px;
+  margin-left: auto; margin-right: auto;   /* 좁은 폭이라 왼쪽 쏠리지 않게 중앙 정렬 */
 }
+/* 게시판/글보기 제목도 같은 폭에 맞춰 중앙 정렬 (콘텐츠와 왼쪽 라인 맞춤) */
+.narrow-title { max-width: 760px; margin-left: auto; margin-right: auto; }
 
 /* 가로 스크롤바 숨기기 (넷플릭스처럼 깔끔하게) — 스크롤은 그대로 됨 */
 .row-scroll {
@@ -608,3 +611,31 @@ mark { background: #7a6000; color: #fff3a3; }
 
 /* 푸터 */
 .foot { color: #666; border-top: 1px solid #1e1e1e; margin-top: 40px; }
+
+/* ── 게시판(board) 화면 개선 ─────────────────────────────────── */
+.board { }
+/* 작품 제목 */
+.container h1 small { font-size: 16px; }
+
+/* 작품 정보: 포스터(왼) + 줄거리(오른) 가로 배치 */
+.work-info { display: flex; gap: 18px; align-items: flex-start; padding: 18px; }
+.work-info .poster { width: 110px; height: 165px; border-radius: 8px; flex-shrink: 0; }
+.work-info .work-summary { flex: 1; line-height: 1.7; color: #cfcfcf; align-self: center; }
+
+/* 투표 박스 — 여백·정렬 정리 */
+.vote-box { padding: 18px; }
+.vote-box h2 { font-size: 16px; }
+
+/* 글 목록 — 각 글을 넉넉한 줄로, 호버 강조 */
+.post-list li { padding: 14px 10px; border-bottom: 1px solid #232323;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  border-radius: 8px; transition: background 0.12s; }
+.post-list li:hover { background: rgba(255,255,255,0.03); }
+.post-list li > a:first-child { font-size: 16px; font-weight: 600; color: #eaeaea; }
+.post-list li > a:first-child:hover { color: #fff; }
+
+/* 게시판 툴바 — 중앙정렬(margin auto) 유지하면서 위아래 여백만 */
+.board-toolbar { margin: 8px auto 6px; }
+
+/* 감상 태그(호평/보통/혹평) 색 구분 — 다크에서 잘 보이게 */
+.tag { background: #24304f; color: #9fbcff; }

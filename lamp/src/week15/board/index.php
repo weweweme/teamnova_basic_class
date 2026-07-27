@@ -71,7 +71,7 @@ $pageTitle = $title . ' 게시판';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-  <h1><?= e($title) ?>
+  <h1 class="narrow-title"><?= e($title) ?>
     <?php if ($workInfo !== null): ?>
       <small>(<?= e($workInfo['genre']) ?> · <?= e((string)$workInfo['year']) ?>)</small>
     <?php endif; ?>

@@ -16,10 +16,24 @@
     Android **Intent**(화면전환 + putExtra)에 비유하면 사용자가 빠르게 이해함.
   - 발표자료(`week14/발표대본.md` 포함) + README 완비. **제출 완료본이므로 week14는 건드리지 않는다.**
 - `week15/` : **지금 여기**. week14를 통째로 복사(`cp -a`)해서 시작.
-  - 목표: **MariaDB 연결 + 실제 CRUD**. 세션 임시저장 → 진짜 DB로 교체.
-  - 방식: `includes/` 도메인 모듈 함수의 '속'만 SQL로 바꾼다 (화면 파일은 안 고침).
+  - 목표: **MariaDB 연결 + 실제 CRUD**. 세션 임시저장 → 진짜 DB로 교체. **핵심 전환 완료.**
+  - 방식: `includes/` 도메인 모듈 함수의 '속'만 SQL로 바꿈 (화면 파일은 거의 그대로).
+    반환 배열 모양을 week14와 동일하게 유지 → 필터·정렬·페이징·화면 코드 재사용.
+  - **DB 표 6개**: users · media · posts · comments · likes · votes
+    (+ posts·comments·media는 소프트삭제/부가열. schema.sql·seed.sql로 재생성 가능)
+    - likes·votes는 **복합 기본키**(user_id, post_id/media_id)로 '1인 1회' 보장.
+    - 삭제는 **소프트삭제**(deleted_at) → 되돌리기 유지.
+    - 외래키 삭제정책: 글→댓글·추천 CASCADE, 회원 참조는 RESTRICT.
+  - **TMDB API 연동**: 작품(media)은 더미가 아니라 실제 영화·드라마 데이터.
+    - 검색(search.php)은 TMDB 실시간, 게시판은 DB에 없으면 TMDB 폴백(tmdb_find_by_id).
+    - **글·투표 시 그 작품을 media 표에 자동 저장**(ensure_media_by_slug).
+    - slug 규칙: `tmdb-<tmdb_id>` (예: tmdb-496243 = 기생충).
+  - **구현 완료**: 로그인·회원가입(users, password_hash) / 글 CRUD(JOIN 조회) /
+    댓글 / 추천(likes) / 투표(votes) / 소유권·권한 서버 확인 / 검색→게시판→글쓰기 전 흐름.
+  - **아직**: reports 표(신고는 접수만) / 이미지 업로드.
   - **DB 이론 발표자료 병행 제작 중**(DB란/정규화/ER/B+트리/SQL·CRUD/JOIN 등).
     근거는 영문 위키·MariaDB 공식문서 기반. 톤은 빅테크 시니어→중학생.
+    ※ JOIN 슬라이드는 아직 미완성(도입 논리 다듬다 중단).
 
 ## week14 커뮤니티 설계 (영화·드라마 리뷰 컨셉)
 > 컨셉: **작품(영화·드라마)별 리뷰 커뮤니티**. 유저가 작품별 게시판에서 감상(호평·보통·혹평)을

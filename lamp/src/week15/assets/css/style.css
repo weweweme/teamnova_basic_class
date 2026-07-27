@@ -354,7 +354,20 @@ mark { background: #fff3a3; color: inherit; padding: 0 2px; border-radius: 3px; 
 /* ════════════════════════════════════════════════════════════
    다크 테마 (전체) — 넷플릭스 감성. 기존 밝은 컴포넌트를 덮어쓴다.
    ════════════════════════════════════════════════════════════ */
-body { background: #141414; color: #e5e5e5; }
+/* 배경 연출: 검정 단색 대신 은은한 라디얼 글로우 + 위→아래 그라데이션.
+   fixed로 깔아 스크롤해도 배경은 그대로 있고, 콘텐츠만 그 위를 지나간다.
+   · 상단 중앙에서 옅은 파랑빛이 번지고 (radial-gradient)
+   · 좌상단/우상단에 미묘한 보라·청록 얼룩 (무드)
+   · 전체는 위(#161622)에서 아래(#0d0d0f)로 살짝 어두워짐 */
+body {
+  color: #e5e5e5;
+  background:
+    radial-gradient(1200px 600px at 50% -8%,  rgba(70,90,180,0.22), transparent 60%),
+    radial-gradient(700px 500px  at 12% 8%,   rgba(120,60,180,0.14), transparent 55%),
+    radial-gradient(700px 500px  at 88% 4%,   rgba(40,140,150,0.12), transparent 55%),
+    linear-gradient(180deg, #161622 0%, #101014 40%, #0d0d0f 100%);
+  background-attachment: fixed;   /* 스크롤해도 배경 고정 */
+}
 
 /* 본문 링크·제목 */
 .container a { color: #7fa8ff; }
@@ -559,3 +572,12 @@ mark { background: #7a6000; color: #fff3a3; }
   .hero { min-height: 100%; }
   .hero-area { align-items: stretch; }
 }
+
+/* ── 배경 글로우가 은은히 비치도록 패널을 살짝 투명하게 ────── */
+.side-box { background: rgba(28,28,34,0.72); backdrop-filter: blur(4px); border-color: #2c2c38; }
+.work-info, .vote-box, .comments, .post-content, .widget-placeholder,
+.profile-stats div {
+  background: rgba(31,31,38,0.6); backdrop-filter: blur(3px);
+}
+/* 상단바도 살짝 유리 느낌 (배경이 비침) */
+.topbar { background: rgba(11,11,14,0.82); backdrop-filter: blur(8px); }

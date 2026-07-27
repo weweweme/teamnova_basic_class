@@ -93,3 +93,18 @@ CREATE TABLE votes (
     FOREIGN KEY (user_id)  REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
 );
+
+-- ── reports : 글 신고 ───────────────────────────────────────
+--   likes와 달리 id(기본키)를 따로 둔다: 같은 신고라도 '사유·시각' 같은 자기 정보를 가지므로.
+--   단, 같은 사람이 같은 글을 도배 신고하지 못하게 (reporter_id, post_id)에 UNIQUE를 건다.
+CREATE TABLE reports (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    post_id     INT NOT NULL,                        -- 어느 글 → posts.id
+    reporter_id INT NOT NULL,                        -- 누가 신고 → users.id
+    reason      ENUM('스팸/광고','욕설/비방','스포일러','기타') NOT NULL,
+    created_at  DATETIME DEFAULT NOW(),
+
+    UNIQUE KEY uq_report (reporter_id, post_id),     -- 1인 1글 1회 (도배 방지)
+    FOREIGN KEY (post_id)     REFERENCES posts(id) ON DELETE CASCADE,  -- 글 지우면 신고도 삭제
+    FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE
+);

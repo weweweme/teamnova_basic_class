@@ -56,7 +56,7 @@ require __DIR__ . '/includes/header.php';
           <!-- 작품명을 누르면 그 작품 게시판으로 -->
           <a href="/board/?work=<?= e($w['slug']) ?>"><?= e($w['title']) ?></a>
           <span class="tag">추천 <?= $upPct ?>%</span>
-          <span class="post-stat"><?= e($w['genre']) ?> · <?= e((string)$w['year']) ?> · <?= e($w['director']) ?> · 글 <?= $postCount ?>개</span>
+          <span class="post-stat"><?= e($w['genre']) ?> · <?= e((string)$w['year']) ?> · 글 <?= $postCount ?>개</span>
         </li>
       <?php endforeach; ?>
     </ul>

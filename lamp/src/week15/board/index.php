@@ -77,12 +77,14 @@ require __DIR__ . '/../includes/header.php';
     <?php endif; ?>
   </h1>
 
-  <!-- 작품 정보 -->
+  <!-- 작품 정보 (포스터 + 장르·연도 + 줄거리) -->
   <?php if ($workInfo === null): ?>
     <div class="widget-placeholder">존재하지 않는 작품입니다</div>
   <?php else: ?>
     <div class="work-info">
-      <p class="work-director">감독 · <?= e($workInfo['director']) ?></p>
+      <?php if (!empty($workInfo['poster_url'])): ?>
+        <img class="poster" src="<?= e($workInfo['poster_url']) ?>" alt="" loading="lazy">
+      <?php endif; ?>
       <p class="work-summary"><?= e($workInfo['summary']) ?></p>
     </div>
   <?php endif; ?>

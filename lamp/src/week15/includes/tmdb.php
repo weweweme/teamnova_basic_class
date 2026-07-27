@@ -72,6 +72,26 @@ function search_tmdb(string $query): array {
     return $result;
 }
 
+// ── tmdb_id로 작품 하나 상세 조회 ──────────────────────────
+//   슬러그(tmdb-496243)만 있고 우리 DB에 아직 없을 때, TMDB에서 정보를 가져온다.
+//   ★ 슬러그엔 영화/드라마 구분이 없다 → /movie/{id} 먼저 시도, 없으면 /tv/{id}.
+//     (TMDB는 영화와 드라마가 번호 체계가 달라서 각각 조회해야 한다)
+function tmdb_find_by_id(int $tmdbId): ?array {
+    // ① 영화로 시도
+    $movie = tmdb_get("/movie/$tmdbId");
+    if ($movie !== null && !empty($movie['id'])) {
+        $movie['media_type'] = 'movie';
+        return build_media_from_tmdb($movie);
+    }
+    // ② 없으면 드라마로 시도
+    $tv = tmdb_get("/tv/$tmdbId");
+    if ($tv !== null && !empty($tv['id'])) {
+        $tv['media_type'] = 'tv';
+        return build_media_from_tmdb($tv);
+    }
+    return null;                          // 둘 다 없으면 진짜 없는 것
+}
+
 // ── TMDB 원본 한 건 → 우리 형식으로 변환 ───────────────────
 //   영화(movie)와 드라마(tv)는 필드 이름이 다르다:
 //     영화: title, release_date  /  드라마: name, first_air_date

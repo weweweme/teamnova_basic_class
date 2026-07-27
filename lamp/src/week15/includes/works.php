@@ -1,132 +1,152 @@
 <?php
 // ============================================================
-// works.php — '작품(영화·드라마)' 데이터 + 관련 동작을 모아둔 도메인 모듈
-//   posts.php(글 전용)와 짝을 이루는 파일.
-//   지금은 더미 배열이지만, 나중 DB를 붙이면 이 함수들 '속'만 works 테이블 조회로 바꾸면 됨.
+// works.php — '작품(media)' 조회 + 투표 도메인 모듈
+//   데이터는 우리 DB(media 표) + TMDB(아직 저장 안 된 작품)에서 온다.
+//   투표는 votes 표를 쓴다.
+//   ★ board가 쓰는 반환 모양: slug·title·genre·year·summary·poster_url·upVotes·downVotes
 // ============================================================
 
-// ① 처음부터 있는 더미 작품 (코드에 박힌 원본)
-//   slug = 주소에 쓰는 짧은 영문 이름 (예: /board/?work=parasite)
-//   upVotes/downVotes = 추천/비추천 투표 집계 (나중 votes 테이블에서 세어올 값)
-function base_works(): array {
-    return [
-        [
-            'slug' => 'parasite', 'title' => '기생충', 'genre' => '영화',
-            'year' => 2019, 'director' => '봉준호',
-            'summary' => '전원 백수인 기택네 장남 기우가 부잣집 과외 면접을 보러 가면서 시작되는 이야기.',
-            'upVotes' => 128, 'downVotes' => 72,
-        ],
-        [
-            'slug' => 'squidgame', 'title' => '오징어 게임', 'genre' => '드라마',
-            'year' => 2021, 'director' => '황동혁',
-            'summary' => '빚에 쫓기는 사람들이 456억 원의 상금이 걸린 의문의 서바이벌에 참가한다.',
-            'upVotes' => 95, 'downVotes' => 105,
-        ],
-        [
-            'slug' => 'interstellar', 'title' => '인터스텔라', 'genre' => '영화',
-            'year' => 2014, 'director' => '크리스토퍼 놀란',
-            'summary' => '황폐해진 지구를 떠나 인류의 새로운 터전을 찾아 우주로 향하는 탐사대의 여정.',
-            'upVotes' => 160, 'downVotes' => 40,
-        ],
-        [
-            'slug' => 'oldboy', 'title' => '올드보이', 'genre' => '영화',
-            'year' => 2003, 'director' => '박찬욱',
-            'summary' => '영문도 모른 채 15년간 감금됐던 남자가 풀려나 복수의 실마리를 쫓는다.',
-            'upVotes' => 142, 'downVotes' => 38,
-        ],
-        [
-            'slug' => 'memories', 'title' => '살인의 추억', 'genre' => '영화',
-            'year' => 2003, 'director' => '봉준호',
-            'summary' => '1980년대 시골 마을에서 벌어진 연쇄살인을 쫓는 두 형사의 이야기.',
-            'upVotes' => 151, 'downVotes' => 29,
-        ],
-        [
-            'slug' => 'inception', 'title' => '인셉션', 'genre' => '영화',
-            'year' => 2010, 'director' => '크리스토퍼 놀란',
-            'summary' => '타인의 꿈에 들어가 생각을 훔치는 남자가, 이번엔 생각을 심어야 하는 임무를 맡는다.',
-            'upVotes' => 173, 'downVotes' => 47,
-        ],
-        [
-            'slug' => 'lalaland', 'title' => '라라랜드', 'genre' => '영화',
-            'year' => 2016, 'director' => '데이미언 셔젤',
-            'summary' => '꿈을 좇는 배우 지망생과 재즈 피아니스트가 LA에서 만나 사랑에 빠진다.',
-            'upVotes' => 118, 'downVotes' => 62,
-        ],
-        [
-            'slug' => 'mrsunshine', 'title' => '미스터 션샤인', 'genre' => '드라마',
-            'year' => 2018, 'director' => '이응복',
-            'summary' => '노비의 아들로 태어나 미국 군인이 된 남자가 구한말 조선으로 돌아온다.',
-            'upVotes' => 88, 'downVotes' => 32,
-        ],
-        [
-            'slug' => 'signal', 'title' => '시그널', 'genre' => '드라마',
-            'year' => 2016, 'director' => '김원석',
-            'summary' => '낡은 무전기로 과거의 형사와 연결된 프로파일러가 미제 사건을 파헤친다.',
-            'upVotes' => 134, 'downVotes' => 26,
-        ],
-        [
-            'slug' => 'myahjussi', 'title' => '나의 아저씨', 'genre' => '드라마',
-            'year' => 2018, 'director' => '김원석',
-            'summary' => '삶의 무게를 견디던 중년 남자와 상처투성이 젊은 여자가 서로를 알아본다.',
-            'upVotes' => 147, 'downVotes' => 33,
-        ],
-    ];
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/auth.php';   // current_user_id()
+require_once __DIR__ . '/tmdb.php';   // TMDB 폴백·저장
+
+// ── 작품 하나 조회 (우리 DB 먼저, 없으면 TMDB) ──────────────
+//   board가 /board/?work=tmdb-496243 로 들어올 때 쓴다.
+//   ① media 표에 있으면 → 그 정보 + 투표 집계
+//   ② 아직 없으면(아무도 글·투표 안 함) → TMDB에서 가져와 보여줌 (투표수 0)
+//   ③ 진짜 없으면 → null
+function get_work(string $slug): ?array {
+    // ① 우리 DB에서 찾기
+    $stmt = db()->prepare('SELECT * FROM media WHERE slug = ?');
+    $stmt->execute([$slug]);
+    $row = $stmt->fetch();
+
+    if ($row !== false) {
+        $counts = media_vote_counts((int) $row['id']);   // 투표 집계
+        return [
+            'slug'       => $row['slug'],
+            'title'      => $row['title'],
+            'genre'      => $row['genre'],
+            'year'       => $row['year'],
+            'summary'    => $row['overview'] ?? '',       // board는 'summary'라는 이름으로 쓴다
+            'poster_url' => $row['poster_url'] ?? '',
+            'upVotes'    => $counts['up'],
+            'downVotes'  => $counts['down'],
+        ];
+    }
+
+    // ② DB에 없지만 'tmdb-<번호>' 슬러그면 → TMDB에서 가져온다 (아직 저장 안 된 작품)
+    if (str_starts_with($slug, 'tmdb-')) {
+        $tmdbId = (int) substr($slug, 5);            // 'tmdb-496243' → 496243
+        $item = tmdb_find_by_id($tmdbId);
+        if ($item !== null) {
+            return [
+                'slug'       => $slug,
+                'title'      => $item['title'],
+                'genre'      => $item['genre'],
+                'year'       => $item['year'],
+                'summary'    => $item['overview'] ?? '',
+                'poster_url' => $item['poster_url'] ?? '',
+                'upVotes'    => 0,                    // 아직 우리 DB에 없으니 투표도 0
+                'downVotes'  => 0,
+            ];
+        }
+    }
+
+    return null;                                     // 어디에도 없음
 }
 
-// ② 원본 + 이번 접속에서 누른 투표를 '합쳐서' 돌려준다
-//   (posts.php와 같은 방식. 나중 DB가 생기면 votes 테이블 COUNT로 바뀐다)
-function get_works(): array {
-    $result = [];
-    foreach (base_works() as $w) {
-        // ★ 투표도 '1인 1표'. 내가 고른 쪽에만 1표를 더한다.
-        //   (여러 번 눌러도 표가 계속 늘면 안 되므로 '내가 무엇을 골랐나'만 기록)
-        $mine = my_vote($w['slug']);
-        if ($mine === '추천') {
-            $w['upVotes']++;
-        } elseif ($mine === '비추천') {
-            $w['downVotes']++;
+// ── 이 작품의 추천/비추천 표 수를 센다 ─────────────────────
+function media_vote_counts(int $mediaId): array {
+    $up   = (int) db_scalar(
+        "SELECT COUNT(*) FROM votes WHERE media_id = ? AND choice = '추천'",   [$mediaId]);
+    $down = (int) db_scalar(
+        "SELECT COUNT(*) FROM votes WHERE media_id = ? AND choice = '비추천'", [$mediaId]);
+    return ['up' => $up, 'down' => $down];
+}
+
+// ── 내가 이 작품에 무엇을 투표했나? ('추천'/'비추천'/안 했으면 null) ──
+function my_vote(string $slug): ?string {
+    $userId  = current_user_id();
+    $mediaId = (int) db_scalar('SELECT id FROM media WHERE slug = ?', [$slug]);
+    if ($userId === 0 || $mediaId === 0) {
+        return null;                     // 로그인 안 했거나, 작품이 아직 DB에 없으면 투표도 없다
+    }
+    $choice = db_scalar(
+        'SELECT choice FROM votes WHERE user_id = ? AND media_id = ?',
+        [$userId, $mediaId]
+    );
+    return $choice !== false ? $choice : null;
+}
+
+// ── 투표 토글 (안 했으면 투표 / 같은 걸 또 누르면 취소 / 반대면 갈아타기) ──
+//   ★ 투표하려면 그 작품이 media 표에 있어야 한다(외래키). 아직 없으면 TMDB에서
+//     가져와 먼저 저장한다(ensure_media). → 첫 투표가 곧 작품을 우리 DB로 들여온다.
+function toggle_vote(string $slug, string $choice): void {
+    $userId  = current_user_id();
+    if ($userId === 0) {
+        return;                          // 로그인 안 했으면 아무것도 안 함
+    }
+    $mediaId = ensure_media_by_slug($slug);   // 없으면 TMDB에서 가져와 저장하고 id 반환
+    if ($mediaId === 0) {
+        return;                          // 작품 자체가 없으면(잘못된 slug) 중단
+    }
+
+    $current = my_vote($slug);
+    if ($current === $choice) {
+        // 같은 걸 또 누름 → 취소 (그 줄 삭제)
+        db()->prepare('DELETE FROM votes WHERE user_id = ? AND media_id = ?')
+            ->execute([$userId, $mediaId]);
+    } elseif ($current === null) {
+        // 처음 투표 → 새 줄
+        db()->prepare('INSERT INTO votes (user_id, media_id, choice) VALUES (?, ?, ?)')
+            ->execute([$userId, $mediaId, $choice]);
+    } else {
+        // 반대쪽으로 갈아타기 → choice만 바꿈 (줄은 그대로 = 1인 1표 유지)
+        db()->prepare('UPDATE votes SET choice = ? WHERE user_id = ? AND media_id = ?')
+            ->execute([$choice, $userId, $mediaId]);
+    }
+}
+
+// ── slug로 media.id를 얻는다. 없으면 TMDB에서 가져와 저장하고 그 id를 준다. ──
+//   글쓰기·투표처럼 '작품이 반드시 우리 DB에 있어야 하는' 순간에 쓴다.
+function ensure_media_by_slug(string $slug): int {
+    $mediaId = (int) db_scalar('SELECT id FROM media WHERE slug = ?', [$slug]);
+    if ($mediaId !== 0) {
+        return $mediaId;                 // 이미 있으면 그대로
+    }
+    if (str_starts_with($slug, 'tmdb-')) {
+        $item = tmdb_find_by_id((int) substr($slug, 5));
+        if ($item !== null) {
+            return ensure_media($item);  // TMDB 정보로 저장하고 새 id 반환
         }
-        $result[] = $w;
+    }
+    return 0;                            // 저장할 수 없음
+}
+
+// ── 우리 DB에 있는 모든 작품 (홈·작품목록에서 사용) ─────────
+//   ★ 의미가 바뀌었다: 예전엔 '고정 더미 10개'였지만, 이제 '누군가 글을 써서
+//     우리 DB에 들어온 작품들'이다. (TMDB엔 수십만 개지만 우리가 다루는 건 이것들)
+function get_works(): array {
+    $rows = db()->query('SELECT * FROM media ORDER BY id DESC')->fetchAll();
+    $result = [];
+    foreach ($rows as $row) {
+        $counts = media_vote_counts((int) $row['id']);
+        $result[] = [
+            'slug'       => $row['slug'],
+            'title'      => $row['title'],
+            'genre'      => $row['genre'],
+            'year'       => $row['year'],
+            'summary'    => $row['overview'] ?? '',
+            'poster_url' => $row['poster_url'] ?? '',
+            'upVotes'    => $counts['up'],
+            'downVotes'  => $counts['down'],
+        ];
     }
     return $result;
 }
 
-// 내가 이 작품에 무엇을 투표했나? ('추천' / '비추천' / 안 했으면 null)
-function my_vote(string $slug): ?string {
-    return $_SESSION['my_vote'][$slug] ?? null;
-}
-
-// 투표 토글 — 글 추천(toggle_like)과 같은 규칙으로 맞춘다.
-//   · 안 한 상태에서 누르면      → 투표
-//   · 누른 걸 또 누르면          → 취소
-//   · 반대쪽을 누르면            → 갈아타기 (총 표는 그대로, 한쪽에서 다른 쪽으로 옮겨감)
-//   나중 DB에선: votes 테이블의 (work, user_id) 행을 DELETE / INSERT / UPDATE.
-function toggle_vote(string $slug, string $choice): void {
-    if (my_vote($slug) === $choice) {
-        unset($_SESSION['my_vote'][$slug]);      // 같은 걸 또 눌렀다 = 취소
-    } else {
-        $_SESSION['my_vote'][$slug] = $choice;   // 처음 투표하거나 반대쪽으로 갈아탐
-    }
-}
-
-// slug로 작품 '한 건 전체'를 찾는다. 없으면 null.
-function get_work(string $slug): ?array {
-    foreach (get_works() as $w) {
-        if ($w['slug'] === $slug) {
-            return $w;
-        }
-    }
-    return null;
-}
-
-// slug로 작품 제목만 찾기. 없으면 null.
-//   (Tester-Doer: null이 올 수 있으니 부르는 쪽에서 ?? 로 처리한다)
-function get_work_title(string $slug): ?string {
-    $work = get_work($slug);
-    return $work['title'] ?? null;
-}
-
-// 장르(영화 / 드라마)로 작품을 걸러낸다. 빈 문자열이면 '전체'.
+// 장르(영화/드라마)로 걸러낸다. 빈 문자열이면 전체. (배열 연산이라 week14 그대로)
 function filter_works_by_genre(array $works, string $genre): array {
     if ($genre === '') {
         return $works;
@@ -140,30 +160,8 @@ function filter_works_by_genre(array $works, string $genre): array {
     return $result;
 }
 
-// 검색어(q)가 '작품 제목 또는 감독 이름'에 들어있는 작품만 걸러낸다.
-//   예) '기생' → 기생충 / '놀란' → 인터스텔라
-function search_works(array $works, string $q): array {
-    if ($q === '') {
-        return $works;             // 검색어 없으면 전체
-    }
-    $result = [];
-    foreach ($works as $w) {
-        // ── mb_stripos(찾을 대상, 찾을 문자열) ──────────────────────────
-        //   대상 문자열 안에 그 글자가 '들어있는지' 찾는 함수.
-        //   · 반환값: 찾으면 '몇 번째 글자인지' 위치(0, 1, 2 …), 못 찾으면 false
-        //   · 앞의 mb_ = multibyte. 한글처럼 한 글자가 여러 바이트인 문자도 안전하게 다룬다.
-        //   · 가운데 i = insensitive. 대소문자를 구분하지 않는다.
-        //
-        //   ★ 왜 !== false 로 비교하나? (PHP의 유명한 함정)
-        //     맨 앞(0번째)에서 찾으면 0을 돌려주는데, if(0)은 '거짓'으로 취급된다.
-        //     그래서 값+타입을 엄격히 보는 !== 로 "false가 아니면 = 찾은 것"이라 판단한다.
-        //
-        //   복합 조건은 이름 붙인 boolean으로 쪼개서 읽기 쉽게 (CLAUDE.md 규칙)
-        $inTitle    = mb_stripos($w['title'], $q)    !== false;
-        $inDirector = mb_stripos($w['director'], $q) !== false;
-        if ($inTitle || $inDirector) {
-            $result[] = $w;
-        }
-    }
-    return $result;
+// ── slug로 작품 제목만 (없으면 null) ────────────────────────
+function get_work_title(string $slug): ?string {
+    $work = get_work($slug);
+    return $work['title'] ?? null;
 }

@@ -53,8 +53,8 @@ function ensure_media(array $tmdbItem): int {
     //       ? ? ? ? ? ?  ←  496243, 'tmdb-496243', '기생충', '영화', 2019, 'https://.../xx.jpg'
     //     → media 표에 새 줄이 생기고, id는 AUTO_INCREMENT가 자동으로 매김(예: 1)
     $stmt = db()->prepare(
-        'INSERT INTO media (tmdb_id, slug, title, genre, year, poster_url)
-         VALUES (?, ?, ?, ?, ?, ?)'
+        'INSERT INTO media (tmdb_id, slug, title, genre, year, poster_url, overview)
+         VALUES (?, ?, ?, ?, ?, ?, ?)'
     );
     $stmt->execute([
         $tmdbId,                          // ? 1 → tmdb_id  (예: 496243)
@@ -63,6 +63,7 @@ function ensure_media(array $tmdbItem): int {
         $tmdbItem['genre']      ?? '',    // ? 4 → genre    (예: '영화')
         $tmdbItem['year']       ?? null,  // ? 5 → year     (예: 2019)
         $tmdbItem['poster_url'] ?? '',    // ? 6 → poster_url
+        $tmdbItem['overview']   ?? '',    // ? 7 → overview  (줄거리)
     ]);
 
     // 방금 INSERT한 행의 id(AUTO_INCREMENT가 매긴 번호)를 돌려준다. (예: 1)

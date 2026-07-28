@@ -12,7 +12,8 @@ USE review_community;
 --   다른 표(posts·comments·likes·votes)가 참조하는 '뿌리' 표라 제일 먼저 만든다.
 CREATE TABLE users (
     id         INT AUTO_INCREMENT PRIMARY KEY,   -- 기본키. 안 넣으면 1,2,3… 자동 부여
-    username   VARCHAR(20)  NOT NULL UNIQUE,      -- 아이디. 비면 거부, 중복도 거부
+    username   VARCHAR(20)  NOT NULL UNIQUE,      -- 아이디(로그인·신원 키). 비면 거부, 중복도 거부. 안 바뀜.
+    nickname   VARCHAR(20)  NOT NULL,             -- 표시 이름(닉네임). 화면에 보이는 이름. 바꿀 수 있음. 가입 땐 아이디로 시작.
     password   VARCHAR(255) NOT NULL,             -- password_hash() 결과 (해시라 길어서 255)
     avatar     VARCHAR(255) DEFAULT NULL,         -- 프로필 이미지 주소 (uploads/avatars/). 없으면 NULL
     joined_at  DATETIME     DEFAULT NOW()         -- 가입 시각. 안 넣으면 '지금'이 자동으로 들어감

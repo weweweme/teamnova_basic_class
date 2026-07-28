@@ -13,6 +13,7 @@ require_login();
 $username = (string) current_user();
 $userRow  = find_user($username);
 $avatar   = $userRow['avatar'] ?? null;
+$nickname = $userRow['nickname'] ?? $username;   // 표시 이름(변경 폼에 미리 채워둔다)
 
 $pageTitle = '설정';
 $containerClass = 'narrow';
@@ -47,7 +48,32 @@ require __DIR__ . '/includes/header.php';
     </div>
   </section>
 
-  <!-- ── 계정 정보 (지금은 읽기 전용) ──────────────────────── -->
+  <!-- ── 닉네임(표시 이름) 변경 ───────────────────────────── -->
+  <section class="settings-section">
+    <h2>닉네임</h2>
+    <p class="muted">글·댓글·프로필에 보이는 이름이에요. (로그인 아이디는 안 바뀝니다)</p>
+    <form class="settings-form" method="post" action="/settings/nickname.php">
+      <input type="text" name="nickname" value="<?= e($nickname) ?>"
+             maxlength="20" required>
+      <button type="submit">저장</button>
+    </form>
+  </section>
+
+  <!-- ── 비밀번호 변경 ─────────────────────────────────────── -->
+  <section class="settings-section">
+    <h2>비밀번호 변경</h2>
+    <form class="settings-form settings-form-col" method="post" action="/settings/password.php">
+      <label>현재 비밀번호
+        <input type="password" name="current" required>
+      </label>
+      <label>새 비밀번호
+        <input type="password" name="new" minlength="4" required>
+      </label>
+      <button type="submit">변경</button>
+    </form>
+  </section>
+
+  <!-- ── 계정 정보 (아이디는 못 바꿈 — 신원 키) ──────────────── -->
   <section class="settings-section">
     <h2>계정 정보</h2>
     <dl class="settings-info">

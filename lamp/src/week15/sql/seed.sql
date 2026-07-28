@@ -20,10 +20,10 @@ TRUNCATE TABLE users;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ── 회원 (비번은 전부 '1234') ───────────────────────────────
-INSERT INTO users (id, username, password) VALUES
-  (1, '영화광',   '$2y$12$B5ggFqNPE4RPu9vTMz7T1usjHpLSQdVsfk0GILeyMy6bBvOsIEAQ.'),
-  (2, '해석러',   '$2y$12$B5ggFqNPE4RPu9vTMz7T1usjHpLSQdVsfk0GILeyMy6bBvOsIEAQ.'),
-  (3, '심야극장', '$2y$12$B5ggFqNPE4RPu9vTMz7T1usjHpLSQdVsfk0GILeyMy6bBvOsIEAQ.');
+INSERT INTO users (id, username, nickname, password) VALUES
+  (1, '영화광',   '영화광',   '$2y$12$B5ggFqNPE4RPu9vTMz7T1usjHpLSQdVsfk0GILeyMy6bBvOsIEAQ.'),
+  (2, '해석러',   '해석러',   '$2y$12$B5ggFqNPE4RPu9vTMz7T1usjHpLSQdVsfk0GILeyMy6bBvOsIEAQ.'),
+  (3, '심야극장', '심야극장', '$2y$12$B5ggFqNPE4RPu9vTMz7T1usjHpLSQdVsfk0GILeyMy6bBvOsIEAQ.');
 
 -- ── 작품 (실제 TMDB 데이터) ─────────────────────────────────
 INSERT INTO media (id, tmdb_id, slug, title, genre, year, poster_url, overview) VALUES

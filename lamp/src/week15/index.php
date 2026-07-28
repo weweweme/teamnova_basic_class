@@ -108,7 +108,7 @@ require __DIR__ . '/includes/header.php';
                 <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= e($p['title']) ?></a>
                 <span class="tag"><?= e($p['sentiment']) ?></span>
                 <a class="post-stat" href="/board/?work=<?= e($p['work']) ?>"><?= e($p['workTitle']) ?></a>
-                <span class="post-stat">· <?= e($p['author']) ?> · 💬 <?= (int)$p['comments'] ?></span>
+                <span class="post-stat">· <?= e($p['authorNick']) ?> · 💬 <?= (int)$p['comments'] ?></span>
               </li>
             <?php endforeach; ?>
           </ul>

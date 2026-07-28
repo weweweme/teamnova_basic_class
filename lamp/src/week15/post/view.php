@@ -44,7 +44,7 @@ require __DIR__ . '/../includes/header.php';
       <!-- 어느 작품 글인지 → 그 작품 게시판으로 이동 -->
       <a href="/board/?work=<?= e($post['work']) ?>"><?= e($post['workTitle']) ?></a> ·
       <!-- 작성자 이름을 누르면 그 사람의 프로필로 (GET으로 user 전달) -->
-      <a href="/profile.php?user=<?= e($post['author']) ?>"><?= e($post['author']) ?></a>
+      <a href="/profile.php?user=<?= e($post['author']) ?>"><?= e($post['authorNick']) ?></a>
     </p>
     <!-- nl2br(e(...)) : e()로 먼저 안전 처리 → nl2br로 줄바꿈(\n)을 <br>로. (순서 중요) -->
     <div class="post-content"><?= nl2br(e($post['content'])) ?></div>
@@ -135,7 +135,7 @@ require __DIR__ . '/../includes/header.php';
     <ul class="comment-list">
       <?php foreach ($comments as $c): ?>
         <li>
-          <span class="comment-author"><?= e($c['author']) ?></span>
+          <span class="comment-author"><?= e($c['authorNick']) ?></span>
           <?= e($c['content']) ?>
           <?php // 댓글도 '내가 쓴 것'만 삭제 버튼을 보여준다 ?>
           <?php if (is_owner($c['author'])): ?>

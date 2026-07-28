@@ -17,13 +17,13 @@ require_once __DIR__ . '/db.php';   // db()
 //   LEFT JOIN likes = 추천 0개인 글도 유저는 남긴다(추천 없다고 유저가 사라지면 안 됨).
 function rank_users(int $limit): array {
     $sql = "
-        SELECT u.id, u.username, u.avatar,
+        SELECT u.id, u.username, u.nickname, u.avatar,
                COUNT(DISTINCT p.id) AS postCount,      -- 쓴 글 수 (JOIN으로 불어난 줄을 중복 제거)
                COUNT(l.post_id)     AS likesReceived   -- 그 글들이 받은 추천 총합 (빈칸 NULL은 안 셈)
         FROM users u
         JOIN posts p      ON p.author_id = u.id AND p.deleted_at IS NULL   -- 글 있는 유저만
         LEFT JOIN likes l ON l.post_id   = p.id                            -- 추천 0개여도 유지
-        GROUP BY u.id, u.username, u.avatar
+        GROUP BY u.id, u.username, u.nickname, u.avatar
         ORDER BY likesReceived DESC, postCount DESC   -- 추천 많은 순, 같으면 글 많은 순
         LIMIT " . (int) $limit . "
     ";

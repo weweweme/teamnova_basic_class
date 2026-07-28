@@ -29,7 +29,8 @@ function get_posts(): array {
             m.slug        AS work,        -- 주소용 작품 이름 (?work=...)
             m.title       AS workTitle,   -- 작품 제목
             p.title,
-            u.username    AS author,      -- 작성자 닉네임
+            u.username    AS author,      -- 작성자 아이디(신원 키: 소유권 확인·프로필 URL용)
+            u.nickname    AS authorNick,  -- 작성자 표시 이름(화면에 보이는 닉네임)
             p.sentiment,
             p.views,
             p.content,
@@ -65,7 +66,7 @@ function get_post(int $id): ?array {
     $sql = "
         SELECT
             p.id, m.slug AS work, m.title AS workTitle, p.title,
-            u.username AS author, p.sentiment, p.views, p.content,
+            u.username AS author, u.nickname AS authorNick, p.sentiment, p.views, p.content,
             UNIX_TIMESTAMP(p.created_at) AS created,
             (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments,
             (SELECT COUNT(*) FROM likes    l WHERE l.post_id = p.id) AS likes

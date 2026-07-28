@@ -38,24 +38,25 @@ $totalLikes = array_sum(array_column($posts, 'likes'));
 // 지금 보고 있는 프로필이 '내 것'인가? (로그인한 사람과 이름이 같으면)
 $isMe = is_owner($user);
 
-// 이 회원의 아바타(프로필 이미지) 주소. 없으면 null.
-$userRow = find_user($user);
-$avatar  = $userRow['avatar'] ?? null;
+// 이 회원의 정보. 아바타·닉네임(표시 이름). URL·신원은 username($user)을 계속 쓴다.
+$userRow  = find_user($user);
+$avatar   = $userRow['avatar'] ?? null;
+$nickname = $userRow['nickname'] ?? $user;   // 혹시 없으면 아이디로 대체
 
-$pageTitle = $isMe ? '내 프로필' : $user . ' 님의 프로필';
+$pageTitle = $isMe ? '내 프로필' : $nickname . ' 님의 프로필';
 require __DIR__ . '/includes/header.php';
 ?>
 
   <div class="profile-head">
-    <!-- 아바타: 있으면 이미지, 없으면 이름 첫 글자로 만든 자리표시 -->
+    <!-- 아바타: 있으면 이미지, 없으면 닉네임 첫 글자로 만든 자리표시 -->
     <?php if ($avatar): ?>
       <img class="avatar" src="<?= e($avatar) ?>" alt="">
     <?php else: ?>
-      <span class="avatar avatar-empty"><?= e(mb_substr($user, 0, 1)) ?></span>
+      <span class="avatar avatar-empty"><?= e(mb_substr($nickname, 0, 1)) ?></span>
     <?php endif; ?>
 
     <h1>
-      <?= e($user) ?>
+      <?= e($nickname) ?>
       <small><?= $isMe ? '— 내 프로필' : '님의 프로필' ?></small>
     </h1>
   </div>

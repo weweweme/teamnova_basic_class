@@ -14,7 +14,10 @@ const COMMENT_MAX = 500;   // 댓글 최대 글자 수
 //   반환 모양은 week14와 동일: id·postId·author·content
 function get_comments(int $postId): array {
     $sql = "
-        SELECT c.id, c.post_id AS postId, u.username AS author, c.content
+        SELECT c.id, c.post_id AS postId,
+               u.username AS author,      -- 아이디(소유권 확인용)
+               u.nickname AS authorNick,  -- 표시 이름(화면에 보이는 닉네임)
+               c.content
         FROM comments c
         JOIN users u ON c.author_id = u.id
         WHERE c.post_id = ? AND c.deleted_at IS NULL   -- 이 글의, 안 지워진 댓글만

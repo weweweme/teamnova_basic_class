@@ -25,15 +25,38 @@ function create_user(string $username, string $password): int {
         return 0;                         // 이미 있는 아이디
     }
     // 평문 비번을 해시로 바꿔 저장 (원본 비번은 어디에도 안 남긴다)
+    //   닉네임은 처음엔 아이디와 같게 둔다 (나중에 설정에서 바꿀 수 있음).
     $hash = password_hash($password, PASSWORD_DEFAULT);
-    $stmt = db()->prepare('INSERT INTO users (username, password) VALUES (?, ?)');
-    $stmt->execute([$username, $hash]);
+    $stmt = db()->prepare('INSERT INTO users (username, nickname, password) VALUES (?, ?, ?)');
+    $stmt->execute([$username, $username, $hash]);
     return (int) db()->lastInsertId();
 }
 
 // 회원의 아바타(프로필 이미지) 주소를 저장한다.
 function set_avatar(int $userId, string $url): void {
     db()->prepare('UPDATE users SET avatar = ? WHERE id = ?')->execute([$url, $userId]);
+}
+
+// 닉네임(표시 이름) 변경. 아이디(로그인 키)는 그대로 두고 nickname만 바꾼다.
+function set_nickname(int $userId, string $nickname): void {
+    db()->prepare('UPDATE users SET nickname = ? WHERE id = ?')->execute([$nickname, $userId]);
+}
+
+// 비밀번호 변경. 새 평문을 해시로 바꿔 저장한다. (원본은 안 남김)
+function set_password(int $userId, string $newPassword): void {
+    $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+    db()->prepare('UPDATE users SET password = ? WHERE id = ?')->execute([$hash, $userId]);
+}
+
+// 지금 로그인한 사용자의 '표시 이름(닉네임)'. 로그인 안 했으면 null.
+//   세션엔 아이디만 있으므로 users 표에서 닉네임을 찾아온다.
+function current_nickname(): ?string {
+    $username = current_user();
+    if ($username === null) {
+        return null;
+    }
+    $nick = db_scalar('SELECT nickname FROM users WHERE username = ?', [$username]);
+    return $nick !== false ? (string) $nick : $username;   // 혹시 없으면 아이디로 대체
 }
 
 // 아이디+비밀번호가 맞는지 확인. 맞으면 회원 배열, 틀리면 null.

@@ -370,6 +370,79 @@ function buildRowCard(m) {
     return a;
 }
 
+// ── 설정: 프로필 이미지 '올리기 전에' 브라우저에서 줄인다 ──────
+//   서버엔 이미지 처리 도구(GD)가 없어서, 브라우저 Canvas로 256px 정사각형
+//   WebP로 압축해 보낸다. 2MB 원본이 ~20KB로 줄어 업로드가 빠르고 크기도 통일된다.
+//   ★ 서버의 3중 검증(MIME·크기·파일명)은 그대로 → 이중 방어.
+const AVATAR_SIZE = 256;                       // 저장할 정사각형 한 변(px)
+const AVATAR_MAX_ORIGINAL = 15 * 1024 * 1024;  // 원본 상한(브라우저 메모리 보호) 15MB
+
+const avatarInput = document.getElementById('avatar-input');
+if (avatarInput) {
+    const form = avatarInput.closest('form');
+
+    avatarInput.addEventListener('change', async function () {
+        const file = avatarInput.files[0];
+        if (!file) {
+            return;
+        }
+        // 사전검사 ①: 진짜 이미지 종류인가 (아니면 즉시 막고 안내)
+        if (!file.type.startsWith('image/')) {
+            alert('이미지 파일만 올릴 수 있어요 (JPG·PNG·GIF·WebP).');
+            avatarInput.value = '';
+            return;
+        }
+        // 사전검사 ②: 원본이 터무니없이 크면 거부 (줄이기 전에 메모리 폭발 방지)
+        if (file.size > AVATAR_MAX_ORIGINAL) {
+            alert('사진이 너무 큽니다. 15MB 이하로 올려주세요.');
+            avatarInput.value = '';
+            return;
+        }
+
+        try {
+            const blob = await resizeImageToSquare(file, AVATAR_SIZE);
+            // 줄인 이미지(WebP)로 input의 파일을 교체해서 제출한다.
+            //   DataTransfer = input.files를 프로그램으로 바꿔 끼우는 표준 방법.
+            const dt = new DataTransfer();
+            dt.items.add(new File([blob], 'avatar.webp', { type: 'image/webp' }));
+            avatarInput.files = dt.files;
+        } catch (e) {
+            // 줄이기에 실패하면 원본 그대로 보낸다 (서버가 2MB·MIME 재검사하니 안전)
+        }
+        form.submit();
+    });
+}
+
+// 이미지를 '정사각형 size×size'로 중앙 크롭해서 WebP Blob으로 만든다.
+//   cover 방식: 짧은 변을 꽉 채우고 넘치는 부분은 잘라내 정사각형을 만든다.
+function resizeImageToSquare(file, size) {
+    return new Promise(function (resolve, reject) {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = function () {
+            URL.revokeObjectURL(url);                 // 다 썼으니 메모리 해제
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            // 짧은 변 기준으로 확대비를 잡아 정사각형을 꽉 채우고, 넘침은 중앙 크롭
+            const scale = Math.max(size / img.width, size / img.height);
+            const w = img.width * scale;
+            const h = img.height * scale;
+            ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+            // WebP로 압축(품질 0.85). WebP 미지원 옛 브라우저면 PNG로 떨어진다.
+            canvas.toBlob(function (blob) {
+                blob ? resolve(blob) : reject(new Error('toBlob 실패'));
+            }, 'image/webp', 0.85);
+        };
+        img.onerror = function () {
+            URL.revokeObjectURL(url);
+            reject(new Error('이미지 로드 실패'));
+        };
+        img.src = url;
+    });
+}
+
 // '오늘의 발견' 사이드 카드 채우기 — 인기작 중 하나를 무작위로
 function fillDailyPick(items) {
     const box = document.getElementById('daily-pick-box');

@@ -34,13 +34,15 @@ require __DIR__ . '/includes/header.php';
         <span class="avatar avatar-empty"><?= e(mb_substr($username, 0, 1)) ?></span>
       <?php endif; ?>
 
-      <!-- 파일 업로드 폼: enctype="multipart/form-data" 필수 (파일을 담아 보내는 방식) -->
+      <!-- 파일 업로드 폼: enctype="multipart/form-data" 필수 (파일을 담아 보내는 방식)
+           ★ 자동제출(onchange) 대신 main.js가 파일 선택을 가로채서
+             올리기 전에 256px로 줄이고(WebP) 제출한다. JS 실패 시엔 원본 그대로 제출. -->
       <form class="avatar-form" method="post" action="/profile/avatar.php" enctype="multipart/form-data">
         <label class="btn-upload">
           📷 이미지 변경
-          <input type="file" name="avatar" accept="image/*" onchange="this.form.submit()" hidden>
+          <input type="file" name="avatar" id="avatar-input" accept="image/*" hidden>
         </label>
-        <span class="muted">JPG·PNG·GIF·WebP · 2MB 이하</span>
+        <span class="muted">JPG·PNG·GIF·WebP · 업로드 시 자동으로 256px로 최적화</span>
       </form>
     </div>
   </section>

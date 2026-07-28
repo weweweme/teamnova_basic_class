@@ -244,7 +244,9 @@ const sentinel = document.querySelector('#browse-sentinel');
 if (grid && sentinel) {
     sentinel.style.display = 'block';   // JS가 있을 때만 감지용 요소를 보이게
 
-    let page    = 1;       // 첫 페이지는 서버가 이미 그렸으니 다음은 2부터
+    // 시작 페이지: 서버가 미리 그린 페이지 수. data-start-page="0"이면 JS가 1페이지부터 채운다.
+    //   (지연 로딩 — 서버는 스켈레톤만 보내고 포스터는 여기서 받아온다)
+    let page    = grid.dataset.startPage !== undefined ? Number(grid.dataset.startPage) : 1;
     let loading = false;   // 중복 요청 방지 (한 번에 하나만)
     let done    = false;   // 더 없으면 멈춤
 
@@ -277,6 +279,8 @@ if (grid && sentinel) {
         try {
             const res  = await fetch(url);
             const data = await res.json();
+            // 첫 응답이 오면 로딩 자리표시(스켈레톤)를 걷어낸다 (있을 때만)
+            grid.querySelectorAll('.row-skeleton').forEach(function (s) { s.remove(); });
             if (!data.items || data.items.length === 0) {
                 done = true;                       // 더 없음
                 sentinel.textContent = '마지막까지 다 봤어요';

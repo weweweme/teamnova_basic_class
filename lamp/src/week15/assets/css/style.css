@@ -398,9 +398,6 @@ h1 small, .container h1 small { color: #9a9a9a; }
 /* 홈 게시판(최근 글) */
 .home-board { margin-top: 30px; padding-top: 6px; border-top: 1px solid #2a2a2a; }
 .home-board h2 { font-size: 18px; }
-/* 홈의 최근 글 목록만 예외: 위 제목·포스터 줄과 왼쪽 라인을 맞춰 전체 폭으로 편다.
-   (글 읽기 페이지의 좁은 760px 가운데 정렬은 그대로 두고, 넓은 홈에서만 쏠림 제거) */
-.home-board .post-list { max-width: none; margin-left: 0; margin-right: 0; }
 
 /* 카드·패널류 → 어두운 패널로 (글 본문·댓글은 제외 — 미니멀하게 여백/선으로) */
 .work-info, .vote-box, .profile-stats div, .widget-placeholder, .modal {
@@ -763,3 +760,16 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 
 /* 작품 둘러보기 제목 — 그리드와 같은 전체 폭 (760 중앙정렬 무시) */
 .container > h1.wide-title { max-width: none; margin-left: 0; margin-right: 0; }
+
+/* ── 홈 하단 게시판: [최근 글 | 댓글 많은 글] 2단 ─────────────
+   ★ 이 규칙은 파일 끝(760px 중앙정렬 규칙보다 뒤)에 둬서 우선순위로 이긴다.
+     같은 선택자·같은 우선순위면 '나중 것'이 이기기 때문. */
+.home-board-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+.board-col h2 { font-size: 18px; margin: 0 0 4px; }
+/* 홈 보드 안의 목록은 각 칸을 꽉 채우게 (760 중앙정렬 무시 → 왼쪽 쏠림 해결) */
+.home-board .post-list { max-width: none; margin: 0; }
+/* 좁은 화면(~900px): 2단 → 1단 세로로 */
+@media (max-width: 900px) { .home-board-grid { grid-template-columns: 1fr; gap: 4px; } }
+
+/* 지연 로딩 스켈레톤: 포스터 그리드 칸에선 칸 폭에 꽉 맞춘다 */
+.poster-grid .row-skeleton { width: 100%; }

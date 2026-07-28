@@ -21,9 +21,9 @@ if (!in_array($media, ['all', 'movie', 'tv', 'anime'], true)) {
     $media = 'all';
 }
 
-// ── 2) 첫 페이지 작품 (나머지는 무한 스크롤로) ──────────────
-$works = discover_by_genre($genre, $media, 1);
-
+// ── 2) 껍데기만 즉시 — 포스터는 무한스크롤 JS가 '첫 페이지부터' 채운다 ──
+//   ★ 무거운 TMDB 호출을 페이지 로딩에서 떼어냈다(홈과 같은 지연 로딩).
+//     탭·필터는 TMDB가 필요 없어 즉시 뜨고, 포스터만 스르륵 채워진다.
 $mediaTabs = ['all' => '전체', 'movie' => '영화', 'tv' => '드라마', 'anime' => '애니'];
 
 $pageTitle = '작품 둘러보기';
@@ -50,22 +50,14 @@ require __DIR__ . '/includes/header.php';
     <?php endforeach; ?>
   </div>
 
-  <!-- 포스터 그리드 — JS가 이 아래에 다음 페이지를 이어붙인다 -->
-  <?php if (!$works): ?>
-    <p class="muted">작품을 불러오지 못했습니다.</p>
-  <?php else: ?>
-    <div class="poster-grid" id="browse-grid"
-         data-genre="<?= e($genre) ?>" data-media="<?= e($media) ?>">
-      <?php foreach ($works as $w): ?>
-        <a class="row-card" href="/board/?work=tmdb-<?= e((string)$w['tmdb_id']) ?>">
-          <img class="row-poster" src="<?= e($w['poster_url']) ?>" alt="" loading="lazy">
-          <span class="row-title"><?= e($w['title']) ?></span>
-          <span class="post-stat"><?= e((string)($w['year'] ?? '')) ?></span>
-        </a>
-      <?php endforeach; ?>
-    </div>
-    <!-- 무한 스크롤 감지용 — 이게 화면에 보이면 JS가 다음 페이지를 부른다 -->
-    <div id="browse-sentinel" class="browse-sentinel">불러오는 중…</div>
-  <?php endif; ?>
+  <!-- 포스터 그리드 — 비어서 시작하고 JS가 첫 페이지부터 채운다.
+       data-start-page="0" → JS가 (0+1)=1페이지부터 요청한다. -->
+  <div class="poster-grid" id="browse-grid"
+       data-genre="<?= e($genre) ?>" data-media="<?= e($media) ?>" data-start-page="0">
+    <?php // 로딩 자리표시(스켈레톤) — 첫 페이지가 오면 JS가 걷어낸다 ?>
+    <?php for ($i = 0; $i < 12; $i++): ?><span class="row-skeleton"></span><?php endfor; ?>
+  </div>
+  <!-- 무한 스크롤 감지용 — 이게 화면에 보이면 JS가 다음 페이지를 부른다 -->
+  <div id="browse-sentinel" class="browse-sentinel">불러오는 중…</div>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>

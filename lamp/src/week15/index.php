@@ -16,6 +16,8 @@ require_once __DIR__ . '/includes/media_row.php';  // 가로 줄 렌더링 조�
 //     대신 화면이 뜬 뒤 JS가 api/row.php로 받아와 채운다(지연 로딩) → 홈이 즉시 뜬다.
 $community = get_community_works();               // 우리 DB — 글 달린 작품 + 지표
 $recent    = paginate_posts(get_posts(), 1, 8);   // 최근 글 8개 (get_posts는 최신순)
+//   오른쪽 칸: 댓글 많은 글 = 토론이 활발한 글 (사이드바 '지금 뜨는 글'은 조회순이라 축이 다름)
+$discussed = paginate_posts(sort_posts(get_posts(), 'comments'), 1, 8);
 
 // ── 히어로 배너: 우리 커뮤니티 1위(글 최다) ──────────────────
 //   backdrop(가로 큰 이미지)이 DB엔 없으므로, tmdb_id로 TMDB 상세를 가져와 채운다.
@@ -94,17 +96,37 @@ require __DIR__ . '/includes/header.php';
   <!-- ── 게시판: 최근 올라온 글 ──────────────────────────────── -->
   <?php if ($recent): ?>
     <section class="home-board">
-      <h2>📋 최근 올라온 글</h2>
-      <ul class="post-list">
-        <?php foreach ($recent as $p): ?>
-          <li>
-            <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= e($p['title']) ?></a>
-            <span class="tag"><?= e($p['sentiment']) ?></span>
-            <a class="post-stat" href="/board/?work=<?= e($p['work']) ?>"><?= e($p['workTitle']) ?></a>
-            <span class="post-stat">· <?= e($p['author']) ?> · 💬 <?= (int)$p['comments'] ?></span>
-          </li>
-        <?php endforeach; ?>
-      </ul>
+      <div class="home-board-grid">
+        <!-- 왼쪽: 최신순 -->
+        <div class="board-col">
+          <h2>📋 최근 올라온 글</h2>
+          <ul class="post-list">
+            <?php foreach ($recent as $p): ?>
+              <li>
+                <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= e($p['title']) ?></a>
+                <span class="tag"><?= e($p['sentiment']) ?></span>
+                <a class="post-stat" href="/board/?work=<?= e($p['work']) ?>"><?= e($p['workTitle']) ?></a>
+                <span class="post-stat">· <?= e($p['author']) ?> · 💬 <?= (int)$p['comments'] ?></span>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+
+        <!-- 오른쪽: 댓글 많은(토론 활발한) 글 -->
+        <div class="board-col">
+          <h2>💬 댓글 많은 글</h2>
+          <ul class="post-list">
+            <?php foreach ($discussed as $p): ?>
+              <li>
+                <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= e($p['title']) ?></a>
+                <span class="tag"><?= e($p['sentiment']) ?></span>
+                <a class="post-stat" href="/board/?work=<?= e($p['work']) ?>"><?= e($p['workTitle']) ?></a>
+                <span class="post-stat">· 💬 <?= (int)$p['comments'] ?></span>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+      </div>
     </section>
   <?php endif; ?>
 

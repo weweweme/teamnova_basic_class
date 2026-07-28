@@ -427,11 +427,16 @@ input::placeholder, textarea::placeholder { color: #888; }
 .pagination .page-nav { background: #1f1f1f; border-color: #3a4a7a; color: #9fbcff; }
 .pagination .page-num.active { background: #2b6cff; color: #fff; }
 
-/* 추천/수정/삭제 버튼 (윤곽선형) */
+/* 추천/수정 버튼 (윤곽선형) */
 .like-form button, .post-actions .btn-edit {
   background: #1f1f1f; border-color: #3a4a7a; color: #9fbcff;
 }
 .vote-form button { background: #1f1f1f; border-color: #444; }
+/* 삭제·신고 = 위험 동작: 어두운 배경 + 빨간 윤곽선(다른 버튼과 톤 맞춤) */
+.btn-delete, .btn-report {
+  background: #1f1f1f; border-color: #7a3a3a; color: #ff9a9d;
+}
+.btn-delete:hover, .btn-report:hover { background: #2a1a1a; }
 
 /* 프로필 통계 숫자 */
 .profile-stats strong { color: #7fa8ff; }
@@ -461,7 +466,7 @@ mark { background: #7a6000; color: #fff3a3; }
 /* 본문 폭: 홈·작품·게시판은 넓게 (커뮤니티 대형 카드 5개가 다 보이게) */
 .container { max-width: 1400px; }
 /* 단, '글 읽기·폼'은 좁은 폭이 읽기 좋다 → 그 안의 요소만 폭 제한 */
-.post, .write-form, .auth-form, .comments, .home-board .post-list,
+.post, .write-form, .auth-form, .comments, .home-board .post-list, .post-actions,
 .board-toolbar, .search-form, .sort-tabs, .filter-tabs, .pagination, .board-empty,
 .post-list, .comment-list, .profile-stats, .profile-head, .vote-box, .work-info {
   max-width: 760px;
@@ -608,9 +613,10 @@ mark { background: #7a6000; color: #fff3a3; }
 .post-content { background: none; padding: 0; font-size: 16px; line-height: 1.85;
   color: #dcdcdc; margin-bottom: 8px; }
 
-/* 글 액션(추천·신고·수정·삭제) 줄 — 위 선 하나로만 구분 */
+/* 글 액션(추천·신고·수정·삭제) 줄 — 위 선 하나로만 구분.
+   좌우 auto = 본문(.post)과 같은 760px 중앙 컬럼에 정렬 (왼쪽 라인 맞춤) */
 .post-actions { border-top: 1px solid #262626; border-bottom: none;
-  padding: 18px 0 4px; margin: 22px 0 0; }
+  padding: 18px 0 4px; margin: 22px auto 0; }
 
 /* 댓글 — 박스·위 선 없이 (액션 줄과 여백으로 자연 구분) */
 .comments { background: none; border-top: none; padding: 26px 0 0; margin-top: 8px; }

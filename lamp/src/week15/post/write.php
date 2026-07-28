@@ -11,6 +11,9 @@ require_once __DIR__ . '/../includes/works.php';   // 작품 목록을 고르게
 // ★ 로그인해야 글을 쓸 수 있다. (안 했으면 로그인 페이지로)
 require_login();
 
+// 이 페이지는 좁은 중앙 컬럼(760px)으로 — 제목·포스터·폼이 같은 왼쪽 선에 정렬되게.
+$containerClass = 'narrow';
+
 // 어느 작품에 쓰는 글인지 — 게시판에서 ?work=slug 로 넘어온다.
 //   글쓰기는 항상 '특정 작품 게시판'에서 시작하므로, 작품은 고정이다(고르는 게 아니라).
 $work     = get_str('work', '');

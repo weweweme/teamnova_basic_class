@@ -183,7 +183,7 @@ require __DIR__ . '/../includes/header.php';
   </div>
 
   <?php if (!$pagePosts): ?>
-    <p class="muted">해당 조건의 글이 없습니다.</p>
+    <p class="muted board-empty">해당 조건의 글이 없습니다.</p>
   <?php else: ?>
     <ul class="post-list">
       <?php foreach ($pagePosts as $p): ?>

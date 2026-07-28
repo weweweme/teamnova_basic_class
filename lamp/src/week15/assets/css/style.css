@@ -47,7 +47,7 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 /* 글쓰기 폼 */
 .write-form label { display: block; margin: 14px 0 4px; font-weight: 600; }
 .write-form input[type=text],
-.write-form textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
+.write-form textarea { width: 100%; margin-top: 8px; padding: 11px 13px; border: 1px solid #ccc; border-radius: 6px; }
 .write-form fieldset { margin: 14px 0; border: 1px solid #ddd; border-radius: 6px; }
 .write-form fieldset label { display: inline; font-weight: normal; margin-right: 12px; }
 .write-form button { margin-top: 14px; padding: 9px 18px; background: #2b6cff;
@@ -462,7 +462,7 @@ mark { background: #7a6000; color: #fff3a3; }
 .container { max-width: 1400px; }
 /* 단, '글 읽기·폼'은 좁은 폭이 읽기 좋다 → 그 안의 요소만 폭 제한 */
 .post, .write-form, .auth-form, .comments, .home-board .post-list,
-.board-toolbar, .search-form, .sort-tabs, .filter-tabs, .pagination,
+.board-toolbar, .search-form, .sort-tabs, .filter-tabs, .pagination, .board-empty,
 .post-list, .comment-list, .profile-stats, .profile-head, .vote-box, .work-info {
   max-width: 760px;
   margin-left: auto; margin-right: auto;   /* 좁은 폭이라 왼쪽 쏠리지 않게 중앙 정렬 */

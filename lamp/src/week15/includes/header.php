@@ -68,6 +68,7 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
     <nav>
       <a href="/">홈</a>
       <a href="/works.php">작품</a>
+      <a href="/rank.php">랭킹</a>
       <a href="/search.php">검색</a>
       <?php // 세션에 로그인 정보가 있으면 메뉴가 달라진다 ?>
       <?php if (is_logged_in()): ?>

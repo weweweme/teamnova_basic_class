@@ -761,6 +761,39 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 /* 작품 둘러보기 제목 — 그리드와 같은 전체 폭 (760 중앙정렬 무시) */
 .container > h1.wide-title { max-width: none; margin-left: 0; margin-right: 0; }
 
+/* ── 랭킹 페이지 ─────────────────────────────────────────────── */
+/* 탭 (작품/유저/글) — 작품 둘러보기 장르탭과 같은 알약 스타일 */
+.rank-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 18px; }
+.rank-tabs a { padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 600;
+  color: #cfcfcf; background: #1f1f26; border: 1px solid #2c2c36; text-decoration: none;
+  transition: background 0.12s; }
+.rank-tabs a:hover { background: #2a2a34; }
+.rank-tabs a.active { background: #fff; color: #141414; border-color: #fff; }
+
+/* 순위 목록 — ol의 기본 숫자는 끄고 우리가 만든 순위표시를 쓴다 */
+.rank-list { list-style: none; margin: 0; padding: 0; }
+.rank-item { display: flex; align-items: center; gap: 14px;
+  padding: 12px 10px; border-bottom: 1px solid #232323; border-radius: 8px;
+  transition: background 0.12s; }
+.rank-item:hover { background: rgba(255,255,255,0.03); }
+
+/* 순위 숫자/메달 — 고정폭으로 세로 라인 맞춤 */
+.rank-num { flex: 0 0 40px; text-align: center; font-size: 18px; font-weight: 800; color: #8a8a8a; }
+.rank-num.rank-1, .rank-num.rank-2, .rank-num.rank-3 { font-size: 26px; }  /* 메달은 크게 */
+
+/* 본문(포스터/아바타 + 정보) */
+.rank-body { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; text-decoration: none; }
+.rank-poster { width: 46px; height: 69px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+.rank-avatar { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.rank-avatar-empty { display: flex; align-items: center; justify-content: center;
+  background: #2b3358; color: #9fbcff; font-weight: 700; font-size: 20px; }
+.rank-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.rank-info strong { color: #f0f0f0; font-size: 16px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rank-meta { color: #9a9a9a; font-size: 13px; }
+/* 글 랭킹은 포스터가 없어 텍스트만 — 왼쪽 여백만 살짝 */
+.rank-body-post { padding-left: 2px; }
+
 /* ── 홈 하단 게시판: [최근 글 | 댓글 많은 글] 2단 ─────────────
    ★ 이 규칙은 파일 끝(760px 중앙정렬 규칙보다 뒤)에 둬서 우선순위로 이긴다.
      같은 선택자·같은 우선순위면 '나중 것'이 이기기 때문. */

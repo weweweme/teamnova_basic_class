@@ -23,7 +23,7 @@ $workInfo = get_work($work);   // DB에 있으면 그 정보, 없으면 TMDB에�
 if ($workInfo === null) {
     $pageTitle = '글쓰기';
     require __DIR__ . '/../includes/header.php';
-    echo '<p class="muted">먼저 <a href="/search.php">작품을 검색</a>해 게시판에 들어간 뒤 글쓰기를 눌러주세요.</p>';
+    echo '<p class="muted">먼저 <a href="/search/">작품을 검색</a>해 게시판에 들어간 뒤 글쓰기를 눌러주세요.</p>';
     require __DIR__ . '/../includes/footer.php';
     exit;
 }

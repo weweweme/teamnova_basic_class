@@ -5,10 +5,10 @@
 //   → 여러 표를 집계해 "제일 활발한 것"을 순위로 보여준다.
 //     매 요청 DB를 새로 세니 방문할 때마다 자동 갱신된다.
 // ============================================================
-require_once __DIR__ . '/includes/util.php';
-require_once __DIR__ . '/includes/works.php';    // get_community_works (작품 랭킹 재사용)
-require_once __DIR__ . '/includes/posts.php';    // get_posts·sort_posts (글 랭킹 재사용)
-require_once __DIR__ . '/includes/ranking.php';  // rank_users (유저 랭킹)
+require_once __DIR__ . '/../includes/util.php';
+require_once __DIR__ . '/../includes/works.php';    // get_community_works (작품 랭킹 재사용)
+require_once __DIR__ . '/../includes/posts.php';    // get_posts·sort_posts (글 랭킹 재사용)
+require_once __DIR__ . '/../includes/ranking.php';  // rank_users (유저 랭킹)
 
 // ── 탭 받기 + 검증 (화이트리스트) ────────────────────────────
 $tab = get_str('tab', 'works');
@@ -25,7 +25,7 @@ $tabs = ['works' => '🎬 인기 작품', 'users' => '👑 명예의 전당', 'p
 
 $pageTitle = '랭킹';
 $containerClass = 'narrow';   // 세로 순위 목록이라 좁은 중앙 컬럼이 읽기 좋다
-require __DIR__ . '/includes/header.php';
+require __DIR__ . '/../includes/header.php';
 ?>
 
   <h1>🏆 랭킹</h1>
@@ -34,7 +34,7 @@ require __DIR__ . '/includes/header.php';
   <div class="rank-tabs">
     <?php foreach ($tabs as $key => $label): ?>
       <a class="<?= $tab === $key ? 'active' : '' ?>"
-         href="<?= e(query_url('/rank.php', ['tab' => $key])) ?>"><?= e($label) ?></a>
+         href="<?= e(query_url('/rank/', ['tab' => $key])) ?>"><?= e($label) ?></a>
     <?php endforeach; ?>
   </div>
 
@@ -71,7 +71,7 @@ require __DIR__ . '/includes/header.php';
         <?php foreach ($rows as $i => $u): $rank = $i + 1; ?>
           <li class="rank-item">
             <span class="rank-num rank-<?= $rank ?>"><?= $medals[$rank] ?? $rank ?></span>
-            <a class="rank-body" href="/profile.php?user=<?= urlencode($u['username']) ?>">
+            <a class="rank-body" href="/profile/?user=<?= urlencode($u['username']) ?>">
               <?php if (!empty($u['avatar'])): ?>
                 <img class="rank-avatar" src="<?= e($u['avatar']) ?>" alt="">
               <?php else: ?>
@@ -110,4 +110,4 @@ require __DIR__ . '/includes/header.php';
     <?php endif; ?>
   <?php endif; ?>
 
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php require __DIR__ . '/../includes/footer.php'; ?>

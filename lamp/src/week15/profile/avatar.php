@@ -22,7 +22,7 @@ $username = (string) current_user();
 // ── 1) 파일이 실제로 왔나? ───────────────────────────────────
 //   $_FILES = 업로드된 파일 정보를 담는 슈퍼글로벌 ($_POST의 '파일' 버전).
 if (!isset($_FILES['avatar'])) {
-    header('Location: /settings.php');
+    header('Location: /settings/');
     exit;
 }
 
@@ -32,7 +32,7 @@ $url = save_avatar($_FILES['avatar'], $userId);
 
 if ($url === null) {
     set_flash('이미지 업로드에 실패했습니다. (JPG·PNG·GIF·WebP, 2MB 이하)', 'error');
-    header('Location: /settings.php');
+    header('Location: /settings/');
     exit;
 }
 
@@ -43,5 +43,5 @@ set_avatar($userId, $url);
 
 // ── 4) PRG: 내 프로필로 ──────────────────────────────────────
 set_flash('🖼️ 프로필 이미지가 변경되었습니다.');
-header('Location: /settings.php');
+header('Location: /settings/');
 exit;

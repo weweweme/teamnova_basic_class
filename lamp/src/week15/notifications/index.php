@@ -4,9 +4,9 @@
 //   ★ 이 목록을 여는 순간 전체를 '읽음'으로 처리한다(사용자가 선택한 방식).
 //     단, 화면엔 '방금 전까지 안 읽었던 것'을 강조 표시하려고, 읽음 처리 '전에' 먼저 조회한다.
 // ============================================================
-require_once __DIR__ . '/includes/util.php';
-require_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/notifications.php';
+require_once __DIR__ . '/../includes/util.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/notifications.php';
 
 require_login();
 $userId = current_user_id();
@@ -27,7 +27,7 @@ function notif_time_ago(int $ts): string {
 
 $pageTitle = '알림';
 $containerClass = 'narrow';
-require __DIR__ . '/includes/header.php';
+require __DIR__ . '/../includes/header.php';
 ?>
 
   <h1>🔔 알림</h1>
@@ -51,4 +51,4 @@ require __DIR__ . '/includes/header.php';
     </ul>
   <?php endif; ?>
 
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php require __DIR__ . '/../includes/footer.php'; ?>

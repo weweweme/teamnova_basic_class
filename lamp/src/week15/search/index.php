@@ -8,8 +8,8 @@
 //     검색 결과는 아직 우리 DB에 저장되지 않는다 — 누군가 글을 쓰는 순간에만
 //     media 표에 저장된다(ensure_media). 즉 검색은 'TMDB 실시간 조회'일 뿐.
 // ============================================================
-require_once __DIR__ . '/includes/util.php';
-require_once __DIR__ . '/includes/tmdb.php';   // TMDB 검색 모듈
+require_once __DIR__ . '/../includes/util.php';
+require_once __DIR__ . '/../includes/tmdb.php';   // TMDB 검색 모듈
 
 // ── 1) 검색어 받기 ───────────────────────────────────────────
 $q = mb_substr(trim(get_str('q')), 0, 50);
@@ -21,13 +21,13 @@ $works    = $hasQuery ? search_tmdb($q) : [];   // TMDB 실시간 검색
 
 $pageTitle = $q === '' ? '작품 검색' : "'{$q}' 검색결과";
 $containerClass = 'narrow';
-require __DIR__ . '/includes/header.php';
+require __DIR__ . '/../includes/header.php';
 ?>
 
   <h1>작품 검색</h1>
 
-  <!-- 검색 폼은 method="get" — 검색어가 주소에 붙어 공유·북마크 가능 (/search.php?q=기생) -->
-  <form class="search-form" method="get" action="/search.php">
+  <!-- 검색 폼은 method="get" — 검색어가 주소에 붙어 공유·북마크 가능 (/search/?q=기생) -->
+  <form class="search-form" method="get" action="/search/">
     <input type="text" name="q" value="<?= e($q) ?>" placeholder="영화·드라마 제목 (예: 기생충, 인셉션)">
     <button type="submit">검색</button>
   </form>
@@ -62,4 +62,4 @@ require __DIR__ . '/includes/header.php';
     </ul>
   <?php endif; ?>
 
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php require __DIR__ . '/../includes/footer.php'; ?>

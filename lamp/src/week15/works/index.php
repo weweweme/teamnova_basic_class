@@ -7,8 +7,8 @@
 //   ★ 무한 스크롤: 스크롤 끝에 닿으면 JS가 다음 페이지를 api/browse.php에서
 //     받아와 이어붙인다. (여긴 첫 페이지만 서버가 그려준다)
 // ============================================================
-require_once __DIR__ . '/includes/util.php';
-require_once __DIR__ . '/includes/tmdb.php';
+require_once __DIR__ . '/../includes/util.php';
+require_once __DIR__ . '/../includes/tmdb.php';
 
 // ── 1) 장르·타입 받기 + 검증 ─────────────────────────────────
 $genres = tmdb_genres();                        // ['액션'=>..., 'SF'=>..., ...]
@@ -27,7 +27,7 @@ if (!in_array($media, ['all', 'movie', 'tv', 'anime'], true)) {
 $mediaTabs = ['all' => '전체', 'movie' => '영화', 'tv' => '드라마', 'anime' => '애니'];
 
 $pageTitle = '작품 둘러보기';
-require __DIR__ . '/includes/header.php';
+require __DIR__ . '/../includes/header.php';
 ?>
 
   <h1 class="wide-title">작품 둘러보기</h1>
@@ -35,10 +35,10 @@ require __DIR__ . '/includes/header.php';
   <!-- 메인 축: 장르 탭 -->
   <div class="genre-tabs">
     <a class="<?= $genre === '' ? 'active' : '' ?>"
-       href="<?= e(query_url('/works.php', ['genre' => ''])) ?>">전체</a>
+       href="<?= e(query_url('/works/', ['genre' => ''])) ?>">전체</a>
     <?php foreach ($genres as $name => $codes): ?>
       <a class="<?= $genre === $name ? 'active' : '' ?>"
-         href="<?= e(query_url('/works.php', ['genre' => $name])) ?>"><?= e($name) ?></a>
+         href="<?= e(query_url('/works/', ['genre' => $name])) ?>"><?= e($name) ?></a>
     <?php endforeach; ?>
   </div>
 
@@ -46,7 +46,7 @@ require __DIR__ . '/includes/header.php';
   <div class="media-filter">
     <?php foreach ($mediaTabs as $key => $label): ?>
       <a class="<?= $media === $key ? 'active' : '' ?>"
-         href="<?= e(query_url('/works.php', ['media' => $key])) ?>"><?= e($label) ?></a>
+         href="<?= e(query_url('/works/', ['media' => $key])) ?>"><?= e($label) ?></a>
     <?php endforeach; ?>
   </div>
 
@@ -60,4 +60,4 @@ require __DIR__ . '/includes/header.php';
   <!-- 무한 스크롤 감지용 — 이게 화면에 보이면 JS가 다음 페이지를 부른다 -->
   <div id="browse-sentinel" class="browse-sentinel">불러오는 중…</div>
 
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php require __DIR__ . '/../includes/footer.php'; ?>

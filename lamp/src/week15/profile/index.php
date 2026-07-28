@@ -5,9 +5,9 @@
 //   ★ 누구나 볼 수 있는 '공개 프로필'이지만,
 //     지금 로그인한 사람 본인이면 '내 프로필'로 표시해준다.
 // ============================================================
-require_once __DIR__ . '/includes/util.php';
-require_once __DIR__ . '/includes/auth.php';   // 내 프로필인지 판별하려고
-require_once __DIR__ . '/includes/posts.php';
+require_once __DIR__ . '/../includes/util.php';
+require_once __DIR__ . '/../includes/auth.php';   // 내 프로필인지 판별하려고
+require_once __DIR__ . '/../includes/posts.php';
 
 // ── 1) 누구의 프로필인지 받기 ────────────────────────────────
 $user = trim(get_str('user'));
@@ -17,9 +17,9 @@ $containerClass = 'narrow';
 
 if ($user === '') {
     $pageTitle = '프로필';
-    require __DIR__ . '/includes/header.php';
+    require __DIR__ . '/../includes/header.php';
     echo '<p>사용자를 지정해 주세요. <a href="/">홈으로</a></p>';
-    require __DIR__ . '/includes/footer.php';
+    require __DIR__ . '/../includes/footer.php';
     exit;
 }
 
@@ -54,7 +54,7 @@ if (!in_array($tab, ['posts', 'liked'], true)) {
 $listPosts = ($tab === 'liked') ? get_liked_posts($ownerId) : $posts;
 
 $pageTitle = $isMe ? '내 프로필' : $nickname . ' 님의 프로필';
-require __DIR__ . '/includes/header.php';
+require __DIR__ . '/../includes/header.php';
 ?>
 
   <div class="profile-head">
@@ -80,9 +80,9 @@ require __DIR__ . '/includes/header.php';
         //   ★ 이미지 변경 같은 편집 기능은 공개 프로필에 두지 않고 설정 뎁스로 넣었다. ?>
   <?php if ($isMe): ?>
     <div class="profile-actions">
-      <a class="btn-settings" href="/settings.php">⚙️ 설정</a>
+      <a class="btn-settings" href="/settings/">⚙️ 설정</a>
       <!-- 새 글은 '어느 작품'인지 먼저 골라야 하므로 검색으로 안내 -->
-      <a class="btn-write" href="/search.php">✏️ 새 글 쓰기</a>
+      <a class="btn-write" href="/search/">✏️ 새 글 쓰기</a>
     </div>
   <?php endif; ?>
 
@@ -96,9 +96,9 @@ require __DIR__ . '/includes/header.php';
   <!-- 탭: 작성한 글 | 좋아요한 글 (?tab= 만 바꾸고 user는 query_url이 유지) -->
   <div class="profile-tabs">
     <a class="<?= $tab === 'posts' ? 'active' : '' ?>"
-       href="<?= e(query_url('/profile.php', ['tab' => 'posts'])) ?>">✍️ 작성한 글 <?= (int)$postCount ?></a>
+       href="<?= e(query_url('/profile/', ['tab' => 'posts'])) ?>">✍️ 작성한 글 <?= (int)$postCount ?></a>
     <a class="<?= $tab === 'liked' ? 'active' : '' ?>"
-       href="<?= e(query_url('/profile.php', ['tab' => 'liked'])) ?>">👍 좋아요한 글</a>
+       href="<?= e(query_url('/profile/', ['tab' => 'liked'])) ?>">👍 좋아요한 글</a>
   </div>
 
   <?php if (!$listPosts): ?>
@@ -120,4 +120,4 @@ require __DIR__ . '/includes/header.php';
     </ul>
   <?php endif; ?>
 
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php require __DIR__ . '/../includes/footer.php'; ?>

@@ -101,8 +101,24 @@ users ──┬─< posts >──┬── media
 
 ---
 
-## 5. 코드 구조 — "함수 속만 SQL로"
+## 5. 코드 구조
 
+### 폴더 규칙 — "자원 하나 = 폴더 하나, 홈만 루트"
+```
+index.php              홈 (유일한 루트 화면)
+works/  search/  rank/  profile/  settings/  notifications/  board/
+   └ index.php = 그 자원의 '화면'(GET)   (+ 처리 파일이 있으면 같은 폴더에)
+post/   ├ view·write·edit (화면)  └ create·update·delete·restore (처리 POST)
+comment/  vote/  like/  report/  auth/    그 자원의 처리(POST) 파일들
+profile/avatar.php · settings/{nickname,password}.php   내 정보 편집 처리
+api/    row.php · browse.php   화면(HTML) 대신 데이터(JSON) — 지연 로딩용
+includes/   모든 화면이 공유하는 로직 모듈 + 레이아웃
+assets/  sql/  uploads/  cache/   정적파일 · DB재생성 · 업로드물 · TMDB캐시
+```
+→ **보여주는 URL(뷰)과 처리하는 URL(액션)을 분리**하고, POST 처리 뒤엔 **리다이렉트(PRG)**로
+새로고침 중복 제출을 막는다. 자원마다 폴더라 "어느 파일이 어디 있나"가 한 규칙으로 설명된다.
+
+### includes 모듈 — "함수 속만 SQL로"
 week14 대비 **화면 파일은 거의 그대로**다. `includes/` 모듈 함수의 내부만 세션→SQL로 바꿨다.
 
 ```

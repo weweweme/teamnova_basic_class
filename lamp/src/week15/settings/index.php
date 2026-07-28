@@ -4,8 +4,8 @@
 //   공개 프로필(profile.php)과 분리된 '내 전용' 편집 화면.
 //   지금은 프로필 이미지 변경 + 계정 정보. (나중에 비밀번호 변경 등 추가 가능)
 // ============================================================
-require_once __DIR__ . '/includes/util.php';
-require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/../includes/util.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 // ★ 로그인 필수 — 내 설정이니 로그인한 본인만.
 require_login();
@@ -17,11 +17,11 @@ $nickname = $userRow['nickname'] ?? $username;   // 표시 이름(변경 폼에 
 
 $pageTitle = '설정';
 $containerClass = 'narrow';
-require __DIR__ . '/includes/header.php';
+require __DIR__ . '/../includes/header.php';
 ?>
 
   <h1>⚙️ 설정</h1>
-  <p class="muted"><a href="/profile.php?user=<?= urlencode($username) ?>">← 내 프로필로</a></p>
+  <p class="muted"><a href="/profile/?user=<?= urlencode($username) ?>">← 내 프로필로</a></p>
 
   <?php // 업로드 성공/실패 안내는 header.php가 세션(플래시)에서 꺼내 그린다 ?>
 
@@ -82,4 +82,4 @@ require __DIR__ . '/includes/header.php';
     </dl>
   </section>
 
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php require __DIR__ . '/../includes/footer.php'; ?>

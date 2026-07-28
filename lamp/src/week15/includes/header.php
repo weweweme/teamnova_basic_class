@@ -69,20 +69,20 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
     <a class="logo" href="/">🎬 리뷰 커뮤니티</a>
     <nav>
       <a href="/">홈</a>
-      <a href="/works.php">작품</a>
-      <a href="/rank.php">랭킹</a>
-      <a href="/search.php">검색</a>
+      <a href="/works/">작품</a>
+      <a href="/rank/">랭킹</a>
+      <a href="/search/">검색</a>
       <?php // 세션에 로그인 정보가 있으면 메뉴가 달라진다 ?>
       <?php if (is_logged_in()): ?>
         <?php // 글쓰기는 '작품 게시판'에서 시작하는 구조(작품 slug 필요)라 상단바 메뉴는 두지 않는다.
               //   → '작품'·'검색'으로 작품에 들어가 게시판의 ✏️ 글쓰기로 시작. ?>
         <?php // 🔔 알림: 안 읽은 개수가 있으면 빨간 뱃지로 표시 ?>
         <?php $unread = count_unread_notifications(current_user_id()); ?>
-        <a class="nav-bell" href="/notifications.php" title="알림">🔔<?php
+        <a class="nav-bell" href="/notifications/" title="알림">🔔<?php
           if ($unread > 0): ?><span class="nav-bell-badge"><?= $unread > 99 ? '99+' : (int)$unread ?></span><?php endif; ?></a>
         <!-- 내 이름을 누르면 내 프로필로 (GET으로 user 전달)
              urlencode = 한글 아이디를 주소에 안전하게 넣기 위해 변환 -->
-        <a class="nav-user" href="/profile.php?user=<?= urlencode((string)current_user()) ?>"><?= e(current_nickname()) ?>님</a>
+        <a class="nav-user" href="/profile/?user=<?= urlencode((string)current_user()) ?>"><?= e(current_nickname()) ?>님</a>
         <!-- 로그아웃은 '상태를 바꾸는' 동작이라 링크(GET)가 아니라 POST 폼 버튼 -->
         <form class="logout-form" method="post" action="/auth/logout.php">
           <button type="submit">로그아웃</button>

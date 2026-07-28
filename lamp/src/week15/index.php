@@ -11,31 +11,26 @@ require_once __DIR__ . '/includes/works.php';      // 우리 커뮤니티 작품
 require_once __DIR__ . '/includes/posts.php';      // 최근 글 (게시판)
 require_once __DIR__ . '/includes/media_row.php';  // 가로 줄 렌더링 조각
 
-// 각 줄의 데이터 (우리 DB + TMDB)
+// ── 우리 DB 데이터 (빠름 — 서버가 즉시 그린다) ──────────────
+//   ★ 무거운 TMDB 인기작 줄(트렌딩·영화·드라마)은 여기서 안 부른다.
+//     대신 화면이 뜬 뒤 JS가 api/row.php로 받아와 채운다(지연 로딩) → 홈이 즉시 뜬다.
 $community = get_community_works();               // 우리 DB — 글 달린 작품 + 지표
-$trending  = tmdb_trending();                     // TMDB — 이번 주 인기작
-$movies    = tmdb_popular('movie');               // TMDB — 인기 영화
-$tv        = tmdb_popular('tv');                  // TMDB — 인기 드라마
 $recent    = paginate_posts(get_posts(), 1, 8);   // 최근 글 8개 (get_posts는 최신순)
 
-// ── 히어로 배너: 우리 커뮤니티 1위(글 최다). 없으면 이번 주 인기작 1위. ──
+// ── 히어로 배너: 우리 커뮤니티 1위(글 최다) ──────────────────
 //   backdrop(가로 큰 이미지)이 DB엔 없으므로, tmdb_id로 TMDB 상세를 가져와 채운다.
+//   (이건 화면 최상단 대표 이미지라 서버가 미리 준비 — 딱 1작품이라 호출도 1~2번뿐)
 $hero = null;
 if ($community) {
     $topSlug = $community[0]['slug'];                        // 글 제일 많은 작품
     $hero = tmdb_find_by_id((int) substr($topSlug, 5));      // 'tmdb-496243' → 496243
     if ($hero) { $hero['slug'] = $topSlug; }
-} elseif ($trending) {
-    $hero = $trending[0];
-    $hero['slug'] = 'tmdb-' . $hero['tmdb_id'];
 }
 
 // ── 사이드바 데이터 ──────────────────────────────────────────
 //   B) 지금 뜨는 글 = 조회수 순 상위 4개 (우리 커뮤니티 = 우리 정체성)
 $hotPosts = paginate_posts(sort_posts(get_posts(), 'views'), 1, 4);
-//   D) 오늘의 발견 = 인기작 중 하나 (매 요청 무작위면 산만하니, 인기작 앞쪽에서 하나)
-$pickPool = $trending ?: $movies;
-$pick     = $pickPool[array_rand($pickPool)] ?? null;   // 새로고침마다 바뀜(발견의 재미)
+//   D) 오늘의 발견 = 인기작 중 하나 → 이것도 무거운 TMDB라 JS가 나중에 채운다(placeholder).
 
 $pageTitle = '홈 · 리뷰 커뮤니티';
 require __DIR__ . '/includes/header.php';
@@ -73,16 +68,14 @@ require __DIR__ . '/includes/header.php';
           </section>
         <?php endif; ?>
 
-        <?php // D) 오늘의 발견 — 랜덤 작품 하나 ?>
-        <?php if ($pick): ?>
-          <section class="side-box">
-            <h3>🎲 오늘의 발견</h3>
-            <a class="side-pick" href="/board/?work=tmdb-<?= e((string)$pick['tmdb_id']) ?>">
-              <img src="<?= e($pick['poster_url']) ?>" alt="" loading="lazy">
-              <span class="side-pick-title"><?= e($pick['title']) ?></span>
-            </a>
-          </section>
-        <?php endif; ?>
+        <?php // D) 오늘의 발견 — 무거운 TMDB라 JS가 나중에 채운다. 채워지기 전엔 숨김(hidden). ?>
+        <section class="side-box" id="daily-pick-box" hidden>
+          <h3>🎲 오늘의 발견</h3>
+          <a class="side-pick" id="daily-pick" href="#">
+            <img alt="" loading="lazy">
+            <span class="side-pick-title"></span>
+          </a>
+        </section>
       </aside>
     </div>
   <?php endif; ?>
@@ -92,10 +85,10 @@ require __DIR__ . '/includes/header.php';
     //   ★ 우리 것을 '맨 위·크게' — TMDB 포스터에 정체성이 묻히지 않도록.
     render_media_row('🔥 우리 커뮤니티에서 이야기 중', $community, 'lg');
 
-    // ── TMDB 둘러보기 (소형 카드, 리사이클러뷰처럼 여러 줄) ──
-    render_media_row('이번 주 인기작', $trending, 'sm');
-    render_media_row('인기 영화',      $movies,   'sm');
-    render_media_row('인기 드라마',    $tv,       'sm');
+    // ── TMDB 둘러보기 (지연 로딩 — 껍데기만 보내고 JS가 채운다) ──
+    render_lazy_row('이번 주 인기작', 'trending');
+    render_lazy_row('인기 영화',      'movie');
+    render_lazy_row('인기 드라마',    'tv');
   ?>
 
   <!-- ── 게시판: 최근 올라온 글 ──────────────────────────────── -->

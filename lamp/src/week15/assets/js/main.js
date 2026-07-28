@@ -326,3 +326,56 @@ if (trailerModal) {
         }
     });
 }
+
+// ── 홈: 무거운 TMDB 가로줄을 '화면이 뜬 뒤' 채운다 (초기 로딩을 빠르게) ──
+//   서버는 빈 스켈레톤(.lazy-row)만 보냈고, 여기서 api/row.php로 실제 포스터를 받아 채운다.
+//   ★ 이게 "일단 이동하고 동적으로 받아오기"의 핵심 — 홈 HTML은 우리 DB 것만 담아 즉시 뜬다.
+document.querySelectorAll('.lazy-row').forEach(function (row) {
+    const kind   = row.dataset.kind;                 // trending | movie | tv
+    const scroll = row.querySelector('.row-scroll');
+
+    fetch('/api/row.php?kind=' + encodeURIComponent(kind))
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            if (!data.items || data.items.length === 0) {
+                row.remove();                        // 받아온 게 없으면 그 줄은 지운다
+                return;
+            }
+            scroll.innerHTML = '';                    // 스켈레톤 치우고
+            data.items.forEach(function (m) {         // 실제 카드로 채운다
+                scroll.appendChild(buildRowCard(m));
+            });
+            // '오늘의 발견'은 인기작(trending) 데이터에서 하나 골라 채운다
+            if (kind === 'trending') {
+                fillDailyPick(data.items);
+            }
+        })
+        .catch(function () { row.remove(); });        // 네트워크 실패 시 조용히 제거
+});
+
+// 가로줄 카드 하나 만들기 (media_row.php의 'sm' 카드와 같은 모양)
+//   구조는 innerHTML로, 사용자 데이터(제목)는 textContent로 넣어 XSS 방지.
+function buildRowCard(m) {
+    const a = document.createElement('a');
+    a.className = 'row-card';
+    a.href = '/board/?work=tmdb-' + m.tmdb_id;
+    a.innerHTML =
+        '<img class="row-poster" src="' + encodeURI(m.poster_url) + '" alt="" loading="lazy">' +
+        '<span class="row-title"></span>';
+    a.querySelector('.row-title').textContent = m.title;
+    return a;
+}
+
+// '오늘의 발견' 사이드 카드 채우기 — 인기작 중 하나를 무작위로
+function fillDailyPick(items) {
+    const box = document.getElementById('daily-pick-box');
+    const link = document.getElementById('daily-pick');
+    if (!box || !link || items.length === 0) {
+        return;
+    }
+    const m = items[Math.floor(Math.random() * items.length)];   // 새로고침마다 바뀜(발견의 재미)
+    link.href = '/board/?work=tmdb-' + m.tmdb_id;
+    link.querySelector('img').src = m.poster_url;
+    link.querySelector('.side-pick-title').textContent = m.title;
+    box.hidden = false;                              // 다 채워졌으니 이제 보여준다
+}

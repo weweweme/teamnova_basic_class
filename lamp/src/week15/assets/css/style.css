@@ -342,6 +342,21 @@ mark { background: #fff3a3; color: inherit; padding: 0 2px; border-radius: 3px; 
 .media-row-sm .row-title { font-size: 12px; }
 .media-row-sm .row-meta  { font-size: 11px; }
 
+/* 지연 로딩 자리표시(스켈레톤) — 실제 포스터가 오기 전 '회색 네모'가 은은히 흐른다.
+   JS가 포스터를 받아오면 이 자리를 실제 카드로 갈아끼운다. */
+.row-skeleton {
+  flex: 0 0 auto; width: 120px; aspect-ratio: 2/3; border-radius: 8px;
+  background: linear-gradient(100deg, #222 30%, #2e2e2e 50%, #222 70%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s ease-in-out infinite;
+}
+@keyframes skeleton-shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+/* 접근성: '움직임 줄이기' 설정한 사용자에겐 흐름 애니메이션을 끈다 */
+@media (prefers-reduced-motion: reduce) { .row-skeleton { animation: none; } }
+
 /* 작품 둘러보기 — 포스터 그리드 (여러 줄로 감쌈) */
 .poster-grid {
   display: grid;

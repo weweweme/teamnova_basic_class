@@ -12,6 +12,9 @@ require_once __DIR__ . '/includes/posts.php';
 // ── 1) 누구의 프로필인지 받기 ────────────────────────────────
 $user = trim(get_str('user'));
 
+// 프로필은 좁은 중앙 컬럼(760px)으로 — 헤더·통계·'작성한 글'·목록이 같은 왼쪽 선에 정렬되게.
+$containerClass = 'narrow';
+
 if ($user === '') {
     $pageTitle = '프로필';
     require __DIR__ . '/includes/header.php';
@@ -57,18 +60,11 @@ require __DIR__ . '/includes/header.php';
     </h1>
   </div>
 
-  <?php // 내 프로필일 때만: 이미지 변경 폼 + 새 글 바로가기 (한 줄로 묶어 깔끔하게) ?>
+  <?php // 내 프로필일 때만: '설정'(내 정보 편집)과 새 글 바로가기.
+        //   ★ 이미지 변경 같은 편집 기능은 공개 프로필에 두지 않고 설정 뎁스로 넣었다. ?>
   <?php if ($isMe): ?>
     <div class="profile-actions">
-      <!-- 파일 업로드 폼: enctype="multipart/form-data" 필수 (파일을 담아 보내는 방식) -->
-      <form class="avatar-form" method="post" action="/profile/avatar.php" enctype="multipart/form-data">
-        <label class="btn-upload">
-          📷 프로필 이미지 변경
-          <!-- accept="image/*" = 파일 선택창에서 이미지만 보이게 (편의. 진짜 검증은 서버) -->
-          <input type="file" name="avatar" accept="image/*" onchange="this.form.submit()" hidden>
-        </label>
-        <span class="muted">JPG·PNG·GIF·WebP · 2MB 이하</span>
-      </form>
+      <a class="btn-settings" href="/settings.php">⚙️ 설정</a>
       <!-- 새 글은 '어느 작품'인지 먼저 골라야 하므로 검색으로 안내 -->
       <a class="btn-write" href="/search.php">✏️ 새 글 쓰기</a>
     </div>

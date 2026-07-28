@@ -396,7 +396,7 @@ h1 small, .container h1 small { color: #9a9a9a; }
 .post-stat { color: #8a8a8a; }
 
 /* 홈 게시판(최근 글) */
-.home-board { margin-top: 30px; padding-top: 6px; border-top: 1px solid #2a2a2a; }
+.home-board { margin-top: 30px; padding-top: 26px; border-top: 1px solid #2a2a2a; }
 .home-board h2 { font-size: 18px; }
 
 /* 카드·패널류 → 어두운 패널로 (글 본문·댓글은 제외 — 미니멀하게 여백/선으로) */
@@ -507,7 +507,7 @@ mark { background: #7a6000; color: #fff3a3; }
 /* ── 히어로 영역 (넓으면 [히어로 | 사이드바] 2단) ──────────── */
 .hero-area {
   display: grid; grid-template-columns: 1fr;   /* 기본(좁은 화면): 1단 세로 */
-  gap: 16px; margin: -20px -20px 14px;         /* container 패딩 무시하고 꽉 차게 */
+  gap: 16px; margin: 0 -20px 14px;             /* 좌우는 화면 끝까지, 위는 상단바와 간격 유지 */
 }
 /* 넓은 화면: 히어로(넓게) + 사이드바(320px) 2단 */
 @media (min-width: 1100px) {

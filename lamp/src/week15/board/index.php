@@ -192,7 +192,8 @@ require __DIR__ . '/../includes/header.php';
                 // (create_highlighted가 e() 처리까지 끝내주므로 여기선 그대로 출력) ?>
           <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= create_highlighted($p['title'], $q) ?></a>
           <span class="tag"><?= e($p['sentiment']) ?></span>
-          <span class="post-stat">조회 <?= e((string)$p['views']) ?> · 댓글 <?= e((string)$p['comments']) ?></span>
+          <?php // 작성자(등급 배지 + 닉네임) — get_posts가 JOIN으로 함께 가져온 값 ?>
+          <span class="post-stat"><?= level_badge_html((int)$p['authorPostCount']) ?> <?= e($p['authorNick']) ?> · 조회 <?= e((string)$p['views']) ?> · 댓글 <?= e((string)$p['comments']) ?></span>
         </li>
       <?php endforeach; ?>
     </ul>

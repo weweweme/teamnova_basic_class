@@ -763,12 +763,12 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 
 /* ── 랭킹 페이지 ─────────────────────────────────────────────── */
 /* 탭 (작품/유저/글) — 작품 둘러보기 장르탭과 같은 알약 스타일 */
-.rank-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 18px; }
-.rank-tabs a { padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 600;
+.rank-tabs, .profile-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 18px; }
+.rank-tabs a, .profile-tabs a { padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 600;
   color: #cfcfcf; background: #1f1f26; border: 1px solid #2c2c36; text-decoration: none;
   transition: background 0.12s; }
-.rank-tabs a:hover { background: #2a2a34; }
-.rank-tabs a.active { background: #fff; color: #141414; border-color: #fff; }
+.rank-tabs a:hover, .profile-tabs a:hover { background: #2a2a34; }
+.rank-tabs a.active, .profile-tabs a.active { background: #fff; color: #141414; border-color: #fff; }
 
 /* 순위 목록 — ol의 기본 숫자는 끄고 우리가 만든 순위표시를 쓴다 */
 .rank-list { list-style: none; margin: 0; padding: 0; }

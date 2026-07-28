@@ -42,6 +42,16 @@ $isMe = is_owner($user);
 $userRow  = find_user($user);
 $avatar   = $userRow['avatar'] ?? null;
 $nickname = $userRow['nickname'] ?? $user;   // 혹시 없으면 아이디로 대체
+$ownerId  = (int) ($userRow['id'] ?? 0);     // 좋아요한 글 조회용 (users.id)
+
+// ── 탭: 작성한 글(posts, 기본) | 좋아요한 글(liked) ─────────
+//   통계 카드는 항상 '작성한 글' 기준이라 $posts를 그대로 쓰고,
+//   아래 목록만 탭에 따라 바뀐다.
+$tab = get_str('tab', 'posts');
+if (!in_array($tab, ['posts', 'liked'], true)) {
+    $tab = 'posts';
+}
+$listPosts = ($tab === 'liked') ? get_liked_posts($ownerId) : $posts;
 
 $pageTitle = $isMe ? '내 프로필' : $nickname . ' 님의 프로필';
 require __DIR__ . '/includes/header.php';
@@ -83,18 +93,28 @@ require __DIR__ . '/includes/header.php';
     <div><strong><?= $totalLikes ?></strong><span>받은 추천</span></div>
   </div>
 
-  <h2>작성한 글</h2>
+  <!-- 탭: 작성한 글 | 좋아요한 글 (?tab= 만 바꾸고 user는 query_url이 유지) -->
+  <div class="profile-tabs">
+    <a class="<?= $tab === 'posts' ? 'active' : '' ?>"
+       href="<?= e(query_url('/profile.php', ['tab' => 'posts'])) ?>">✍️ 작성한 글 <?= (int)$postCount ?></a>
+    <a class="<?= $tab === 'liked' ? 'active' : '' ?>"
+       href="<?= e(query_url('/profile.php', ['tab' => 'liked'])) ?>">👍 좋아요한 글</a>
+  </div>
 
-  <?php if (!$posts): ?>
-    <p class="muted">작성한 글이 없습니다.</p>
+  <?php if (!$listPosts): ?>
+    <p class="muted"><?= $tab === 'liked' ? '아직 좋아요한 글이 없습니다.' : '작성한 글이 없습니다.' ?></p>
   <?php else: ?>
     <ul class="post-list">
-      <?php foreach ($posts as $p): ?>
+      <?php foreach ($listPosts as $p): ?>
         <li>
           <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= e($p['title']) ?></a>
           <span class="tag"><?= e($p['sentiment']) ?></span>
           <!-- 어느 작품 글인지 표시 + 그 게시판으로 바로 갈 수 있게 링크 -->
           <a class="post-stat" href="/board/?work=<?= e($p['work']) ?>"><?= e($p['workTitle']) ?></a>
+          <?php // 좋아요한 글은 '남의 글'이라 작성자(배지+닉네임)를 함께 보여준다 ?>
+          <?php if ($tab === 'liked'): ?>
+            <span class="post-stat">· <?= level_badge_html((int)$p['authorPostCount']) ?> <?= e($p['authorNick']) ?></span>
+          <?php endif; ?>
         </li>
       <?php endforeach; ?>
     </ul>

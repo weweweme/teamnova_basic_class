@@ -50,6 +50,38 @@ function get_posts(): array {
     return db()->query($sql)->fetchAll();
 }
 
+// ── 이 유저가 '추천(좋아요)'한 글 목록 ──────────────────────
+//   ★ likes를 '거꾸로' 조회한다: 보통은 글→추천수를 세지만, 여기선
+//     추천(likes)에서 출발해 그 글(posts)을 끌어온다 → "내가 누른 글 모아보기".
+//   반환 모양은 get_posts와 동일 → 같은 화면 조각을 그대로 재사용할 수 있다.
+function get_liked_posts(int $userId): array {
+    $sql = "
+        SELECT
+            p.id,
+            m.slug        AS work,
+            m.title       AS workTitle,
+            p.title,
+            u.username    AS author,
+            u.nickname    AS authorNick,
+            p.sentiment,
+            p.views,
+            p.content,
+            UNIX_TIMESTAMP(p.created_at) AS created,
+            (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments,
+            (SELECT COUNT(*) FROM likes    l WHERE l.post_id = p.id) AS likes,
+            (SELECT COUNT(*) FROM posts pc WHERE pc.author_id = p.author_id AND pc.deleted_at IS NULL) AS authorPostCount
+        FROM likes lk                              -- ★ 추천에서 출발
+        JOIN posts p ON lk.post_id  = p.id AND p.deleted_at IS NULL   -- 그 추천이 달린 글
+        JOIN media m ON p.media_id  = m.id
+        JOIN users u ON p.author_id = u.id
+        WHERE lk.user_id = ?                        -- 이 사람이 누른 추천만
+        ORDER BY p.id DESC                          -- 최근 글이 위 (likes엔 시각이 없어 글 기준)
+    ";
+    $stmt = db()->prepare($sql);
+    $stmt->execute([$userId]);
+    return $stmt->fetchAll();
+}
+
 // '지워진' 글 하나 찾기 (되돌리기에서 주인 확인용). 안 지워졌거나 없으면 null.
 //   소프트삭제라 글이 DB에 그대로 있다 → deleted_at 이 '있는'(지워진) 것만 찾는다.
 function get_deleted_post(int $id): ?array {

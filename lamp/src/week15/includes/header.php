@@ -10,6 +10,7 @@
 require_once __DIR__ . '/util.php';
 require_once __DIR__ . '/auth.php';   // 로그인 상태에 따라 메뉴가 달라지므로
 require_once __DIR__ . '/level.php';  // 작성자 옆 등급 배지(user_level) — 모든 화면에서 씀
+require_once __DIR__ . '/notifications.php';  // 상단바 🔔 안읽은 개수
 
 // 컨테이너에 붙일 추가 클래스 (페이지가 정해줄 수 있음).
 //   예) 좁은 페이지는 $containerClass = 'narrow' 로 콘텐츠를 중앙 컬럼에 담는다.
@@ -75,6 +76,10 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
       <?php if (is_logged_in()): ?>
         <?php // 글쓰기는 '작품 게시판'에서 시작하는 구조(작품 slug 필요)라 상단바 메뉴는 두지 않는다.
               //   → '작품'·'검색'으로 작품에 들어가 게시판의 ✏️ 글쓰기로 시작. ?>
+        <?php // 🔔 알림: 안 읽은 개수가 있으면 빨간 뱃지로 표시 ?>
+        <?php $unread = count_unread_notifications(current_user_id()); ?>
+        <a class="nav-bell" href="/notifications.php" title="알림">🔔<?php
+          if ($unread > 0): ?><span class="nav-bell-badge"><?= $unread > 99 ? '99+' : (int)$unread ?></span><?php endif; ?></a>
         <!-- 내 이름을 누르면 내 프로필로 (GET으로 user 전달)
              urlencode = 한글 아이디를 주소에 안전하게 넣기 위해 변환 -->
         <a class="nav-user" href="/profile.php?user=<?= urlencode((string)current_user()) ?>"><?= e(current_nickname()) ?>님</a>

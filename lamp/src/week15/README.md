@@ -40,7 +40,7 @@ week14의 "세션 임시 저장" 껍데기를, **진짜 MariaDB**로 바꾼 버�
 코드는 Git, **데이터는 SQL로 재생성**한다. DBeaver에서 순서대로 실행:
 
 ```
-① sql/schema.sql  — 표 7개 + 외래키 생성
+① sql/schema.sql  — 표 8개 + 외래키 생성
 ② sql/seed.sql    — 시연용 데이터 (회원 3 · 작품 5 · 글 10 …)
 ```
 
@@ -67,6 +67,7 @@ users ──┬─< posts >──┬── media
 | **likes** | 글 추천 | **복합키**(user_id, post_id) = 1인 1회 |
 | **votes** | 작품 투표 | **복합키**(user_id, media_id) + choice |
 | **reports** | 글 신고 | (reporter_id, post_id) UNIQUE = 1인 1회 |
+| **notifications** | 알림 | 내 글에 댓글 시 생성 · `is_read`로 안읽음/읽음 |
 
 **삭제 정책**: 글을 지우면 그 댓글·추천도 함께(`ON DELETE CASCADE`).
 회원은 함부로 못 지우게(`RESTRICT`). 글·댓글 자체는 **소프트삭제**(`deleted_at`)라 되돌리기 가능.
@@ -115,6 +116,8 @@ includes/
 ├── comments.php   댓글 CRUD
 ├── works.php      작품 조회·투표 (DB+TMDB 폴백) · 커뮤니티 작품
 ├── ranking.php    랭킹 집계 (유저 랭킹 = users↔posts↔likes JOIN)
+├── level.php      유저 등급 배지 (글 수 → 5단계)
+├── notifications.php  알림 생성·조회·읽음 처리
 ├── reports.php    신고 저장 (1인 1회)
 ├── upload.php     프로필 이미지 업로드 (MIME 검증·파일명 재생성)
 ├── media_row.php  작품 가로 줄 렌더링 조각 (홈에서 재사용)
@@ -171,6 +174,11 @@ week14와 **똑같은 모양의 배열**을 돌려준다 → 그 위의 필터·
   - 비밀번호 변경은 **현재 비밀번호 확인 후**에만 (무단 변경 방지).
 - **아이디 ↔ 닉네임 분리**: `username`=로그인·소유권·프로필URL(신원, 고정),
   `nickname`=화면 표시 이름(변경 가능). 표시만 닉네임으로 바꾸고 권한 로직은 username 유지.
+- **유저 등급 배지** (`includes/level.php`): 작성 글 수로 5단계(🌱새싹→👑시네필).
+  글·댓글·프로필·랭킹의 작성자 옆에 배지 표시. 규칙은 한 곳(등급표)에서 관리.
+- **좋아요한 글** (프로필 탭): `likes`를 역방향 조회(likes→posts JOIN)해 유저가 추천한 글 모아보기.
+- **댓글 알림** (`notifications` 표, 상단바 🔔): 내 글에 남이 댓글 달면 알림 생성(자기 댓글 제외).
+  안 읽은 개수 뱃지 → 목록(`notifications.php`)을 열면 전체 읽음 처리.
 
 ## 9. 성능 (지연 로딩)
 
@@ -188,7 +196,6 @@ week14와 **똑같은 모양의 배열**을 돌려준다 → 그 위의 필터·
 
 ## 10. 남은 것 (선택)
 
-- 유저 등급·배지 / 좋아요한 글 모아보기 / 댓글 알림 (커뮤니티 로드맵 후보)
 - 글에 이미지 첨부 (지금은 프로필 이미지만)
 - DB 이론 발표자료 마무리 (JOIN 슬라이드 등)
 

@@ -110,3 +110,21 @@ CREATE TABLE reports (
     FOREIGN KEY (post_id)     REFERENCES posts(id) ON DELETE CASCADE,  -- 글 지우면 신고도 삭제
     FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- ── notifications : 알림 (지금은 '내 글에 댓글' 한 종류) ──────
+--   받는사람(user_id)에게, 누가(actor_id) 어느 글(post_id)의 어느 댓글(comment_id)을
+--   달았는지 기록한다. is_read로 안읽음/읽음을 구분(상단바 뱃지 계산에 사용).
+CREATE TABLE notifications (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    user_id     INT NOT NULL,                         -- 받는 사람(글 작성자) → users.id
+    actor_id    INT NOT NULL,                         -- 알림을 일으킨 사람(댓글 단 사람) → users.id
+    post_id     INT NOT NULL,                         -- 어느 글 → posts.id
+    comment_id  INT NOT NULL,                         -- 어느 댓글 → comments.id
+    is_read     TINYINT(1) NOT NULL DEFAULT 0,        -- 0=안읽음, 1=읽음
+    created_at  DATETIME DEFAULT NOW(),
+
+    FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE,
+    FOREIGN KEY (actor_id)   REFERENCES users(id)    ON DELETE CASCADE,
+    FOREIGN KEY (post_id)    REFERENCES posts(id)    ON DELETE CASCADE,
+    FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE
+);

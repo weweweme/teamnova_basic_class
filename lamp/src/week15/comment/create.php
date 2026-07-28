@@ -6,7 +6,8 @@
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';
-require_once __DIR__ . '/../includes/comments.php';   // add_comment(), COMMENT_MAX
+require_once __DIR__ . '/../includes/comments.php';       // add_comment(), COMMENT_MAX
+require_once __DIR__ . '/../includes/notifications.php';   // 글 작성자에게 알림
 
 // ★ 로그인 필수 — 화면에서 버튼을 숨겨도 요청은 조작할 수 있으므로
 //   '처리하는 쪽'에서 반드시 다시 확인한다. (안 했으면 로그인 페이지로 보내고 중단)
@@ -38,9 +39,13 @@ if ($postId <= 0 || $content === '' || mb_strlen($content) > COMMENT_MAX) {
 //   ★ 작성자는 폼이 아니라 세션에서 가져온다 (남의 이름으로 쓰는 위조 방지).
 $author = current_user();
 
-//   임시 보관함(세션)에 저장 → 그 글로 돌아가면 댓글이 실제로 보인다.
-//   나중엔 이 한 줄이 INSERT INTO comments … 로 바뀐다.
-add_comment($postId, (string)$author, $content);
+$commentId = add_comment($postId, (string)$author, $content);
+
+// ── 3-1) 글 작성자에게 알림 (내 글에 남이 댓글 단 경우만) ────
+//   글 주인의 id를 찾아, 댓글 단 사람(나)과 다르면 알림을 남긴다.
+//   (create_notification 안에서도 '자기 자신'은 한 번 더 걸러낸다)
+$recipientId = (int) db_scalar('SELECT author_id FROM posts WHERE id = ?', [$postId]);
+create_notification($recipientId, current_user_id(), $postId, $commentId);
 
 // ── 4) PRG: '그 글'로 다시 리다이렉트 (+댓글 완료 표시) ───────
 //   글쓰기는 홈으로 갔지만, 댓글은 '방금 그 글'로 돌아가야 자연스럽다.

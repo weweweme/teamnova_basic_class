@@ -155,6 +155,46 @@ function restore_post(int $id): void {
     db()->prepare('UPDATE posts SET deleted_at = NULL WHERE id = ?')->execute([$id]);
 }
 
+// ── 휴지통 ───────────────────────────────────────────────────
+//   삭제한 글은 deleted_at 표식만 있고 DB엔 남아있다(소프트삭제).
+//   이 표식을 '타임스탬프'로 써서, 일정 기간 보관 후 진짜로 지운다.
+const TRASH_RETENTION_DAYS = 30;   // 휴지통 보관 기간(일). 지나면 자동 영구삭제.
+
+// 내가 삭제한(휴지통에 있는) 글 목록 — 최근에 지운 것이 위.
+function get_trashed_posts(int $userId): array {
+    $sql = "
+        SELECT p.id, p.title,
+               m.title AS workTitle, m.slug AS work,
+               UNIX_TIMESTAMP(p.deleted_at) AS deletedAt
+        FROM posts p
+        JOIN media m ON p.media_id = m.id
+        WHERE p.author_id = ? AND p.deleted_at IS NOT NULL   -- 내가 지운 글만
+        ORDER BY p.deleted_at DESC
+    ";
+    $stmt = db()->prepare($sql);
+    $stmt->execute([$userId]);
+    return $stmt->fetchAll();
+}
+
+// 영구삭제(지금 비우기) — 내 휴지통 글만 진짜 DELETE.
+//   ★ author_id·deleted_at 조건을 WHERE에 함께 걸어, 남의 글·살아있는 글은 못 지운다.
+//   posts를 지우면 그 댓글·추천·신고·알림도 외래키 CASCADE로 함께 사라진다.
+function hard_delete_post(int $id, int $userId): void {
+    db()->prepare('DELETE FROM posts WHERE id = ? AND author_id = ? AND deleted_at IS NOT NULL')
+        ->execute([$id, $userId]);
+}
+
+// 자동 영구삭제 — 보관 기간이 지난 휴지통 글을 한꺼번에 진짜 삭제.
+//   ★ 이 환경은 cron이 없어, 휴지통을 열 때 이 함수를 불러 '요청에 얹어' 정리한다(lazy purge).
+//   반환: 이번에 지워진 글 수.
+function purge_expired_trash(): int {
+    $sql = 'DELETE FROM posts
+            WHERE deleted_at IS NOT NULL
+              AND deleted_at < NOW() - INTERVAL ' . TRASH_RETENTION_DAYS . ' DAY';
+    $stmt = db()->query($sql);
+    return $stmt->rowCount();
+}
+
 // ── 최근 본 글 ───────────────────────────────────────────────
 const RECENT_POSTS_MAX = 5;   // 몇 개까지 기억할지
 

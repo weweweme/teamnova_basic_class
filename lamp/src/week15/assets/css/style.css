@@ -827,6 +827,20 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
   font-weight: 600; color: #ddd; font-size: 14px; }
 .settings-form-col button { align-self: flex-start; }
 
+/* 휴지통 목록 */
+.trash-list { list-style: none; margin: 12px 0 0; padding: 0; }
+.trash-item { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 14px 12px; border-bottom: 1px solid #232323; flex-wrap: wrap; }
+.trash-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.trash-info strong { color: #eaeaea; font-size: 15px; }
+.trash-meta { color: #8a8a8a; font-size: 13px; }
+.trash-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.trash-actions .delete-form { margin: 0; }
+.btn-restore { padding: 7px 12px; background: #1f1f1f; border: 1px solid #3a4a7a;
+  color: #9fbcff; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-restore:hover { background: #24243a; }
+.trash-actions .btn-delete { font-size: 13px; padding: 7px 12px; }
+
 /* ── 유저 등급 배지 ──────────────────────────────────────────── */
 /* 작성자 이름 옆 인라인 배지 (이모지 + 마우스오버 툴팁) */
 .lvl-badge { cursor: help; font-style: normal; }

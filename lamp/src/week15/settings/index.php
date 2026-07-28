@@ -73,6 +73,13 @@ require __DIR__ . '/../includes/header.php';
     </form>
   </section>
 
+  <!-- ── 휴지통 ─────────────────────────────────────────────── -->
+  <section class="settings-section">
+    <h2>휴지통</h2>
+    <p class="muted">삭제한 글을 되돌리거나 영구 삭제할 수 있어요.</p>
+    <a class="btn-settings" href="/trash/">🗑 휴지통 열기</a>
+  </section>
+
   <!-- ── 계정 정보 (아이디는 못 바꿈 — 신원 키) ──────────────── -->
   <section class="settings-section">
     <h2>계정 정보</h2>

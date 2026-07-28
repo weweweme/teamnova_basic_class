@@ -36,7 +36,9 @@ function get_posts(): array {
             p.content,
             UNIX_TIMESTAMP(p.created_at) AS created,   -- 정렬용 숫자(최신일수록 큼)
             (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments,  -- 이 글의 댓글 수
-            (SELECT COUNT(*) FROM likes    l WHERE l.post_id = p.id) AS likes      -- 이 글의 추천 수
+            (SELECT COUNT(*) FROM likes    l WHERE l.post_id = p.id) AS likes,     -- 이 글의 추천 수
+            -- 작성자의 총 글 수 (등급 배지 계산용). 소프트삭제된 글은 뺀다.
+            (SELECT COUNT(*) FROM posts pc WHERE pc.author_id = p.author_id AND pc.deleted_at IS NULL) AS authorPostCount
         FROM posts p
         JOIN media m ON p.media_id  = m.id   -- 글 ↔ 작품 잇기
         JOIN users u ON p.author_id = u.id   -- 글 ↔ 회원 잇기
@@ -69,7 +71,8 @@ function get_post(int $id): ?array {
             u.username AS author, u.nickname AS authorNick, p.sentiment, p.views, p.content,
             UNIX_TIMESTAMP(p.created_at) AS created,
             (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments,
-            (SELECT COUNT(*) FROM likes    l WHERE l.post_id = p.id) AS likes
+            (SELECT COUNT(*) FROM likes    l WHERE l.post_id = p.id) AS likes,
+            (SELECT COUNT(*) FROM posts pc WHERE pc.author_id = p.author_id AND pc.deleted_at IS NULL) AS authorPostCount
         FROM posts p
         JOIN media m ON p.media_id  = m.id
         JOIN users u ON p.author_id = u.id

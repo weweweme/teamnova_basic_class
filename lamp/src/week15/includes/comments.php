@@ -17,6 +17,8 @@ function get_comments(int $postId): array {
         SELECT c.id, c.post_id AS postId,
                u.username AS author,      -- 아이디(소유권 확인용)
                u.nickname AS authorNick,  -- 표시 이름(화면에 보이는 닉네임)
+               -- 댓글 작성자의 총 글 수 (등급 배지용)
+               (SELECT COUNT(*) FROM posts pc WHERE pc.author_id = c.author_id AND pc.deleted_at IS NULL) AS authorPostCount,
                c.content
         FROM comments c
         JOIN users u ON c.author_id = u.id

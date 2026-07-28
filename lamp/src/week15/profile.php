@@ -55,10 +55,15 @@ require __DIR__ . '/includes/header.php';
       <span class="avatar avatar-empty"><?= e(mb_substr($nickname, 0, 1)) ?></span>
     <?php endif; ?>
 
-    <h1>
-      <?= e($nickname) ?>
-      <small><?= $isMe ? '— 내 프로필' : '님의 프로필' ?></small>
-    </h1>
+    <div class="profile-head-text">
+      <h1>
+        <?= e($nickname) ?>
+        <small><?= $isMe ? '— 내 프로필' : '님의 프로필' ?></small>
+      </h1>
+      <?php // 등급 칩: 배지 + 이름 (작성 글 수 기준). title에 글 수를 보여준다. ?>
+      <?php $lv = user_level($postCount); ?>
+      <span class="lvl-chip" title="작성 글 <?= (int)$postCount ?>개"><?= $lv['badge'] ?> <?= e($lv['name']) ?></span>
+    </div>
   </div>
 
   <?php // 내 프로필일 때만: '설정'(내 정보 편집)과 새 글 바로가기.

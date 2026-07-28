@@ -78,7 +78,7 @@ require __DIR__ . '/includes/header.php';
                 <span class="rank-avatar rank-avatar-empty"><?= e(mb_substr($u['nickname'], 0, 1)) ?></span>
               <?php endif; ?>
               <span class="rank-info">
-                <strong><?= e($u['nickname']) ?></strong>
+                <strong><?= level_badge_html((int)$u['postCount']) ?> <?= e($u['nickname']) ?></strong>
                 <span class="rank-meta">👍 받은 추천 <?= (int)$u['likesReceived'] ?> · ✍️ 글 <?= (int)$u['postCount'] ?></span>
               </span>
             </a>
@@ -100,7 +100,7 @@ require __DIR__ . '/includes/header.php';
             <a class="rank-body rank-body-post" href="/post/view.php?id=<?= e((string)$p['id']) ?>">
               <span class="rank-info">
                 <strong><?= e($p['title']) ?> <span class="tag"><?= e($p['sentiment']) ?></span></strong>
-                <span class="rank-meta"><?= e($p['workTitle']) ?> · <?= e($p['authorNick']) ?>
+                <span class="rank-meta"><?= e($p['workTitle']) ?> · <?= level_badge_html((int)$p['authorPostCount']) ?> <?= e($p['authorNick']) ?>
                   · 👁 <?= (int)$p['views'] ?> · 💬 <?= (int)$p['comments'] ?> · 👍 <?= (int)$p['likes'] ?></span>
               </span>
             </a>

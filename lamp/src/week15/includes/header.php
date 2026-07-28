@@ -9,6 +9,7 @@
 //   require_once = "이미 불러왔으면 또 안 부른다"(중복 방지).
 require_once __DIR__ . '/util.php';
 require_once __DIR__ . '/auth.php';   // 로그인 상태에 따라 메뉴가 달라지므로
+require_once __DIR__ . '/level.php';  // 작성자 옆 등급 배지(user_level) — 모든 화면에서 씀
 
 // 컨테이너에 붙일 추가 클래스 (페이지가 정해줄 수 있음).
 //   예) 좁은 페이지는 $containerClass = 'narrow' 로 콘텐츠를 중앙 컬럼에 담는다.

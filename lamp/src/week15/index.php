@@ -14,7 +14,9 @@ require_once __DIR__ . '/includes/media_row.php';  // 가로 줄 렌더링 조�
 // ── 우리 DB 데이터 (빠름 — 서버가 즉시 그린다) ──────────────
 //   ★ 무거운 TMDB 인기작 줄(트렌딩·영화·드라마)은 여기서 안 부른다.
 //     대신 화면이 뜬 뒤 JS가 api/row.php로 받아와 채운다(지연 로딩) → 홈이 즉시 뜬다.
-$community = get_community_works();               // 우리 DB — 글 달린 작품 + 지표
+// 커뮤니티 그리드는 한 줄 5칸 → 이야기 제일 많은(핫한) 상위 5개만. 매 요청 DB를 읽어 자동 갱신.
+const HOME_COMMUNITY_MAX = 5;
+$community = get_community_works(HOME_COMMUNITY_MAX);   // 우리 DB — 글 달린 작품 + 지표
 $recent    = paginate_posts(get_posts(), 1, 8);   // 최근 글 8개 (get_posts는 최신순)
 //   오른쪽 칸: 댓글 많은 글 = 토론이 활발한 글 (사이드바 '지금 뜨는 글'은 조회순이라 축이 다름)
 $discussed = paginate_posts(sort_posts(get_posts(), 'comments'), 1, 8);

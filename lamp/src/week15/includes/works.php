@@ -128,14 +128,16 @@ function ensure_media_by_slug(string $slug): int {
 // ── 우리 커뮤니티에서 '이야기 중인' 작품 (홈의 우리 줄) ─────
 //   글이 1개 이상 달린 작품만, 글 많은 순. 각 작품에 커뮤니티 지표(글 수·투표)를 붙인다.
 //   ★ TMDB 목록과 달리 이건 '우리 것' — 우리 유저 반응이 있는 작품.
-function get_community_works(): array {
+//   $limit: 몇 개까지 (홈은 그리드 5칸에 맞춰 5개만 넘긴다). LIMIT엔 값을 바인딩하기
+//           까다로워서 (int) 형변환으로 안전하게 문자열에 박는다(SQL 주입 걱정 없음).
+function get_community_works(int $limit = 20): array {
     $sql = "
         SELECT m.slug, m.title, m.genre, m.year, m.poster_url,
                (SELECT COUNT(*) FROM posts p WHERE p.media_id = m.id AND p.deleted_at IS NULL) AS postCount
         FROM media m
         HAVING postCount > 0          -- 글 달린 작품만
-        ORDER BY postCount DESC        -- 이야기 많은 순
-        LIMIT 20
+        ORDER BY postCount DESC        -- 이야기 많은 순(=핫한 순)
+        LIMIT " . (int) $limit . "
     ";
     $rows = db()->query($sql)->fetchAll();
     foreach ($rows as &$row) {

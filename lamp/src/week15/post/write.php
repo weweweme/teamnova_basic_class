@@ -30,7 +30,17 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
   <h1>글쓰기</h1>
-  <p class="muted"><strong><?= e($workInfo['title']) ?></strong> 에 리뷰를 씁니다.</p>
+
+  <!-- 어느 작품에 쓰는지 포스터로 한눈에 (게시판에서 넘어온 그 작품) -->
+  <div class="write-context">
+    <?php if (!empty($workInfo['poster_url'])): ?>
+      <img class="write-context-poster" src="<?= e($workInfo['poster_url']) ?>" alt="" loading="lazy">
+    <?php endif; ?>
+    <div>
+      <span class="muted">리뷰 작성</span>
+      <strong><?= e($workInfo['title']) ?></strong>
+    </div>
+  </div>
 
   <?php // 길이 초과 거절 안내는 header.php가 세션에서 꺼내 그린다 ?>
 
@@ -53,12 +63,16 @@ require __DIR__ . '/../includes/header.php';
       <textarea name="content" rows="6" maxlength="5000" required></textarea>
     </label>
 
-    <!-- radio = 여러 개 중 하나만 선택. 같은 name이면 한 묶음. -->
-    <fieldset>
+    <!-- radio = 여러 개 중 하나만 선택. 같은 name이면 한 묶음.
+         ★ 라디오 동그라미는 숨기고(label에 opacity 0으로) 라벨을 '버튼'처럼 보이게 한다.
+           CSS의 label:has(input:checked)로 '지금 고른 것'만 색을 넣어 강조. -->
+    <fieldset class="sentiment-field">
       <legend>감상</legend>
-      <label><input type="radio" name="sentiment" value="호평" checked> 호평</label>
-      <label><input type="radio" name="sentiment" value="보통"> 보통</label>
-      <label><input type="radio" name="sentiment" value="혹평"> 혹평</label>
+      <div class="sentiment-opts">
+        <label class="sentiment-opt s-good"><input type="radio" name="sentiment" value="호평" checked><span>👍 호평</span></label>
+        <label class="sentiment-opt s-mid"><input type="radio" name="sentiment" value="보통"><span>😐 보통</span></label>
+        <label class="sentiment-opt s-bad"><input type="radio" name="sentiment" value="혹평"><span>👎 혹평</span></label>
+      </div>
     </fieldset>
 
     <!-- submit 버튼을 누르면 → 위 값들이 POST로 create.php에 전송됨 -->

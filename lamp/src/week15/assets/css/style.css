@@ -687,13 +687,41 @@ mark { background: #7a6000; color: #fff3a3; }
 .auth-form button:hover { background: #1a56e0; }
 code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
 
-/* 글쓰기 폼 — 다크 입력창 */
+/* 글쓰기 폼 — 카드로 감싸 로그인 폼과 통일감 */
+.write-form { background: rgba(31,31,38,0.6); backdrop-filter: blur(3px);
+  border: 1px solid #2c2c38; border-radius: 12px; padding: 22px; }
 .write-form input[type=text], .write-form textarea { background: #2a2a2a; color: #f0f0f0; border-color: #444; }
 .write-form fieldset { border-color: #333; }
 .write-form label { color: #ddd; }
+.write-form button:hover { background: #1a56e0; }
+
+/* 어느 작품에 쓰는지 — 포스터 썸네일 + 제목 */
+.write-context { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.write-context-poster { width: 46px; height: 69px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+.write-context .muted { font-size: 12px; }
+.write-context strong { display: block; color: #f0f0f0; font-size: 17px; margin-top: 2px; }
+
+/* 감상 선택 — 라디오를 숨기고 라벨을 '세그먼트 버튼'처럼 */
+.sentiment-field { border: 0 !important; padding: 0; margin: 16px 0; }
+.sentiment-field legend { font-weight: 600; color: #ddd; padding: 0; }
+.sentiment-opts { display: flex; gap: 10px; margin-top: 8px; }
+.sentiment-opt { flex: 1; position: relative; text-align: center; padding: 11px 8px;
+  border: 1px solid #3a3a3a; border-radius: 8px; cursor: pointer; color: #cfcfcf;
+  font-weight: 600; transition: border-color 0.12s, background 0.12s, color 0.12s; }
+/* 라디오 동그라미는 숨기되(투명) 자리에 둬서 키보드 조작·폼 전송은 그대로 */
+.sentiment-opt input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.sentiment-opt:hover { border-color: #666; }
+.sentiment-field:focus-within .sentiment-opt:has(input:focus-visible) { outline: 2px solid #4a80ff; }
+/* '지금 고른 것'만 색으로 강조 — 호평=초록 / 보통=회색 / 혹평=빨강 */
+.sentiment-opt.s-good:has(input:checked) { background: #14351f; border-color: #2f7d4f; color: #7ee2a0; }
+.sentiment-opt.s-mid:has(input:checked)  { background: #2e2e2e; border-color: #7a7a7a; color: #eaeaea; }
+.sentiment-opt.s-bad:has(input:checked)  { background: #3a1a1c; border-color: #a23b3f; color: #ff9a9d; }
 
 /* 프로필 헤더 정렬 */
 .profile-head { justify-content: flex-start; }
+/* 내 프로필 액션 줄: 이미지 변경 + 새 글 쓰기를 한 줄에 */
+.profile-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 10px 0 20px; }
+.profile-actions .avatar-form { margin: 0; }
 
 /* ── 좁은 페이지: 콘텐츠 전체를 760px 중앙 컬럼에 담기 ──────
    .container에 narrow 클래스를 주면, 그 안의 모든 직속 요소가

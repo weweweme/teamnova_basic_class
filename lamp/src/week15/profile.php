@@ -57,18 +57,21 @@ require __DIR__ . '/includes/header.php';
     </h1>
   </div>
 
-  <?php // 내 프로필일 때만: 이미지 변경 폼 + 새 글 바로가기 ?>
+  <?php // 내 프로필일 때만: 이미지 변경 폼 + 새 글 바로가기 (한 줄로 묶어 깔끔하게) ?>
   <?php if ($isMe): ?>
-    <!-- 파일 업로드 폼: enctype="multipart/form-data" 필수 (파일을 담아 보내는 방식) -->
-    <form class="avatar-form" method="post" action="/profile/avatar.php" enctype="multipart/form-data">
-      <label class="btn-upload">
-        프로필 이미지 변경
-        <!-- accept="image/*" = 파일 선택창에서 이미지만 보이게 (편의. 진짜 검증은 서버) -->
-        <input type="file" name="avatar" accept="image/*" onchange="this.form.submit()" hidden>
-      </label>
-      <span class="muted">JPG·PNG·GIF·WebP · 2MB 이하</span>
-    </form>
-    <p class="muted"><a href="/post/write.php">✏️ 새 글 쓰기</a></p>
+    <div class="profile-actions">
+      <!-- 파일 업로드 폼: enctype="multipart/form-data" 필수 (파일을 담아 보내는 방식) -->
+      <form class="avatar-form" method="post" action="/profile/avatar.php" enctype="multipart/form-data">
+        <label class="btn-upload">
+          📷 프로필 이미지 변경
+          <!-- accept="image/*" = 파일 선택창에서 이미지만 보이게 (편의. 진짜 검증은 서버) -->
+          <input type="file" name="avatar" accept="image/*" onchange="this.form.submit()" hidden>
+        </label>
+        <span class="muted">JPG·PNG·GIF·WebP · 2MB 이하</span>
+      </form>
+      <!-- 새 글은 '어느 작품'인지 먼저 골라야 하므로 검색으로 안내 -->
+      <a class="btn-write" href="/search.php">✏️ 새 글 쓰기</a>
+    </div>
   <?php endif; ?>
 
   <!-- 활동 통계 카드 3개 -->

@@ -37,14 +37,28 @@ week14의 "세션 임시 저장" 껍데기를, **진짜 MariaDB**로 바꾼 버�
 
 ## 2. DB 처음 세팅 (다른 기기에서 재현)
 
-코드는 Git, **데이터는 SQL로 재생성**한다. DBeaver에서 순서대로 실행:
+코드는 Git, **데이터는 SQL로 재생성**한다. DBeaver(또는 `mariadb` CLI)에서 순서대로 실행:
 
 ```
 ① sql/schema.sql  — 표 8개 + 외래키 생성
-② sql/seed.sql    — 시연용 데이터 (회원 3 · 작품 5 · 글 10 …)
+② sql/seed.sql    — 시연용 데이터 대량 (아래 규모)
 ```
 
-seed.sql은 맨 위에서 싹 비우고 다시 넣으므로 **여러 번 실행해도 같은 상태**가 된다.
+**seed.sql 데이터 규모** (대량 더미 — 시연·발표용):
+
+| 표 | 행 수 | 표 | 행 수 |
+|---|---|---|---|
+| users | 25 | likes | 1,440 |
+| media | 6 | votes | 144 |
+| posts | 180 | reports | 36 |
+| comments | 367 | notifications | 351 |
+
+- seed.sql은 맨 위에서 **싹 비우고(TRUNCATE) 다시 넣으므로 여러 번 실행해도 같은 상태**가 된다.
+- 실제 개발 DB를 `mariadb-dump`로 내보내 만든 파일이라 **어느 기기에서 실행해도 동일하게 재현**된다.
+- 테스트 계정: `영화광`·`해석러`·`심야극장` + `user1`~`user22` (전부 비번 `1234`).
+
+> ⚠️ `mariadb`/`mysql` CLI로 넣을 땐 한글이 깨지지 않게 `--default-character-set=utf8mb4` 를 붙인다:
+> `mariadb -uroot -p --default-character-set=utf8mb4 review_community < sql/seed.sql`
 
 ---
 

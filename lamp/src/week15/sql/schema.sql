@@ -29,7 +29,8 @@ CREATE TABLE media (
     genre      VARCHAR(20),                       -- 영화 / 드라마
     year       INT,                               -- 개봉년도. 숫자라 INT (범위 검색 가능하게)
     tmdb_id    INT UNIQUE,                        -- TMDB 작품번호. 같은 작품 중복 저장 방지 + API 재조회용
-    poster_url VARCHAR(255)                       -- 포스터 이미지 주소 (TMDB가 제공)
+    poster_url VARCHAR(255),                      -- 포스터 이미지 주소 (TMDB가 제공)
+    overview   TEXT                               -- 줄거리 (TMDB 제공, 길어서 TEXT). 게시판 작품 정보에 표시
 );
 
 -- ── posts : 글 ──────────────────────────────────────────────

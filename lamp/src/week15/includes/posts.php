@@ -195,39 +195,18 @@ function purge_expired_trash(): int {
     return $stmt->rowCount();
 }
 
-// ── 최근 본 글 ───────────────────────────────────────────────
-const RECENT_POSTS_MAX = 5;   // 몇 개까지 기억할지
-
-// 방금 본 글을 '최근 본 글' 맨 앞에 넣는다. (post/view.php가 호출)
+// ── 최근 본 글 — week16으로 미룸 ─────────────────────────────
+//   [왜 여기 없나]
+//     '최근 본 글'은 "이 브라우저가 방금 뭘 봤는지"를 계속 쌓아야 하는 기능이다.
+//     그런데 지금 우리는 신원을 주소(?as=)로만 나른다. 주소에 실으려면
+//     ?recent=1,5,9,12,… 처럼 볼수록 길어져서 쓸 수가 없다.
+//     서버가 브라우저별로 뭔가를 '계속 들고 있으려면' 세션이 필요하다 — 그게 week16 주제다.
 //
-//   ★ "GET 화면인데 세션에 뭘 쓰는 게 규칙 위반 아닌가?" — 아니다.
-//     GET이 지켜야 할 '안전(safe)' 규칙은 **남들이 보는 자료를 바꾸지 말라**는 뜻이다.
-//     여기서 남기는 건 '내 열람 기록'일 뿐, 글·댓글은 하나도 안 건드린다.
-//     그래서 새로고침해도, 남이 같은 주소를 열어도 결과가 달라지지 않는다.
-//     (쇼핑몰의 '최근 본 상품', 조회수 집계도 같은 이유로 GET에서 처리한다)
-function remember_recent_post(int $id): void {
-    $recent = $_SESSION['recent_posts'] ?? [];
-
-    // 이미 목록에 있으면 일단 빼낸다 → 같은 글이 여러 줄로 쌓이는 걸 막고,
-    // 아래에서 맨 앞에 다시 넣으면 자연스럽게 '가장 최근'으로 올라온다.
-    $recent = array_values(array_filter($recent, fn($seenId) => $seenId !== $id));
-
-    array_unshift($recent, $id);                                  // 맨 앞에 넣기
-    $_SESSION['recent_posts'] = array_slice($recent, 0, RECENT_POSTS_MAX);   // 넘치면 오래된 것부터 버림
-}
-
-// 최근 본 글 목록 (글 전체를 돌려준다)
-//   ★ 그 사이 지워진 글은 get_post()가 null을 주므로 자동으로 빠진다. (Tester-Doer)
-function get_recent_posts(): array {
-    $result = [];
-    foreach ($_SESSION['recent_posts'] ?? [] as $id) {
-        $post = get_post($id);
-        if ($post !== null) {
-            $result[] = $post;
-        }
-    }
-    return $result;
-}
+//   [DB 표로 만들지 않은 이유]
+//     recent_views 표를 파면 기록의 주인이 '브라우저'에서 '회원'으로 바뀐다.
+//     → 로그인 안 한 방문자는 아예 기록되지 않는다. 같은 기능이 아니라 다른 기능이 된다.
+//
+//   week16에서 세션을 배우면 remember_recent_post() / get_recent_posts() 두 함수로 부활한다.
 
 // 내가 이 글을 추천했는가?
 //   likes 표에 (내 user_id, 이 글 post_id) 조합이 있으면 추천한 것.

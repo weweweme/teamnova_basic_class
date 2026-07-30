@@ -102,6 +102,7 @@ function get_post(int $id): ?array {
             p.id, m.slug AS work, m.title AS workTitle, p.title,
             u.username AS author, u.nickname AS authorNick, p.sentiment, p.views, p.content,
             UNIX_TIMESTAMP(p.created_at) AS created,
+            p.edited_at AS editedAt,   -- 값이 있으면 화면에 '(수정됨)' (댓글과 같은 규칙)
             (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments,
             (SELECT COUNT(*) FROM likes    l WHERE l.post_id = p.id) AS likes,
             (SELECT COUNT(*) FROM posts pc WHERE pc.author_id = p.author_id AND pc.deleted_at IS NULL) AS authorPostCount
@@ -136,9 +137,12 @@ function add_post(string $work, string $workTitle, string $title, string $conten
 }
 
 // 글 수정 (UPDATE posts SET … WHERE id = ?)
+//   ★ edited_at 을 함께 찍는다 — 화면에 '(수정됨)'을 띄우기 위해서다.
+//     표시가 없으면 글을 올려 반응을 받은 뒤 내용을 슬쩍 바꿔도 읽는 사람이 알 수 없다.
+//     created_at(처음 쓴 시각)과 작성자는 건드리지 않는다. 고친 건 내용뿐이니까.
 function update_post(int $id, string $title, string $content, string $sentiment): void {
     $stmt = db()->prepare(
-        'UPDATE posts SET title = ?, content = ?, sentiment = ? WHERE id = ?'
+        'UPDATE posts SET title = ?, content = ?, sentiment = ?, edited_at = NOW() WHERE id = ?'
     );
     $stmt->execute([$title, $content, $sentiment, $id]);
 }

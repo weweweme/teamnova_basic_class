@@ -112,7 +112,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
   <?php endif; ?>
 
-  <?php // 투표·글등록·삭제 완료 알림은 header.php가 세션에서 꺼내 그린다 (set_flash) ?>
+  <?php // 투표·글등록·삭제 완료 알림은 header.php가 주소(?flash=)에서 읽어 그린다 (set_flash) ?>
 
   <!-- 작품 추천/비추천 투표 — '글'이 아니라 '작품'에 대한 POST -->
   <section class="vote-box">

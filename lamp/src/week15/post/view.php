@@ -47,7 +47,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="post-content"><?= nl2br(e($post['content'])) ?></div>
   </article>
 
-  <?php // 추천·신고·수정·권한거부 알림은 header.php가 세션에서 꺼내 그린다 (set_flash) ?>
+  <?php // 추천·신고·수정·권한거부 알림은 header.php가 주소(?flash=)에서 읽어 그린다 (set_flash) ?>
 
   <!-- 글에 대한 '행동'들 — 상태를 바꾸는 것은 링크가 아니라 POST 폼 -->
   <div class="post-actions">
@@ -149,7 +149,7 @@ require __DIR__ . '/../includes/header.php';
 
     <?php if (is_logged_in()): ?>
       <!-- 댓글 작성 폼 → comment/create.php 로 POST
-           ★ 작성자는 폼에 없다! 서버가 세션에서 가져온다(위조 방지). -->
+           ★ 작성자는 폼에 없다! 서버가 current_user()로 직접 알아낸다(위조 방지). -->
       <form class="comment-form" method="post" action="/comment/create.php">
         <!-- hidden = 화면엔 안 보이지만 함께 전송되는 값. 이 댓글이 '몇 번 글'인지 알려줌. -->
         <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">

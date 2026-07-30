@@ -35,7 +35,7 @@ if (!in_array($reason, ALLOWED_REASONS, true)) {
 }
 
 // ── 3) 저장 ──────────────────────────────────────────────────
-//   reports 표에 INSERT. 신고자는 폼이 아니라 세션의 '지금 로그인한 사람'을 쓴다(위조 방지).
+//   reports 표에 INSERT. 신고자는 폼이 아니라 current_user_id() = '지금 로그인한 사람'을 쓴다(위조 방지).
 //   add_report는 이미 신고한 글이면 false를 준다 → 중복 안내.
 $ok = add_report($postId, current_user_id(), $reason);
 

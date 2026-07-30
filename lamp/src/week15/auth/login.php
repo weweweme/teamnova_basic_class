@@ -18,7 +18,7 @@ require __DIR__ . '/../includes/header.php';
 
   <h1>로그인</h1>
 
-  <?php // 가입 완료 / 로그인 실패 / 로그인 필요 안내는 header.php가 세션에서 꺼내 그린다 ?>
+  <?php // 가입 완료 / 로그인 실패 / 로그인 필요 안내는 header.php가 주소(?flash=)에서 읽어 그린다 ?>
 
   <!-- 로그인 정보는 민감하므로 반드시 POST (주소에 비밀번호가 남으면 큰일) -->
   <form class="auth-form" method="post" action="/auth/authenticate.php">

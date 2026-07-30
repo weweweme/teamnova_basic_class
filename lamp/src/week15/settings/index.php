@@ -23,7 +23,7 @@ require __DIR__ . '/../includes/header.php';
   <h1>⚙️ 설정</h1>
   <p class="muted"><a href="/profile/?user=<?= urlencode($username) ?>">← 내 프로필로</a></p>
 
-  <?php // 업로드 성공/실패 안내는 header.php가 세션(플래시)에서 꺼내 그린다 ?>
+  <?php // 업로드 성공/실패 안내는 header.php가 주소(?flash=)에서 읽어 그린다 ?>
 
   <!-- ── 프로필 이미지 ─────────────────────────────────────── -->
   <section class="settings-section">

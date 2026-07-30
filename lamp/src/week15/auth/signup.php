@@ -17,7 +17,7 @@ require __DIR__ . '/../includes/header.php';
 
   <h1>회원가입</h1>
 
-  <?php // 가입 실패 안내는 header.php가 세션에서 꺼내 그린다 ?>
+  <?php // 가입 실패 안내는 header.php가 주소(?flash=)에서 읽어 그린다 ?>
 
   <form class="auth-form" method="post" action="/auth/register.php">
     <label>아이디

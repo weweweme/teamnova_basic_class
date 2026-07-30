@@ -45,7 +45,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
   </div>
 
-  <?php // 길이 초과 거절 안내는 header.php가 세션에서 꺼내 그린다 ?>
+  <?php // 길이 초과 거절 안내는 header.php가 주소(?flash=)에서 읽어 그린다 ?>
 
   <!-- 폼(form) = 사용자 입력을 모아 서버로 '제출'하는 상자.
        method="post" : POST로 보낸다 (데이터가 주소에 안 보이고 '봉투 안'으로).

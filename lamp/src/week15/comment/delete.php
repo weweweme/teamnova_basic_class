@@ -37,8 +37,8 @@ if ($comment === null || !is_owner($comment['author'])) {
 }
 
 // ── 3) 삭제 ──────────────────────────────────────────────────
-//   임시 보관함(세션)에 '지운 댓글 번호'를 기록해 목록에서 빠지게 한다.
-//   나중엔 이 한 줄이 DELETE FROM comments WHERE id = ? 로 바뀐다.
+//   소프트삭제 — UPDATE comments SET deleted_at = NOW() WHERE id = ?
+//   글과 마찬가지로 행은 남기고 '지운 시각'만 찍는다 → 되돌리기가 가능하다.
 delete_comment($commentId);
 
 // ── 4) PRG: 그 글로 돌아가기 (+삭제 완료 표시) ───────────────

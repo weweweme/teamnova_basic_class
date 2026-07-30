@@ -47,5 +47,5 @@ toggle_vote($work, $choice);
 //   저장한 '뒤'에 다시 물어봐야 투표인지 취소인지 정확히 알 수 있다.
 set_flash(my_vote($work) === null
     ? '투표를 취소했습니다.'
-    : '🗳️ ' . $choice . '에 투표했습니다. (임시 저장 — 브라우저를 닫으면 초기화됩니다)');
+    : '🗳️ ' . $choice . '에 투표했습니다.');
 redirect('/board/', ['work' => $work]);

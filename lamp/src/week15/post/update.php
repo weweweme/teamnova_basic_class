@@ -52,10 +52,9 @@ if (mb_strlen($title) > POST_TITLE_MAX || mb_strlen($content) > POST_CONTENT_MAX
 }
 
 // ── 3) 저장 ──────────────────────────────────────────────────
-//   임시 보관함(세션)에 '수정 내용'을 기록한다.
-//   나중엔 이 한 줄이 UPDATE posts SET … WHERE id = ? 로 바뀐다.
+//   UPDATE posts SET title = ?, content = ?, sentiment = ? WHERE id = ?
 update_post($id, $title, $content, $sentiment);
 
 // ── 4) PRG: 수정한 글 보기로 리다이렉트 (+완료 표시) ─────────
-set_flash('✏️ 글이 수정되었습니다. (임시 저장 — 브라우저를 닫으면 초기화됩니다)');
+set_flash('✏️ 글이 수정되었습니다.');
 redirect('/post/view.php', ['id' => $id]);

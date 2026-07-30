@@ -35,7 +35,8 @@ if ($postId <= 0 || $content === '' || mb_strlen($content) > COMMENT_MAX) {
 }
 
 // ── 3) 저장 ──────────────────────────────────────────────────
-//   ★ 작성자는 폼이 아니라 세션에서 가져온다 (남의 이름으로 쓰는 위조 방지).
+//   ★ 작성자는 폼이 아니라 current_user()에서 가져온다 (남의 이름으로 쓰는 위조 방지).
+//     주소로 온 신원을 users 표에서 확인한 값이라, 폼에 뭘 적어 보내든 소용없다.
 $author = current_user();
 
 $commentId = add_comment($postId, (string)$author, $content);
@@ -49,5 +50,5 @@ create_notification($recipientId, current_user_id(), $postId, $commentId);
 // ── 4) PRG: '그 글'로 다시 리다이렉트 (+댓글 완료 표시) ───────
 //   글쓰기는 홈으로 갔지만, 댓글은 '방금 그 글'로 돌아가야 자연스럽다.
 //   그래서 post_id를 리다이렉트 주소에 넣어 동적으로 목적지를 만든다.
-set_flash('✅ 댓글이 등록되었습니다. (임시 저장 — 브라우저를 닫으면 초기화됩니다)');
+set_flash('✅ 댓글이 등록되었습니다.');
 redirect('/post/view.php', ['id' => $postId]);

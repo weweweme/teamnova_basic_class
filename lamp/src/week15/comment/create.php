@@ -28,10 +28,10 @@ $content = trim(post_str('content'));
 //   (COMMENT_MAX는 comments 모듈에 정의돼 있다)
 if ($postId <= 0 || $content === '' || mb_strlen($content) > COMMENT_MAX) {
     // 글 번호가 있으면 그 글로, 없으면 홈으로.
-    //   "..$postId.." → 큰따옴표 안에서는 $변수가 값으로 '치환'된다(문자열 보간).
-    $back = $postId > 0 ? "/post/view.php?id=$postId" : '/';
-    header("Location: $back");
-    exit;
+    if ($postId > 0) {
+        redirect('/post/view.php', ['id' => $postId]);
+    }
+    redirect('/');
 }
 
 // ── 3) 저장 ──────────────────────────────────────────────────
@@ -50,5 +50,4 @@ create_notification($recipientId, current_user_id(), $postId, $commentId);
 //   글쓰기는 홈으로 갔지만, 댓글은 '방금 그 글'로 돌아가야 자연스럽다.
 //   그래서 post_id를 리다이렉트 주소에 넣어 동적으로 목적지를 만든다.
 set_flash('✅ 댓글이 등록되었습니다. (임시 저장 — 브라우저를 닫으면 초기화됩니다)');
-header("Location: /post/view.php?id=$postId");
-exit;
+redirect('/post/view.php', ['id' => $postId]);

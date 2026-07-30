@@ -72,6 +72,20 @@ function query_url(string $path, array $overrides = []): string {
     // array_merge : 현재 $_GET 위에 $overrides를 덮어쓴다(같은 키면 새 값이 이김).
     $params = array_merge($_GET, $overrides);
 
+    // ★ 유지하면 안 되는 것 두 종류를 여기서 뺀다.
+    //   "유지할 것(작품·검색·정렬·필터)"과 "빼야 할 것"의 구분이 이 함수의 핵심이다.
+    //
+    //   ① 알림(FLASH_KEYS) — 한 번 쓰고 버릴 값이다. (FLASH_KEYS는 이 파일 아래 '플래시' 절)
+    //      안 빼면 알림이 뜬 상태에서 정렬 탭을 누를 때마다 같은 알림이 다시 뜬다.
+    //   ② 신원(IDENTITY_KEY) — 뺀다고 사라지지 않는다. header.php의 URL 리라이터가
+    //      출력 직전에 모든 링크에 다시 붙여주기 때문이다.
+    //      여기서 안 빼면 ?as=영화광&sort=new&as=영화광 처럼 '두 번' 붙는다(우리 것 + 리라이터 것).
+    //      덤: users 표에 없는 엉터리 ?as= 값이 들어와도 링크로 퍼지지 않는다
+    //          (리라이터는 진짜 회원일 때만 켜지므로).
+    foreach ([...FLASH_KEYS, IDENTITY_KEY] as $key) {
+        unset($params[$key]);
+    }
+
     // 값이 빈 것('')은 주소에서 아예 빼버린다.
     //   왜 이렇게 하나?
     //   ① 지저분한 빈 파라미터 방지 — '전체' 필터를 고르면 sentiment=''가 되는데,
@@ -159,43 +173,144 @@ function build_url(string $path, array $overrides = []): string {
 //   반환형 never = '이 함수는 절대 되돌아오지 않는다'(exit로 끝나므로).
 //     PHP가 이걸 알면, 호출한 뒤에 exit를 또 쓰지 않아도 뒷줄이 실행될 걱정이 없다.
 function redirect(string $path, array $overrides = []): never {
+    // set_flash()가 남겨둔 알림이 있으면 주소에 함께 실어 보낸다.
+    //   ★ 알림을 '어디로 보낼지' 아는 건 set_flash()가 아니라 여기다.
+    //     그래서 30곳의 호출부(set_flash 다음 줄에 redirect)는 한 글자도 안 바뀐다.
+    //   $overrides를 뒤에 둔 이유: 같은 이름이면 호출자가 지정한 값이 이겨야 하니까.
+    $params = array_merge(flash_params(), $overrides);
+
     // ⚠️ header()는 화면(HTML)이 한 글자라도 출력되기 전에 불러야 한다.
-    header('Location: ' . build_url($path, $overrides));
+    header('Location: ' . build_url($path, $params));
     exit;
 }
 
 // ── 플래시 메시지 ────────────────────────────────────────────
 //   '한 번만 보여주고 사라지는 알림' (등록됨 / 삭제됨 / 권한없음 …)
 //
-//   [왜 세션에 담나 — 주소(?posted=1)로 넘기면 생기는 문제]
-//     ① 주소가 지저분해진다.
-//     ② 새로고침하면 알림이 또 뜬다 (주소에 계속 남아있으니까).
-//     ③ ★ 제일 나쁨: query_url()이 기존 파라미터를 유지하기 때문에,
-//        알림을 띄운 뒤 정렬·필터를 누르면 ?deleted=1 이 계속 따라다닌다.
+//   [예전 방식 — 서버 세션]
+//     서버 금고에 포스트잇을 붙여두고 다음 화면이 읽으면서 떼어갔다.
+//     주소가 깨끗하고 딱 한 번만 뜨는, 실무 표준 방식이다(Rails·Laravel 등).
 //
-//   [해결] 알림을 '서버 쪽 세션'에 잠깐 맡겼다가, 화면에 꺼내 쓰면서 즉시 지운다.
-//          → 주소는 깨끗하고, 딱 한 번만 뜬다. (Rails·Laravel 등이 쓰는 실무 표준 방식)
+//   [지금 방식 — 주소에 싣기]
+//     세션을 안 쓰기로 했으니 포스트잇을 붙일 금고가 없다.
+//     그래서 신원(?as=)과 똑같이 주소에 실어 다음 화면으로 넘긴다:
+//       /board/?work=tmdb-496243&flash=🗑 글이 삭제되었습니다.
 //
-//   비유: 문 앞에 붙여둔 포스트잇. 다음 사람이 읽으면서 떼어간다 → 그 다음 사람은 못 본다.
+//   [주소로 나르면 생기는 문제와 대책]
+//     ① 주소가 지저분해진다        → 대책 없음. 이 방식의 대가다.
+//     ② 새로고침하면 또 뜬다       → 그린 직후 JS가 주소에서 지운다 (main.js).
+//     ③ ★ 제일 나쁨: query_url()이 지금 주소의 파라미터를 유지하므로,
+//        알림이 뜬 채로 정렬·필터를 누르면 알림이 계속 따라다닌다.
+//        → query_url()에서 FLASH_KEYS를 빼서 막는다.
+//        ※ ②의 JS로는 ③을 못 막는다. 링크의 href는 서버가 이미 다 그려 보낸 뒤라,
+//          주소창만 청소해도 링크 안에 박힌 flash는 그대로 남아 있기 때문이다.
 
-// 알림 남기기 (액션 파일이 리다이렉트하기 '직전'에 호출)
-//   $type   : 'ok' = 성공(초록) / 'error' = 거부·실패(빨강)
-//   $action : 알림 안에 '되돌리기' 같은 버튼을 함께 띄우고 싶을 때.
-//             ['label'=>'되돌리기', 'url'=>'/post/restore.php', 'fields'=>['id'=>5]]
-//             ★ 이 버튼도 '상태를 바꾸는' 동작이라 링크가 아니라 POST 폼으로 그려진다.
-function set_flash(string $message, string $type = 'ok', ?array $action = null): void {
-    $_SESSION['flash'] = ['message' => $message, 'type' => $type, 'action' => $action];
+// 알림을 실어 나르는 파라미터 이름들.
+//   ★ query_url()이 이 목록을 보고 '링크에는 따라붙지 않게' 걸러낸다.
+//     main.js에도 같은 목록이 있다(주소창 청소용) — 한쪽을 고치면 다른 쪽도 함께 고친다.
+const FLASH_KEYS = ['flash', 'ftype', 'fundo', 'fid'];
+
+// '되돌리기' 버튼을 붙일 수 있는 곳 — 허용 목록(화이트리스트).
+//   ★ 왜 목록으로 못 박나: 이 값이 주소로 들어오기 때문이다.
+//     주소는 누구나 고칠 수 있으니, 받은 주소를 그대로 <form action>에 꽂으면
+//     "아무 데로나 POST를 쏘는 버튼"이 달린 링크를 남이 만들어 뿌릴 수 있다.
+//     → 우리가 미리 적어둔 곳 외에는 버튼을 아예 그리지 않는다.
+//   fields = 그 파일이 받아야 하는 값의 '이름과 순서'. 주소엔 fid=12,34 처럼 순서대로 담긴다.
+const UNDO_TARGETS = [
+    'post'    => ['label' => '되돌리기', 'url' => '/post/restore.php',    'fields' => ['id']],
+    'comment' => ['label' => '되돌리기', 'url' => '/comment/restore.php', 'fields' => ['comment_id', 'post_id']],
+];
+
+// 알림 남기기 (액션 파일이 redirect() 하기 '직전'에 호출)
+//   $type    : 'ok' = 성공(초록) / 'error' = 거부·실패(빨강)
+//   $undo    : 되돌리기 버튼을 띄우려면 UNDO_TARGETS의 키 ('post' · 'comment')
+//   $undoIds : 그 버튼이 보낼 번호들. UNDO_TARGETS의 fields와 '같은 순서'로 넣는다.
+//
+//   ★ 여기서 주소를 만들지 않는다는 점이 중요하다.
+//     '어디로 갈지'는 다음 줄의 redirect()만 알고 있으니, 쪽지만 적어두고 넘긴다.
+function set_flash(string $message, string $type = 'ok', string $undo = '', array $undoIds = []): void {
+    flash_pending(['message' => $message, 'type' => $type, 'undo' => $undo, 'ids' => $undoIds]);
+}
+
+// set_flash()가 적은 쪽지를 redirect()에게 건네주는 작은 보관함.
+//   전역변수를 만들지 않으려고 '함수 안의 static'에 담았다
+//   (C#의 static 지역변수와 같다. 요청이 끝나면 통째로 사라진다).
+//   인자를 주면 쓰고, 안 주면 읽는다.
+function flash_pending(?array $flash = null): ?array {
+    static $pending = null;
+    if ($flash !== null) {
+        $pending = $flash;
+    }
+    return $pending;
+}
+
+// 대기 중인 알림을 '주소에 붙일 파라미터'로 바꾼다. (redirect()가 부른다)
+//   남긴 알림이 없으면 빈 배열 → 주소에 아무것도 안 붙는다.
+function flash_params(): array {
+    $flash = flash_pending();
+    if ($flash === null) {
+        return [];
+    }
+
+    $params = ['flash' => $flash['message']];
+
+    // 'ok'는 기본값이라 주소에 안 적는다 (주소를 조금이라도 짧게).
+    if ($flash['type'] !== 'ok') {
+        $params['ftype'] = $flash['type'];
+    }
+
+    // 되돌리기 버튼이 필요할 때만 두 칸을 더 붙인다.
+    if (isset(UNDO_TARGETS[$flash['undo']])) {
+        $params['fundo'] = $flash['undo'];
+        $params['fid']   = implode(',', $flash['ids']);   // [12, 34] → "12,34"
+    }
+
+    return $params;
 }
 
 // 알림 꺼내기 (header.php가 화면에 그릴 때 호출). 없으면 null.
-//   ★ 꺼내면서 지우는 게 핵심 — 그래서 새로고침해도 다시 안 뜬다.
+//   ★ 세션 때와 달리 '꺼내면서 지우기'가 없다. 알림은 주소에 적혀 있고,
+//     주소를 지우는 일은 화면을 그린 뒤 브라우저(JS)가 한다.
+//   반환 모양은 예전과 똑같은 ['message','type','action'] → header.php는 손댈 게 없다.
 function take_flash(): ?array {
-    if (!isset($_SESSION['flash'])) {
+    $message = get_str('flash');
+    if ($message === '') {
         return null;
     }
-    $flash = $_SESSION['flash'];
-    unset($_SESSION['flash']);   // 읽었으니 떼어낸다
-    return $flash;
+
+    // 색깔은 우리가 아는 두 가지만 인정한다 (주소로 들어온 값이라 그대로 믿지 않는다).
+    $type = get_str('ftype') === 'error' ? 'error' : 'ok';
+
+    return [
+        'message' => $message,
+        'type'    => $type,
+        'action'  => create_undo_action(get_str('fundo'), get_str('fid')),
+    ];
+}
+
+// 주소의 fundo·fid를 '되돌리기 버튼 하나'로 만든다. 허용 목록에 없으면 null(버튼 없음).
+//   이름이 create_…인 이유: 매번 새 배열을 만들어 돌려주기 때문.
+function create_undo_action(string $undo, string $ids): ?array {
+    if (!isset(UNDO_TARGETS[$undo])) {
+        return null;
+    }
+    $target = UNDO_TARGETS[$undo];
+
+    // "12,34" → ['12','34']. 개수가 안 맞으면 조작된 주소이므로 버튼을 그리지 않는다.
+    $values = $ids === '' ? [] : explode(',', $ids);
+    if (count($values) !== count($target['fields'])) {
+        return null;
+    }
+
+    // 이름(fields)과 값(values)을 순서대로 짝지어 hidden 필드용 배열을 만든다.
+    //   (int) 로 바꾸는 이유: restore 파일이 받는 건 글·댓글 '번호'뿐이라,
+    //   숫자가 아닌 값이 섞여 들어올 여지를 여기서 잘라낸다.
+    $fields = [];
+    foreach ($target['fields'] as $index => $name) {
+        $fields[$name] = (int) $values[$index];
+    }
+
+    return ['label' => $target['label'], 'url' => $target['url'], 'fields' => $fields];
 }
 
 // ── 검색어 강조 ──────────────────────────────────────────────

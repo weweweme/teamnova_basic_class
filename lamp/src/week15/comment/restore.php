@@ -26,13 +26,11 @@ if ($postId <= 0) {
 // ── 2) 검증 + 소유권 ─────────────────────────────────────────
 $comment = get_deleted_comment($commentId);
 if ($comment === null) {
-    header("Location: /post/view.php?id=$postId");
-    exit;
+    redirect('/post/view.php', ['id' => $postId]);
 }
 if (!is_owner($comment['author'])) {
     set_flash('본인이 쓴 댓글만 되돌릴 수 있습니다.', 'error');
-    header("Location: /post/view.php?id=$postId");
-    exit;
+    redirect('/post/view.php', ['id' => $postId]);
 }
 
 // ── 3) 복구 ──────────────────────────────────────────────────
@@ -40,5 +38,4 @@ restore_comment($commentId);
 
 // ── 4) PRG ───────────────────────────────────────────────────
 set_flash('↩️ 댓글을 되돌렸습니다.');
-header("Location: /post/view.php?id=$postId");
-exit;
+redirect('/post/view.php', ['id' => $postId]);

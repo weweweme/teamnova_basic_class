@@ -106,17 +106,32 @@ if (confirmDialog && confirmOk && confirmCancel) {
 
 
 // ── 알림(토스트) 자동으로 사라지게 하기 ─────────────────────
-//   ★ 알림 '내용'은 서버(PHP)가 세션에서 꺼내 이미 그려놨고,
-//     JS는 그걸 몇 초 뒤 '걷어내는 연출'만 담당한다. (GET/POST 흐름과 무관)
+//   ★ 알림 '내용'은 서버(PHP)가 주소(?flash=)에서 읽어 이미 그려놨고,
+//     JS는 ① 주소 청소 ② 몇 초 뒤 걷어내는 연출 만 담당한다. (GET/POST 흐름과 무관)
 
 const FLASH_STAY_MS        = 3000;   // 보통 알림: 3초
 const FLASH_STAY_ACTION_MS = 8000;   // '되돌리기' 버튼이 있으면 더 오래 (누를 시간을 줘야 하니까)
 const FLASH_FADE_MS        = 400;    // 흐려지는 데 걸리는 시간 (CSS transition 과 맞춤)
 
+// 주소에서 걷어낼 알림 파라미터. util.php의 FLASH_KEYS와 같은 목록이다(한쪽을 고치면 둘 다).
+const FLASH_URL_KEYS = ['flash', 'ftype', 'fundo', 'fid'];
+
 const flash = document.querySelector('.flash');
 
 // 알림이 없는 페이지가 대부분이니 '있는지 먼저 확인'(Tester-Doer).
 if (flash) {
+    // ── ① 주소에서 알림 파라미터만 지운다 ──────────────────
+    //   왜 필요? 알림 내용이 주소에 적혀 있어서, 그냥 두면 새로고침할 때마다 또 뜬다.
+    //   화면은 이미 그려진 뒤라 알림은 그대로 보이고, 주소만 깨끗해진다.
+    //   replaceState = 뒤로가기 기록을 '새로 쌓지 않고' 지금 주소만 조용히 바꾸기.
+    //     (pushState였다면 뒤로가기를 한 번 더 눌러야 이전 페이지로 간다)
+    //   ★ as(신원)는 지우지 않는다 — 지우면 JS가 만드는 링크가 신원을 잃는다.
+    const cleanUrl = new URL(location.href);
+    FLASH_URL_KEYS.forEach(function (key) {
+        cleanUrl.searchParams.delete(key);
+    });
+    history.replaceState(null, '', cleanUrl);
+
     // 알림 안에 버튼이 있으면 = 사용자가 눌러야 할 것이 있다 → 더 오래 보여준다.
     const hasAction = flash.querySelector('.flash-action') !== null;
     const stayMs    = hasAction ? FLASH_STAY_ACTION_MS : FLASH_STAY_MS;

@@ -26,16 +26,14 @@ if ($postId <= 0) {
     redirect('/');
 }
 if ($commentId <= 0) {
-    header("Location: /post/view.php?id=$postId");
-    exit;
+    redirect('/post/view.php', ['id' => $postId]);
 }
 
 // ★ 소유권 확인: 남의 댓글은 지울 수 없다 (화면에서 버튼을 숨겨도 요청은 조작 가능)
 $comment = get_comment($commentId);
 if ($comment === null || !is_owner($comment['author'])) {
     set_flash('본인이 쓴 댓글만 삭제할 수 있습니다.', 'error');
-    header("Location: /post/view.php?id=$postId");
-    exit;
+    redirect('/post/view.php', ['id' => $postId]);
 }
 
 // ── 3) 삭제 ──────────────────────────────────────────────────
@@ -45,10 +43,9 @@ delete_comment($commentId);
 
 // ── 4) PRG: 그 글로 돌아가기 (+삭제 완료 표시) ───────────────
 //   알림에 '되돌리기' 버튼을 함께 띄운다 → comment/restore.php 로 POST.
-set_flash('🗑 댓글이 삭제되었습니다.', 'ok', [
-    'label'  => '되돌리기',
-    'url'    => '/comment/restore.php',
-    'fields' => ['comment_id' => $commentId, 'post_id' => $postId],
-]);
-header("Location: /post/view.php?id=$postId");
-exit;
+//   'comment' = util.php의 UNDO_TARGETS 키. 번호는 그 목록의 fields 순서(댓글번호, 글번호)대로.
+set_flash('🗑 댓글이 삭제되었습니다.', 'ok', 'comment', [$commentId, $postId]);
+
+// ★ 여기만 header()를 직접 쓰고 있었다 → redirect()로 통일한다.
+//   직접 쓰면 신원(?as=)도 알림도 안 붙어서, 댓글을 지우는 순간 로그아웃됐다.
+redirect('/post/view.php', ['id' => $postId]);

@@ -31,8 +31,7 @@ if ($postId <= 0) {
 }
 // 사유가 허용 목록에 없으면 신고 처리하지 않고 그 글로 돌려보낸다.
 if (!in_array($reason, ALLOWED_REASONS, true)) {
-    header("Location: /post/view.php?id=$postId");
-    exit;
+    redirect('/post/view.php', ['id' => $postId]);
 }
 
 // ── 3) 저장 ──────────────────────────────────────────────────
@@ -46,5 +45,4 @@ if ($ok) {
 } else {
     set_flash('이미 신고한 글입니다.', 'error');
 }
-header("Location: /post/view.php?id=$postId");
-exit;
+redirect('/post/view.php', ['id' => $postId]);

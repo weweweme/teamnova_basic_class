@@ -37,5 +37,4 @@ toggle_like($postId);
 
 // ── 4) PRG: 그 글로 다시 리다이렉트 (+추천 완료 표시) ────────
 set_flash(has_liked($postId) ? '👍 추천했습니다.' : '추천을 취소했습니다.');
-header("Location: /post/view.php?id=$postId");
-exit;
+redirect('/post/view.php', ['id' => $postId]);

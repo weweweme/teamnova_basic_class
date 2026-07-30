@@ -10,39 +10,56 @@ week14의 "세션 임시 저장" 껍데기를, **진짜 MariaDB**로 바꾼 버�
 
 ## 1. 실행 방법
 
+```bash
+cd lamp
+cp .env.example .env      # 윈도우: copy .env.example .env
+docker compose up -d
+```
+
+**이게 전부다.** 컨테이너가 켜지면서 MariaDB 설치·기동, DB·계정 생성,
+`schema.sql`+`seed.sql` 적용, 캐시 폴더 생성까지 `docker/entrypoint.sh`가 자동으로 한다.
+진행 상황은 `docker compose logs -f` 의 `[entrypoint]` 줄로 볼 수 있다.
+
 | 항목 | 값 |
 |---|---|
-| 주소 | `http://localhost:8081/` |
+| 주소 | `http://localhost:<WEB_PORT>/` — **맥 8080 / 윈도우 8081** (`.env`에서 정함) |
 | 웹서버 | Apache (mod_php) · PHP 8.5.8 |
 | DB | **MariaDB 12.3.2** (같은 컨테이너, `/usr/local/mariadb`) |
-| DocumentRoot | `/var/www/html/week15` |
-
-**DB 서버**: 컨테이너 시작 시 `apachectl`이 **자동으로 MariaDB를 켠다**.
-혹시 수동으로 켜야 하면:
-```bash
-/usr/local/mariadb/bin/mariadbd-safe --datadir=/usr/local/mariadb/data \
-  --user=root --socket=/tmp/mysql.sock --port=3306 --bind-address=0.0.0.0 &
-```
+| DocumentRoot | `${APP_DIR}` — docker-compose.yml의 `APP_DIR` 값 (지금은 `/var/www/html/week15`) |
+| DB 데이터 | 도커 볼륨 `lamp_mariadb_data` — **컨테이너를 지워도 유지된다** |
 
 **DB 접속 정보** (DBeaver 등 GUI):
 | 항목 | 값 |
 |---|---|
-| Host / Port | `localhost` / `3306` |
+| Host / Port | `127.0.0.1` / `3306` (`.env`의 `DB_PORT`) |
 | Database | `review_community` (utf8mb4) |
 | 계정 | `dev` / `dev1234` |
 
 **테스트 계정** (전부 비번 `1234`): `영화광` · `해석러` · `심야극장`
 
+> `.env`는 기기마다 다른 값(이미지 이름·포트)을 담아 Git에 올리지 않는다.
+> 이미지(`my_lamp_backup`)는 4GB 바이너리라 Git으로 못 옮긴다 — 각 PC에 있어야 하고,
+> 이름이 다르면 `.env`의 `LAMP_IMAGE`를 고친다(`docker images`로 확인).
+
 ---
 
-## 2. DB 처음 세팅 (다른 기기에서 재현)
+## 2. DB 세팅 — 자동이지만, 원리는 알아두기
 
-코드는 Git, **데이터는 SQL로 재생성**한다. DBeaver(또는 `mariadb` CLI)에서 순서대로 실행:
+코드는 Git, **데이터는 SQL로 재생성**한다. DB 데이터는 Git으로 옮길 수 없기 때문이다.
 
 ```
 ① sql/schema.sql  — 표 8개 + 외래키 생성
 ② sql/seed.sql    — 시연용 데이터 대량 (아래 규모)
 ```
+
+**entrypoint.sh가 "표가 없으면 ①, 데이터가 비었으면 ②"를 알아서 실행**하므로 평소엔 신경 쓸 필요가 없다.
+손으로 넣고 싶다면 DBeaver나 CLI로 위 순서대로 실행하면 된다.
+
+**DB를 처음 상태로 되돌리려면** (시연 전 초기화 등):
+```bash
+docker compose down -v && docker compose up -d
+```
+`-v`가 DB 볼륨까지 지우므로, 다시 켤 때 schema+seed가 새로 깔린다. **그동안 쌓인 데이터는 사라진다.**
 
 **seed.sql 데이터 규모** (대량 더미 — 시연·발표용):
 
@@ -112,6 +129,8 @@ users ──┬─< posts >──┬── media
 
 **캐싱**: `tmdb_get`이 응답을 `cache/tmdb/`에 30분 저장 → 홈 로딩 4.5초 → 0.2초.
 (TMDB를 홈 한 번에 10여 회 호출하므로 캐시가 필수. `cache/`는 Git 제외)
+- Git은 빈 폴더를 기록하지 않아 새 PC엔 이 폴더가 없다 → **`tmdb_get`이 저장 전에 폴더를 만든다.**
+  (예전엔 만들지 않아 캐시가 조용히 실패했고, 매 요청마다 TMDB를 새로 불렀다)
 
 ---
 
@@ -187,6 +206,11 @@ week14와 **똑같은 모양의 배열**을 돌려준다 → 그 위의 필터·
 | 세션 고정 공격 | 로그인 시 `session_regenerate_id(true)` |
 | **이미지 업로드** | ①MIME 검사(finfo) ②파일명 강제 재생성 ③업로드 폴더 PHP 실행 차단 |
 
+③은 `apache/httpd.conf`의 `<Directory "${APP_DIR}/uploads">`에 있다
+(`php_admin_flag engine off` + 스크립트 확장자 접근 거부).
+`uploads/avatars/.htaccess`에도 같은 내용이 있지만 **`AllowOverride None`이라 실제로는 무시된다** —
+차단이 실제로 걸리는 곳은 httpd.conf 쪽이다.
+
 **세션은 로그인 상태·플래시 알림·최근 본 글에만** 남았다. 나머지 데이터는 전부 DB.
 
 ---
@@ -232,4 +256,5 @@ week14와 **똑같은 모양의 배열**을 돌려준다 → 그 위의 필터·
 - 글에 이미지 첨부 (지금은 프로필 이미지만)
 - DB 이론 발표자료 마무리 (JOIN 슬라이드 등)
 
-> DB 자동 시작은 `apachectl`에 설정 완료 — 컨테이너 재시작 시 MariaDB가 자동 기동.
+> 환경 구성은 `docker/entrypoint.sh` + `docker-compose.yml` + `apache/httpd.conf`로
+> 전부 Git에서 관리된다. 새 PC에서도 `docker compose up -d` 한 번이면 DB까지 갖춰진 사이트가 뜬다.

@@ -1,2 +1,8 @@
 # PHP 컴파일 엔진 소스 폴더 전체 제외
 /php_engine/
+
+# 기기별 도커 설정 (이미지 이름 등) — .env.example 을 복사해서 각자 만든다
+/.env
+
+# TMDB 응답 캐시 — 접속하면 자동으로 다시 만들어진다
+/src/week15/cache/

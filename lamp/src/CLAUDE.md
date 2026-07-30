@@ -102,33 +102,63 @@ week14/
 - 이미지 업로드 실제 저장
 
 ## 환경 (LAMP, Docker 컨테이너 내부)
+> ★ **환경 구성은 전부 Git으로 관리된다.** 새 컴퓨터에서도 `docker compose up -d` 한 번이면
+> DB까지 갖춰진 사이트가 뜬다. 손으로 하는 세팅은 없다. (2026-07 개편)
+
 - OS: Ubuntu 22.04 (도커 컨테이너 안)
 - 웹서버: **Apache httpd** (`/usr/local/apache2`), 포트 80, 실행 중
 - PHP: **8.5.8** — `mod_php`로 Apache에 내장. **`php` CLI 명령어는 없음.**
-  → PHP는 반드시 브라우저(`http://localhost/파일.php`)로 실행해서 확인한다.
+  → PHP는 반드시 브라우저(`http://localhost:<포트>/파일.php`)로 실행해서 확인한다.
 - DB: **MariaDB 12.3.2** — **같은 컨테이너 안**에 설치됨(`/usr/local/mariadb`, 커스텀 빌드).
   - **CLI는 있음**: `/usr/local/mariadb/bin/{mariadb,mysql}` (예전 메모의 "mysql CLI 없음"은 틀림).
-  - **자동 실행 설정됨** — `apachectl`(PID 1)에 자동시작 블록을 주입해서, 컨테이너
-    재시작 시 MariaDB가 접속 불가면 `mariadbd-safe`로 자동 기동한다.
-    (백업: `apachectl.pre-mariadb`. ※ 컨테이너 '삭제 후 재생성'하면 사라짐 → 이미지엔 없음)
+  - **자동 실행** — `docker/entrypoint.sh`가 컨테이너 시작 때마다 기동한다.
+    (예전엔 `apachectl`에 자동시작 블록을 주입했으나, 그건 컨테이너 안에만 있어서
+     새 기기로 안 따라왔다. 이제 Git에 있는 스크립트가 그 일을 한다)
     수동 기동이 필요하면:
     `/usr/local/mariadb/bin/mariadbd-safe --datadir=/usr/local/mariadb/data --user=root --socket=/tmp/mysql.sock --port=3306 --bind-address=0.0.0.0 &`
-  - **데이터 위치**: `/usr/local/mariadb/data` (컨테이너 안 — 컨테이너 삭제 시 소실. 볼륨 미연결).
+  - **데이터 위치**: 도커 볼륨 `lamp_mariadb_data` → `/usr/local/mariadb/data`.
+    **컨테이너를 지우고 다시 만들어도 데이터가 유지된다.**
   - **접속정보**: host `localhost`/`127.0.0.1`, port `3306`, DB `review_community`(utf8mb4).
     계정 `dev`/`dev1234`(원격·앱용, `%`), 로컬관리 `root`/`root1234`. 익명계정·test DB 제거함.
+    ※ 이 DB·계정도 entrypoint.sh가 없으면 자동 생성한다.
   - **DBeaver**(맥·윈도우 데스크톱 앱)로 접속해 표·데이터를 눈으로 보며 개발. SSL은 끈다.
   - DB 데이터는 Git으로 안 옮김 → **`week15/sql/schema.sql`+`seed.sql`을 Git에 두고** 각 기기서 재생성.
+    표가 없거나 비어 있으면 **entrypoint.sh가 자동으로 두 파일을 실행**한다(수동 실행 불필요).
+  - **DB를 처음 상태로 되돌리려면**(시연 전 초기화 등):
+    `docker compose down -v && docker compose up -d`
+    `-v`가 볼륨까지 지우므로 다음 시작 때 schema+seed가 다시 깔린다. **데이터가 사라지니 주의.**
 - **TMDB API** (영화·드라마 데이터): media 표를 채우고 검색에 사용. v4 토큰 헤더 방식(`Authorization: Bearer`).
-  - 키는 `week15/includes/config.php`에 있음(PHP가 읽음). **학습용 읽기전용 키라 CLAUDE.md에도 명시**:
+  - 키는 `week15/includes/config.php`에 있음(PHP가 읽음).
+    **학습용 읽기전용 키라 config.php를 그대로 Git에 커밋한다**(실무라면 절대 금지 — 아래 주의 참고):
     - v4 Read Access Token: `eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmMDYwZTlmYzhjZjllYzk2YmMyZTM0Zjc5OTAxYzMwYyIsIm5iZiI6MTc4NTE0NzM1Mi45NzksInN1YiI6IjZhNjcyZmQ4NmZiMDc2M2U3Mzk3ZmZkMSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rQChMikxT0pxMU89a-6cTdBX5JSTGBkMUDf5YyHKp9Q`
     - v3 API Key(안 쓰지만 기록): `f060e9fc8cf9ec96bc2e34f79901c30c`
   - 엔드포인트 예: `https://api.themoviedb.org/3/search/movie?query=기생충&language=ko-KR` (헤더에 Bearer 토큰).
-- DocumentRoot: `/usr/local/apache2/conf/httpd.conf`에 지정됨.
-  현재 **`/var/www/html/week15`**를 가리킴(`-k restart`로 반영, graceful은 안 먹힘).
-  주차가 바뀌면 그 폴더로 변경 + Apache 재시작 필요. 백업 `httpd.conf.pre-week15` 존재.
-- 접속 주소: **`http://localhost:8081/`** (도커 포트 매핑 8081→80).
-- 설정 백업 존재: `httpd.conf.bak`, `conf/original/`. 수정 시 백업 유지.
+- **Apache 설정**: `lamp/apache/httpd.conf` (호스트 · Git 관리).
+  컨테이너 시작 때 entrypoint.sh가 컨테이너 안으로 복사한다.
+  설정만 고쳤을 땐 컨테이너를 재시작(`docker compose restart`)하면 반영된다.
+  - DocumentRoot는 **`${APP_DIR}`** — docker-compose.yml의 `environment: APP_DIR` 값이 들어간다.
+    **주차가 바뀌면 docker-compose.yml의 APP_DIR 한 줄만 고치면 된다.**
+  - `${APP_DIR}/uploads`에 **PHP 실행 차단**(`php_admin_flag engine off` + 스크립트 확장자 접근 거부).
+    ※ `AllowOverride None`이라 `.htaccess`는 무시된다 → 차단은 반드시 이 파일에 둬야 한다.
+- **접속 주소**: `http://localhost:<WEB_PORT>/` — 포트는 `.env`에서 정한다.
+  **맥 8080 / 윈도우 8081** (기기마다 이미 쓰는 포트가 달라서 통일하지 않음).
+- **기기별 설정은 `.env`** (Git 제외): `LAMP_IMAGE`(이미지 이름)·`WEB_PORT`·`DB_PORT`.
+  `.env.example`을 복사해서 만든다. 소스코드엔 포트가 하드코딩돼 있지 않아 `.env`만으로 해결된다.
+- 컨테이너는 `restart: unless-stopped` — 도커가 실행되면 자동으로 켜진다.
 - `sqlite3`도 설치돼 있으나, 과제 필수 스택이 MariaDB라 사용하지 않는다.
+
+### 도커 구성 파일 (전부 Git)
+```
+lamp/
+├── docker-compose.yml   이미지·포트·볼륨·마운트  (주차 변경은 여기 APP_DIR)
+├── .env.example         기기별 설정 예시 → 복사해서 .env 로 사용 (.env는 Git 제외)
+├── docker/entrypoint.sh 시작 스크립트: MariaDB 설치·기동·DB/계정 생성·schema+seed·캐시 폴더
+├── apache/httpd.conf    Apache 설정 (DocumentRoot·PHP 핸들러·uploads 차단)
+└── .gitattributes       .sh/.conf 를 LF 고정 (윈도우 CRLF로 스크립트 깨지는 것 방지)
+```
+- entrypoint.sh의 모든 단계는 **"없으면 만들고 있으면 건너뛴다"** → 몇 번을 켜도 안전하다.
+- **이미지(`my_lamp_backup`)만은 Git으로 못 옮긴다**(4GB 바이너리). 기기마다 로컬에 있어야 하며,
+  이름이 다르면 `.env`의 `LAMP_IMAGE`로 맞춘다.
 
 ## 필수 기술 스택 (교수 지정 — 변경 불가)
 - 프론트: **HTML / CSS / JavaScript**
@@ -201,11 +231,35 @@ week14/
 - ★ **테스트 가이드**: 값/속성을 바꿔보고 결과가 어떻게 달라지는지 관찰하게 유도한다.
 
 ## 실행 / 확인 방법
-- PHP 확인: 파일을 해당 주차 폴더에 두고, DocumentRoot가 그 주차를 가리킬 때
-  `http://localhost/파일명.php` 접속.
-- 정적 HTML/CSS/JS: 브라우저로 직접 파일 열기, 또는 `http://localhost/` 경유.
+**처음 세팅 (새 컴퓨터에서도 이게 전부):**
+```bash
+cd lamp
+cp .env.example .env      # 윈도우: copy .env.example .env
+                          #   → LAMP_IMAGE(내 PC의 이미지 이름) · WEB_PORT 를 맞춘다
+docker compose up -d
+docker compose logs -f    # [entrypoint] 로그로 진행 상황 확인
+```
+- PHP 확인: 파일을 해당 주차 폴더에 두고 `http://localhost:<WEB_PORT>/파일명.php` 접속.
+  (`php` CLI가 없으므로 반드시 브라우저/HTTP로 확인한다)
+- 정적 HTML/CSS/JS: 브라우저로 직접 파일 열기, 또는 위 주소 경유.
+- 소스는 `./src`가 컨테이너에 연결돼 있어 **저장하면 바로 반영**된다(재시작 불필요).
+  단 `apache/httpd.conf`를 고쳤을 땐 `docker compose restart` 필요.
+- 자주 쓰는 명령:
+  | 목적 | 명령 |
+  |---|---|
+  | 켜기 | `docker compose up -d` |
+  | 끄기 | `docker compose stop` |
+  | 설정 반영(재시작) | `docker compose restart` |
+  | 로그 보기 | `docker compose logs -f` |
+  | DB 접속 | `docker exec -it manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 --default-character-set=utf8mb4 review_community` |
+  | **DB 완전 초기화** | `docker compose down -v && docker compose up -d` ※ 데이터 삭제됨 |
 
 ## 주의사항
 - DocumentRoot 변경 · Apache 재시작 등 **환경을 바꾸는 작업은 먼저 사용자에게 설명하고** 진행.
-- Claude Code가 `/root`에서 실행 중이지만 프로젝트는 `/var/www/html`에 있음.
-  이 CLAUDE.md를 자동으로 읽히려면 향후 `/var/www/html`에서 Claude Code를 실행하는 게 좋다.
+- **`mariadb`/`mysql` CLI로 SQL을 넣을 땐 `--default-character-set=utf8mb4`를 반드시 붙인다.**
+  빠뜨리면 한글이 `???`로 들어간다. (DB만 utf8mb4로 만들어도, 보내는 쪽이 다르면 서버가 변환해버림)
+- **`config.php`는 이 저장소에선 Git에 커밋한다** — 학습용 읽기전용 TMDB 키라서 그렇다.
+  실무에선 키·비밀번호를 절대 커밋하지 않는다(`.gitignore` + 예시 파일 방식).
+- **`.env`는 커밋하지 않는다** — 기기마다 다른 값(이미지 이름·포트)이라 공유하면 서로 덮어쓴다.
+- 맥에서 이 프로젝트는 amd64 이미지를 **로제타로 에뮬레이션**해 돌린다(호스트는 arm64).
+  느리게 느껴지면 이 때문일 수 있다.

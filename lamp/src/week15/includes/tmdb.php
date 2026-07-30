@@ -60,6 +60,14 @@ function tmdb_get(string $path, array $params = []): ?array {
     }
 
     // 다음을 위해 캐시에 저장 (성공한 응답만)
+    //   ★ 폴더가 없으면 저장이 실패한다 → 저장 전에 먼저 확인하고 만든다.
+    //     cache 폴더는 Git으로 안 따라온다(Git은 빈 폴더를 기록하지 않음).
+    //     그래서 새 컴퓨터에선 폴더가 없는 채로 시작하는데, 없으면 캐시가 영영 안 생겨
+    //     매 요청마다 TMDB를 새로 부르게 된다(홈 0.2초 → 4.5초).
+    //   두 번째 인자 true = 중간 단계 폴더(cache/)까지 한 번에 만든다.
+    if (!is_dir(TMDB_CACHE_DIR)) {
+        mkdir(TMDB_CACHE_DIR, 0775, true);
+    }
     @file_put_contents($cacheFile, $body);
 
     // JSON 문자열 → PHP 배열

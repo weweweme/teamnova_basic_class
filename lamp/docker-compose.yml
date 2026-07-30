@@ -1,14 +1,48 @@
-version: '3.8'
-
 services:
   lamp_server:
-    image: ubuntu:22.04
+    # Apache(mod_php) + PHP + MariaDB 가 설치된 이미지.
+    #   손으로 설치한 상태를 저장해 둔 것이라 Docker Hub에 없다 → 기기마다 로컬에 갖고 있어야 한다.
+    #   이름이 기기마다 다를 수 있어 .env 파일에서 읽는다. (.env 가 없으면 my_lamp_backup 사용)
+    image: ${LAMP_IMAGE:-my_lamp_backup}
     container_name: manual_lamp
+
+    # 컨테이너가 켜질 때마다 이 스크립트가 실행된다.
+    #   MariaDB 설치·기동·DB 생성·SQL 적용·캐시 폴더 생성을 알아서 다 한다.
+    #   → 새 컴퓨터에서도 `docker compose up -d` 한 번이면 사이트가 뜬다.
+    entrypoint: ["/bin/bash", "/host-docker/entrypoint.sh"]
+
+    environment:
+      # 이번 주차 폴더. 주차가 바뀌면 여기와 apache/httpd.conf 의 DocumentRoot 를 함께 바꾼다.
+      APP_DIR: /var/www/html/week15
+
+    # 도커가 실행되면 이 컨테이너도 알아서 켜진다.
+    #   unless-stopped = 내가 직접 멈춘 게 아니라면 항상 다시 켠다.
+    #   (PC를 껐다 켜도, 도커 데스크톱만 실행되면 사이트가 떠 있다)
+    restart: unless-stopped
+
     stdin_open: true
     tty: true
+
     ports:
-      - "8080:80"      # 웹 브라우저 접속 포트
-      - "3306:3306"    # MariaDB 접속 포트
+      # 왼쪽(내 PC 포트):오른쪽(컨테이너 안 포트).
+      #   내 PC 쪽 번호는 기기마다 다를 수 있어 .env 에서 읽는다.
+      #   (맥은 8080, 윈도우는 8081 — 다른 프로그램이 이미 쓰고 있으면 겹치기 때문)
+      #   컨테이너 안 번호(80·3306)는 고정이라 소스코드는 손댈 필요가 없다.
+      - "${WEB_PORT:-8080}:80"        # 웹 브라우저 접속
+      - "${DB_PORT:-3306}:3306"       # MariaDB 접속 (DBeaver 등 GUI 도구용)
+
     volumes:
-      # 내 컴퓨터의 lamp/src 폴더를 리눅스의 기본 웹 서버 경로(/var/www/html)와 연결
+      # 소스코드 — 내 컴퓨터에서 고치면 바로 반영된다 (주차 폴더 전부)
       - ./src:/var/www/html
+      # Apache 설정 — 컨테이너 안이 아니라 여기 두고 Git으로 관리한다
+      - ./apache:/host-apache
+      # 시작 스크립트
+      - ./docker:/host-docker
+      # ★ DB 데이터를 컨테이너 밖(도커 볼륨)에 저장한다.
+      #   전에는 컨테이너 안에 있어서, 컨테이너를 지우면 데이터가 같이 사라졌다.
+      #   이제는 컨테이너를 지우고 다시 만들어도 데이터가 그대로 남는다.
+      - mariadb_data:/usr/local/mariadb/data
+
+volumes:
+  # 이름 붙인 볼륨. 도커가 관리하는 저장 공간이라 컨테이너 수명과 무관하게 유지된다.
+  mariadb_data:

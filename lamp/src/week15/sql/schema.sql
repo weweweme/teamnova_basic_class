@@ -57,16 +57,23 @@ CREATE TABLE posts (
 --   댓글이 '어느 글에(posts)' '누가(users)' 달았는지를 번호로 가리킨다.
 --   ★ ON DELETE CASCADE: 글이 지워지면 그 글의 댓글도 자동으로 함께 삭제된다.
 --     (게시판에선 이게 자연스러움. 없으면 "댓글부터 다 지워야 글 삭제 가능")
+--   ★ parent_id: comments가 '자기 자신'을 가리키는 외래키(자기참조).
+--     대댓글은 새 표를 만들지 않는다 — 답글도 결국 댓글이라 같은 표에 담고,
+--     "누구의 답글인지"만 한 칸 더 적으면 된다. (표가 자기 가계도를 갖는 셈)
 CREATE TABLE comments (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     post_id    INT NOT NULL,                    -- 어느 글 → posts.id
     author_id  INT NOT NULL,                    -- 누가 → users.id
+    parent_id  INT DEFAULT NULL,                -- 어느 댓글의 답글인가 → comments.id (NULL = 원댓글)
     content    VARCHAR(500) NOT NULL,           -- 댓글 내용. 최대 500자를 아니까 VARCHAR
     created_at DATETIME DEFAULT NOW(),
+    edited_at  DATETIME DEFAULT NULL,            -- 수정한 시각 (NULL = 한 번도 안 고침)
     deleted_at DATETIME DEFAULT NULL,            -- 소프트삭제 (글과 동일)
 
     FOREIGN KEY (post_id)   REFERENCES posts(id) ON DELETE CASCADE,  -- 글 지우면 댓글도 삭제
-    FOREIGN KEY (author_id) REFERENCES users(id)                     -- 회원은 함부로 못 지우게 기본값
+    FOREIGN KEY (author_id) REFERENCES users(id),                    -- 회원은 함부로 못 지우게 기본값
+    -- 원댓글이 '영구삭제'되면 그 답글도 함께 사라진다. (소프트삭제는 표식만 남기므로 영향 없음)
+    FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE
 );
 
 -- ── likes : 글 추천 (1인 1회) ───────────────────────────────

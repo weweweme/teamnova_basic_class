@@ -9,21 +9,48 @@ require_once __DIR__ . '/db.php';
 
 const COMMENT_MAX = 500;   // 댓글 최대 글자 수
 
-// ── 특정 글의 댓글 목록 (작성자 닉네임까지 JOIN으로) ────────
+// ── 특정 글의 댓글 목록 (원댓글 + 답글을 한 번에) ───────────
 //   댓글은 author_id(번호)만 갖고 있으므로, users와 이어 닉네임(author)을 붙인다.
-//   반환 모양은 week14와 동일: id·postId·author·content
+//   ★ 답글까지 포함해 '한 번의 쿼리'로 가져온다.
+//     원댓글을 먼저 읽고 각각의 답글을 또 물어보면(= 댓글 20개면 쿼리 21번)
+//     DB를 쓸데없이 스무 번 더 두드린다. 흔히 N+1 문제라 부르는 낭비다.
+//
+//   [정렬] ORDER BY COALESCE(parent_id, id), id
+//     COALESCE(A, B) = "A가 있으면 A, 없으면 B". 여기선 '내가 속한 묶음의 번호'가 된다.
+//       · 원댓글(5번)  → parent_id가 없으니 자기 번호 5
+//       · 그 답글(9번) → parent_id가 5니까 5
+//     → 둘 다 '5번 묶음'이 되어 나란히 붙는다. 그 안에서는 id 순(먼저 쓴 게 위).
+//     답글은 부모보다 항상 나중에 생기니 번호가 더 커서, 부모가 묶음 맨 위에 온다.
+//
+//   [지워진 댓글] 답글이 달린 원댓글을 지우면 답글이 '고아'가 되어 화면에 붕 뜬다.
+//     그래서 살아있는 답글이 하나라도 있으면 부모 자리를 남기고 "삭제된 댓글입니다"로 표시한다.
+//     ★ 단 내용은 SQL에서 빈 문자열로 바꿔 내보낸다 — 지워진 글이 화면 소스에 남으면 안 되니까.
 function get_comments(int $postId): array {
     $sql = "
         SELECT c.id, c.post_id AS postId,
+               c.parent_id AS parentId,   -- NULL이면 원댓글, 값이 있으면 그 번호 댓글의 답글
                u.username AS author,      -- 아이디(소유권 확인용)
                u.nickname AS authorNick,  -- 표시 이름(화면에 보이는 닉네임)
                -- 댓글 작성자의 총 글 수 (등급 배지용)
                (SELECT COUNT(*) FROM posts pc WHERE pc.author_id = c.author_id AND pc.deleted_at IS NULL) AS authorPostCount,
-               c.content
+               -- 지워진 댓글은 내용을 아예 내보내지 않는다 (자리만 남기는 것이므로)
+               CASE WHEN c.deleted_at IS NULL THEN c.content ELSE '' END AS content,
+               c.edited_at AS editedAt,             -- 값이 있으면 화면에 '(수정됨)'
+               c.deleted_at IS NOT NULL AS isDeleted -- 1이면 '삭제된 댓글입니다' 자리
         FROM comments c
         JOIN users u ON c.author_id = u.id
-        WHERE c.post_id = ? AND c.deleted_at IS NULL   -- 이 글의, 안 지워진 댓글만
-        ORDER BY c.id ASC                              -- 단 순서(먼저 쓴 게 위)
+        WHERE c.post_id = ?
+          AND (
+                c.deleted_at IS NULL          -- 살아있는 댓글은 당연히 보여주고
+                OR (                          -- 지워졌어도 '답글이 남은 원댓글'이면 자리를 남긴다
+                     c.parent_id IS NULL
+                     AND EXISTS (
+                         SELECT 1 FROM comments r
+                         WHERE r.parent_id = c.id AND r.deleted_at IS NULL
+                     )
+                   )
+              )
+        ORDER BY COALESCE(c.parent_id, c.id), c.id
     ";
     $stmt = db()->prepare($sql);
     $stmt->execute([$postId]);

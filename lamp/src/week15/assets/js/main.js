@@ -5,6 +5,24 @@
 //     JS는 창을 보여주고 감추는 '연출'만 담당 (GET/POST 흐름은 그대로).
 // ============================================================
 
+// ── 신원(?as=) 이어붙이기 ────────────────────────────────────
+//   세션·쿠키를 쓰지 않으므로 '지금 누구인지'가 주소에 실려 다닌다.
+//   서버가 그리는 링크는 PHP가 자동으로 붙여주지만(header.php의 URL 리라이터),
+//   여기서 JS가 '새로 만드는' 링크는 PHP가 손댈 수 없다 — 이미 보내버린 뒤라서.
+//   → 그래서 JS로 링크를 만들 때는 이 함수를 통과시킨다.
+//     (빠뜨리면 그 카드를 누르는 순간 로그아웃된다)
+function withIdentity(url) {
+    // location.search = 지금 주소의 '?뒤쪽' 전체. 거기서 as 값을 꺼낸다.
+    const as = new URLSearchParams(location.search).get('as');
+    if (!as) {
+        return url;               // 로그인 안 한 상태면 붙일 게 없다
+    }
+    // 이미 ?가 있으면 &로 잇고, 없으면 ?로 시작한다.
+    const joiner = url.includes('?') ? '&' : '?';
+    // encodeURIComponent = 한글·특수문자를 주소에 안전한 형태로 바꾼다(PHP의 urlencode와 같은 역할).
+    return url + joiner + 'as=' + encodeURIComponent(as);
+}
+
 // ── 신고 팝업 열고 닫기 ──────────────────────────────────────
 //   발표자료에서 본 JS의 3단계 그대로:
 //   ① 요소 고르기  →  ② 이벤트 연결  →  ③ DOM 조작(동작)
@@ -257,7 +275,7 @@ if (grid && sentinel) {
     function addCard(item) {
         const a = document.createElement('a');
         a.className = 'row-card';
-        a.href = '/board/?work=tmdb-' + item.tmdb_id;
+        a.href = withIdentity('/board/?work=tmdb-' + item.tmdb_id);
         a.innerHTML =
             '<img class="row-poster" src="' + item.poster_url + '" alt="" loading="lazy">' +
             '<span class="row-title"></span>' +
@@ -362,7 +380,7 @@ document.querySelectorAll('.lazy-row').forEach(function (row) {
 function buildRowCard(m) {
     const a = document.createElement('a');
     a.className = 'row-card';
-    a.href = '/board/?work=tmdb-' + m.tmdb_id;
+    a.href = withIdentity('/board/?work=tmdb-' + m.tmdb_id);
     a.innerHTML =
         '<img class="row-poster" src="' + encodeURI(m.poster_url) + '" alt="" loading="lazy">' +
         '<span class="row-title"></span>';
@@ -451,7 +469,7 @@ function fillDailyPick(items) {
         return;
     }
     const m = items[Math.floor(Math.random() * items.length)];   // 새로고침마다 바뀜(발견의 재미)
-    link.href = '/board/?work=tmdb-' + m.tmdb_id;
+    link.href = withIdentity('/board/?work=tmdb-' + m.tmdb_id);
     link.querySelector('img').src = m.poster_url;
     link.querySelector('.side-pick-title').textContent = m.title;
     box.hidden = false;                              // 다 채워졌으니 이제 보여준다

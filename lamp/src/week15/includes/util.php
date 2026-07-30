@@ -104,11 +104,26 @@ function query_url(string $path, array $overrides = []): string {
 //   ★ 읽는 쪽은 auth.php 의 current_user() — 이 이름을 양쪽이 함께 쓴다.
 const IDENTITY_KEY = 'as';
 
-// 지금 요청에 실려온 신원을, 다음 주소로 그대로 넘기기 위해 꺼낸다.
+// 지금 요청에 실려온 신원을 꺼낸다. 없으면 빈 문자열.
+//   ★ 신원을 읽는 곳은 프로젝트 전체에서 이 함수 하나뿐이다.
+//     그래서 나머지 코드는 "주소로 왔나 폼으로 왔나"를 신경 쓸 필요가 없다.
+//
+//   왜 두 군데를 보나:
+//     · 주소($_GET)  — 링크를 누르거나 리다이렉트로 넘어올 때
+//     · 폼($_POST)   — 폼을 제출할 때. PHP의 URL 리라이터가 폼에는 주소 대신
+//                      hidden 필드를 심어주기 때문이다 (header.php에서 켠다).
+//                      ※ method="get" 폼은 action 주소의 ?쿼리를 버리고 입력값으로
+//                        새로 만들기 때문에, 폼에는 hidden 필드가 정답이다.
+function identity_from_request(): string {
+    $fromUrl = get_str(IDENTITY_KEY);
+    return $fromUrl !== '' ? $fromUrl : post_str(IDENTITY_KEY);
+}
+
+// 지금 요청의 신원을, 다음 주소로 그대로 넘기기 위해 배열로 만든다.
 //   ★ '로그인 상태'를 묻지 않는다는 점이 중요하다. 그냥 받은 값을 넘겨줄 뿐이라
 //     이 파일이 auth.php를 몰라도 된다 (서로 얽히지 않게).
 function identity_params(): array {
-    $as = get_str(IDENTITY_KEY);
+    $as = identity_from_request();
     return $as === '' ? [] : [IDENTITY_KEY => $as];
 }
 

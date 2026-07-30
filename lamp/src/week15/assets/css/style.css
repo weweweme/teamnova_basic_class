@@ -633,9 +633,9 @@ mark { background: #7a6000; color: #fff3a3; }
 .comment-action:hover { color: #cfcfcf; text-decoration: underline; }
 .comment-edited { font-size: 12px; }
 
-/* 답글 입력 폼 — flex-basis:100% 라야 한 줄을 통째로 차지해 아래로 내려온다 */
-.comment-reply-form { flex-basis: 100%; margin-top: 10px; }
-.comment-reply-form button { margin-right: 10px; }
+/* 답글·수정 입력 폼 — flex-basis:100% 라야 한 줄을 통째로 차지해 아래로 내려온다 */
+.comment-reply-form, .comment-edit-form { flex-basis: 100%; margin-top: 10px; }
+.comment-reply-form button, .comment-edit-form button { margin-right: 10px; }
 /* 댓글 입력 */
 .comment-form { margin-top: 16px; }
 .comment-form textarea { width: 100%; }

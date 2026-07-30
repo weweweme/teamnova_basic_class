@@ -133,6 +133,7 @@ require __DIR__ . '/../includes/header.php';
     //   ★ JS 없이 서버가 그린다. 이 프로젝트가 신원(?as=)·알림(?flash=)을 주소로 나르는 것과 같은 방식.
     //     "지금 화면이 어떤 상태인지"가 주소에 그대로 드러나서, 새로고침해도 그 상태가 유지된다.
     $replyTo = get_int('reply');
+    $editing = get_int('edit');   // 수정 폼을 열어둘 댓글 (답글 폼과 같은 방식)
     ?>
 
     <!-- 댓글 목록 (원댓글과 답글이 한 배열에 섞여 있고, 이미 부모-자식 순으로 정렬돼 있다) -->
@@ -144,7 +145,10 @@ require __DIR__ . '/../includes/header.php';
         // 답글을 달거나 취소했을 때 그 자리로 되돌아오도록 앵커(#c7)를 붙인다.
         $anchor    = '#c' . $c['id'];
         $replyUrl  = query_url('/post/view.php', ['reply' => $c['id'], 'edit' => null]) . $anchor;
+        $editUrl   = query_url('/post/view.php', ['edit'  => $c['id'], 'reply' => null]) . $anchor;
         $cancelUrl = query_url('/post/view.php', ['reply' => null,     'edit' => null]) . $anchor;
+        // 이 댓글을 지금 수정 중인가? (내 것일 때만 — 주소만 고쳐 남의 댓글 폼을 열 수 없게)
+        $isEditing = $editing === (int)$c['id'] && !$c['isDeleted'] && is_owner($c['author']);
         ?>
         <li id="c<?= e((string)$c['id']) ?>" class="<?= $isReply ? 'comment-reply' : '' ?>">
 
@@ -153,25 +157,39 @@ require __DIR__ . '/../includes/header.php';
             <span class="muted">삭제된 댓글입니다</span>
           <?php else: ?>
             <span class="comment-author"><?= level_badge_html((int)$c['authorPostCount']) ?> <?= e($c['authorNick']) ?></span>
-            <?= e($c['content']) ?>
-            <?php if ($c['editedAt'] !== null): ?>
-              <?php // 몰래 말을 바꾸지 못하게 수정 사실을 드러낸다 ?>
-              <span class="muted comment-edited">(수정됨)</span>
-            <?php endif; ?>
 
-            <?php // 답글 버튼은 '원댓글'에만 — 답글의 답글은 만들지 않는다(깊이 1단계) ?>
-            <?php if (!$isReply && is_logged_in()): ?>
-              <a class="comment-action" href="<?= e($replyUrl) ?>">답글</a>
-            <?php endif; ?>
-
-            <?php // 댓글도 '내가 쓴 것'만 삭제 버튼을 보여준다 ?>
-            <?php if (is_owner($c['author'])): ?>
-              <!-- 댓글 삭제: 어느 댓글인지(comment_id)와 돌아갈 글(post_id)을 함께 보낸다 -->
-              <form class="delete-form comment-delete" method="post" action="/comment/delete.php">
+            <?php if ($isEditing): ?>
+              <?php // 수정 중 — 내용 자리를 폼으로 바꿔 끼운다 (댓글 줄은 그대로 유지) ?>
+              <form class="comment-form comment-edit-form" method="post" action="/comment/update.php">
                 <input type="hidden" name="comment_id" value="<?= e((string)$c['id']) ?>">
                 <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
-                <button type="submit">삭제</button>
+                <?php // 원래 내용을 미리 채워둔다 — 지우고 다시 쓰지 않게 ?>
+                <textarea name="content" rows="2" maxlength="500" required><?= e($c['content']) ?></textarea>
+                <button type="submit">수정 완료</button>
+                <a class="comment-action" href="<?= e($cancelUrl) ?>">취소</a>
               </form>
+            <?php else: ?>
+              <?= e($c['content']) ?>
+              <?php if ($c['editedAt'] !== null): ?>
+                <?php // 몰래 말을 바꾸지 못하게 수정 사실을 드러낸다 ?>
+                <span class="muted comment-edited">(수정됨)</span>
+              <?php endif; ?>
+
+              <?php // 답글 버튼은 '원댓글'에만 — 답글의 답글은 만들지 않는다(깊이 1단계) ?>
+              <?php if (!$isReply && is_logged_in()): ?>
+                <a class="comment-action" href="<?= e($replyUrl) ?>">답글</a>
+              <?php endif; ?>
+
+              <?php // 댓글도 '내가 쓴 것'만 수정·삭제할 수 있다 ?>
+              <?php if (is_owner($c['author'])): ?>
+                <a class="comment-action" href="<?= e($editUrl) ?>">수정</a>
+                <!-- 댓글 삭제: 어느 댓글인지(comment_id)와 돌아갈 글(post_id)을 함께 보낸다 -->
+                <form class="delete-form comment-delete" method="post" action="/comment/delete.php">
+                  <input type="hidden" name="comment_id" value="<?= e((string)$c['id']) ?>">
+                  <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
+                  <button type="submit">삭제</button>
+                </form>
+              <?php endif; ?>
             <?php endif; ?>
           <?php endif; ?>
 

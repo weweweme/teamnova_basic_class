@@ -121,6 +121,15 @@ function resolve_parent_id(int $parentId, int $postId): ?int {
     return (int) $parent['id'];
 }
 
+// ── 댓글 수정 (내용 교체 + '고쳤다'는 사실 기록) ────────────
+//   edited_at을 함께 찍는 이유: 화면에 '(수정됨)'을 띄우기 위해서다.
+//   표시가 없으면 댓글을 단 뒤 몰래 말을 바꿔도 아무도 알 수 없다.
+//   ★ 작성자·작성시각은 건드리지 않는다 — 고친 건 내용뿐이니까.
+function update_comment(int $id, string $content): void {
+    db()->prepare('UPDATE comments SET content = ?, edited_at = NOW() WHERE id = ?')
+        ->execute([$content, $id]);
+}
+
 // ── 댓글 삭제 (소프트삭제: deleted_at 에 시각 기록) ──────────
 //   글과 같은 방식 — 진짜 지우지 않아 되돌리기가 가능하다.
 function delete_comment(int $id): void {

@@ -20,8 +20,11 @@ services:
     #   (PC를 껐다 켜도, 도커 데스크톱만 실행되면 사이트가 떠 있다)
     restart: unless-stopped
 
-    stdin_open: true
-    tty: true
+    # ※ stdin_open / tty 는 넣지 않는다.
+    #   맨몸 우분투 컨테이너를 '살아 있게' 하려고 쓰던 옵션인데, 지금은 entrypoint.sh가
+    #   Apache를 포그라운드로 붙잡고 있어 필요 없다.
+    #   오히려 tty를 켜면 컨테이너를 재시작한 뒤 로그 수집이 끊겨
+    #   `docker compose logs` 에 [entrypoint] 진행 상황이 안 보인다.
 
     ports:
       # 왼쪽(내 PC 포트):오른쪽(컨테이너 안 포트).

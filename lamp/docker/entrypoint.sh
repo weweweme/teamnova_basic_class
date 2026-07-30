@@ -55,6 +55,20 @@ fi
 # ── 3. MariaDB 서버 기동 + 접속될 때까지 대기 ───────────────
 #   백그라운드(&)로 띄운다. 서버가 준비되기 전에 다음 단계로 가면 실패하므로,
 #   실제로 접속이 될 때까지 최대 60초 기다린다. (그냥 sleep 하면 느린 PC에서 깨진다)
+# 켜기 전에, 이전에 비정상 종료돼서 남은 socket 파일을 치운다.
+#   socket 파일은 "DB가 여기 있다"고 알려주는 문 앞의 명패다.
+#   정상 종료하면 서버가 스스로 떼는데, 강제 종료되면 명패만 남는다.
+#   그 상태로 켜면 "이미 누가 쓰는 중"이라고 판단해 기동을 거부할 수 있다.
+#   ★ 지금 실제로 접속되는지 먼저 확인하고, 응답이 없을 때만 지운다.
+#     (돌고 있는 DB의 명패를 떼면 접속이 끊기므로 순서가 중요하다)
+if [ -e "$MARIADB_SOCK" ]; then
+    if ! "$MARIADB_DIR/bin/mariadb" --socket="$MARIADB_SOCK" -uroot -e "SELECT 1" > /dev/null 2>&1 \
+       && ! "$MARIADB_DIR/bin/mariadb" --socket="$MARIADB_SOCK" -uroot -p"$DB_ROOT_PASS" -e "SELECT 1" > /dev/null 2>&1; then
+        say "응답 없는 socket 파일이 남아 있다 → 정리"
+        rm -f "$MARIADB_SOCK"
+    fi
+fi
+
 say "MariaDB 기동 중..."
 "$MARIADB_DIR/bin/mariadbd-safe" \
     --datadir="$MARIADB_DATA" --user=root \

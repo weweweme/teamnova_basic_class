@@ -12,13 +12,11 @@ require_once __DIR__ . '/../includes/auth.php';
 
 // ── 0) POST로 온 게 맞나? ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 
 // ── 1) 세션 비우기 = 로그아웃 ────────────────────────────────
 logout_user();
 
 // ── 2) PRG: 홈으로 ───────────────────────────────────────────
-header('Location: /');
-exit;
+redirect('/');

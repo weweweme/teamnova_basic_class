@@ -12,8 +12,7 @@ require_login();
 
 // ── 0) POST로 온 게 맞나? ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 
 $userId   = current_user_id();
@@ -22,8 +21,7 @@ $username = (string) current_user();
 // ── 1) 파일이 실제로 왔나? ───────────────────────────────────
 //   $_FILES = 업로드된 파일 정보를 담는 슈퍼글로벌 ($_POST의 '파일' 버전).
 if (!isset($_FILES['avatar'])) {
-    header('Location: /settings/');
-    exit;
+    redirect('/settings/');
 }
 
 // ── 2) 저장 (upload 모듈이 3중 검증 후 저장) ─────────────────
@@ -32,8 +30,7 @@ $url = save_avatar($_FILES['avatar'], $userId);
 
 if ($url === null) {
     set_flash('이미지 업로드에 실패했습니다. (JPG·PNG·GIF·WebP, 2MB 이하)', 'error');
-    header('Location: /settings/');
-    exit;
+    redirect('/settings/');
 }
 
 // ── 3) DB에 이미지 주소 기록 ─────────────────────────────────
@@ -43,5 +40,4 @@ set_avatar($userId, $url);
 
 // ── 4) PRG: 내 프로필로 ──────────────────────────────────────
 set_flash('🖼️ 프로필 이미지가 변경되었습니다.');
-header('Location: /settings/');
-exit;
+redirect('/settings/');

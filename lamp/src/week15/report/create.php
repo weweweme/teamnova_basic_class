@@ -18,8 +18,7 @@ require_login();
 
 // ── 0) POST로 온 게 맞나? ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 
 // ── 1) 값 받기 ───────────────────────────────────────────────
@@ -28,8 +27,7 @@ $reason = post_str('reason', '');
 
 // ── 2) 검증 ──────────────────────────────────────────────────
 if ($postId <= 0) {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 // 사유가 허용 목록에 없으면 신고 처리하지 않고 그 글로 돌려보낸다.
 if (!in_array($reason, ALLOWED_REASONS, true)) {

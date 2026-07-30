@@ -13,8 +13,7 @@ require_login();
 
 // ── 0) POST로 온 게 맞나? ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 
 // ── 1) 값 받기 ───────────────────────────────────────────────
@@ -24,8 +23,7 @@ $postId    = post_int('post_id', 0);
 
 // ── 2) 검증 ──────────────────────────────────────────────────
 if ($postId <= 0) {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 if ($commentId <= 0) {
     header("Location: /post/view.php?id=$postId");

@@ -123,8 +123,7 @@ function is_logged_in(): bool {
 function require_login(): void {
     if (!is_logged_in()) {
         set_flash('🔒 로그인이 필요한 기능입니다.', 'error');
-        header('Location: /auth/login.php');
-        exit;
+        redirect('/auth/login.php');
     }
 }
 

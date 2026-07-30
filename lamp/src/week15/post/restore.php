@@ -18,8 +18,7 @@ require_login();
 
 // ── 0) POST로 온 게 맞나? ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 
 // ── 1) 값 받기 + 대상 찾기 ───────────────────────────────────
@@ -29,16 +28,14 @@ $post = get_deleted_post($id);   // '지워진 상태'인 글만 돌려준다
 // ── 2) 검증: 정말 지워진 글인가 ──────────────────────────────
 //   (이미 살아있는 글이거나 없는 번호면 되돌릴 것이 없다)
 if ($id <= 0 || $post === null) {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 
 // ★ 소유권 확인: 남의 글을 마음대로 되살릴 수 없다.
 //   삭제와 똑같이, 되돌리기도 서버에서 주인을 다시 확인한다.
 if (!is_owner($post['author'])) {
     set_flash('본인이 쓴 글만 되돌릴 수 있습니다.', 'error');
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 
 // ── 3) 복구 ──────────────────────────────────────────────────
@@ -46,5 +43,4 @@ restore_post($id);
 
 // ── 4) PRG: 되살아난 글로 바로 이동 ──────────────────────────
 set_flash('↩️ 글을 되돌렸습니다.');
-header('Location: /post/view.php?id=' . $id);
-exit;
+redirect('/post/view.php', ['id' => $id]);

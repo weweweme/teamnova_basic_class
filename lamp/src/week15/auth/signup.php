@@ -7,8 +7,7 @@ require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';
 
 if (is_logged_in()) {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 
 $pageTitle = '회원가입';

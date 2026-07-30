@@ -88,6 +88,67 @@ function query_url(string $path, array $overrides = []): string {
     return $params ? $path . '?' . http_build_query($params) : $path;
 }
 
+// ── 신원 이어붙이기 + 리다이렉트 ─────────────────────────────
+//   [왜 필요한가]
+//     HTTP는 요청 하나하나가 서로를 기억하지 못한다. PHP 스크립트는 요청 한 번을
+//     처리하고 죽으므로, '방금 누가 왔었는지'를 서버가 스스로 기억할 방법이 없다.
+//     그래서 "나 영화광이야"를 매 요청마다 다시 실어 보내야 한다.
+//     우리는 그것을 '주소에 붙이는 방법'으로 통일한다 → ?as=영화광
+//
+//   [왜 주소 하나로 통일하나]
+//     POST 폼도 action 주소에 ?as=영화광 을 달면 PHP가 $_GET으로 읽어준다.
+//     그래서 링크·폼·리다이렉트 세 자리가 모두 같은 규칙 하나로 처리된다.
+//     (hidden 필드와 섞으면 "여긴 어느 쪽이었지"를 매번 따져야 해서 실수가 난다)
+
+// 신원을 싣는 파라미터 이름. 주소에 ?as=영화광 으로 나타난다.
+//   ★ 읽는 쪽은 auth.php 의 current_user() — 이 이름을 양쪽이 함께 쓴다.
+const IDENTITY_KEY = 'as';
+
+// 지금 요청에 실려온 신원을, 다음 주소로 그대로 넘기기 위해 꺼낸다.
+//   ★ '로그인 상태'를 묻지 않는다는 점이 중요하다. 그냥 받은 값을 넘겨줄 뿐이라
+//     이 파일이 auth.php를 몰라도 된다 (서로 얽히지 않게).
+function identity_params(): array {
+    $as = get_str(IDENTITY_KEY);
+    return $as === '' ? [] : [IDENTITY_KEY => $as];
+}
+
+// 경로 + 파라미터로 완성된 주소를 만든다. 신원은 자동으로 얹힌다.
+//   query_url()과 다른 점: query_url은 '지금 주소의 $_GET을 유지'하고,
+//   이 함수는 '내가 지정한 것만' 담는다 (리다이렉트는 화면이 바뀌므로 기존 조건을 끌고 갈 이유가 없다).
+//
+//   예) build_url('/board/', ['work' => 'tmdb-496243'])
+//       → /board/?work=tmdb-496243&as=%EC%98%81%ED%99%94%EA%B4%91
+function build_url(string $path, array $overrides = []): string {
+    // 경로에 이미 ?쿼리가 붙어 있으면 떼어내 배열로 바꾼다.
+    //   ('/board/?work=x' 처럼 손으로 붙여둔 기존 코드도 그대로 받아주기 위해)
+    $ownParams = [];
+    $questionMark = strpos($path, '?');
+    if ($questionMark !== false) {
+        parse_str(substr($path, $questionMark + 1), $ownParams);
+        $path = substr($path, 0, $questionMark);
+    }
+
+    // 우선순위: 경로에 붙어있던 값  <  지금 요청의 신원  <  호출자가 지정한 값
+    //   → 마지막이 이기므로, 로그인은 ['as'=>$username] 으로 심고
+    //     로그아웃은 ['as'=>null] 으로 지울 수 있다.
+    $params = array_merge($ownParams, identity_params(), $overrides);
+
+    // 빈 값·null은 주소에서 뺀다 (query_url()과 같은 규칙)
+    $params = array_filter($params, fn($v) => $v !== '' && $v !== null);
+
+    // http_build_query가 한글·특수문자를 알아서 인코딩한다 → urlencode() 직접 호출 불필요.
+    return $params ? $path . '?' . http_build_query($params) : $path;
+}
+
+// PRG의 'R' — 처리 끝나고 GET 화면으로 돌려보낸다. 신원을 자동으로 이어붙인다.
+//   반환형 never = '이 함수는 절대 되돌아오지 않는다'(exit로 끝나므로).
+//     PHP가 이걸 알면, 호출한 뒤에 exit를 또 쓰지 않아도 뒷줄이 실행될 걱정이 없다.
+function redirect(string $path, array $overrides = []): never {
+    // ⚠️ header()는 화면(HTML)이 한 글자라도 출력되기 전에 불러야 한다.
+    header('Location: ' . build_url($path, $overrides));
+    exit;
+}
+
 // ── 플래시 메시지 ────────────────────────────────────────────
 //   '한 번만 보여주고 사라지는 알림' (등록됨 / 삭제됨 / 권한없음 …)
 //

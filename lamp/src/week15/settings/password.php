@@ -10,8 +10,7 @@ require_once __DIR__ . '/../includes/auth.php';
 require_login();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /settings/');
-    exit;
+    redirect('/settings/');
 }
 
 $current = post_str('current');
@@ -22,20 +21,17 @@ $username = (string) current_user();
 //   verify_login이 '아이디+비번'이 맞으면 회원 배열, 틀리면 null.
 if (verify_login($username, $current) === null) {
     set_flash('현재 비밀번호가 일치하지 않습니다.', 'error');
-    header('Location: /settings/');
-    exit;
+    redirect('/settings/');
 }
 
 // ── ② 새 비밀번호 길이 검증 (회원가입과 같은 최소 4자) ───────
 if (mb_strlen($new) < 4) {
     set_flash('새 비밀번호는 4자 이상이어야 합니다.', 'error');
-    header('Location: /settings/');
-    exit;
+    redirect('/settings/');
 }
 
 // ── ③ 해시로 바꿔 저장 ──────────────────────────────────────
 set_password(current_user_id(), $new);
 
 set_flash('🔑 비밀번호가 변경되었습니다.');
-header('Location: /settings/');
-exit;
+redirect('/settings/');

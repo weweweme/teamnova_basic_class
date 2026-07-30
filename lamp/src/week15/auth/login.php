@@ -8,8 +8,7 @@ require_once __DIR__ . '/../includes/auth.php';
 
 // 이미 로그인했으면 굳이 로그인 화면을 볼 필요 없다 → 홈으로.
 if (is_logged_in()) {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 
 $pageTitle = '로그인';
@@ -34,7 +33,8 @@ require __DIR__ . '/../includes/header.php';
   </form>
 
   <p class="muted">
-    테스트 계정: <code>영화광 / 1234</code> · <code>admin / admin1234</code><br>
+    <?php // seed.sql로 만들어진 계정들. 비밀번호는 전부 1234로 같다(시연용). ?>
+    테스트 계정: <code>영화광 / 1234</code> · <code>해석러 / 1234</code> · <code>심야극장 / 1234</code><br>
     계정이 없나요? <a href="/auth/signup.php">회원가입</a>
   </p>
 

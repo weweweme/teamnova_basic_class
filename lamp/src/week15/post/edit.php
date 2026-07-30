@@ -28,8 +28,7 @@ if ($post === null) {
 //   주소(/post/edit.php?id=3)를 직접 쳐서 들어올 수 있으므로 여기서 막는다.
 if (!is_owner($post['author'])) {
     set_flash('본인이 쓴 글만 수정·삭제할 수 있습니다.', 'error');
-    header('Location: /post/view.php?id=' . $id);
-    exit;
+    redirect('/post/view.php', ['id' => $id]);
 }
 
 $sentiments = ['호평', '보통', '혹평'];

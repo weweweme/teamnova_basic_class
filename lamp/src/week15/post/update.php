@@ -15,8 +15,7 @@ require_login();
 
 // ── 0) POST로 온 게 맞나? ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 
 // ── 1) 값 받기 ───────────────────────────────────────────────
@@ -35,14 +34,12 @@ if (!in_array($sentiment, ['호평', '보통', '혹평'], true)) {
 //     없는 id를 보내 엉뚱한 걸 수정하려는 시도를 막기 위함.
 $target = get_post($id);
 if ($id <= 0 || $target === null) {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 // ★ 소유권 확인: 남의 글은 수정할 수 없다 (요청 조작 방어)
 if (!is_owner($target['author'])) {
     set_flash('본인이 쓴 글만 수정·삭제할 수 있습니다.', 'error');
-    header('Location: /post/view.php?id=' . $id);
-    exit;
+    redirect('/post/view.php', ['id' => $id]);
 }
 // 제목·내용이 비었으면 수정 폼으로 되돌린다.
 if ($title === '' || $content === '') {

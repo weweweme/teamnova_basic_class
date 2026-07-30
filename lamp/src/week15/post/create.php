@@ -19,8 +19,7 @@ require_login();
 //     ($_GET·$_POST도 같은 슈퍼글로벌. PHP 엔진이 요청 때 채워줌)
 //   $_SERVER['REQUEST_METHOD'] = 이번 요청이 GET인지 POST인지.
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /post/write.php');
-    exit;
+    redirect('/post/write.php');
 }
 
 // ── 1) POST로 온 값 받기 ($_GET이 아니라 $_POST!) ────────────
@@ -37,23 +36,20 @@ if (!in_array($sentiment, ['호평', '보통', '혹평'], true)) {
 
 // ── 2) 검증: 제목/내용이 비었으면 다시 폼으로 ────────────────
 if ($title === '' || $content === '') {
-    header('Location: /post/write.php');
-    exit;
+    redirect('/post/write.php');
 }
 // 길이 제한 (mb_strlen = 한글도 1글자로 정확히 세는 글자 수)
 //   ★ 브라우저의 maxlength는 개발자도구로 지울 수 있으므로 서버에서 반드시 확인.
 if (mb_strlen($title) > POST_TITLE_MAX || mb_strlen($content) > POST_CONTENT_MAX) {
     set_flash('제목 또는 내용이 너무 깁니다. 줄여서 다시 시도해 주세요.', 'error');
-    header('Location: /post/write.php');
-    exit;
+    redirect('/post/write.php');
 }
 // 작품 검증 + 우리 DB에 보장: 실제로 존재하는 작품이어야 한다.
 //   ★ ensure_media_by_slug: 그 작품이 media 표에 없으면(아직 아무도 글 안 씀)
 //     TMDB에서 가져와 저장하고 media.id를 준다. 0이면 진짜 없는 작품 → 폼으로.
 //     (글의 media_id 외래키가 걸리려면 작품이 먼저 DB에 있어야 하므로)
 if (ensure_media_by_slug($work) === 0) {
-    header('Location: /post/write.php');
-    exit;
+    redirect('/post/write.php');
 }
 
 // ── 3) 저장 ──────────────────────────────────────────────────
@@ -66,11 +62,10 @@ $workTitle = get_work($work)['title'];
 add_post($work, $workTitle, $title, $content, $sentiment, (string)$author);
 
 // ── 4) PRG: 처리 끝나면 반드시 redirect (GET 페이지로) ───────
-//   header() = PHP 내장 함수. 'HTTP 응답 헤더'(브라우저에 주는 지시문)를 보낸다.
-//   'Location: 주소' 헤더 = "브라우저야, 이 주소로 가라" → 리다이렉트(302 자동).
-//   ⚠️ header()는 화면(HTML)이 한 글자라도 출력되기 전에 불러야 한다.
+//   redirect() = util.php에 만든 함수. 속에서 'Location: 주소' 헤더를 보낸다.
+//     'Location' 헤더 = "브라우저야, 이 주소로 가라" → 리다이렉트(302 자동).
 //   왜 redirect? 처리 화면을 그대로 보여주면 '새로고침' 시 POST 재전송 → 글 중복 등록.
 //   글은 '그 작품'에 속하므로, 홈이 아니라 그 작품 게시판으로 돌려보낸다.
+//   ★ 작품 slug를 배열로 넘긴다 → redirect()가 인코딩과 신원(?as=) 붙이기를 함께 처리.
 set_flash('✅ 글이 등록되었습니다.');
-header('Location: /board/?work=' . urlencode($work));
-exit;
+redirect('/board/', ['work' => $work]);

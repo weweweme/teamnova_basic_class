@@ -12,8 +12,7 @@ require_login();
 
 // ── 0) POST로 온 게 맞나? ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 
 // ── 1) 값 받기 (comment_id = 되돌릴 댓글 / post_id = 돌아갈 글) ──
@@ -21,8 +20,7 @@ $commentId = post_int('comment_id', 0);
 $postId    = post_int('post_id', 0);
 
 if ($postId <= 0) {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 
 // ── 2) 검증 + 소유권 ─────────────────────────────────────────

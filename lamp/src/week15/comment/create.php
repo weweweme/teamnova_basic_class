@@ -15,8 +15,7 @@ require_login();
 
 // ── 0) POST로 온 게 맞나? 아니면 홈으로 ──────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 
 // ── 1) 값 받기 ───────────────────────────────────────────────

@@ -9,8 +9,7 @@ require_once __DIR__ . '/../includes/auth.php';
 
 // ── 0) POST로 온 게 맞나? ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /auth/login.php');
-    exit;
+    redirect('/auth/login.php');
 }
 
 // ── 1) 값 받기 ───────────────────────────────────────────────
@@ -26,8 +25,7 @@ if ($user === null) {
     //   나누면 공격자가 "이 아이디는 존재하는구나"를 알아낼 수 있기 때문(계정 열거).
     //   그래서 항상 뭉뚱그려 하나의 메시지로 돌려보낸다.
     set_flash('❌ 아이디 또는 비밀번호가 올바르지 않습니다.', 'error');
-    header('Location: /auth/login.php');
-    exit;
+    redirect('/auth/login.php');
 }
 
 // ── 3) 로그인 성공 → 세션에 기록 ─────────────────────────────
@@ -35,5 +33,4 @@ login_user($user['username']);
 
 // ── 4) PRG: 홈으로 리다이렉트 ────────────────────────────────
 set_flash('👋 ' . $user['username'] . '님, 환영합니다!');
-header('Location: /');
-exit;
+redirect('/');

@@ -20,8 +20,7 @@ require_login();
 
 // ── 0) POST로 온 게 맞나? ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 
 // ── 1) 값 받기 ───────────────────────────────────────────────
@@ -31,14 +30,12 @@ $choice = post_str('choice', '');
 
 // ── 2) 검증 ──────────────────────────────────────────────────
 if ($work === '') {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 if (!in_array($choice, ALLOWED_CHOICES, true)) {
     // 이상한 선택지면 투표하지 않고 그 게시판으로 되돌린다.
     //   urlencode() = 값을 주소에 안전하게 넣기 위해 특수문자·한글을 변환.
-    header('Location: /board/?work=' . urlencode($work));
-    exit;
+    redirect('/board/', ['work' => $work]);
 }
 
 // ── 3) 저장 ──────────────────────────────────────────────────
@@ -51,5 +48,4 @@ toggle_vote($work, $choice);
 set_flash(my_vote($work) === null
     ? '투표를 취소했습니다.'
     : '🗳️ ' . $choice . '에 투표했습니다. (임시 저장 — 브라우저를 닫으면 초기화됩니다)');
-header('Location: /board/?work=' . urlencode($work));
-exit;
+redirect('/board/', ['work' => $work]);

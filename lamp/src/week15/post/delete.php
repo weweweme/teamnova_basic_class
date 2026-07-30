@@ -18,8 +18,7 @@ require_login();
 
 // ── 0) POST로 온 게 맞나? ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 
 // ── 1) 값 받기 + 대상 글 찾기 ────────────────────────────────
@@ -28,15 +27,13 @@ $post = get_post($id);
 
 // ── 2) 검증: 실제로 있는 글인지 확인 ─────────────────────────
 if ($id <= 0 || $post === null) {
-    header('Location: /');
-    exit;
+    redirect('/');
 }
 
 // ★ 소유권 확인: 남의 글은 삭제할 수 없다 (요청 조작 방어)
 if (!is_owner($post['author'])) {
     set_flash('본인이 쓴 글만 수정·삭제할 수 있습니다.', 'error');
-    header('Location: /post/view.php?id=' . $id);
-    exit;
+    redirect('/post/view.php', ['id' => $id]);
 }
 
 // ── 3) 삭제 ──────────────────────────────────────────────────
@@ -52,5 +49,4 @@ set_flash('🗑 글이 삭제되었습니다.', 'ok', [
     'url'    => '/post/restore.php',
     'fields' => ['id' => $id],
 ]);
-header('Location: /board/?work=' . urlencode($post['work']));
-exit;
+redirect('/board/', ['work' => $post['work']]);

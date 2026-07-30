@@ -21,8 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // ── 1) 값 받기 ───────────────────────────────────────────────
 //   post_id = 이 댓글이 달릴 '글 번호' (폼의 hidden으로 넘어옴).
 //   (int)로 정수 강제 → 숫자 아닌 값 방어.
-$postId  = post_int('post_id', 0);
-$content = trim(post_str('content'));
+$postId   = post_int('post_id', 0);
+$parentId = post_int('parent_id', 0);   // 0이면 원댓글, 값이 있으면 그 댓글의 답글
+$content  = trim(post_str('content'));
 
 // ── 2) 검증: 글 번호가 없거나 내용이 비거나 너무 길면 되돌린다 ──
 //   (COMMENT_MAX는 comments 모듈에 정의돼 있다)
@@ -39,7 +40,11 @@ if ($postId <= 0 || $content === '' || mb_strlen($content) > COMMENT_MAX) {
 //     주소로 온 신원을 users 표에서 확인한 값이라, 폼에 뭘 적어 보내든 소용없다.
 $author = current_user();
 
-$commentId = add_comment($postId, (string)$author, $content);
+// 답글이면 부모를 서버가 다시 확인한다 (폼의 parent_id를 그대로 믿지 않는다).
+//   깊이 1단계 강제 · 다른 글의 댓글을 부모로 지목하는 조작 차단은 이 함수 안에서 한다.
+$parent = resolve_parent_id($parentId, $postId);
+
+$commentId = add_comment($postId, (string)$author, $content, $parent);
 
 // ── 3-1) 글 작성자에게 알림 (내 글에 남이 댓글 단 경우만) ────
 //   글 주인의 id를 찾아, 댓글 단 사람(나)과 다르면 알림을 남긴다.
@@ -50,5 +55,5 @@ create_notification($recipientId, current_user_id(), $postId, $commentId);
 // ── 4) PRG: '그 글'로 다시 리다이렉트 (+댓글 완료 표시) ───────
 //   글쓰기는 홈으로 갔지만, 댓글은 '방금 그 글'로 돌아가야 자연스럽다.
 //   그래서 post_id를 리다이렉트 주소에 넣어 동적으로 목적지를 만든다.
-set_flash('✅ 댓글이 등록되었습니다.');
+set_flash($parent === null ? '✅ 댓글이 등록되었습니다.' : '✅ 답글이 등록되었습니다.');
 redirect('/post/view.php', ['id' => $postId]);

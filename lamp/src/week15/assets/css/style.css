@@ -618,8 +618,24 @@ mark { background: #7a6000; color: #fff3a3; }
 .comments { background: none; border-top: none; padding: 26px 0 0; margin-top: 8px; }
 .comments h2 { font-size: 18px; margin-bottom: 14px; }
 .comment-list li { padding: 12px 0; border-bottom: 1px solid #232323;
-  display: flex; gap: 10px; align-items: baseline; }
+  display: flex; gap: 10px; align-items: baseline;
+  /* 답글 폼이 댓글 줄 '아래'로 내려가려면 줄바꿈을 허용해야 한다 (li가 가로 flex라서) */
+  flex-wrap: wrap; }
 .comment-author { color: #9fbcff; font-weight: 600; flex-shrink: 0; }
+
+/* 답글(대댓글) — 원댓글보다 안쪽으로 들여쓰고 왼쪽에 세로선을 둬 묶음을 보이게 */
+.comment-list li.comment-reply { margin-left: 30px; padding-left: 12px;
+  border-left: 2px solid #2a2a2a; }
+.comment-list li.comment-reply::before { content: "↳"; color: #6a6a6a; flex-shrink: 0; }
+
+/* 댓글 줄의 작은 링크 (답글·수정·취소) — 버튼처럼 보이지만 '화면 이동'이라 링크가 맞다 */
+.comment-action { color: #8a8a8a; font-size: 12px; text-decoration: none; flex-shrink: 0; }
+.comment-action:hover { color: #cfcfcf; text-decoration: underline; }
+.comment-edited { font-size: 12px; }
+
+/* 답글 입력 폼 — flex-basis:100% 라야 한 줄을 통째로 차지해 아래로 내려온다 */
+.comment-reply-form { flex-basis: 100%; margin-top: 10px; }
+.comment-reply-form button { margin-right: 10px; }
 /* 댓글 입력 */
 .comment-form { margin-top: 16px; }
 .comment-form textarea { width: 100%; }

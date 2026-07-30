@@ -78,14 +78,47 @@ function get_comment(int $id): ?array {
 }
 
 // ── 댓글 저장 → 새 댓글 id 반환 ─────────────────────────────
-//   $author(닉네임)를 users.id로 바꿔서 INSERT (댓글도 작성자를 번호로 참조).
-function add_comment(int $postId, string $author, string $content): int {
+//   $author(아이디)를 users.id로 바꿔서 INSERT (댓글도 작성자를 번호로 참조).
+//   $parentId = 답글이면 부모 댓글 번호, 원댓글이면 null.
+function add_comment(int $postId, string $author, string $content, ?int $parentId = null): int {
     $authorId = (int) db_scalar('SELECT id FROM users WHERE username = ?', [$author]);
     $stmt = db()->prepare(
-        'INSERT INTO comments (post_id, author_id, content) VALUES (?, ?, ?)'
+        'INSERT INTO comments (post_id, author_id, parent_id, content) VALUES (?, ?, ?, ?)'
     );
-    $stmt->execute([$postId, $authorId, $content]);
+    $stmt->execute([$postId, $authorId, $parentId, $content]);
     return (int) db()->lastInsertId();
+}
+
+// ── 답글의 '부모'를 정한다 (깊이 1단계 강제) ────────────────
+//   폼에서 온 parent_id를 그대로 믿지 않고 여기서 한 번 거른다.
+//   돌려주는 값이 그대로 comments.parent_id 에 들어간다.
+//
+//   ① 0 이하 / 없는 댓글 / 다른 글의 댓글 / 지워진 댓글 → null (= 그냥 원댓글로 단다)
+//      ★ '다른 글의 댓글'을 막는 게 중요하다. 안 막으면 1번 글의 댓글이
+//        2번 글에 달린 답글의 부모가 되어, 어느 글에서도 제대로 안 보이는 유령이 된다.
+//   ② 부모로 지목된 것이 '이미 답글'이면 → 그 위의 원댓글을 부모로 삼는다.
+//      그래서 답글에 답글을 달아도 깊이가 2단계를 넘지 않는다. (유튜브·인스타가 쓰는 방식)
+function resolve_parent_id(int $parentId, int $postId): ?int {
+    if ($parentId <= 0) {
+        return null;   // 답글이 아니라 원댓글
+    }
+
+    $stmt = db()->prepare(
+        'SELECT id, parent_id FROM comments
+         WHERE id = ? AND post_id = ? AND deleted_at IS NULL'
+    );
+    $stmt->execute([$parentId, $postId]);
+    $parent = $stmt->fetch();
+
+    if ($parent === false) {
+        return null;   // 없거나·남의 글 것이거나·지워진 댓글
+    }
+
+    // 부모가 이미 답글이면 그 부모(원댓글)에 붙인다
+    if ($parent['parent_id'] !== null) {
+        return (int) $parent['parent_id'];
+    }
+    return (int) $parent['id'];
 }
 
 // ── 댓글 삭제 (소프트삭제: deleted_at 에 시각 기록) ──────────

@@ -73,7 +73,11 @@ CREATE TABLE comments (
     FOREIGN KEY (post_id)   REFERENCES posts(id) ON DELETE CASCADE,  -- 글 지우면 댓글도 삭제
     FOREIGN KEY (author_id) REFERENCES users(id),                    -- 회원은 함부로 못 지우게 기본값
     -- 원댓글이 '영구삭제'되면 그 답글도 함께 사라진다. (소프트삭제는 표식만 남기므로 영향 없음)
-    FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE
+    --   ★ 이 제약에만 이름(CONSTRAINT fk_…)을 붙인 이유:
+    --     sql/migrations/ 의 파일이 "이 외래키가 이미 있나?"를 IF NOT EXISTS로 판단하는데,
+    --     그 판단 기준이 '칼럼'이 아니라 '제약 이름'이다. 이름을 안 주면 DB가 1·2·3 같은
+    --     임의 이름을 붙여버려서, 마이그레이션이 못 알아보고 똑같은 외래키를 하나 더 만든다.
+    CONSTRAINT fk_comments_parent FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE
 );
 
 -- ── likes : 글 추천 (1인 1회) ───────────────────────────────

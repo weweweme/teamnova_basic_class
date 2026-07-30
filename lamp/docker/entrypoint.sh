@@ -159,14 +159,66 @@ elif [ -n "$USER_COUNT" ] && [ "$USER_COUNT" != "0" ]; then
     say "이미 데이터가 있다 (회원 ${USER_COUNT}명) → seed 건너뜀"
 fi
 
-# ── 6. TMDB 캐시 폴더 만들기 ────────────────────────────────
+# ── 6. 표 변경(마이그레이션) 적용 ───────────────────────────
+#   [왜 필요한가]
+#     schema.sql은 '표가 아예 없을 때'만 실행된다(위 5단계). 그래서 이미 쓰던 DB가 있는
+#     컴퓨터에서는 schema.sql에 칼럼을 추가해도 아무 일도 일어나지 않는다 — 표가 이미 있으니까.
+#     "새 PC는 되는데 내 PC만 안 되네"가 딱 이 상황이다.
+#     → 이미 만들어진 표를 고치는 명령(ALTER TABLE)은 sql/migrations/ 에 파일로 쌓고,
+#       여기서 '아직 적용 안 된 것만' 골라 실행한다.
+#
+#   [어떻게 '이미 했는지'를 아는가]
+#     적용한 파일 이름을 schema_migrations 표에 적어둔다. DB 안에 기록이 남으므로,
+#     컨테이너를 지우고 다시 만들어도(볼륨은 살아있으니) 두 번 실행되지 않는다.
+#
+#   비유: 게임 패치 노트. 이미 깐 패치는 건너뛰고 새 패치만 순서대로 적용한다.
+MIGRATIONS_DIR="$SQL_DIR/migrations"
+if [ -d "$MIGRATIONS_DIR" ]; then
+    # 적용 기록표 (없으면 만든다)
+    run_root_sql "CREATE TABLE IF NOT EXISTS \`$DB_NAME\`.schema_migrations (
+        filename   VARCHAR(255) NOT NULL PRIMARY KEY,
+        applied_at DATETIME DEFAULT NOW()
+    );"
+
+    MIG_APPLIED=0
+    # *.sql 은 이름 순으로 펼쳐지므로 001_ → 002_ → … 순서가 보장된다.
+    for MIG_FILE in "$MIGRATIONS_DIR"/*.sql; do
+        # 폴더가 비어 있으면 위 패턴이 그대로 문자열로 남는다 → 실제 파일일 때만 진행
+        [ -f "$MIG_FILE" ] || continue
+
+        MIG_NAME=$(basename "$MIG_FILE")
+        MIG_DONE=$(run_root_sql "SELECT COUNT(*) FROM \`$DB_NAME\`.schema_migrations WHERE filename='$MIG_NAME';")
+        if [ "$MIG_DONE" = "1" ]; then
+            continue   # 이미 적용함
+        fi
+
+        say "표 변경 적용: $MIG_NAME"
+        if load_sql "$MIG_FILE"; then
+            run_root_sql "INSERT INTO \`$DB_NAME\`.schema_migrations (filename) VALUES ('$MIG_NAME');"
+            MIG_APPLIED=$((MIG_APPLIED + 1))
+        else
+            # 표가 어중간하게 바뀐 상태로 사이트를 띄우면 원인을 찾기 더 어려워진다.
+            #   기록을 남기지 않으므로, 파일을 고쳐서 다시 켜면 이 파일부터 다시 시도한다.
+            say "오류: $MIG_NAME 적용 실패 → 중단한다. 파일의 SQL을 확인할 것"
+            exit 1
+        fi
+    done
+
+    if [ "$MIG_APPLIED" = "0" ]; then
+        say "표 변경 사항 없음 (마이그레이션 최신)"
+    else
+        say "표 변경 ${MIG_APPLIED}건 적용 완료"
+    fi
+fi
+
+# ── 7. TMDB 캐시 폴더 만들기 ────────────────────────────────
 #   Git은 빈 폴더를 기록하지 않아서, 새 컴퓨터에는 이 폴더가 없다.
 #   없으면 캐시 저장이 조용히 실패해서 매번 TMDB를 새로 부르게 된다(홈이 크게 느려짐).
 #   PHP 코드에도 같은 안전장치가 있지만, 여기서 미리 만들어 두면 첫 요청부터 빠르다.
 mkdir -p "$APP_DIR/cache/tmdb"
 say "TMDB 캐시 폴더 준비 완료"
 
-# ── 7. 종료 신호를 받으면 DB부터 안전하게 닫기 ──────────────
+# ── 8. 종료 신호를 받으면 DB부터 안전하게 닫기 ──────────────
 #   `docker compose down` 은 이 스크립트에 '그만' 신호(SIGTERM)를 보낸다.
 #   그때 MariaDB를 정식으로 닫아야 쓰다 만 데이터가 깨지지 않는다.
 #   (게임을 강제종료하지 않고 '저장 후 종료'를 누르는 것과 같다)
@@ -177,7 +229,7 @@ shutdown_all() {
 }
 trap shutdown_all SIGTERM SIGINT
 
-# ── 8. Apache 실행 ──────────────────────────────────────────
+# ── 9. Apache 실행 ──────────────────────────────────────────
 #   백그라운드로 띄우고 wait 로 붙잡는다. 그래야 위의 종료 처리가 동작할 수 있다.
 #   (바로 포그라운드로 띄우면 이 스크립트가 신호를 못 받는다)
 say "Apache 시작 — http://localhost:8080/ 에서 확인"

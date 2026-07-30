@@ -19,7 +19,7 @@
   - 목표: **MariaDB 연결 + 실제 CRUD**. 세션 임시저장 → 진짜 DB로 교체. **핵심 전환 완료.**
   - 방식: `includes/` 도메인 모듈 함수의 '속'만 SQL로 바꿈 (화면 파일은 거의 그대로).
     반환 배열 모양을 week14와 동일하게 유지 → 필터·정렬·페이징·화면 코드 재사용.
-  - **DB 표 7개**: users · media · posts · comments · likes · votes · reports
+  - **DB 표 8개**: users · media · posts · comments · likes · votes · reports · notifications
     (+ posts·comments는 소프트삭제, users는 avatar. schema.sql·seed.sql로 재생성 가능)
     - likes·votes는 **복합 기본키**(user_id, post_id/media_id)로 '1인 1회' 보장.
     - 삭제는 **소프트삭제**(deleted_at) → 되돌리기 유지.

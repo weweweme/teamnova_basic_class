@@ -123,15 +123,18 @@ CREATE TABLE reports (
     FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- ── notifications : 알림 (지금은 '내 글에 댓글' 한 종류) ──────
+-- ── notifications : 알림 ('내 글에 댓글' · '내 댓글에 답글') ──
 --   받는사람(user_id)에게, 누가(actor_id) 어느 글(post_id)의 어느 댓글(comment_id)을
 --   달았는지 기록한다. is_read로 안읽음/읽음을 구분(상단바 뱃지 계산에 사용).
+--   ★ type = 알림의 종류. 한 표에 두 종류가 섞이므로, 화면이 이 값을 보고 문구를 고른다.
+--     받는 사람도 달라진다 — 댓글은 '글 주인'에게, 답글은 '댓글 주인'에게.
 CREATE TABLE notifications (
     id          INT AUTO_INCREMENT PRIMARY KEY,
-    user_id     INT NOT NULL,                         -- 받는 사람(글 작성자) → users.id
-    actor_id    INT NOT NULL,                         -- 알림을 일으킨 사람(댓글 단 사람) → users.id
+    user_id     INT NOT NULL,                         -- 받는 사람 → users.id
+    actor_id    INT NOT NULL,                         -- 알림을 일으킨 사람(댓글·답글 단 사람) → users.id
+    type        ENUM('comment','reply') NOT NULL DEFAULT 'comment',  -- 알림 종류
     post_id     INT NOT NULL,                         -- 어느 글 → posts.id
-    comment_id  INT NOT NULL,                         -- 어느 댓글 → comments.id
+    comment_id  INT NOT NULL,                         -- 어느 댓글(답글) → comments.id
     is_read     TINYINT(1) NOT NULL DEFAULT 0,        -- 0=안읽음, 1=읽음
     created_at  DATETIME DEFAULT NOW(),
 

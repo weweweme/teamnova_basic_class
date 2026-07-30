@@ -46,11 +46,18 @@ $parent = resolve_parent_id($parentId, $postId);
 
 $commentId = add_comment($postId, (string)$author, $content, $parent);
 
-// ── 3-1) 글 작성자에게 알림 (내 글에 남이 댓글 단 경우만) ────
-//   글 주인의 id를 찾아, 댓글 단 사람(나)과 다르면 알림을 남긴다.
-//   (create_notification 안에서도 '자기 자신'은 한 번 더 걸러낸다)
-$recipientId = (int) db_scalar('SELECT author_id FROM posts WHERE id = ?', [$postId]);
-create_notification($recipientId, current_user_id(), $postId, $commentId);
+// ── 3-1) 알림 보내기 ─────────────────────────────────────────
+//   ★ 규칙: 댓글은 '글 주인'에게, 답글은 '댓글 주인'에게.
+//     답글일 때 글 주인에게도 보내면 한 번의 답글로 알림이 두 개 생겨 도배가 된다.
+//     "누가 내게 말을 걸었나"를 기준으로 받는 사람을 정하면 이 규칙이 자연스럽다.
+//   (create_notification 안에서 '나에게 보내는 알림'은 한 번 더 걸러진다)
+if ($parent === null) {
+    $recipientId = (int) db_scalar('SELECT author_id FROM posts WHERE id = ?', [$postId]);
+    create_notification($recipientId, current_user_id(), $postId, $commentId);
+} else {
+    $recipientId = (int) db_scalar('SELECT author_id FROM comments WHERE id = ?', [$parent]);
+    create_notification($recipientId, current_user_id(), $postId, $commentId, 'reply');
+}
 
 // ── 4) PRG: '그 글'로 다시 리다이렉트 (+댓글 완료 표시) ───────
 //   글쓰기는 홈으로 갔지만, 댓글은 '방금 그 글'로 돌아가야 자연스럽다.

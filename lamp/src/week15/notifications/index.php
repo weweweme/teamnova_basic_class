@@ -33,16 +33,28 @@ require __DIR__ . '/../includes/header.php';
   <h1>🔔 알림</h1>
 
   <?php if (!$notifs): ?>
-    <p class="muted">아직 알림이 없습니다. 내 글에 댓글이 달리면 여기에 표시돼요.</p>
+    <p class="muted">아직 알림이 없습니다. 내 글에 댓글이 달리거나 내 댓글에 답글이 달리면 여기에 표시돼요.</p>
   <?php else: ?>
     <ul class="notif-list">
       <?php foreach ($notifs as $n): ?>
+        <?php
+        // 알림 종류에 따라 문구가 달라진다. 한 표에 두 종류가 섞여 있으므로
+        // type을 보고 고르지 않으면 답글 알림에도 "글에 댓글을 남겼어요"가 나온다.
+        $isReply = $n['type'] === 'reply';
+        // 그 댓글 자리로 바로 이동한다 (#c12) — 댓글이 많은 글에서 찾아 헤매지 않게.
+        $link = '/post/view.php?id=' . (int)$n['post_id'] . '#c' . (int)$n['comment_id'];
+        ?>
         <?php // 방금 전까지 안 읽었던 알림은 파란 점으로 강조 ?>
         <li class="notif-item <?= $n['is_read'] ? '' : 'notif-unread' ?>">
-          <a href="/post/view.php?id=<?= e((string)$n['post_id']) ?>">
+          <a href="<?= e($link) ?>">
             <span class="notif-text">
-              💬 <strong><?= e($n['actorNick']) ?></strong>님이
-              <strong><?= e($n['postTitle']) ?></strong> 글에 댓글을 남겼어요
+              <?php if ($isReply): ?>
+                ↳ <strong><?= e($n['actorNick']) ?></strong>님이
+                <strong><?= e($n['postTitle']) ?></strong> 글에서 내 댓글에 답글을 남겼어요
+              <?php else: ?>
+                💬 <strong><?= e($n['actorNick']) ?></strong>님이
+                <strong><?= e($n['postTitle']) ?></strong> 글에 댓글을 남겼어요
+              <?php endif; ?>
             </span>
             <span class="notif-time"><?= notif_time_ago((int)$n['created']) ?></span>
           </a>

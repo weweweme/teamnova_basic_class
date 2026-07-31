@@ -22,9 +22,15 @@ const COMMENT_MAX = 500;   // 댓글 최대 글자 수
 //     → 둘 다 '5번 묶음'이 되어 나란히 붙는다. 그 안에서는 id 순(먼저 쓴 게 위).
 //     답글은 부모보다 항상 나중에 생기니 번호가 더 커서, 부모가 묶음 맨 위에 온다.
 //
-//   [지워진 댓글] 답글이 달린 원댓글을 지우면 답글이 '고아'가 되어 화면에 붕 뜬다.
-//     그래서 살아있는 답글이 하나라도 있으면 부모 자리를 남기고 "삭제된 댓글입니다"로 표시한다.
-//     ★ 단 내용은 SQL에서 빈 문자열로 바꿔 내보낸다 — 지워진 글이 화면 소스에 남으면 안 되니까.
+//   [지워진 댓글] 지운 댓글도 '자리'는 남기고 "삭제된 댓글입니다"로 표시한다.
+//     · 대화 맥락이 보존된다 — 답글이 달려 있었다면 고아가 되지 않는다.
+//     · 수정에 '(수정됨)'을 붙인 것과 같은 이유다. 지우면 흔적까지 사라진다면,
+//       말을 바꾸고 싶은 사람은 '수정' 대신 '삭제 후 재작성'을 하면 그만이라
+//       (수정됨) 표시를 우회하는 구멍이 열린다.
+//     · 소프트삭제(행은 남고 deleted_at만 찍힘)가 화면에도 그대로 드러난다.
+//     ★ 단 내용과 작성자는 화면에 내보내지 않는다 — 자리만 남기는 것이 목적이므로.
+//       내용은 SQL에서 빈 문자열로 바꾼다. 화면에서 안 그리는 것만으로는 부족하다:
+//       HTML 소스에 남으면 개발자도구로 그대로 읽힌다.
 function get_comments(int $postId): array {
     $sql = "
         SELECT c.id, c.post_id AS postId,
@@ -39,17 +45,7 @@ function get_comments(int $postId): array {
                c.deleted_at IS NOT NULL AS isDeleted -- 1이면 '삭제된 댓글입니다' 자리
         FROM comments c
         JOIN users u ON c.author_id = u.id
-        WHERE c.post_id = ?
-          AND (
-                c.deleted_at IS NULL          -- 살아있는 댓글은 당연히 보여주고
-                OR (                          -- 지워졌어도 '답글이 남은 원댓글'이면 자리를 남긴다
-                     c.parent_id IS NULL
-                     AND EXISTS (
-                         SELECT 1 FROM comments r
-                         WHERE r.parent_id = c.id AND r.deleted_at IS NULL
-                     )
-                   )
-              )
+        WHERE c.post_id = ?   -- 지워진 것도 포함해 전부 가져온다 (자리를 남기므로)
         ORDER BY COALESCE(c.parent_id, c.id), c.id
     ";
     $stmt = db()->prepare($sql);

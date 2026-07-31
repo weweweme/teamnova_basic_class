@@ -62,5 +62,10 @@ if ($parent === null) {
 // ── 4) PRG: '그 글'로 다시 리다이렉트 (+댓글 완료 표시) ───────
 //   글쓰기는 홈으로 갔지만, 댓글은 '방금 그 글'로 돌아가야 자연스럽다.
 //   그래서 post_id를 리다이렉트 주소에 넣어 동적으로 목적지를 만든다.
+//   ★ 댓글이 20개를 넘으면 페이지가 나뉘므로, '방금 쓴 댓글이 보이는 페이지'까지 찾아서 간다.
+//     안 그러면 21번째 댓글을 달았는데 1페이지로 떨어져 내 댓글이 안 보인다.
 set_flash($parent === null ? '✅ 댓글이 등록되었습니다.' : '✅ 답글이 등록되었습니다.');
-redirect('/post/view.php', ['id' => $postId]);
+redirect('/post/view.php', [
+    'id'    => $postId,
+    'cpage' => comment_page_param(find_comment_page($commentId)),
+]);

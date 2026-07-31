@@ -10,7 +10,7 @@ require_once __DIR__ . '/../includes/works.php';   // 작품 데이터 모듈
 require_once __DIR__ . '/../includes/tmdb.php';    // 작품 상세(감독·출연·예고편)
 
 // 한 페이지에 보여줄 글 수. (매직값 금지 — 이름 붙인 상수로)
-const POSTS_PER_PAGE = 3;
+const POSTS_PER_PAGE = 15;
 
 // ── 1) 파라미터 받기 ─────────────────────────────────────────
 $work      = get_str('work', '');

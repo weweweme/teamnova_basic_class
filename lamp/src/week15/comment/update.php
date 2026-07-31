@@ -43,9 +43,14 @@ if ($comment === null || !is_owner($comment['author'])) {
 // 내용이 비었거나 너무 길면 '수정 폼을 다시 열어둔 채로' 돌려보낸다.
 //   ★ ['edit' => $commentId] 를 붙이는 게 핵심 — 안 붙이면 폼이 닫혀서
 //     사용자가 [수정]을 다시 눌러야 한다. 고치던 자리에 그대로 남겨주는 게 자연스럽다.
+//   cpage도 함께 실어야 한다 — 그 댓글이 2페이지에 있으면 1페이지로 보내봐야 폼이 안 보인다.
 if ($content === '' || mb_strlen($content) > COMMENT_MAX) {
     set_flash('댓글 내용을 확인해 주세요. (1~' . COMMENT_MAX . '자)', 'error');
-    redirect('/post/view.php', ['id' => $postId, 'edit' => $commentId]);
+    redirect('/post/view.php', [
+        'id'    => $postId,
+        'edit'  => $commentId,
+        'cpage' => comment_page_param(find_comment_page($commentId)),
+    ]);
 }
 
 // ── 3) 저장 ──────────────────────────────────────────────────
@@ -54,4 +59,7 @@ update_comment($commentId, $content);
 
 // ── 4) PRG: 그 글로 돌아가기 (+수정 완료 표시) ───────────────
 set_flash('✏️ 댓글이 수정되었습니다.');
-redirect('/post/view.php', ['id' => $postId]);
+redirect('/post/view.php', [
+    'id'    => $postId,
+    'cpage' => comment_page_param(find_comment_page($commentId)),
+]);

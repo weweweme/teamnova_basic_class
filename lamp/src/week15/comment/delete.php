@@ -49,4 +49,8 @@ set_flash('🗑 댓글이 삭제되었습니다.');
 
 // ★ 여기만 header()를 직접 쓰고 있었다 → redirect()로 통일한다.
 //   직접 쓰면 신원(?as=)도 알림도 안 붙어서, 댓글을 지우는 순간 로그아웃됐다.
-redirect('/post/view.php', ['id' => $postId]);
+//   지운 댓글도 "삭제된 댓글입니다"로 자리가 남으므로 페이지 위치는 그대로다 → 그 자리로 돌아간다.
+redirect('/post/view.php', [
+    'id'    => $postId,
+    'cpage' => comment_page_param(find_comment_page($commentId)),
+]);

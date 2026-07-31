@@ -27,6 +27,20 @@ if ($post === null) {
 // ── 이 글의 댓글 목록 (comments 모듈이 더미 + 이번 접속에 쓴 것을 합쳐서 준다) ──
 $comments = get_comments($id);
 
+// ── 댓글 페이지 ─────────────────────────────────────────────
+//   주소의 ?cpage= 로 정한다. 글 목록의 ?page= 와 이름을 나눈 이유:
+//   게시판에서 3페이지를 보다 글을 열면 그 page=3이 주소에 딸려오는데,
+//   이름이 같으면 "댓글도 3페이지"로 오해받는다. (c = comment)
+$commentPage  = get_int('cpage', 1);
+$commentPages = count_comment_pages($comments);
+if ($commentPage < 1) {              // ?cpage=0, ?cpage=-5 같은 장난 방어
+    $commentPage = 1;
+}
+if ($commentPage > $commentPages) {  // 범위를 넘으면 마지막 페이지로
+    $commentPage = $commentPages;
+}
+$pageComments = paginate_comments($comments, $commentPage);
+
 // 돌아갈 게시판 주소.
 //   query_url()은 '지금 주소의 파라미터를 유지'하므로, 게시판에서 정렬·필터·페이지를 걸고
 //   넘어온 경우 그 조건이 그대로 살아난다. 홈이나 알림에서 바로 들어온 경우엔 붙을 게 없다.
@@ -37,6 +51,7 @@ $backUrl = query_url('/board/', [
     'id'    => null,
     'reply' => null,
     'edit'  => null,
+    'cpage' => null,   // 댓글 페이지는 이 글 안에서만 쓰는 값 → 목록으로 들고 가지 않는다
 ]);
 
 $pageTitle = $post['title'];
@@ -147,7 +162,8 @@ require __DIR__ . '/../includes/header.php';
   </dialog>
 
   <!-- section = '주제로 묶인 한 구획'(여기선 댓글 구역) -->
-  <section class="comments">
+  <?php // id="comments" — 댓글 페이지를 넘길 때 이 자리로 바로 오게 하는 표식(#comments) ?>
+  <section class="comments" id="comments">
     <h2>댓글</h2>
 
     <?php if (!$comments): ?>
@@ -164,7 +180,7 @@ require __DIR__ . '/../includes/header.php';
 
     <!-- 댓글 목록 (원댓글과 답글이 한 배열에 섞여 있고, 이미 부모-자식 순으로 정렬돼 있다) -->
     <ul class="comment-list">
-      <?php foreach ($comments as $c): ?>
+      <?php foreach ($pageComments as $c): ?>
         <?php
         // parentId가 있으면 답글 → 들여쓰기 클래스를 준다.
         $isReply = $c['parentId'] !== null;
@@ -238,6 +254,33 @@ require __DIR__ . '/../includes/header.php';
         </li>
       <?php endforeach; ?>
     </ul>
+
+    <?php // 댓글 페이지 이동 — 게시판 목록과 같은 모양(.pagination)을 그대로 쓴다.
+          //   ★ 링크마다 reply·edit을 지운다: 열어둔 답글·수정 폼은 이 페이지의 댓글 것이라
+          //     다음 페이지로 들고 가면 열리지도 않는 채 주소만 지저분해진다.
+          //   ★ 끝에 #comments 를 붙여 페이지를 넘겨도 글 맨 위가 아니라 댓글 자리로 온다. ?>
+    <?php if ($commentPages > 1): ?>
+      <nav class="pagination">
+        <?php if ($commentPage > 1): ?>
+          <a class="page-nav" href="<?= e(query_url('/post/view.php', ['cpage' => comment_page_param($commentPage - 1), 'reply' => null, 'edit' => null])) ?>#comments">← 이전</a>
+        <?php else: ?>
+          <span class="page-nav disabled">← 이전</span>
+        <?php endif; ?>
+
+        <div class="page-numbers">
+          <?php for ($n = 1; $n <= $commentPages; $n++): ?>
+            <a class="page-num <?= $n === $commentPage ? 'active' : '' ?>"
+               href="<?= e(query_url('/post/view.php', ['cpage' => comment_page_param($n), 'reply' => null, 'edit' => null])) ?>#comments"><?= $n ?></a>
+          <?php endfor; ?>
+        </div>
+
+        <?php if ($commentPage < $commentPages): ?>
+          <a class="page-nav" href="<?= e(query_url('/post/view.php', ['cpage' => comment_page_param($commentPage + 1), 'reply' => null, 'edit' => null])) ?>#comments">다음 →</a>
+        <?php else: ?>
+          <span class="page-nav disabled">다음 →</span>
+        <?php endif; ?>
+      </nav>
+    <?php endif; ?>
 
     <?php if (is_logged_in()): ?>
       <!-- 댓글 작성 폼 → comment/create.php 로 POST

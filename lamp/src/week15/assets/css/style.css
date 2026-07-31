@@ -234,6 +234,12 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
   font-size: 13px; font-weight: 600; white-space: nowrap; }
 .flash-action:hover { background: rgba(0,0,0,0.06); }
 
+/* 알림 닫기(×) — 있는 듯 없는 듯 하다가 마우스를 올리면 진해진다.
+   line-height:1 = 글자 위아래 여백을 없애 '×'가 상자 한가운데 오게 한다. */
+.flash-close { background: none; border: none; color: inherit; cursor: pointer;
+  padding: 0 2px; font-size: 20px; line-height: 1; opacity: 0.45; flex-shrink: 0; }
+.flash-close:hover { opacity: 1; }
+
 /* JS가 붙이는 '사라지는 중' 상태.
    opacity 0 = 완전히 투명 / translateX(20px) = 오른쪽으로 밀려나며 사라지는 느낌 */
 .flash.fade-out { opacity: 0; transform: translateX(20px); }

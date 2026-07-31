@@ -127,23 +127,9 @@ function update_comment(int $id, string $content): void {
 }
 
 // ── 댓글 삭제 (소프트삭제: deleted_at 에 시각 기록) ──────────
-//   글과 같은 방식 — 진짜 지우지 않아 되돌리기가 가능하다.
+//   글과 같은 방식 — 행은 남기고 '지운 시각'만 찍는다.
+//   ★ 화면에는 "삭제된 댓글입니다"로 자리가 남고, 되돌리기 기능은 두지 않는다.
+//     (글은 휴지통에서 30일간 되돌릴 수 있지만, 댓글은 한 줄짜리라 그럴 일이 드물다)
 function delete_comment(int $id): void {
     db()->prepare('UPDATE comments SET deleted_at = NOW() WHERE id = ?')->execute([$id]);
-}
-
-// ── '지워진' 댓글 찾기 (되돌리기에서 주인 확인용). 없으면 null. ──
-function get_deleted_comment(int $id): ?array {
-    $sql = "SELECT c.id, c.post_id AS postId, u.username AS author
-            FROM comments c JOIN users u ON c.author_id = u.id
-            WHERE c.id = ? AND c.deleted_at IS NOT NULL";
-    $stmt = db()->prepare($sql);
-    $stmt->execute([$id]);
-    $row = $stmt->fetch();
-    return $row !== false ? $row : null;
-}
-
-// ── 댓글 삭제 되돌리기 (deleted_at 을 다시 NULL 로) ─────────
-function restore_comment(int $id): void {
-    db()->prepare('UPDATE comments SET deleted_at = NULL WHERE id = ?')->execute([$id]);
 }

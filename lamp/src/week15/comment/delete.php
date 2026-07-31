@@ -42,9 +42,10 @@ if ($comment === null || !is_owner($comment['author'])) {
 delete_comment($commentId);
 
 // ── 4) PRG: 그 글로 돌아가기 (+삭제 완료 표시) ───────────────
-//   알림에 '되돌리기' 버튼을 함께 띄운다 → comment/restore.php 로 POST.
-//   'comment' = util.php의 UNDO_TARGETS 키. 번호는 그 목록의 fields 순서(댓글번호, 글번호)대로.
-set_flash('🗑 댓글이 삭제되었습니다.', 'ok', 'comment', [$commentId, $postId]);
+//   ★ 글과 달리 댓글에는 '되돌리기'를 두지 않는다.
+//     지운 댓글은 "삭제된 댓글입니다"로 자리가 남아 대화 흐름이 깨지지 않고,
+//     짧은 한 줄짜리 글이라 되돌릴 일이 드물어서다. (글은 휴지통에서 30일간 되돌릴 수 있다)
+set_flash('🗑 댓글이 삭제되었습니다.');
 
 // ★ 여기만 header()를 직접 쓰고 있었다 → redirect()로 통일한다.
 //   직접 쓰면 신원(?as=)도 알림도 안 붙어서, 댓글을 지우는 순간 로그아웃됐다.

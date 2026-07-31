@@ -142,6 +142,12 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
             <button type="submit" class="flash-action"><?= e($flash['action']['label']) ?></button>
           </form>
         <?php endif; ?>
+
+        <?php // 바로 닫기 — 몇 초를 기다리지 않아도 되게. JS가 클릭을 받아 걷어낸다.
+              //   ★ type="button" 필수: <button>의 기본값은 submit이라, 폼 안이 아니어도
+              //     나중에 폼으로 감싸는 순간 엉뚱하게 전송돼버린다.
+              //   aria-label = 화면을 못 보는 사람에게 '×'가 무슨 버튼인지 읽어주는 이름. ?>
+        <button type="button" class="flash-close" aria-label="알림 닫기">×</button>
       </div>
     <?php endif; ?>
 

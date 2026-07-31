@@ -260,8 +260,7 @@ const FLASH_KEYS = ['flash', 'ftype', 'fundo', 'fid'];
 //     → 우리가 미리 적어둔 곳 외에는 버튼을 아예 그리지 않는다.
 //   fields = 그 파일이 받아야 하는 값의 '이름과 순서'. 주소엔 fid=12,34 처럼 순서대로 담긴다.
 const UNDO_TARGETS = [
-    'post'    => ['label' => '되돌리기', 'url' => '/post/restore.php',    'fields' => ['id']],
-    'comment' => ['label' => '되돌리기', 'url' => '/comment/restore.php', 'fields' => ['comment_id', 'post_id']],
+    'post' => ['label' => '되돌리기', 'url' => '/post/restore.php', 'fields' => ['id']],
 ];
 
 // 알림 남기기 (액션 파일이 redirect() 하기 '직전'에 호출)

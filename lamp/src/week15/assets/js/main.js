@@ -132,12 +132,9 @@ if (flash) {
     });
     history.replaceState(null, '', cleanUrl);
 
-    // 알림 안에 버튼이 있으면 = 사용자가 눌러야 할 것이 있다 → 더 오래 보여준다.
-    const hasAction = flash.querySelector('.flash-action') !== null;
-    const stayMs    = hasAction ? FLASH_STAY_ACTION_MS : FLASH_STAY_MS;
-
-    // setTimeout(할 일, 밀리초) = "이만큼 기다렸다가 이 일을 해라" (예약 실행)
-    setTimeout(function () {
+    // ── ② 걷어내기 ─────────────────────────────────────────
+    //   '몇 초 뒤 자동으로'와 '× 를 눌러 바로'가 똑같이 동작해야 하므로 함수로 묶는다.
+    function dismissFlash() {
         // 클래스만 붙이면 CSS의 transition 이 알아서 부드럽게 흐리게 만든다.
         flash.classList.add('fade-out');
 
@@ -145,7 +142,26 @@ if (flash) {
         setTimeout(function () {
             flash.remove();
         }, FLASH_FADE_MS);
-    }, stayMs);
+    }
+
+    // 알림 안에 버튼이 있으면 = 사용자가 눌러야 할 것이 있다 → 더 오래 보여준다.
+    const hasAction = flash.querySelector('.flash-action') !== null;
+    const stayMs    = hasAction ? FLASH_STAY_ACTION_MS : FLASH_STAY_MS;
+
+    // setTimeout(할 일, 밀리초) = "이만큼 기다렸다가 이 일을 해라" (예약 실행)
+    //   반환값(예약표)을 들고 있어야, 사용자가 먼저 닫았을 때 예약을 취소할 수 있다.
+    const autoTimer = setTimeout(dismissFlash, stayMs);
+
+    // × 버튼 — 기다리지 않고 바로 닫는다.
+    const closeButton = flash.querySelector('.flash-close');
+    if (closeButton) {
+        closeButton.addEventListener('click', function () {
+            // 이미 손으로 닫았으니 예약된 자동 닫기는 취소한다.
+            //   (안 하면 사라진 뒤에 타이머가 깨어나 없는 요소를 건드린다)
+            clearTimeout(autoTimer);
+            dismissFlash();
+        });
+    }
 }
 
 

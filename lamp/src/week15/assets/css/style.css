@@ -707,14 +707,28 @@ mark { background: #7a6000; color: #fff3a3; }
    신문 기사 목록처럼 '무엇을 읽을지'(제목)와 '누가·언제'(정보)를 양쪽으로 갈라두면
    눈이 왼쪽 한 줄만 훑어도 원하는 글을 찾을 수 있다.
    ※ .post-list는 홈에서도 쓰므로, 게시판 전용 클래스에만 적용한다. */
-.board-list li { justify-content: space-between; }
+/*  flex-wrap:nowrap = 한 줄을 넘겨도 아래로 내리지 않는다.
+    이게 있어야 제목이 길 때 줄바꿈 대신 '…'으로 잘린다. (기본값 wrap이면 아래로 떨어진다) */
+.board-list li { justify-content: space-between; flex-wrap: nowrap; }
 
 /* 왼쪽 묶음 — flex:1 로 남는 폭을 다 차지하고, min-width:0 이라야
    제목이 길어도 오른쪽 정보를 밀어내지 않고 자기가 줄어든다. */
 .board-list .post-left { display: flex; align-items: center; gap: 8px;
   flex: 1 1 auto; min-width: 0; }
-.board-list .post-left > a { font-size: 16px; font-weight: 600; color: #eaeaea; }
+
+/* 제목 — 폭이 모자라면 '…'으로 자른다.
+   세 줄이 모두 필요하다:
+     white-space: nowrap    → 줄을 바꾸지 않는다 (안 주면 그냥 여러 줄이 된다)
+     overflow: hidden       → 넘친 부분을 감춘다
+     text-overflow: ellipsis→ 감춘 자리에 '…'을 그린다
+   ★ min-width:0 도 필수 — flex 항목은 기본적으로 '내용보다 작아지지 않으려' 해서,
+     이게 없으면 아무리 overflow:hidden을 줘도 안 줄어들고 그대로 삐져나간다. */
+.board-list .post-left > a { font-size: 16px; font-weight: 600; color: #eaeaea;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .board-list .post-left > a:hover { color: #fff; }
+
+/* 태그·댓글수는 제목에 밀려 찌그러지지 않게 고정 */
+.board-list .post-left > .tag { flex-shrink: 0; }
 
 /* 댓글 수 — 제목 옆의 작은 신호. 눈에 띄되 제목을 가리지 않게 */
 .post-comments { color: #7f9fe8; font-size: 13px; flex-shrink: 0; }

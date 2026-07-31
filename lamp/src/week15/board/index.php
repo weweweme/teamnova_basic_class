@@ -203,7 +203,8 @@ require __DIR__ . '/../includes/header.php';
           <span class="post-left">
             <?php // 검색 중이면 제목에서 찾은 글자를 형광펜으로 강조한다.
                   // (create_highlighted가 e() 처리까지 끝내주므로 여기선 그대로 출력) ?>
-            <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= create_highlighted($p['title'], $q) ?></a>
+            <?php // title 속성 = 길어서 '…'으로 잘렸을 때 마우스를 올리면 전체 제목이 뜬다. ?>
+            <a href="/post/view.php?id=<?= e((string)$p['id']) ?>" title="<?= e($p['title']) ?>"><?= create_highlighted($p['title'], $q) ?></a>
             <span class="tag"><?= e($p['sentiment']) ?></span>
             <?php // 댓글 수는 '이 글에 이야기가 오갔나'를 알려주므로 제목 옆에 둔다.
                   //   0이면 아예 안 보여준다 — 없는 정보로 줄을 채우지 않는다. ?>

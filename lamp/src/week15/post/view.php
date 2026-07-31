@@ -27,9 +27,24 @@ if ($post === null) {
 // ── 이 글의 댓글 목록 (comments 모듈이 더미 + 이번 접속에 쓴 것을 합쳐서 준다) ──
 $comments = get_comments($id);
 
+// 돌아갈 게시판 주소.
+//   query_url()은 '지금 주소의 파라미터를 유지'하므로, 게시판에서 정렬·필터·페이지를 걸고
+//   넘어온 경우 그 조건이 그대로 살아난다. 홈이나 알림에서 바로 들어온 경우엔 붙을 게 없다.
+//   ★ work는 항상 이 글의 작품으로 덮어쓴다 — 없으면 '작품이 정해지지 않은 게시판'으로 가버린다.
+//   글 전용 파라미터(id·reply·edit)는 목록엔 의미가 없으므로 null로 지운다.
+$backUrl = query_url('/board/', [
+    'work'  => $post['work'],
+    'id'    => null,
+    'reply' => null,
+    'edit'  => null,
+]);
+
 $pageTitle = $post['title'];
 require __DIR__ . '/../includes/header.php';
 ?>
+
+  <?php // 목록으로 돌아가기 — 브라우저 뒤로가기를 몰라도 눈에 보이는 길을 하나 둔다. ?>
+  <p class="back-link"><a href="<?= e($backUrl) ?>">← <?= e($post['workTitle']) ?> 게시판</a></p>
 
   <!-- article = '독립적인 하나의 글'을 뜻하는 의미(시맨틱) 태그. class="post"는 CSS 이름표. -->
   <article class="post">

@@ -35,6 +35,8 @@ function get_posts(): array {
             p.views,
             p.content,
             UNIX_TIMESTAMP(p.created_at) AS created,   -- 정렬용 숫자(최신일수록 큼)
+            UNIX_TIMESTAMP(p.edited_at)  AS edited,    -- 안 고친 글은 NULL
+
             (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments,  -- 이 글의 댓글 수
             (SELECT COUNT(*) FROM likes    l WHERE l.post_id = p.id) AS likes,     -- 이 글의 추천 수
             -- 작성자의 총 글 수 (등급 배지 계산용). 소프트삭제된 글은 뺀다.
@@ -67,6 +69,7 @@ function get_liked_posts(int $userId): array {
             p.views,
             p.content,
             UNIX_TIMESTAMP(p.created_at) AS created,
+            UNIX_TIMESTAMP(p.edited_at)  AS edited,
             (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments,
             (SELECT COUNT(*) FROM likes    l WHERE l.post_id = p.id) AS likes,
             (SELECT COUNT(*) FROM posts pc WHERE pc.author_id = p.author_id AND pc.deleted_at IS NULL) AS authorPostCount
@@ -102,7 +105,7 @@ function get_post(int $id): ?array {
             p.id, m.slug AS work, m.title AS workTitle, p.title,
             u.username AS author, u.nickname AS authorNick, p.sentiment, p.views, p.content,
             UNIX_TIMESTAMP(p.created_at) AS created,
-            p.edited_at AS editedAt,   -- 값이 있으면 화면에 '(수정됨)' (댓글과 같은 규칙)
+            UNIX_TIMESTAMP(p.edited_at)  AS edited,   -- 값이 있으면 '(수정됨)' (댓글과 같은 규칙)
             (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments,
             (SELECT COUNT(*) FROM likes    l WHERE l.post_id = p.id) AS likes,
             (SELECT COUNT(*) FROM posts pc WHERE pc.author_id = p.author_id AND pc.deleted_at IS NULL) AS authorPostCount

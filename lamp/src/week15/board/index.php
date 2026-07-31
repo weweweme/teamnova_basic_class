@@ -192,8 +192,19 @@ require __DIR__ . '/../includes/header.php';
                 // (create_highlighted가 e() 처리까지 끝내주므로 여기선 그대로 출력) ?>
           <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= create_highlighted($p['title'], $q) ?></a>
           <span class="tag"><?= e($p['sentiment']) ?></span>
+          <?php
+          // 시각 표기 — 고친 글은 '최종 수정 시각'을 보여준다.
+          //   목록에서 보고 싶은 건 "이 글이 마지막으로 언제 달라졌나"이기 때문이다.
+          //   edited는 안 고친 글이면 NULL이라, 그때는 작성 시각을 쓴다.
+          $isEdited = $p['edited'] !== null;
+          $shownAt  = (int) ($isEdited ? $p['edited'] : $p['created']);
+          // 마우스를 올리면 정확한 시각을 보여준다. 고친 글은 작성·수정 둘 다.
+          $timeHint = format_time_full((int)$p['created']) . ' 작성'
+                    . ($isEdited ? ' · ' . format_time_full((int)$p['edited']) . ' 수정' : '');
+          ?>
           <?php // 작성자(등급 배지 + 닉네임) — get_posts가 JOIN으로 함께 가져온 값 ?>
-          <span class="post-stat"><?= level_badge_html((int)$p['authorPostCount']) ?> <?= e($p['authorNick']) ?> · 조회 <?= e((string)$p['views']) ?> · 댓글 <?= e((string)$p['comments']) ?></span>
+          <span class="post-stat"><?= level_badge_html((int)$p['authorPostCount']) ?> <?= e($p['authorNick']) ?> · 조회 <?= e((string)$p['views']) ?> · 댓글 <?= e((string)$p['comments']) ?>
+            · <time datetime="<?= e(format_time_machine($shownAt)) ?>" title="<?= e($timeHint) ?>"><?= e(format_time_short($shownAt)) ?></time><?= $isEdited ? ' 수정' : '' ?></span>
         </li>
       <?php endforeach; ?>
     </ul>

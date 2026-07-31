@@ -14,6 +14,20 @@
 //   세 번째가 이 방식의 한계를 그대로 보여준다. 세션은 week16 주제다.
 // ============================================================
 
+// ── 시간대 ───────────────────────────────────────────────────
+//   [문제] 컨테이너(리눅스)와 DB는 UTC로 돌아간다. 한국보다 9시간 느리다.
+//     그대로 화면에 찍으면 아침 11시에 쓴 글이 '새벽 2시'로 보인다.
+//
+//   [해결] 저장은 UTC 그대로 두고, '보여줄 때만' 한국 시각으로 바꾼다.
+//     이게 실무 표준이다 — 시차가 다른 곳에서 접속해도 각자의 시간으로 보여줄 수 있고,
+//     서머타임·시간대 정책이 바뀌어도 저장된 값은 손댈 필요가 없기 때문이다.
+//     (반대로 DB에 한국 시각을 저장해두면, 나중에 다른 나라 사용자가 생겼을 때
+//      저장된 값 자체가 '어느 나라 시각인지' 알 수 없는 애물단지가 된다)
+//
+//   ★ UNIX_TIMESTAMP()로 꺼낸 값은 '시간대가 없는 절대 시각'(1970년부터의 초)이라,
+//     여기서 시간대만 정해주면 date()가 알아서 한국 시각으로 그려준다.
+date_default_timezone_set('Asia/Seoul');
+
 // ── 입력을 '안전하게' 받는 헬퍼 ──────────────────────────────
 //   [문제] $_GET·$_POST의 값이 항상 문자열일 거라 믿으면 안 된다.
 //     주소를 이렇게 보내면 값이 '배열'이 되어버린다:  /search/?q[]=x
@@ -48,6 +62,37 @@ function post_str(string $key, string $default = ''): string {
 function post_int(string $key, int $default = 0): int {
     $value = $_POST[$key] ?? null;
     return is_scalar($value) ? (int)$value : $default;
+}
+
+// ── 시각 표기 ────────────────────────────────────────────────
+//   목록에서는 짧게, 마우스를 올리면 정확하게 — 두 함수를 짝으로 쓴다.
+
+// 목록·글머리에 쓰는 '짧은' 시각.
+//   오늘 쓴 글  → 14:32       (오늘 것은 '몇 시에'가 궁금하다)
+//   올해 쓴 글  → 07-29       (며칠 전인지가 궁금하다)
+//   작년 이전   → 2025-07-29  (연도가 있어야 한다)
+//   ★ 이렇게 나누는 이유: 목록은 훑어보는 화면이라 글자가 짧을수록 눈에 잘 들어온다.
+function format_time_short(int $timestamp): string {
+    $now = time();
+
+    $isToday = date('Y-m-d', $timestamp) === date('Y-m-d', $now);
+    if ($isToday) {
+        return date('H:i', $timestamp);
+    }
+
+    $isThisYear = date('Y', $timestamp) === date('Y', $now);
+    return $isThisYear ? date('m-d', $timestamp) : date('Y-m-d', $timestamp);
+}
+
+// 정확한 시각. 글 보기 화면과, 목록에서 마우스를 올렸을 때(title) 쓴다.
+function format_time_full(int $timestamp): string {
+    return date('Y-m-d H:i', $timestamp);
+}
+
+// <time datetime="..."> 에 넣을 기계용 표기 (ISO 8601).
+//   사람이 읽는 글자와 별개로, 검색엔진·보조기기가 '이게 시각이다'라고 알아보는 형식이다.
+function format_time_machine(int $timestamp): string {
+    return date('c', $timestamp);
 }
 
 // e() : 사용자 입력을 화면에 '안전하게' 출력하는 함수.

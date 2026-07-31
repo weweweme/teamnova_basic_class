@@ -42,7 +42,14 @@ require __DIR__ . '/../includes/header.php';
       <!-- 작성자 이름을 누르면 그 사람의 프로필로 (GET으로 user 전달) -->
       <?= level_badge_html((int)$post['authorPostCount']) ?>
       <a href="/profile/?user=<?= e($post['author']) ?>"><?= e($post['authorNick']) ?></a>
-      <?php if ($post['editedAt'] !== null): ?>
+      <?php
+      // 고친 글은 '최종 수정 시각'을 보여준다 (목록과 같은 규칙).
+      $isEdited = $post['edited'] !== null;
+      $shownAt  = (int) ($isEdited ? $post['edited'] : $post['created']);
+      ?>
+      · <time datetime="<?= e(format_time_machine($shownAt)) ?>"
+              title="<?= e(format_time_full((int)$post['created'])) ?> 작성"><?= e(format_time_full($shownAt)) ?></time>
+      <?php if ($isEdited): ?>
         <?php // 댓글과 같은 규칙 — 고친 사실을 숨기지 않는다 ?>
         <span class="muted comment-edited">(수정됨)</span>
       <?php endif; ?>

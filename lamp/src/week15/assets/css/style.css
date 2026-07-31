@@ -636,6 +636,23 @@ mark { background: #7a6000; color: #fff3a3; }
 /* 답글·수정 입력 폼 — flex-basis:100% 라야 한 줄을 통째로 차지해 아래로 내려온다 */
 .comment-reply-form, .comment-edit-form { flex-basis: 100%; margin-top: 10px; }
 .comment-reply-form button, .comment-edit-form button { margin-right: 10px; }
+
+/* 지금 답글·수정 중인 댓글을 배경으로 강조 → 어느 댓글을 건드리는 중인지 한눈에.
+   ★ 음수 마진 + 같은 크기의 패딩 = '내용은 제자리, 배경만 좌우로 넓어짐'.
+     그냥 패딩만 주면 폼이 열릴 때 글자가 12px 밀려서 화면이 흔들린다. */
+.comment-list li.comment-active { background: rgba(43,108,255,.07); border-radius: 10px;
+  margin-left: -12px; margin-right: -12px; padding-left: 12px; padding-right: 12px; }
+/* 답글을 수정할 때 — 위 음수 마진이 답글의 들여쓰기(30px)를 덮어쓰므로 그만큼 되살린다 */
+.comment-list li.comment-reply.comment-active { margin-left: 18px; }
+
+/* ★ 답글 폼은 '답글이 실제로 놓일 자리'에 맞춰 들여쓴다.
+   li.comment-reply 가 margin-left:30 + border:2 + padding-left:12 = 44px 지점부터
+   내용이 시작하므로, 폼도 44px를 띄워 등록 전후의 위치가 어긋나지 않게 한다.
+   ※ margin-left로 밀면 flex-basis:100%와 합쳐져 폭이 넘치므로 padding으로 민다. */
+.comment-reply-form { padding-left: 44px; position: relative; }
+/* 답글의 세로선과 같은 자리(30px)에 선을 긋는다. 색은 '지금 여기 쓰는 중'이라 더 밝게. */
+.comment-reply-form::before { content: ""; position: absolute;
+  left: 30px; top: 2px; bottom: 2px; border-left: 2px solid #3f6ae0; }
 /* 댓글 입력 */
 .comment-form { margin-top: 16px; }
 .comment-form textarea { width: 100%; }

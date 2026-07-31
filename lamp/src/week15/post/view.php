@@ -153,8 +153,12 @@ require __DIR__ . '/../includes/header.php';
         $cancelUrl = query_url('/post/view.php', ['reply' => null,     'edit' => null]) . $anchor;
         // 이 댓글을 지금 수정 중인가? (내 것일 때만 — 주소만 고쳐 남의 댓글 폼을 열 수 없게)
         $isEditing = $editing === (int)$c['id'] && !$c['isDeleted'] && is_owner($c['author']);
+        // 이 댓글에 답글을 다는 중인가? (답글에는 또 답글을 달 수 없다)
+        $isReplying = $replyTo === (int)$c['id'] && !$isReply && !$c['isDeleted'] && is_logged_in();
+        // 지금 작업 중인 댓글은 배경으로 강조 → '어느 댓글을 건드리는 중인지'가 한눈에 보인다
+        $liClass = trim(($isReply ? 'comment-reply ' : '') . ($isReplying || $isEditing ? 'comment-active' : ''));
         ?>
-        <li id="c<?= e((string)$c['id']) ?>" class="<?= $isReply ? 'comment-reply' : '' ?>">
+        <li id="c<?= e((string)$c['id']) ?>" class="<?= e($liClass) ?>">
 
           <?php if ($c['isDeleted']): ?>
             <?php // 답글이 남아 있어서 자리만 지키는 원댓글 (내용은 서버가 이미 비워서 보냈다) ?>
@@ -198,7 +202,7 @@ require __DIR__ . '/../includes/header.php';
           <?php endif; ?>
 
           <?php // 이 댓글에 '답글 달기'를 눌러둔 상태라면 그 자리에 폼을 편다 ?>
-          <?php if ($replyTo === (int)$c['id'] && !$isReply && !$c['isDeleted'] && is_logged_in()): ?>
+          <?php if ($isReplying): ?>
             <form class="comment-form comment-reply-form" method="post" action="/comment/create.php">
               <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
               <?php // 누구에게 다는 답글인지. 서버가 resolve_parent_id()로 한 번 더 검사한다. ?>

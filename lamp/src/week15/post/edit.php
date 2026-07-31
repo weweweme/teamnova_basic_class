@@ -7,9 +7,14 @@
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/posts.php';
+require_once __DIR__ . '/../includes/works.php';   // 어느 작품 글인지 포스터로 보여주려고
 
 // ★ 로그인해야 수정 화면에 들어올 수 있다.
 require_login();
+
+// 글쓰기 화면과 같은 좁은 중앙 컬럼(760px) — 제목·포스터·폼이 같은 왼쪽 선에 정렬되게.
+//   이게 없으면 폼만 가운데로 모이고 제목·부제는 넓은 컨테이너 왼쪽 끝에 붙어 어긋나 보인다.
+$containerClass = 'narrow';
 
 // ── 1) 수정할 글 찾기 ────────────────────────────────────────
 $id   = get_int('id', 0);
@@ -33,12 +38,26 @@ if (!is_owner($post['author'])) {
 
 $sentiments = ['호평', '보통', '혹평'];
 
+// 어느 작품 글인지 — 포스터를 보여주려고 작품 정보를 가져온다(글쓰기 화면과 동일).
+//   DB에 없으면 TMDB에서 받아온다. 못 찾으면 포스터 없이 제목만 쓴다.
+$workInfo = get_work($post['work']);
+
 $pageTitle = '글 수정';
 require __DIR__ . '/../includes/header.php';
 ?>
 
   <h1>글 수정</h1>
-  <p class="muted"><?= e($post['workTitle']) ?> 게시판의 글</p>
+
+  <!-- 어느 작품의 글을 고치는 중인지 한눈에 (글쓰기 화면과 같은 조각) -->
+  <div class="write-context">
+    <?php if (!empty($workInfo['poster_url'])): ?>
+      <img class="write-context-poster" src="<?= e($workInfo['poster_url']) ?>" alt="" loading="lazy">
+    <?php endif; ?>
+    <div>
+      <span class="muted">리뷰 수정</span>
+      <strong><?= e($post['workTitle']) ?></strong>
+    </div>
+  </div>
 
   <form class="write-form" method="post" action="/post/update.php">
 

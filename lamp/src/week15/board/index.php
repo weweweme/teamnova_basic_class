@@ -185,26 +185,39 @@ require __DIR__ . '/../includes/header.php';
   <?php if (!$pagePosts): ?>
     <p class="muted board-empty">해당 조건의 글이 없습니다.</p>
   <?php else: ?>
-    <ul class="post-list">
+    <?php // board-list = 게시판 전용 배치(제목 왼쪽 / 정보 오른쪽). 홈의 목록과 구분하려고 붙인다. ?>
+    <ul class="post-list board-list">
       <?php foreach ($pagePosts as $p): ?>
+        <?php
+        // 시각 표기 — 고친 글은 '최종 수정 시각'을 보여준다.
+        //   목록에서 보고 싶은 건 "이 글이 마지막으로 언제 달라졌나"이기 때문이다.
+        //   edited는 안 고친 글이면 NULL이라, 그때는 작성 시각을 쓴다.
+        $isEdited = $p['edited'] !== null;
+        $shownAt  = (int) ($isEdited ? $p['edited'] : $p['created']);
+        // 마우스를 올리면 정확한 시각을 보여준다. 고친 글은 작성·수정 둘 다.
+        $timeHint = format_time_full((int)$p['created']) . ' 작성'
+                  . ($isEdited ? ' · ' . format_time_full((int)$p['edited']) . ' 수정' : '');
+        ?>
         <li>
-          <?php // 검색 중이면 제목에서 찾은 글자를 형광펜으로 강조한다.
-                // (create_highlighted가 e() 처리까지 끝내주므로 여기선 그대로 출력) ?>
-          <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= create_highlighted($p['title'], $q) ?></a>
-          <span class="tag"><?= e($p['sentiment']) ?></span>
-          <?php
-          // 시각 표기 — 고친 글은 '최종 수정 시각'을 보여준다.
-          //   목록에서 보고 싶은 건 "이 글이 마지막으로 언제 달라졌나"이기 때문이다.
-          //   edited는 안 고친 글이면 NULL이라, 그때는 작성 시각을 쓴다.
-          $isEdited = $p['edited'] !== null;
-          $shownAt  = (int) ($isEdited ? $p['edited'] : $p['created']);
-          // 마우스를 올리면 정확한 시각을 보여준다. 고친 글은 작성·수정 둘 다.
-          $timeHint = format_time_full((int)$p['created']) . ' 작성'
-                    . ($isEdited ? ' · ' . format_time_full((int)$p['edited']) . ' 수정' : '');
-          ?>
-          <?php // 작성자(등급 배지 + 닉네임) — get_posts가 JOIN으로 함께 가져온 값 ?>
-          <span class="post-stat"><?= level_badge_html((int)$p['authorPostCount']) ?> <?= e($p['authorNick']) ?> · 조회 <?= e((string)$p['views']) ?> · 댓글 <?= e((string)$p['comments']) ?>
-            · <time datetime="<?= e(format_time_machine($shownAt)) ?>" title="<?= e($timeHint) ?>"><?= e(format_time_short($shownAt)) ?></time><?= $isEdited ? ' 수정' : '' ?></span>
+          <?php // ── 왼쪽: 제목 · 감상 · 댓글 수 (글을 고르는 데 필요한 것들) ── ?>
+          <span class="post-left">
+            <?php // 검색 중이면 제목에서 찾은 글자를 형광펜으로 강조한다.
+                  // (create_highlighted가 e() 처리까지 끝내주므로 여기선 그대로 출력) ?>
+            <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= create_highlighted($p['title'], $q) ?></a>
+            <span class="tag"><?= e($p['sentiment']) ?></span>
+            <?php // 댓글 수는 '이 글에 이야기가 오갔나'를 알려주므로 제목 옆에 둔다.
+                  //   0이면 아예 안 보여준다 — 없는 정보로 줄을 채우지 않는다. ?>
+            <?php if ((int)$p['comments'] > 0): ?>
+              <span class="post-comments">💬 <?= e((string)$p['comments']) ?></span>
+            <?php endif; ?>
+          </span>
+
+          <?php // ── 오른쪽: 작성자 · 조회 · 시각 (부가 정보) ── ?>
+          <span class="post-right">
+            <?= level_badge_html((int)$p['authorPostCount']) ?> <?= e($p['authorNick']) ?>
+            · 조회 <?= e((string)$p['views']) ?>
+            · <time datetime="<?= e(format_time_machine($shownAt)) ?>" title="<?= e($timeHint) ?>"><?= e(format_time_short($shownAt)) ?></time><?= $isEdited ? ' 수정' : '' ?>
+          </span>
         </li>
       <?php endforeach; ?>
     </ul>

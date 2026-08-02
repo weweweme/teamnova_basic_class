@@ -85,6 +85,61 @@ function get_liked_posts(int $userId): array {
     return $stmt->fetchAll();
 }
 
+// ── 통합검색: 제목·내용에 검색어가 든 글을 DB가 직접 골라준다 ──
+//   ★ 아래 search_posts()와 '하는 일'은 같지만 방식이 다르다.
+//     그쪽은 글을 전부 PHP 배열로 가져온 뒤 거른다. 게시판은 이미 '한 작품 글'만
+//     다루니 그래도 되지만, 통합검색은 사이트 전체를 뒤지므로 DB에 맡기고
+//     필요한 만큼(LIMIT)만 받아온다. 183개든 18만 개든 화면에 필요한 건 20개뿐이다.
+//
+//   돌려주는 배열 모양은 get_posts()와 똑같이 맞춘다 → 목록을 그리는 화면 코드를 그대로 쓸 수 있다.
+//
+//   ★ LIMIT 자리에만 ? 를 안 쓰고 값을 직접 박는 이유
+//     이 프로젝트는 '진짜' Prepared Statement를 쓰는데(db.php의 EMULATE_PREPARES=false),
+//     ? 로 넘긴 값은 기본적으로 문자열이라 LIMIT '20' 이 되어 DB가 거부한다.
+//     대신 (int) 로 강제 형변환해 숫자만 들어가게 막는다 — 글자는 0이 되어 무해하다.
+function search_posts_db(string $q, int $limit, int $offset = 0): array {
+    $sql = "
+        SELECT
+            p.id,
+            m.slug        AS work,
+            m.title       AS workTitle,
+            p.title,
+            u.username    AS author,
+            u.nickname    AS authorNick,
+            p.sentiment,
+            p.views,
+            p.content,
+            UNIX_TIMESTAMP(p.created_at) AS created,
+            UNIX_TIMESTAMP(p.edited_at)  AS edited,
+            (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments,
+            (SELECT COUNT(*) FROM likes    l WHERE l.post_id = p.id) AS likes,
+            (SELECT COUNT(*) FROM posts pc WHERE pc.author_id = p.author_id AND pc.deleted_at IS NULL) AS authorPostCount
+        FROM posts p
+        JOIN media m ON p.media_id  = m.id
+        JOIN users u ON p.author_id = u.id
+        WHERE p.deleted_at IS NULL
+          AND (p.title LIKE ? OR p.content LIKE ?)   -- 제목 '또는' 본문에 들어 있으면 찾는다
+        ORDER BY p.id DESC                            -- 최신 글이 위
+        LIMIT " . (int) $limit . " OFFSET " . (int) $offset . "
+    ";
+    $pattern = create_like_pattern($q);
+    $stmt = db()->prepare($sql);
+    $stmt->execute([$pattern, $pattern]);   // 제목·본문 두 자리에 같은 패턴
+    return $stmt->fetchAll();
+}
+
+// 검색에 걸린 글이 전부 몇 개인가 (더보기 표시·페이지 수 계산용).
+//   ★ 목록을 받아 count()하지 않고 DB에 세게 한다. 개수만 필요한데
+//     글 내용까지 전부 실어 나르는 건 낭비다. (COUNT는 DB가 가장 잘하는 일)
+function count_search_posts(string $q): int {
+    $pattern = create_like_pattern($q);
+    return (int) db_scalar(
+        'SELECT COUNT(*) FROM posts
+          WHERE deleted_at IS NULL AND (title LIKE ? OR content LIKE ?)',
+        [$pattern, $pattern]
+    );
+}
+
 // '지워진' 글 하나 찾기 (되돌리기에서 주인 확인용). 안 지워졌거나 없으면 null.
 //   소프트삭제라 글이 DB에 그대로 있다 → deleted_at 이 '있는'(지워진) 것만 찾는다.
 function get_deleted_post(int $id): ?array {

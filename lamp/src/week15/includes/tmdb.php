@@ -78,26 +78,37 @@ function tmdb_get(string $path, array $params = []): ?array {
 // ── 작품 검색: 제목으로 찾기 ────────────────────────────────
 //   화면에 뿌리기 좋게 '우리가 필요한 필드만' 골라 새 배열로 만들어 돌려준다.
 //   (이름을 search_…로 시작 — 매번 새 배열을 만들어 반환하므로)
-function search_tmdb(string $query): array {
+//   $pages = 몇 페이지까지 이어붙일지 (TMDB 1페이지 = 20개).
+//     기본 1인 이유: 통합검색은 이 중 3개만 보여주므로 더 받아봐야 버린다.
+//     '작품 전체 결과' 화면만 3을 넘겨 60개까지 받는다 — 거기선 다 쓰기 때문.
+function search_tmdb(string $query, int $pages = 1): array {
     $query = trim($query);
     if ($query === '') {
         return [];                                       // 검색어 없으면 빈 목록
     }
 
-    $data = tmdb_get('/search/multi', ['query' => $query]);   // multi = 영화+드라마 함께
-    if ($data === null || empty($data['results'])) {
-        return [];
-    }
-
     // TMDB 원본은 필드가 아주 많다 → 우리가 쓸 것만 추린다.
     $result = [];
-    foreach ($data['results'] as $item) {
-        // multi 검색은 사람(person)도 섞여 오므로, 영화·드라마만 남긴다
-        $type = $item['media_type'] ?? '';
-        if ($type !== 'movie' && $type !== 'tv') {
-            continue;
+    $seen   = [];   // 같은 작품이 여러 페이지에 겹쳐 나올 때 중복 제거용
+
+    for ($page = 1; $page <= $pages; $page++) {
+        $data = tmdb_get('/search/multi', ['query' => $query, 'page' => $page]);   // multi = 영화+드라마 함께
+        if ($data === null || empty($data['results'])) {
+            break;                                       // 더 없으면 멈춘다
         }
-        $result[] = build_media_from_tmdb($item);
+        foreach ($data['results'] as $item) {
+            // multi 검색은 사람(person)도 섞여 오므로, 영화·드라마만 남긴다
+            $type = $item['media_type'] ?? '';
+            if ($type !== 'movie' && $type !== 'tv') {
+                continue;
+            }
+            $id = $item['id'] ?? 0;
+            if (isset($seen[$id])) {
+                continue;
+            }
+            $seen[$id]  = true;
+            $result[]   = build_media_from_tmdb($item);
+        }
     }
     return $result;
 }

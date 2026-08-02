@@ -35,6 +35,13 @@ if ($identity !== null) {
     output_add_rewrite_var(IDENTITY_KEY, $identity);
 }
 
+// ── 상단바 검색창에 미리 채워둘 검색어 ──────────────────────
+//   검색 화면에서는 방금 친 말이 칸에 남아 있어야 한다 — 한 글자만 고쳐 다시 찾는 일이 잦다.
+//   ★ 검색 화면일 때만 채운다. ?q= 는 게시판에도 있는데(그 게시판 안에서만 찾는 말이라)
+//     그것까지 끌어다 채우면 "전체 검색"인 줄 알고 엉뚱한 결과를 기대하게 된다.
+$isSearchPage = str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/search/');
+$topbarQuery  = $isSearchPage ? get_str('q') : '';
+
 // 컨테이너에 붙일 추가 클래스 (페이지가 정해줄 수 있음).
 //   예) 좁은 페이지는 $containerClass = 'narrow' 로 콘텐츠를 중앙 컬럼에 담는다.
 $containerClass = $containerClass ?? '';
@@ -90,11 +97,22 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
   <!-- 공통 상단 메뉴바: 어느 페이지에서든 여기로 이동 가능 -->
   <header class="topbar">
     <a class="logo" href="/">🎬 리뷰 커뮤니티</a>
+
+    <?php // ── 통합검색: 메뉴 링크 대신 '입력칸'을 상단바에 둔다 ──
+          //   검색 페이지로 한 번 이동한 뒤 다시 검색어를 치는 두 단계를,
+          //   어느 화면에서든 바로 치는 한 단계로 줄인다. (포털·유튜브가 이렇게 한다)
+          //   ★ method="get" 이라 검색어가 주소에 남는다 → 결과를 그대로 공유·북마크할 수 있다.
+          //   ★ type="search" = 검색용 입력칸. 브라우저가 지운 내역·× 지우기 버튼을 알아서 붙여준다. ?>
+    <form class="topbar-search" method="get" action="/search/" role="search">
+      <input type="search" name="q" value="<?= e($topbarQuery) ?>" maxlength="50"
+             placeholder="작품 · 글 · 유저 검색" aria-label="통합검색">
+      <button type="submit" aria-label="검색">🔍</button>
+    </form>
+
     <nav>
       <a href="/">홈</a>
       <a href="/works/">작품</a>
       <a href="/rank/">랭킹</a>
-      <a href="/search/">검색</a>
       <?php // 주소에 실려온 신원이 진짜 회원이면 메뉴가 달라진다 (is_logged_in) ?>
       <?php if (is_logged_in()): ?>
         <?php // 글쓰기는 '작품 게시판'에서 시작하는 구조(작품 slug 필요)라 상단바 메뉴는 두지 않는다.

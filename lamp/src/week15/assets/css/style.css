@@ -999,3 +999,27 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 .user-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .user-info strong { color: #f0f0f0; font-size: 16px; font-weight: 600; }
 .user-meta { color: #9a9a9a; font-size: 13px; }
+
+/* ── 상단바 통합검색 ──────────────────────────────────────────
+   로고와 메뉴 사이에 놓아, 어느 화면에서든 눈에 들어오되 메뉴를 밀어내지 않게 한다. */
+/* 로고 바로 옆에 붙이고, 남는 폭은 검색칸 오른쪽에 몰아준다(margin-right:auto)
+   → 로고 [검색칸] ......... 메뉴  배치. 원래 로고가 갖고 있던 auto를 여기로 옮긴 것. */
+.topbar .logo { margin-right: 4px; }
+.topbar-search { display: flex; align-items: center; gap: 6px; margin: 0 auto 0 0;
+  flex: 0 1 340px; min-width: 0; }
+.topbar-search input[type=search] { flex: 1; min-width: 0;
+  padding: 7px 14px; font-size: 14px; color: #eaeaea;
+  background: #1c1c22; border: 1px solid #2c2c36; border-radius: 999px; }
+.topbar-search input[type=search]::placeholder { color: #7a7a7a; }
+/* 포커스: 파란 테두리로 '지금 여기 타이핑 중'을 보여준다 (기본 외곽선은 각져서 끄고 대체) */
+.topbar-search input[type=search]:focus { outline: none; border-color: #3a4a7a; background: #22222a; }
+.topbar-search button { padding: 7px 12px; font-size: 14px; line-height: 1.2; cursor: pointer;
+  color: #cfcfcf; background: #1f1f26; border: 1px solid #2c2c36; border-radius: 999px; }
+.topbar-search button:hover { background: #2a2a34; color: #fff; }
+
+/* 좁아지면 검색칸부터 줄인다 — 메뉴(홈·작품·랭킹)는 끝까지 남아야 길을 잃지 않는다 */
+@media (max-width: 860px) { .topbar-search { flex-basis: 170px; } }
+/* 모바일: 검색칸을 아랫줄 전체 폭으로 (상단바는 이미 줄바꿈을 허용해 둠) */
+@media (max-width: 600px) {
+  .topbar-search { order: 3; flex: 1 1 100%; }
+}

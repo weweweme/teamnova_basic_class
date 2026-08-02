@@ -47,9 +47,6 @@ if ($hasQuery) {
     $users     = search_users($q, USER_PREVIEW);
 }
 
-// 셋 다 0이면 "결과 없음" 한 줄만 보여준다 (빈 섹션 세 개를 늘어놓지 않는다)
-$foundAny = ($workTotal + $postTotal + $userTotal) > 0;
-
 $pageTitle = $hasQuery ? "'{$q}' 통합검색" : '통합검색';
 $containerClass = 'narrow';
 require __DIR__ . '/../includes/header.php';
@@ -59,58 +56,65 @@ require __DIR__ . '/../includes/header.php';
 
   <?php render_search_bar($q, 'all'); ?>
 
-  <?php // 상태가 셋이라 3갈래로 안내: ① 검색 전 ② 결과 없음 ③ 결과 있음 ?>
   <?php if (!$hasQuery): ?>
     <p class="muted">작품 · 글 · 유저를 한 번에 검색합니다. (예: 기생충, 인생 영화, 영화광)</p>
 
-  <?php elseif (!$foundAny): ?>
-    <p class="muted">'<?= e($q) ?>'와 일치하는 결과가 없습니다.</p>
-
   <?php else: ?>
 
-    <?php // ── 🎬 작품 ──────────────────────────────────────
-          //   결과가 0개인 카테고리는 섹션째로 건너뛴다.
-          //   "작품 0개"를 세 번 늘어놓으면 진짜 결과가 아래로 밀려난다. ?>
-    <?php if ($workTotal > 0): ?>
-      <section class="search-section">
-        <div class="search-section-head">
-          <?php // ★ 작품만 개수를 안 적는다.
-                //   TMDB에서 1페이지(20개)만 받아온 상태라 여기 있는 20은 '전체'가 아니다.
-                //   그런데도 20이라 적으면, 더보기를 눌러 59개가 나오는 순간 화면이 거짓말을 한 셈이 된다.
-                //   모르는 숫자는 말하지 않는다 — 글·유저는 DB가 정확히 세주므로 그대로 적는다. ?>
-          <h2>🎬 작품</h2>
-          <?php // 전체가 몇 개인지 모르니 더보기는 항상 연다 (실제 전체는 저 화면이 보여준다) ?>
+    <?php // ★ 세 칸은 결과가 없어도 자리를 지킨다.
+          //   빈 칸을 지워버리면 화면이 검색할 때마다 달라져서, 없는 게 아니라
+          //   '아직 안 나온 것'처럼 보인다 — 고장으로 오해하기 쉽다.
+          //   자리에 "없습니다"가 적혀 있으면 그 자체가 답이 된다. ?>
+
+    <?php // ── 🎬 작품 ────────────────────────────────────── ?>
+    <section class="search-section">
+      <div class="search-section-head">
+        <?php // ★ 작품만 개수를 안 적는다.
+              //   TMDB에서 1페이지(20개)만 받아온 상태라 여기 있는 20은 '전체'가 아니다.
+              //   그런데도 20이라 적으면, 더보기를 눌러 59개가 나오는 순간 화면이 거짓말을 한 셈이 된다.
+              //   모르는 숫자는 말하지 않는다 — 글·유저는 DB가 정확히 세주므로 그대로 적는다. ?>
+        <h2>🎬 작품</h2>
+        <?php // 전체가 몇 개인지 모르니, 하나라도 있으면 더보기를 연다 (실제 전체는 저 화면이 보여준다) ?>
+        <?php if ($workTotal > 0): ?>
           <a class="search-more" href="<?= e(query_url('/search/works.php', ['page' => ''])) ?>">더보기 ›</a>
-        </div>
+        <?php endif; ?>
+      </div>
+      <?php if ($workTotal > 0): ?>
         <?php render_work_results($works, $q); ?>
-      </section>
-    <?php endif; ?>
+      <?php else: ?>
+        <p class="muted search-empty">일치하는 작품이 없습니다.</p>
+      <?php endif; ?>
+    </section>
 
-    <?php // ── 📝 글 ────────────────────────────────────── ?>
-    <?php if ($postTotal > 0): ?>
-      <section class="search-section">
-        <div class="search-section-head">
-          <h2>📝 글 <span class="count"><?= $postTotal ?></span></h2>
-          <?php if ($postTotal > POST_PREVIEW): ?>
-            <a class="search-more" href="<?= e(query_url('/search/posts.php', ['page' => ''])) ?>">더보기 ›</a>
-          <?php endif; ?>
-        </div>
+    <?php // ── 📝 글 ──────────────────────────────────────── ?>
+    <section class="search-section">
+      <div class="search-section-head">
+        <h2>📝 글 <span class="count"><?= $postTotal ?></span></h2>
+        <?php if ($postTotal > POST_PREVIEW): ?>
+          <a class="search-more" href="<?= e(query_url('/search/posts.php', ['page' => ''])) ?>">더보기 ›</a>
+        <?php endif; ?>
+      </div>
+      <?php if ($postTotal > 0): ?>
         <?php render_post_results($posts, $q); ?>
-      </section>
-    <?php endif; ?>
+      <?php else: ?>
+        <p class="muted search-empty">제목·내용에 '<?= e($q) ?>'가 들어간 글이 없습니다.</p>
+      <?php endif; ?>
+    </section>
 
-    <?php // ── 👤 유저 ──────────────────────────────────── ?>
-    <?php if ($userTotal > 0): ?>
-      <section class="search-section">
-        <div class="search-section-head">
-          <h2>👤 유저 <span class="count"><?= $userTotal ?></span></h2>
-          <?php if ($userTotal > USER_PREVIEW): ?>
-            <a class="search-more" href="<?= e(query_url('/search/users.php', ['page' => ''])) ?>">더보기 ›</a>
-          <?php endif; ?>
-        </div>
+    <?php // ── 👤 유저 ────────────────────────────────────── ?>
+    <section class="search-section">
+      <div class="search-section-head">
+        <h2>👤 유저 <span class="count"><?= $userTotal ?></span></h2>
+        <?php if ($userTotal > USER_PREVIEW): ?>
+          <a class="search-more" href="<?= e(query_url('/search/users.php', ['page' => ''])) ?>">더보기 ›</a>
+        <?php endif; ?>
+      </div>
+      <?php if ($userTotal > 0): ?>
         <?php render_user_results($users, $q); ?>
-      </section>
-    <?php endif; ?>
+      <?php else: ?>
+        <p class="muted search-empty">아이디·닉네임이 일치하는 회원이 없습니다.</p>
+      <?php endif; ?>
+    </section>
 
   <?php endif; ?>
 

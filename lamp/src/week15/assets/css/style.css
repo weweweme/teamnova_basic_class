@@ -1023,3 +1023,5 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 @media (max-width: 600px) {
   .topbar-search { order: 3; flex: 1 1 100%; }
 }
+/* 카테고리에 결과가 없을 때 — 자리를 지키되 조용하게 (진짜 결과와 톤을 구분) */
+.search-empty { margin: 14px 4px 0; font-size: 14px; }

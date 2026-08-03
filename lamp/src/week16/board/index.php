@@ -8,16 +8,40 @@ require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/posts.php';   // 글 데이터·필터·정렬·페이징 모듈
 require_once __DIR__ . '/../includes/works.php';   // 작품 데이터 모듈
 require_once __DIR__ . '/../includes/tmdb.php';    // 작품 상세(감독·출연·예고편)
+require_once __DIR__ . '/../includes/prefs.php';   // 정렬 취향 쿠키 (week16)
 
 // 한 페이지에 보여줄 글 수. (매직값 금지 — 이름 붙인 상수로)
 const POSTS_PER_PAGE = 15;
 
+// 정렬 탭 목록 (키 = URL에 들어갈 값, 값 = 화면에 보일 이름)
+//   ★ 화면보다 위에 둔 이유: 이 목록이 곧 '허용된 정렬값'이라, 아래 검증에서 먼저 필요하다.
+//     목록과 검증이 따로 놀면 탭을 추가했는데 그 탭만 동작하지 않는 일이 생긴다.
+const SORT_TABS    = ['new' => '최신', 'hot' => '인기', 'views' => '조회', 'comments' => '댓글'];
+const SORT_DEFAULT = 'new';
+
 // ── 1) 파라미터 받기 ─────────────────────────────────────────
 $work      = get_str('work', '');
 $q         = mb_substr(trim(get_str('q')), 0, SEARCH_QUERY_MAX);       // 이 게시판 '안에서' 글 검색어
-$sort      = get_str('sort', 'new');       // new | hot | views | comments
 $sentiment = get_str('sentiment', '');     // '' = 전체 | 호평 | 보통 | 혹평
 $page      = get_int('page', 1);    // 1부터 시작
+
+// ── 정렬: 주소에 있으면 그걸 쓰고 기억한다, 없으면 지난번 취향을 꺼낸다 ──
+//   [왜 쿠키인가]
+//     "나는 조회순으로 보는 걸 좋아한다"는 취향이다. 틀려도 탭 한 번 더 누르면 그만이고,
+//     브라우저를 닫아도 남아야 하며, 로그인 안 한 사람도 쓴다 → 쿠키 자리다.
+//   ★ 주소가 항상 이긴다. 링크를 눌러 온 사람이 보게 될 화면이 내 쿠키 때문에
+//     달라지면, 그 링크를 공유한 사람과 다른 걸 보게 된다.
+$sortKeys = array_keys(SORT_TABS);
+$sortFromUrl = get_str('sort');
+if ($sortFromUrl !== '') {
+    // 주소로 온 값도 그대로 믿지 않는다 — 허용 목록에 있을 때만 인정하고 기억한다.
+    $sort = in_array($sortFromUrl, $sortKeys, true) ? $sortFromUrl : SORT_DEFAULT;
+    remember_sort($sort);
+} else {
+    // ★ preferred_sort()가 허용 목록으로 다시 검증한다. 쿠키는 사용자가 고칠 수 있으므로
+    //   "우리가 저장한 값이니 안전하겠지"라고 믿으면 안 된다. (prefs.php 주석 참고)
+    $sort = preferred_sort($sortKeys, SORT_DEFAULT);
+}
 
 // 감상 값 검증: 허용된 값만 인정하고, 이상한 값이 오면 '전체'로 되돌린다.
 if (!in_array($sentiment, ['호평', '보통', '혹평'], true)) {
@@ -71,8 +95,9 @@ if ($page > $totalPages) {                                          // 범위 �
 }
 $pagePosts = paginate_posts($posts, $page, POSTS_PER_PAGE);         // 이 페이지 분량만
 
-// ── 5) 탭 목록 (키 = URL에 들어갈 값, 값 = 화면에 보일 이름) ──
-$sortTabs   = ['new' => '최신', 'hot' => '인기', 'views' => '조회', 'comments' => '댓글'];
+// ── 5) 탭 목록 ───────────────────────────────────────────────
+//   정렬 탭(SORT_TABS)은 검증에도 쓰이므로 파일 맨 위에 있다.
+$sortTabs   = SORT_TABS;
 $sentiments = ['' => '전체', '호평' => '호평', '보통' => '보통', '혹평' => '혹평'];
 
 $pageTitle = $title . ' 게시판';

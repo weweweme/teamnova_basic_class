@@ -10,6 +10,7 @@ require_once __DIR__ . '/../includes/search_ui.php';   // 검색창·탭·결과
 require_once __DIR__ . '/../includes/tmdb.php';        // 작품 검색(TMDB 실시간)
 require_once __DIR__ . '/../includes/posts.php';       // 글 검색(DB)
 require_once __DIR__ . '/../includes/users.php';       // 유저 검색(DB)
+require_once __DIR__ . '/../includes/prefs.php';       // 최근 검색어 쿠키 (week16)
 
 // ── 카테고리마다 몇 개씩 미리 보여줄까 (매직값 금지 — 이름 붙인 상수로) ──
 //   글을 가장 많이 보여준다. 검색해서 읽을거리를 찾는 사람이 제일 많기 때문이다.
@@ -20,6 +21,15 @@ const USER_PREVIEW = 3;
 // ── 1) 검색어 받기 ───────────────────────────────────────────
 $q        = create_search_query();
 $hasQuery = $q !== '';
+
+// ── 최근 검색어 (week16 쿠키) ────────────────────────────────
+//   ★ 쿠키를 굽는 일이라 화면 출력이 시작되기 전에 해야 한다 → 여기(파일 위쪽)에 둔다.
+//   ★ 읽기는 '지금 검색한 말을 넣기 전'에 해도 되고 후에 해도 되지만, 넣은 뒤에 읽어야
+//     방금 친 말이 목록 맨 앞에 보인다. 그래서 넣고 → 읽는 순서다.
+if ($hasQuery) {
+    remember_search($q);
+}
+$recentSearches = get_recent_searches();
 
 // ── 2) 세 곳에서 찾는다 (검색어가 있을 때만) ─────────────────
 //   ★ '전체 개수'와 '보여줄 몇 개'를 따로 구한다.
@@ -55,6 +65,20 @@ require __DIR__ . '/../includes/header.php';
   <h1>🔍 통합검색</h1>
 
   <?php render_search_bar($q, 'all'); ?>
+
+  <?php // ── 최근 검색어 (쿠키) ─────────────────────────────
+        //   ★ 한 번도 검색한 적 없으면 줄 자체를 그리지 않는다 — 빈 '최근 검색어'는
+        //     알려주는 게 없으면서 자리만 차지한다.
+        //   ★ e()로 감싸는 걸 잊으면 안 된다. 쿠키 값은 사용자가 넣은 글자이고,
+        //     쿠키는 손으로 고칠 수 있으니 <script>를 심어둘 수도 있다 (XSS). ?>
+  <?php if ($recentSearches): ?>
+    <div class="recent-searches">
+      <span class="muted">최근 검색어</span>
+      <?php foreach ($recentSearches as $past): ?>
+        <a href="/search/?q=<?= urlencode($past) ?>"><?= e($past) ?></a>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
 
   <?php if (!$hasQuery): ?>
     <p class="muted">작품 · 글 · 유저를 한 번에 검색합니다. (예: 기생충, 인생 영화, 영화광)</p>

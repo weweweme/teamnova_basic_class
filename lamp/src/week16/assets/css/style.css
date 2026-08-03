@@ -870,6 +870,16 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 .rank-tabs a:hover, .profile-tabs a:hover, .search-tabs a:hover { background: #2a2a34; }
 .rank-tabs a.active, .profile-tabs a.active, .search-tabs a.active { background: #fff; color: #141414; border-color: #fff; }
 
+/* 최근 검색어 (week16 취향 쿠키)
+   ★ 탭(.search-tabs)과 일부러 다르게 생기게 했다. 탭은 '지금 어디를 보고 있나'라
+     하나가 선택돼 있지만, 이건 '전에 뭘 찾았나'라 선택된 것이 없다.
+     같은 모양이면 눌러야 할 탭으로 오해한다. */
+.recent-searches { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: -8px 0 18px; }
+.recent-searches .muted { font-size: 13px; }
+.recent-searches a { font-size: 13px; color: #bbb; text-decoration: none;
+  padding: 4px 11px; border-radius: 999px; border: 1px solid #33333f; background: transparent; }
+.recent-searches a:hover { color: #fff; border-color: #55555f; background: #24242c; }
+
 /* 순위 목록 — ol의 기본 숫자는 끄고 우리가 만든 순위표시를 쓴다 */
 .rank-list { list-style: none; margin: 0; padding: 0; }
 .rank-item { display: flex; align-items: center; gap: 14px;

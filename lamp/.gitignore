@@ -6,3 +6,4 @@
 
 # TMDB 응답 캐시 — 접속하면 자동으로 다시 만들어진다
 /src/week15/cache/
+/src/week16/cache/

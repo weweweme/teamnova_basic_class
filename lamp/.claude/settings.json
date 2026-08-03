@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -i 's|\\(`rank\\\\.php`, 상단바\\)|\\(`rank/`, 상단바\\)|; s|공개 프로필\\(`profile\\\\.php`\\)|공개 프로필\\(`profile/`\\)|; s|설정\\(`settings\\\\.php`, 로그인 전용\\)|설정\\(`settings/`, 로그인 전용\\)|; s|목록\\(`notifications\\\\.php`\\)|목록\\(`notifications/`\\)|' README.md)",
+      "Bash(grep -n '`rank/`\\\\|`profile/`\\\\|`settings/`\\\\|`notifications/`' README.md)"
+    ]
+  }
+}

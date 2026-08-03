@@ -13,7 +13,7 @@ services:
 
     environment:
       # 이번 주차 폴더. 주차가 바뀌면 여기와 apache/httpd.conf 의 DocumentRoot 를 함께 바꾼다.
-      APP_DIR: /var/www/html/week15
+      APP_DIR: /var/www/html/week16
 
     # 도커가 실행되면 이 컨테이너도 알아서 켜진다.
     #   unless-stopped = 내가 직접 멈춘 게 아니라면 항상 다시 켠다.

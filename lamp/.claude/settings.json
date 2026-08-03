@@ -20,7 +20,10 @@
       "Bash(grep -o \"INSERT INTO \\\\`likes\\\\` \\([^\\)]*\\)\" src/week16/sql/seed.sql)",
       "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -N -B review_community -e \"SELECT user_id FROM likes WHERE post_id=1 ORDER BY user_id;\")",
       "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -N -B review_community -e \"SELECT COUNT\\(*\\) FROM likes;\")",
-      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 review_community -e \"INSERT IGNORE INTO likes \\(user_id, post_id\\) VALUES \\(4,1\\); SELECT COUNT\\(*\\) AS likes_total FROM likes;\")"
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 review_community -e \"INSERT IGNORE INTO likes \\(user_id, post_id\\) VALUES \\(4,1\\); SELECT COUNT\\(*\\) AS likes_total FROM likes;\")",
+      "Bash(rm -f /tmp/e.jar)",
+      "Bash(curl -s -c /tmp/e.jar -o /dev/null http://localhost:8081/)",
+      "Bash(curl -s -b /tmp/e.jar -c /tmp/e.jar -o /dev/null -D - -X POST -d 'username=user1&password=1234' http://localhost:8081/auth/authenticate.php)"
     ]
   }
 }

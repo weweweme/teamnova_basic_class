@@ -784,6 +784,17 @@ mark { background: #7a6000; color: #fff3a3; }
 .auth-form button { padding: 11px; background: #2b6cff; color: #fff; border: none;
   border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 700; }
 .auth-form button:hover { background: #1a56e0; }
+
+/* '로그인 유지' 체크박스 (week16)
+   ★ 위의 .auth-form label 은 '이름표 위 / 입력칸 아래'로 세로 배치(flex column)다.
+     체크박스는 '네모 옆에 글자'가 자연스러우므로 여기서만 가로(row)로 되돌린다.
+   ★ .auth-form input 의 width:100% · padding 도 되돌린다 — 안 그러면 체크박스가
+     칸 전체로 늘어나 거대한 네모가 된다. */
+.auth-form .auth-remember { flex-direction: row; align-items: center; gap: 8px;
+  font-weight: 500; font-size: 14px; color: #bbb; cursor: pointer; }
+.auth-form .auth-remember input { width: auto; padding: 0; margin: 0;
+  accent-color: #2b6cff; cursor: pointer; }   /* accent-color = 체크 표시 색을 테마에 맞춤 */
+.auth-form .auth-remember .muted { font-size: 12px; }
 code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
 
 /* 글쓰기 폼 — 카드로 감싸 로그인 폼과 통일감 */

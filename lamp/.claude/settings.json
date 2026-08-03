@@ -47,7 +47,13 @@
       "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -N -B review_community -e \"SELECT id,views FROM posts ORDER BY id;\")",
       "Bash(perl -ne 'while \\(/\\\\\\(\\(\\\\d+\\),\\\\d+,\\\\d+,'\"'\"'\\(?:[^'\"'\"'\\\\\\\\]|\\\\\\\\.\\)*'\"'\"','\"'\"'\\(?:[^'\"'\"'\\\\\\\\]|\\\\\\\\.\\)*'\"'\"','\"'\"'[^'\"'\"']*'\"'\"',\\(\\\\d+\\),/g\\) { print \"$1\\\\t$2\\\\n\" }' sql/seed.sql)",
       "Read(//tmp/**)",
-      "Bash(perl \"C:/Users/argen/AppData/Local/Temp/claude/c--git-work-teamnova-basic-class-lamp/5cfde138-11de-4c8b-83f7-6d21bbbc7b06/scratchpad/seed_views.pl\" sql/seed.sql)"
+      "Bash(perl \"C:/Users/argen/AppData/Local/Temp/claude/c--git-work-teamnova-basic-class-lamp/5cfde138-11de-4c8b-83f7-6d21bbbc7b06/scratchpad/seed_views.pl\" sql/seed.sql)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -N -B review_community -e \"SELECT filename FROM schema_migrations;\")",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -N -B review_community -e \"SHOW TABLES LIKE 'remember_tokens'; SELECT filename FROM schema_migrations ORDER BY filename;\")",
+      "Bash(curl -s -o /dev/null -w '' http://localhost:8081/)",
+      "Bash(break)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -N -B review_community -e \"SHOW TABLES LIKE 'remember_tokens';\")",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -N -B review_community -e \"SELECT filename FROM schema_migrations ORDER BY filename;\")"
     ]
   }
 }

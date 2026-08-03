@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/db.php';     // users 표를 조회하므로
 require_once __DIR__ . '/util.php';   // redirect() · set_flash() (util.php가 session.php를 켜준다)
+require_once __DIR__ . '/remember.php';   // '로그인 유지' 쿠키로 세션을 되살리므로
 
 // ★★ 비밀번호는 '절대' 그대로 저장하지 않는다.
 //    password_hash()로 만든 '해시'(단방향으로 뒤섞은 값)만 users.password에 저장한다.
@@ -147,9 +148,10 @@ function is_logged_in(): bool {
     return current_user_row() !== null;
 }
 
-// 로그인 성공 → 세션에 회원 번호를 적고 보낸다.
-//   week15처럼 주소에 '넘겨주는' 게 아니라, 서버가 '기록'한다.
-function login_and_redirect(int $userId, string $path = '/'): never {
+// 세션에 '이 사람이 로그인했다'를 적는다.
+//   ★ 로그인 화면을 거친 경우와 '로그인 유지' 쿠키로 되살아난 경우가 **둘 다 여기를 지난다.**
+//     한쪽만 아래 방어를 빠뜨리면 그 경로만 조용히 뚫리는데, 그런 구멍은 눈에 잘 안 띈다.
+function start_session_for(int $userId): void {
     // ★★ 번호표를 새것으로 갈아 끼운다 — 세션 고정 공격(session fixation) 방어.
     //   [어떤 공격인가]
     //     공격자가 자기 번호표를 피해자에게 미리 쥐여준다(링크에 세션 ID를 심는 등).
@@ -163,6 +165,18 @@ function login_and_redirect(int $userId, string $path = '/'): never {
 
     // ★ 아이디(이름)가 아니라 번호를 담는다. 변하지 않는 열쇠이기 때문 (find_user_by_id 주석 참고).
     $_SESSION[SESSION_USER_ID] = $userId;
+}
+
+// 로그인 성공 → 세션에 회원 번호를 적고 보낸다.
+//   week15처럼 주소에 '넘겨주는' 게 아니라, 서버가 '기록'한다.
+//   $remember = 로그인 화면에서 '로그인 유지'를 체크했는가.
+//     체크했으면 세션과 **별도로** 오래 사는 쿠키를 하나 더 발급한다 (remember.php).
+function login_and_redirect(int $userId, bool $remember = false, string $path = '/'): never {
+    start_session_for($userId);
+
+    if ($remember) {
+        remember_issue($userId);
+    }
 
     redirect($path);
 }
@@ -170,8 +184,14 @@ function login_and_redirect(int $userId, string $path = '/'): never {
 // 로그아웃 → 서버 금고를 비운다.
 //   ★ week15에는 여기서 할 일이 없었다. 서버가 아무것도 기억하지 않았으니
 //     '?as= 를 안 붙인 주소로 보내는 것'이 곧 로그아웃이었다.
-//     이제는 진짜로 지울 것이 생겼다 — 세 단계를 모두 밟아야 깨끗이 지워진다.
+//     이제는 진짜로 지울 것이 생겼다 — 네 단계를 모두 밟아야 깨끗이 지워진다.
 function logout_and_redirect(string $path = '/'): never {
+    // ⓪ '로그인 유지' 표를 먼저 없앤다 (DB의 표 + 브라우저의 쿠키).
+    //   ★ 이걸 빠뜨리면 로그아웃해도 다음 접속에 쿠키가 다시 로그인시켜 버린다.
+    //     사용자 눈에는 "로그아웃이 안 된다"로 보이는, 아주 나쁜 버그다.
+    //   ★ 세션을 비우기 '전에' 해야 한다 — 쿠키 값을 읽어야 어느 표를 지울지 알 수 있다.
+    remember_forget();
+
     // ① 금고 안의 내용물을 비운다
     $_SESSION = [];
 
@@ -216,4 +236,24 @@ function require_login(): void {
 //   남의 글을 수정·삭제하지 못하게 막을 때 쓴다.
 function is_owner(string $author): bool {
     return is_logged_in() && current_user() === $author;
+}
+
+// ── 자동 로그인: '로그인 유지' 쿠키로 세션 되살리기 ───────────
+//
+//   [왜 함수 안이 아니라 여기서 바로 실행하나]
+//     되살리는 과정에서 **쿠키를 새로 굽는다**(토큰 회전). 쿠키는 HTTP 헤더라
+//     화면에 한 글자라도 출력된 뒤에는 보낼 수 없다.
+//     auth.php는 모든 화면·액션 파일이 HTML보다 먼저 require 하므로, 여기서 실행하면
+//     항상 '출력 전'이 보장된다. (current_user_row() 안에 넣었다면 호출 시점이
+//      페이지마다 달라져서, 어떤 페이지에서는 출력 뒤에 불려 조용히 실패했을 것이다)
+//
+//   [조건 두 개]
+//     ① 세션이 비어 있을 때만 — 이미 로그인돼 있으면 할 일이 없다.
+//     ② 쿠키가 있을 때만 — 없으면 DB를 조회할 이유조차 없다(대부분의 요청이 여기서 끝난다).
+if (empty($_SESSION[SESSION_USER_ID]) && isset($_COOKIE[REMEMBER_COOKIE])) {
+    $rememberedId = remember_lookup();     // 표가 맞으면 회원 번호, 아니면 0 (+ 표를 새것으로 회전)
+    if ($rememberedId !== 0) {
+        // ★ 로그인 화면을 거친 것과 똑같은 함수를 쓴다 → 세션 고정 방어가 양쪽에 똑같이 걸린다.
+        start_session_for($rememberedId);
+    }
 }

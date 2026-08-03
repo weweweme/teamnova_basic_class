@@ -5,7 +5,7 @@
 // ============================================================
 
 require_once __DIR__ . '/db.php';     // users 표를 조회하므로
-require_once __DIR__ . '/util.php';   // 신원을 주소에서 꺼내므로 (get_str·IDENTITY_KEY·redirect)
+require_once __DIR__ . '/util.php';   // redirect() · set_flash() (util.php가 session.php를 켜준다)
 
 // ★★ 비밀번호는 '절대' 그대로 저장하지 않는다.
 //    password_hash()로 만든 '해시'(단방향으로 뒤섞은 값)만 users.password에 저장한다.
@@ -16,6 +16,17 @@ require_once __DIR__ . '/util.php';   // 신원을 주소에서 꺼내므로 (ge
 function find_user(string $username): ?array {
     $stmt = db()->prepare('SELECT * FROM users WHERE username = ?');
     $stmt->execute([$username]);
+    $row = $stmt->fetch();
+    return $row !== false ? $row : null;
+}
+
+// 회원 번호(id)로 회원 한 명 찾기. 없으면 null.
+//   ★ 세션에는 아이디가 아니라 '번호'를 담는다 → 그걸 다시 회원 정보로 바꿀 때 쓴다.
+//     왜 번호인가: 아이디(username)는 사람이 읽는 이름이라 언젠가 바꿀 수 있지만,
+//     번호는 그 회원을 가리키는 변하지 않는 열쇠다(기본키). 외래키도 전부 번호를 쓴다.
+function find_user_by_id(int $id): ?array {
+    $stmt = db()->prepare('SELECT * FROM users WHERE id = ?');
+    $stmt->execute([$id]);
     $row = $stmt->fetch();
     return $row !== false ? $row : null;
 }
@@ -78,29 +89,31 @@ function verify_login(string $username, string $password): ?array {
     return $user;
 }
 
-// ── '지금 누구인지' 읽기 (주소에 실려온 신원) ─────────────────
+// ── '지금 누구인지' 읽기 (세션에 적힌 신원) ───────────────────
 //
-//   [로그인 상태를 어디에 두나]
-//     HTTP는 요청 하나하나가 서로를 기억하지 못하고, PHP 스크립트는 요청 한 번을
-//     처리한 뒤 죽는다. 그래서 서버가 '방금 누가 왔었는지'를 스스로 기억할 수 없다.
-//     → 그래서 '지금 누구인지'를 주소에 실어(?as=영화광) 매 요청마다 다시 알려준다.
+//   [무엇이 바뀌었나 — week15 → week16]
+//     week15: 주소에 실어 날랐다 → ?as=영화광
+//             ★ 주소창의 as= 를 남의 아이디로 고치면 그대로 그 사람이 됐다(사칭).
+//               비밀번호 확인은 로그인하는 순간 딱 한 번이고, 그 뒤 요청들은
+//               "내가 누구라고 주장하는 값"을 그냥 믿었기 때문이다.
+//               브라우저가 보내는 값은 GET이든 POST든 사용자가 다 고칠 수 있어서
+//               hidden 필드로 숨겨도 소용없었다. 구조적으로 막을 수가 없었다.
 //
-//     심는 곳    : 로그인 성공 시 login_and_redirect() 가 주소에 얹는다.
-//     이어붙이는 곳: util.php 의 build_url() — 그 뒤로는 링크·폼·리다이렉트가 자동으로 물고 다닌다.
+//     week16: 서버 금고(세션)에 적어둔다 → $_SESSION['user_id']
+//             ★ 값이 서버에 있으니 사용자가 손댈 수 없다. 브라우저가 들고 다니는 건
+//               금고 번호표(쿠키 PHPSESSID)뿐이고, 번호를 위조해도 빈 금고만 열린다.
+//               → 사칭이 구조적으로 막힌다. 이것이 week16의 핵심 성과다.
 //
-//   ★★ 솔직히 말하면 이 방식은 '사칭'을 막지 못한다.
-//      주소창의 as= 값을 남의 아이디로 고쳐 치면 그대로 그 사람이 되어버린다.
-//      비밀번호 확인(verify_login)은 로그인하는 순간 딱 한 번 일어나고,
-//      그 뒤의 요청들은 "내가 누구라고 주장하는 값"을 그냥 믿기 때문이다.
-//
-//      막을 방법이 없는 이유: 브라우저가 보내는 값은 GET이든 POST든 사용자가 다 고칠 수 있다.
-//      (hidden 필드로 숨겨도 개발자도구로 고쳐 보낼 수 있으니 마찬가지다)
-//      → 진짜 해결책은 '정답을 서버가 자기 쪽에 들고 있는 것' = 세션. 다음 주차 주제.
+//     심는 곳  : 로그인 성공 시 login_and_redirect()
+//     지우는 곳: 로그아웃 시 logout_and_redirect()
+//     읽는 곳  : 아래 current_user_row() — 프로젝트 전체에서 여기 하나뿐이다.
 
-// 지금 요청에 실려온 회원 정보(users 표 한 줄). 신원이 없거나 없는 아이디면 null.
-//   ★ users 표에 있는 아이디인지 꼭 확인한다.
-//     안 하면 ?as=아무개 같은 '유령 사용자'가 통과해서, 글쓰기 때 작성자 번호를
-//     찾지 못해 외래키 오류로 페이지가 통째로 터진다.
+// 지금 로그인한 회원 정보(users 표 한 줄). 로그인 안 했으면 null.
+//   ★ 세션엔 번호만 있으므로 매 요청 DB에서 최신 정보를 읽어온다.
+//     회원 정보를 통째로 세션에 넣지 않는 이유: 닉네임·아바타를 바꿔도
+//     다시 로그인하기 전까지 옛날 값이 화면에 남는 버그가 생기기 때문이다.
+//   ★ 표에 실제로 있는지 꼭 확인한다. 탈퇴 등으로 회원이 사라졌는데 세션만 남아 있으면
+//     글쓰기 때 작성자 번호를 찾지 못해 외래키 오류로 페이지가 통째로 터진다.
 function current_user_row(): ?array {
     // 한 요청 안에서 current_user()·current_user_id()·current_nickname()이
     // 여러 번 불리므로, 조회 결과를 기억해 DB 조회를 1회로 끝낸다.
@@ -112,8 +125,9 @@ function current_user_row(): ?array {
         return $cached;
     }
 
-    $username = identity_from_request();
-    $cached = $username === '' ? null : find_user($username);
+    // 세션에 번호가 없으면 로그인 안 한 상태다. (?? 0 = 없으면 0)
+    $userId = (int) ($_SESSION[SESSION_USER_ID] ?? 0);
+    $cached = $userId === 0 ? null : find_user_by_id($userId);
     return $cached;
 }
 
@@ -133,17 +147,55 @@ function is_logged_in(): bool {
     return current_user_row() !== null;
 }
 
-// 로그인 성공 → 신원을 주소에 심어서 보낸다.
-//   세션에 '기록'하는 게 아니라, 다음 주소에 ?as=아이디 를 붙여 '넘겨준다'.
-function login_and_redirect(string $username, string $path = '/'): never {
-    redirect($path, [IDENTITY_KEY => $username]);
+// 로그인 성공 → 세션에 회원 번호를 적고 보낸다.
+//   week15처럼 주소에 '넘겨주는' 게 아니라, 서버가 '기록'한다.
+function login_and_redirect(int $userId, string $path = '/'): never {
+    // ★★ 번호표를 새것으로 갈아 끼운다 — 세션 고정 공격(session fixation) 방어.
+    //   [어떤 공격인가]
+    //     공격자가 자기 번호표를 피해자에게 미리 쥐여준다(링크에 세션 ID를 심는 등).
+    //     피해자가 그 번호표를 든 채로 로그인하면, 서버는 '그 번호표 = 로그인된 사람'으로
+    //     기록한다. 같은 번호표를 가진 공격자도 그대로 로그인 상태가 되어버린다.
+    //   [왜 이 한 줄로 막히나]
+    //     로그인하는 '순간' 번호를 새로 뽑아 쓰므로, 미리 쥐여준 옛 번호는 무효가 된다.
+    //   true = 옛 세션 데이터를 서버에서 즉시 지운다.
+    //     (안 지우면 옛 번호표가 한동안 살아 있어 방어가 반쪽이 된다)
+    session_regenerate_id(true);
+
+    // ★ 아이디(이름)가 아니라 번호를 담는다. 변하지 않는 열쇠이기 때문 (find_user_by_id 주석 참고).
+    $_SESSION[SESSION_USER_ID] = $userId;
+
+    redirect($path);
 }
 
-// 로그아웃 → 주소에서 신원을 뗀다.
-//   ★ 서버에는 지울 것이 없다. 애초에 서버가 아무것도 기억하지 않기 때문이다.
-//     (세션 방식이라면 여기서 서버 금고를 비워야 했다)
+// 로그아웃 → 서버 금고를 비운다.
+//   ★ week15에는 여기서 할 일이 없었다. 서버가 아무것도 기억하지 않았으니
+//     '?as= 를 안 붙인 주소로 보내는 것'이 곧 로그아웃이었다.
+//     이제는 진짜로 지울 것이 생겼다 — 세 단계를 모두 밟아야 깨끗이 지워진다.
 function logout_and_redirect(string $path = '/'): never {
-    redirect($path, [IDENTITY_KEY => null]);   // null = build_url()이 주소에서 빼버린다
+    // ① 금고 안의 내용물을 비운다
+    $_SESSION = [];
+
+    // ② 브라우저가 든 번호표(쿠키)도 회수한다.
+    //   ①만 하면 빈 금고에 번호표만 계속 들고 다니게 된다.
+    //   '지우는 법'이 따로 있는 게 아니라, 만료 시각을 과거로 줘서 브라우저가 버리게 한다.
+    //   ★ 쿠키를 심을 때 쓴 옵션(path·domain·secure…)을 그대로 넣어야 같은 쿠키로 인식해 지운다.
+    //     한 글자라도 다르면 '다른 쿠키'로 보고 옛것이 그대로 남는다.
+    if (ini_get('session.use_cookies')) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', [
+            'expires'  => time() - 42000,        // 과거 시각 = "이미 만료됨, 버려라"
+            'path'     => $params['path'],
+            'domain'   => $params['domain'],
+            'secure'   => $params['secure'],
+            'httponly' => $params['httponly'],
+            'samesite' => $params['samesite'],
+        ]);
+    }
+
+    // ③ 서버 쪽 저장분을 완전히 파기한다
+    session_destroy();
+
+    redirect($path);
 }
 
 // ── 접근 제어 ────────────────────────────────────────────────

@@ -97,8 +97,17 @@
       → 사용자가 고칠 수 있다 = **믿으면 안 된다**. 대신 브라우저를 닫아도 남는다.
     - 판단 기준: **틀리면 손해 보는 것은 세션, 틀려도 취향일 뿐인 것은 쿠키.**
   - **구현 예정** (우선순위 순 — 자세한 근거는 `week16/README.md` 11절):
-    1. **세션 로그인 전환**(필수) — `?as=` 제거 → `$_SESSION`. `session_regenerate_id(true)`로
-       세션 고정 공격 방어. URL 리라이터·`identity_params()`·`build_url()`의 신원 얹기가 통째로 삭제된다.
+    1. ✅ **세션 로그인 전환 — 완료.** `?as=` 제거 → `$_SESSION['user_id']`.
+       - 새 파일 `includes/session.php`가 세션을 켜는 **유일한 자리**. `util.php`가 부른다
+         (모든 페이지가 util을 가장 먼저 부르므로 화면 파일은 세션을 신경 쓸 필요가 없다).
+         쿠키 옵션 `HttpOnly`·`SameSite=Lax`·`secure`(https일 때만) + `use_strict_mode`.
+       - 세션엔 **회원 번호만** 담는다(`SESSION_USER_ID`). 닉네임·아바타는 매 요청 DB 조회
+         → 설정에서 바꿔도 재로그인 없이 바로 반영된다.
+       - 로그인 시 `session_regenerate_id(true)`(세션 고정 방어), 로그아웃은 3단계
+         (금고 비우기 → 번호표 쿠키 회수 → `session_destroy()`).
+       - **삭제된 것**: `IDENTITY_KEY`·`identity_from_request()`·`identity_params()`,
+         `header.php`의 URL 리라이터 블록, `main.js`의 `withIdentity()`.
+       - curl로 확인: 사칭(`?as=`) 차단 ✅ / 세션ID 재발급 ✅ / 링크 `as=` 0건 ✅ / 로그아웃 쿠키 삭제 ✅.
     2. **플래시를 세션으로** — 주소 파라미터 4개와 우회책 2개가 사라진다.
     3. **CSRF 토큰** — **세션이 생겨야 비로소 가능**한 방어. week15는 서버가 아무것도
        기억 못 해서 토큰을 발급할 수조차 없었다. POST 액션 파일 전체에 적용.

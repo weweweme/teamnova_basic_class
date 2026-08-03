@@ -12,28 +12,11 @@ require_once __DIR__ . '/auth.php';   // 로그인 상태에 따라 메뉴가 �
 require_once __DIR__ . '/level.php';  // 작성자 옆 등급 배지(user_level) — 모든 화면에서 씀
 require_once __DIR__ . '/notifications.php';  // 상단바 🔔 안읽은 개수
 
-// ── 신원(?as=)을 이 페이지의 모든 링크·폼에 자동으로 붙인다 ──
-//   [왜 필요한가]
-//     세션이 없으니 '지금 누구인지'를 매 요청마다 주소로 알려줘야 한다.
-//     그런데 링크가 30곳이 넘어서, 하나씩 손으로 붙이면 반드시 어딘가를 빠뜨린다.
-//     빠뜨린 링크를 누르는 순간 로그아웃되는데, 원인을 찾기가 아주 어렵다.
-//
-//   [해결] PHP 내장 URL 리라이터를 쓴다.
-//     output_add_rewrite_var() = "지금부터 출력되는 HTML의 링크·폼에 이 값을 끼워 넣어라".
-//       · <a href="/board/">        → <a href="/board/?as=영화광">
-//       · <form action="/x.php">    → 안에 <input type="hidden" name="as" ...> 를 심어준다
-//       · 외부 절대 주소(TMDB 이미지 등)·#앵커·mailto: 는 건드리지 않는다
-//       · 값은 링크에선 URL 인코딩, hidden 필드에선 HTML 이스케이프되어 안전하다
-//     url_rewriter.tags 기본값은 'form=' 뿐이라, 링크(a)까지 포함되도록 직접 지정한다.
-//
-//   ★ 출력이 시작되기 전에 불러야 한다 → 그래서 HTML보다 위인 여기에 둔다.
-//   ★ current_user()로 '실제로 users 표에 있는 아이디'일 때만 켠다.
-//     (주소에 아무 값이나 넣어도 그 쓰레기값이 온 사이트 링크에 퍼지지 않도록)
-$identity = current_user();
-if ($identity !== null) {
-    ini_set('url_rewriter.tags', 'a=href,area=href,form=,fieldset=');
-    output_add_rewrite_var(IDENTITY_KEY, $identity);
-}
+// ★ week16에서 여기 있던 'URL 리라이터' 블록이 통째로 사라졌다.
+//   week15는 세션이 없어서 신원(?as=영화광)을 링크 30여 곳에 빠짐없이 붙여야 했고,
+//   손으로는 반드시 빠뜨리므로 PHP 내장 리라이터(output_add_rewrite_var)를 켜서
+//   출력되는 모든 <a href>와 <form>에 자동으로 끼워 넣었다.
+//   → 신원이 세션으로 옮겨가면서 붙일 것 자체가 없어졌다. 링크는 이제 그냥 링크다.
 
 // ── 상단바 검색창에 미리 채워둘 검색어 ──────────────────────
 //   검색 화면에서는 방금 친 말이 칸에 남아 있어야 한다 — 한 글자만 고쳐 다시 찾는 일이 잦다.

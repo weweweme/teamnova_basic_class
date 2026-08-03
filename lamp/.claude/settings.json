@@ -2,7 +2,25 @@
   "permissions": {
     "allow": [
       "Bash(sed -i 's|\\(`rank\\\\.php`, 상단바\\)|\\(`rank/`, 상단바\\)|; s|공개 프로필\\(`profile\\\\.php`\\)|공개 프로필\\(`profile/`\\)|; s|설정\\(`settings\\\\.php`, 로그인 전용\\)|설정\\(`settings/`, 로그인 전용\\)|; s|목록\\(`notifications\\\\.php`\\)|목록\\(`notifications/`\\)|' README.md)",
-      "Bash(grep -n '`rank/`\\\\|`profile/`\\\\|`settings/`\\\\|`notifications/`' README.md)"
+      "Bash(grep -n '`rank/`\\\\|`profile/`\\\\|`settings/`\\\\|`notifications/`' README.md)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp bash -c 'for f in includes/session.php includes/util.php includes/auth.php includes/header.php auth/authenticate.php auth/logout.php; do /usr/local/apache2/bin/httpd -v >/dev/null; php -l \"/var/www/html/week16/$f\" 2>&1 || echo \"no php cli\"; done')",
+      "Bash(rm -f /tmp/wk16.jar)",
+      "Bash(curl -s -c /tmp/wk16.jar -o /dev/null -D - http://localhost:8081/)",
+      "Bash(rm -f /tmp/d.jar)",
+      "Bash(curl -s -c /tmp/d.jar -o /dev/null http://localhost:8081/)",
+      "Bash(curl -s -b /tmp/d.jar -c /tmp/d.jar -o /dev/null -X POST -d 'username=user2&password=1234' http://localhost:8081/auth/authenticate.php)",
+      "Bash(curl -s -b /tmp/d.jar -o /dev/null -D - -X POST --data-urlencode post_id=1 --data-urlencode 'content=세션 전환 테스트 댓글' http://localhost:8081/comment/create.php)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 --default-character-set=utf8mb4 -N -B review_community -e \"SELECT p.id, u.username, p.title FROM posts p JOIN users u ON u.id=p.author_id ORDER BY p.id DESC LIMIT 1; SELECT c.id, u.username, c.content FROM comments c JOIN users u ON u.id=c.author_id ORDER BY c.id DESC LIMIT 1;\")",
+      "Bash(curl -s -b /tmp/d.jar -X POST --data-urlencode post_id=1 --data-urlencode content=테스트 http://localhost:8081/comment/create.php)",
+      "Bash(curl -s -b /tmp/d.jar -o /dev/null -D - -X POST -d post_id=1 -d content=session+test+comment http://localhost:8081/comment/create.php)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 --default-character-set=utf8mb4 -N -B review_community -e \"SELECT 'post', p.id, u.username, p.title FROM posts p JOIN users u ON u.id=p.author_id ORDER BY p.id DESC LIMIT 1; SELECT 'comment', c.id, u.username, c.content FROM comments c JOIN users u ON u.id=c.author_id ORDER BY c.id DESC LIMIT 1;\")",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 --default-character-set=utf8mb4 -N -B review_community -e ' *)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -N -B review_community -e \"SELECT id,username FROM users WHERE username='user1'; SELECT COUNT\\(*\\) FROM likes WHERE post_id=1;\")",
+      "Bash(grep -o \"INSERT INTO \\\\`likes\\\\`[^;]*\" src/week16/sql/seed.sql)",
+      "Bash(grep -o \"INSERT INTO \\\\`likes\\\\` \\([^\\)]*\\)\" src/week16/sql/seed.sql)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -N -B review_community -e \"SELECT user_id FROM likes WHERE post_id=1 ORDER BY user_id;\")",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -N -B review_community -e \"SELECT COUNT\\(*\\) FROM likes;\")",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 review_community -e \"INSERT IGNORE INTO likes \\(user_id, post_id\\) VALUES \\(4,1\\); SELECT COUNT\\(*\\) AS likes_total FROM likes;\")"
     ]
   }
 }

@@ -38,7 +38,16 @@
       "Bash(curl -s -b /tmp/n.jar -c /tmp/n.jar http://localhost:8081/post/write.php?work=tmdb-496243)",
       "Bash(curl -s -b /tmp/r.jar -c /tmp/r.jar http://localhost:8081/)",
       "Bash(awk '/👀 최근 본 글/,/<\\\\/ol>/')",
-      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 review_community -e \"UPDATE posts SET deleted_at=NULL WHERE id=8;\")"
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 review_community -e \"UPDATE posts SET deleted_at=NULL WHERE id=8;\")",
+      "Bash(grep -vE 'p\\\\.views|'\\\\''views'\\\\''|\\\\$p\\\\['\\\\''views'\\\\''\\\\]|sort|정렬|조회순|SELECT')",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -N -B review_community -e \"SELECT id, views FROM posts WHERE id IN \\(1,2\\) ORDER BY id;\")",
+      "Bash(rm -f /tmp/w.jar)",
+      "Bash(curl -s -c /tmp/w.jar http://localhost:8081/post/view.php?id=2)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -N -B review_community -e \"SELECT p.id,p.views FROM posts p JOIN media m ON p.media_id=m.id WHERE m.slug='tmdb-496243' ORDER BY p.views DESC LIMIT 2;\")",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -N -B review_community -e \"SELECT id,views FROM posts ORDER BY id;\")",
+      "Bash(perl -ne 'while \\(/\\\\\\(\\(\\\\d+\\),\\\\d+,\\\\d+,'\"'\"'\\(?:[^'\"'\"'\\\\\\\\]|\\\\\\\\.\\)*'\"'\"','\"'\"'\\(?:[^'\"'\"'\\\\\\\\]|\\\\\\\\.\\)*'\"'\"','\"'\"'[^'\"'\"']*'\"'\"',\\(\\\\d+\\),/g\\) { print \"$1\\\\t$2\\\\n\" }' sql/seed.sql)",
+      "Read(//tmp/**)",
+      "Bash(perl \"C:/Users/argen/AppData/Local/Temp/claude/c--git-work-teamnova-basic-class-lamp/5cfde138-11de-4c8b-83f7-6d21bbbc7b06/scratchpad/seed_views.pl\" sql/seed.sql)"
     ]
   }
 }

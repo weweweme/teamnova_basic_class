@@ -30,6 +30,17 @@ if ($post === null) {
 //   ★ 글이 있는 걸 확인한 '뒤에' 부른다. 없는 글 번호가 목록에 쌓이면 안 되니까.
 remember_recent_post($id);
 
+// ── 조회수 세기 (이번 방문에 처음 열 때만) ───────────────────
+//   ★ week15까지 posts.views 는 seed 숫자에서 한 번도 안 움직였다. 여기서 진짜로 센다.
+//   ★ 세션으로 '이미 봤는지'를 기억해 새로고침 연타로 부풀리는 걸 막는다.
+//     쿠키가 아니라 세션인 이유는 includes/posts.php의 '조회수' 절에 적어뒀다.
+if (count_post_view($id)) {
+    // 방금 올린 1을 화면에도 반영한다.
+    //   ($post는 올리기 '전'에 읽어온 값이라, 안 더하면 새로고침해야 반영된 것처럼 보인다.
+    //    이것 하나 때문에 글을 DB에서 다시 읽는 건 낭비다)
+    $post['views']++;
+}
+
 // ── 이 글의 댓글 목록 (comments 모듈이 더미 + 이번 접속에 쓴 것을 합쳐서 준다) ──
 $comments = get_comments($id);
 
@@ -85,6 +96,9 @@ require __DIR__ . '/../includes/header.php';
       ?>
       · <time datetime="<?= e(format_time_machine($shownAt)) ?>"
               title="<?= e(format_time_full((int)$post['created'])) ?> 작성"><?= e(format_time_full($shownAt)) ?></time>
+      <?php // 조회수 — week16에서 진짜로 세기 시작했다(count_post_view).
+            //   week15까지는 seed 숫자가 굳어 있어서 이 자리에 적을 값이 없었다. ?>
+      · <span class="muted">👁 <?= e((string)$post['views']) ?></span>
       <?php if ($isEdited): ?>
         <?php // 댓글과 같은 규칙 — 고친 사실을 숨기지 않는다 ?>
         <span class="muted comment-edited">(수정됨)</span>

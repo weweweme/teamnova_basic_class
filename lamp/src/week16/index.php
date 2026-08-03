@@ -34,6 +34,10 @@ if ($community) {
 // ── 사이드바 데이터 ──────────────────────────────────────────
 //   B) 지금 뜨는 글 = 조회수 순 상위 4개 (우리 커뮤니티 = 우리 정체성)
 $hotPosts = paginate_posts(sort_posts(get_posts(), 'views'), 1, 4);
+//   C) 최근 본 글 = 이 브라우저가 방금 본 글 (세션에 쌓인다 — week16에서 되살린 기능)
+//      ★ '지금 뜨는 글'과 축이 다르다: 저건 모두의 조회수, 이건 나 혼자의 발자국.
+//        로그인 여부와 무관하게 동작한다 — 세션은 '이 브라우저'의 공간이기 때문.
+$recentViewed = get_recent_posts();
 //   D) 오늘의 발견 = 인기작 중 하나 → 이것도 무거운 TMDB라 JS가 나중에 채운다(placeholder).
 
 $pageTitle = '홈 · 리뷰 커뮤니티';
@@ -66,6 +70,24 @@ require __DIR__ . '/includes/header.php';
                 <li>
                   <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= e($p['title']) ?></a>
                   <span class="side-meta"><?= e($p['workTitle']) ?> · 조회 <?= (int)$p['views'] ?></span>
+                </li>
+              <?php endforeach; ?>
+            </ol>
+          </section>
+        <?php endif; ?>
+
+        <?php // C) 최근 본 글 — 이 브라우저의 발자국 (세션).
+              //   ★ 한 번도 안 봤으면 칸 자체를 그리지 않는다. 빈 상자는 '없음'이 아니라
+              //     '고장'으로 보이기 때문 (통합검색에서 반대로 판단한 것과 기준이 다르다 —
+              //      거기선 세 칸이 항상 있어야 구조가 안 흔들렸고, 여기는 원래 없던 칸이다). ?>
+        <?php if ($recentViewed): ?>
+          <section class="side-box">
+            <h3>👀 최근 본 글</h3>
+            <ol class="side-hot">
+              <?php foreach ($recentViewed as $p): ?>
+                <li>
+                  <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= e($p['title']) ?></a>
+                  <span class="side-meta"><?= e($p['workTitle']) ?> · <?= e($p['authorNick']) ?></span>
                 </li>
               <?php endforeach; ?>
             </ol>

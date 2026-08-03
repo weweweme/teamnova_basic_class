@@ -60,6 +60,7 @@ require __DIR__ . '/../includes/header.php';
   </div>
 
   <form class="write-form" method="post" action="/post/update.php">
+    <?= csrf_field() ?>
 
     <!-- 어느 글을 수정하는지 서버에 알려준다 (화면엔 안 보이지만 함께 전송) -->
     <input type="hidden" name="id" value="<?= e((string)$id) ?>">

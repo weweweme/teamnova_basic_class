@@ -39,6 +39,7 @@ require __DIR__ . '/../includes/header.php';
            ★ 자동제출(onchange) 대신 main.js가 파일 선택을 가로채서
              올리기 전에 256px로 줄이고(WebP) 제출한다. JS 실패 시엔 원본 그대로 제출. -->
       <form class="avatar-form" method="post" action="/profile/avatar.php" enctype="multipart/form-data">
+        <?= csrf_field() ?>
         <label class="btn-upload">
           📷 이미지 변경
           <input type="file" name="avatar" id="avatar-input" accept="image/*" hidden>
@@ -53,6 +54,7 @@ require __DIR__ . '/../includes/header.php';
     <h2>닉네임</h2>
     <p class="muted">글·댓글·프로필에 보이는 이름이에요. (로그인 아이디는 안 바뀝니다)</p>
     <form class="settings-form" method="post" action="/settings/nickname.php">
+      <?= csrf_field() ?>
       <input type="text" name="nickname" value="<?= e($nickname) ?>"
              maxlength="20" required>
       <button type="submit">저장</button>
@@ -63,6 +65,7 @@ require __DIR__ . '/../includes/header.php';
   <section class="settings-section">
     <h2>비밀번호 변경</h2>
     <form class="settings-form settings-form-col" method="post" action="/settings/password.php">
+      <?= csrf_field() ?>
       <label>현재 비밀번호
         <input type="password" name="current" required>
       </label>

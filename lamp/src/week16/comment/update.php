@@ -18,6 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('/');
 }
 
+// ── 0-1) 우리 화면에서 온 요청이 맞나? (CSRF) ────────────────
+//   남의 사이트가 우리 폼을 흉내 내 쏜 POST를 걸러낸다.
+//   ★ POST를 처리하는 파일은 예외 없이 이 줄을 갖는다 — 한 곳이라도 빠지면 그 파일이 통로가 된다.
+require_csrf();
+
 // ── 1) 값 받기 ───────────────────────────────────────────────
 //   comment_id = 고칠 댓글 / post_id = 돌아갈 글 (둘 다 hidden으로 옴)
 $commentId = post_int('comment_id', 0);

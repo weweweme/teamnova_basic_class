@@ -22,6 +22,7 @@ require __DIR__ . '/../includes/header.php';
 
   <!-- 로그인 정보는 민감하므로 반드시 POST (주소에 비밀번호가 남으면 큰일) -->
   <form class="auth-form" method="post" action="/auth/authenticate.php">
+    <?= csrf_field() ?>
     <label>아이디
       <input type="text" name="username" required autofocus>
     </label>

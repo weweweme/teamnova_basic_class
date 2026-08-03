@@ -135,6 +135,7 @@ require __DIR__ . '/../includes/header.php';
     <?php // 내가 고른 쪽 버튼을 채워서 표시한다 (버튼 색이 곧 '내 선택' 표시라 따로 안내문은 두지 않음) ?>
     <?php $myVote = my_vote($work); ?>
     <form class="vote-form" method="post" action="/vote/sentiment.php">
+      <?= csrf_field() ?>
       <input type="hidden" name="work" value="<?= e($work) ?>">
       <button type="submit" name="choice" value="추천"
               class="btn-buy <?= $myVote === '추천' ? 'voted-up' : '' ?>">👍 추천</button>

@@ -109,6 +109,7 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
         <a class="nav-user" href="/profile/?user=<?= urlencode((string)current_user()) ?>"><?= e(current_nickname()) ?>님</a>
         <!-- 로그아웃은 '상태를 바꾸는' 동작이라 링크(GET)가 아니라 POST 폼 버튼 -->
         <form class="logout-form" method="post" action="/auth/logout.php">
+          <?= csrf_field() ?>
           <button type="submit">로그아웃</button>
         </form>
       <?php else: ?>
@@ -137,6 +138,7 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
         <?php // '되돌리기' 같은 후속 동작 버튼 (있을 때만) ?>
         <?php if (!empty($flash['action'])): ?>
           <form method="post" action="<?= e($flash['action']['url']) ?>">
+            <?= csrf_field() ?>
             <?php // 어느 글을 되돌릴지 등은 hidden으로 함께 보낸다 ?>
             <?php foreach ($flash['action']['fields'] as $name => $value): ?>
               <input type="hidden" name="<?= e($name) ?>" value="<?= e((string)$value) ?>">

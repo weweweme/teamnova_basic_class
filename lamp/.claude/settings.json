@@ -23,7 +23,19 @@
       "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 review_community -e \"INSERT IGNORE INTO likes \\(user_id, post_id\\) VALUES \\(4,1\\); SELECT COUNT\\(*\\) AS likes_total FROM likes;\")",
       "Bash(rm -f /tmp/e.jar)",
       "Bash(curl -s -c /tmp/e.jar -o /dev/null http://localhost:8081/)",
-      "Bash(curl -s -b /tmp/e.jar -c /tmp/e.jar -o /dev/null -D - -X POST -d 'username=user1&password=1234' http://localhost:8081/auth/authenticate.php)"
+      "Bash(curl -s -b /tmp/e.jar -c /tmp/e.jar -o /dev/null -D - -X POST -d 'username=user1&password=1234' http://localhost:8081/auth/authenticate.php)",
+      "Bash(grep -v ':0$')",
+      "Bash(perl \"C:/Users/argen/AppData/Local/Temp/claude/c--git-work-teamnova-basic-class-lamp/5cfde138-11de-4c8b-83f7-6d21bbbc7b06/scratchpad/add_csrf.pl\" auth/authenticate.php auth/logout.php auth/register.php comment/create.php comment/delete.php comment/update.php like/toggle.php post/create.php post/delete.php post/purge.php post/restore.php post/update.php profile/avatar.php report/create.php settings/nickname.php settings/password.php vote/sentiment.php)",
+      "Bash(perl \"C:/Users/argen/AppData/Local/Temp/claude/c--git-work-teamnova-basic-class-lamp/5cfde138-11de-4c8b-83f7-6d21bbbc7b06/scratchpad/add_csrf_field.pl\" auth/login.php auth/signup.php board/index.php includes/header.php post/edit.php post/view.php post/write.php settings/index.php trash/index.php)",
+      "Bash(perl \"C:/Users/argen/AppData/Local/Temp/claude/c--git-work-teamnova-basic-class-lamp/5cfde138-11de-4c8b-83f7-6d21bbbc7b06/scratchpad/fix_indent.pl\" auth/login.php auth/signup.php board/index.php includes/header.php post/edit.php post/view.php post/write.php settings/index.php trash/index.php)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:8081/auth/login.php)",
+      "Bash(curl -s http://localhost:8081/auth/login.php)",
+      "Bash(grep -rn '^\\\\s*//.*?>' --include=*.php includes/ auth/ post/ comment/ like/ vote/ report/ settings/ profile/ trash/ board/)",
+      "Bash(grep -rn '//[^\"]*?>' --include=*.php .)",
+      "Bash(grep -vE '\\\\?>\\\\s*$')",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 --default-character-set=utf8mb4 -N -B review_community -e \"SELECT id, username, nickname FROM users WHERE username IN \\('user3','user4'\\);\")",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 --default-character-set=utf8mb4 review_community -e \"UPDATE users SET nickname='심야관객3' WHERE username='user3'; SELECT id, username, nickname FROM users WHERE username='user3';\")",
+      "Bash(curl -s -b /tmp/n.jar -c /tmp/n.jar http://localhost:8081/post/write.php?work=tmdb-496243)"
     ]
   }
 }

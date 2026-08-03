@@ -51,6 +51,7 @@ require __DIR__ . '/../includes/header.php';
        method="post" : POST로 보낸다 (데이터가 주소에 안 보이고 '봉투 안'으로).
        action="/post/create.php" : 제출하면 이 파일이 처리한다. -->
   <form class="write-form" method="post" action="/post/create.php">
+    <?= csrf_field() ?>
 
     <!-- 어느 작품 글인지는 고정 — 게시판에서 넘어온 그 작품. hidden으로 slug를 함께 보낸다.
          (dropdown이 아닌 이유: 글쓰기는 특정 작품 게시판에서만 시작하므로 작품이 이미 정해짐) -->

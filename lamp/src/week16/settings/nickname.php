@@ -13,6 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('/settings/');
 }
 
+// ── 0-1) 우리 화면에서 온 요청이 맞나? (CSRF) ────────────────
+//   남의 사이트가 우리 폼을 흉내 내 쏜 POST를 걸러낸다.
+//   ★ POST를 처리하는 파일은 예외 없이 이 줄을 갖는다 — 한 곳이라도 빠지면 그 파일이 통로가 된다.
+require_csrf();
+
 $nickname = trim(post_str('nickname'));
 
 // 검증: 1~20자 (닉네임은 표시용이라 중복은 허용 — 신원은 아이디가 담당)

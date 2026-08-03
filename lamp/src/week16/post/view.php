@@ -98,6 +98,7 @@ require __DIR__ . '/../includes/header.php';
       <!-- 추천: hidden으로 어느 글인지(post_id)를 함께 보낸다.
            ★ 1인 1회 — 이미 눌렀으면 버튼이 채워지고, 다시 누르면 취소된다. -->
       <form class="like-form" method="post" action="/like/toggle.php">
+        <?= csrf_field() ?>
         <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
         <button type="submit" class="<?= has_liked($id) ? 'liked' : '' ?>">
           <?= has_liked($id) ? '👍 추천함' : '👍 추천' ?> <?= e((string)$post['likes']) ?>
@@ -117,6 +118,7 @@ require __DIR__ . '/../includes/header.php';
         <!-- 삭제: 되돌릴 수 없는 동작이라 반드시 POST 폼.
              class="delete-form" 을 보고 JS가 '정말 삭제할까요?' 확인창을 띄운다. -->
         <form class="delete-form" method="post" action="/post/delete.php">
+          <?= csrf_field() ?>
           <input type="hidden" name="id" value="<?= e((string)$id) ?>">
           <button type="submit" class="btn-delete">🗑 삭제</button>
         </form>
@@ -135,6 +137,7 @@ require __DIR__ . '/../includes/header.php';
        ★ 팝업은 '보여주는 방식'만 바꾼 것이고, 실제 신고는 이 안의 폼이 POST로 보낸다. -->
   <dialog id="report-dialog" class="modal">
     <form method="post" action="/report/create.php">
+      <?= csrf_field() ?>
       <h3>신고하기</h3>
       <p class="muted">신고 사유를 선택해 주세요.</p>
 
@@ -207,6 +210,7 @@ require __DIR__ . '/../includes/header.php';
             <?php if ($isEditing): ?>
               <?php // 수정 중 — 내용 자리를 폼으로 바꿔 끼운다 (댓글 줄은 그대로 유지) ?>
               <form class="comment-form comment-edit-form" method="post" action="/comment/update.php">
+                <?= csrf_field() ?>
                 <input type="hidden" name="comment_id" value="<?= e((string)$c['id']) ?>">
                 <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
                 <?php // 원래 내용을 미리 채워둔다 — 지우고 다시 쓰지 않게 ?>
@@ -231,6 +235,7 @@ require __DIR__ . '/../includes/header.php';
                 <a class="comment-action" href="<?= e($editUrl) ?>">수정</a>
                 <!-- 댓글 삭제: 어느 댓글인지(comment_id)와 돌아갈 글(post_id)을 함께 보낸다 -->
                 <form class="delete-form comment-delete" method="post" action="/comment/delete.php">
+                  <?= csrf_field() ?>
                   <input type="hidden" name="comment_id" value="<?= e((string)$c['id']) ?>">
                   <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
                   <button type="submit">삭제</button>
@@ -242,6 +247,7 @@ require __DIR__ . '/../includes/header.php';
           <?php // 이 댓글에 '답글 달기'를 눌러둔 상태라면 그 자리에 폼을 편다 ?>
           <?php if ($isReplying): ?>
             <form class="comment-form comment-reply-form" method="post" action="/comment/create.php">
+              <?= csrf_field() ?>
               <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
               <?php // 누구에게 다는 답글인지. 서버가 resolve_parent_id()로 한 번 더 검사한다. ?>
               <input type="hidden" name="parent_id" value="<?= e((string)$c['id']) ?>">
@@ -286,6 +292,7 @@ require __DIR__ . '/../includes/header.php';
       <!-- 댓글 작성 폼 → comment/create.php 로 POST
            ★ 작성자는 폼에 없다! 서버가 current_user()로 직접 알아낸다(위조 방지). -->
       <form class="comment-form" method="post" action="/comment/create.php">
+        <?= csrf_field() ?>
         <!-- hidden = 화면엔 안 보이지만 함께 전송되는 값. 이 댓글이 '몇 번 글'인지 알려줌. -->
         <input type="hidden" name="post_id" value="<?= e((string)$id) ?>">
         <textarea name="content" rows="3" maxlength="500" placeholder="댓글을 입력하세요" required></textarea>

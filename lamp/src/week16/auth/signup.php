@@ -20,6 +20,7 @@ require __DIR__ . '/../includes/header.php';
   <?php // 가입 실패 안내는 header.php가 주소(?flash=)에서 읽어 그린다 ?>
 
   <form class="auth-form" method="post" action="/auth/register.php">
+    <?= csrf_field() ?>
     <label>아이디
       <input type="text" name="username" required autofocus>
     </label>

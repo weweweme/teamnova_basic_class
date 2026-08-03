@@ -50,11 +50,13 @@ require __DIR__ . '/../includes/header.php';
           <div class="trash-actions">
             <!-- 되돌리기: 기존 복원 핸들러 재사용 -->
             <form method="post" action="/post/restore.php">
+              <?= csrf_field() ?>
               <input type="hidden" name="id" value="<?= e((string)$t['id']) ?>">
               <button type="submit" class="btn-restore">↩️ 되돌리기</button>
             </form>
             <!-- 지금 영구삭제: 되돌릴 수 없으니 JS로 확인창 (delete-form 클래스) -->
             <form class="delete-form" method="post" action="/post/purge.php">
+              <?= csrf_field() ?>
               <input type="hidden" name="id" value="<?= e((string)$t['id']) ?>">
               <button type="submit" class="btn-delete">🔥 영구삭제</button>
             </form>

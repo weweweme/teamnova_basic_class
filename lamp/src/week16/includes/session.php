@@ -66,6 +66,17 @@ if (session_status() === PHP_SESSION_NONE) {
     //   (로그인하는 순간 번호표를 갈아 끼우는 session_regenerate_id와 짝을 이루는 방어다 — auth.php)
     ini_set('session.use_strict_mode', '1');
 
+    // ── 세션을 '어디에' 저장할까 ─────────────────────────────
+    //   PHP 기본값은 서버의 임시 파일이다 (/tmp/sess_4adbe17d…).
+    //   그 자리를 DB 표(sessions)로 갈아 끼운다. 이유는 session_db.php 주석 참고.
+    //   ★ 이 두 줄만 주석 처리하면 곧바로 원래(파일) 방식으로 돌아간다.
+    //     저장 위치를 바꾸는 일이라, 되돌리는 길을 한 줄로 열어 두는 편이 안전하다.
+    //   ★ 두 번째 인자 true = '요청이 끝날 때 세션을 저장하라'를 PHP에 미리 예약해 둔다.
+    //     이걸 안 켜면 우리 핸들러가 쓰는 DB 연결이 먼저 정리돼 버려서,
+    //     마지막 저장이 조용히 실패하는 일이 생긴다.
+    require_once __DIR__ . '/session_db.php';
+    session_set_save_handler(new DbSessionHandler(), true);
+
     // 여기서 실제로 켜진다. 이 줄 위로는 화면에 한 글자도 출력되면 안 된다
     //   (쿠키는 HTTP 헤더로 나가는데, 헤더는 본문보다 먼저 보내지기 때문).
     session_start();

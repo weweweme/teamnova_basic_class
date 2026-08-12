@@ -161,3 +161,25 @@ CREATE TABLE remember_tokens (
     -- 회원이 사라지면 표도 함께 삭제. (글과 달리 '남겨야 할 내용물'이 아니라 로그인 부속물이므로)
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+
+-- ── sessions : 세션 저장소 ────────────────────────────────
+--   week16에서 추가. PHP 기본값은 '서버의 임시 파일'인데, 그걸 이 표로 옮겼다.
+--   ★ 옮긴 이유 셋: ①서버를 늘리면 파일은 공유가 안 된다 ②'이 회원의 세션 전부 끊기'가
+--     가능해진다(user_id 칼럼) ③세션이 눈에 보인다.
+--   ★ 세션 ID도 원본이 아니라 지문(SHA-256)으로 넣는다 — remember_tokens와 같은 방침.
+--   자세한 설계 근거는 sql/migrations/005_sessions.sql 주석 참고.
+CREATE TABLE sessions (
+    id_hash     CHAR(64) PRIMARY KEY,          -- SHA-256(세션 ID). 원본은 어디에도 안 남긴다
+    user_id     INT          NULL,             -- 비로그인 방문자도 세션이 있으므로 NULL 허용
+    payload     TEXT         NOT NULL,         -- PHP가 직렬화한 세션 내용
+    ip_address  VARCHAR(45)  NULL,             -- IPv6까지 담으려면 45글자
+    user_agent  VARCHAR(255) NULL,
+    last_active DATETIME     NOT NULL,         -- 새로고침할 때마다 갱신
+    expires_at  DATETIME     NOT NULL,         -- 청소(gc)의 기준
+    created_at  DATETIME     DEFAULT NOW(),
+
+    INDEX idx_sessions_expires (expires_at),
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

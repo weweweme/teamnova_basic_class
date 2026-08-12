@@ -112,6 +112,7 @@ require __DIR__ . '/../includes/header.php';
 
   let timer = null;
   let lastSent = '';           // 마지막으로 보낸 내용 — 같으면 안 보낸다(헛요청 방지)
+  let submitted = false;       // 등록 버튼을 눌렀나 (눌렀으면 떠날 때 저장할 필요 없다)
 
   function collect() {
     const data = new FormData(form);
@@ -141,7 +142,9 @@ require __DIR__ . '/../includes/header.php';
       const json = await res.json();
       if (json.ok) {
         lastSent = body;
-        status.textContent = '임시저장됨 ' + json.at;
+        // ★ 한계를 같이 적는다 — 이 초안은 세션에 있어서 창을 닫으면 사라진다.
+        //   "저장됐다"만 보여주면 사용자가 창을 닫아도 남을 거라 믿게 된다.
+        status.textContent = '임시저장됨 ' + json.at + ' · 창을 닫으면 사라집니다';
       }
     } catch (e) {
       // 저장에 실패해도 글쓰기 자체를 막지는 않는다 — 어디까지나 보조 장치다.
@@ -155,8 +158,24 @@ require __DIR__ . '/../includes/header.php';
     status.textContent = '';
   });
 
-  // 등록을 누르면 예약된 저장은 취소한다 (등록되면 초안은 서버가 지운다).
-  form.addEventListener('submit', function () { clearTimeout(timer); });
+  // ★ 페이지를 떠나기 직전에 한 번 더 저장한다 — 새로고침·뒤로가기·주소 이동 전부 여기로 온다.
+  //   [왜 fetch가 아니라 sendBeacon인가]
+  //     페이지가 사라지는 중에 보낸 fetch는 브라우저가 그냥 취소해 버린다.
+  //     sendBeacon은 '떠나는 중에도 끝까지 보내달라'고 브라우저에 맡기는 전용 함수다.
+  //     응답은 못 받지만(그래서 화면 표시는 못 함) 저장은 확실히 된다.
+  //   [왜 pagehide 인가] beforeunload는 모바일에서 안 불릴 때가 있다. pagehide가 더 확실하다.
+  window.addEventListener('pagehide', function () {
+    if (submitted) return;               // 등록 중이면 저장할 필요 없다 (서버가 곧 지운다)
+    const values = collect();
+    if (values.title === '' && values.content === '') return;
+    navigator.sendBeacon('/api/draft.php', new URLSearchParams(values));
+  });
+
+  // 등록을 누르면 예약된 저장을 취소한다 (등록되면 초안은 서버가 지운다).
+  form.addEventListener('submit', function () {
+    submitted = true;
+    clearTimeout(timer);
+  });
 })();
 </script>
 

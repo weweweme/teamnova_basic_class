@@ -180,37 +180,18 @@ document.querySelectorAll('input[maxlength], textarea[maxlength]').forEach(funct
 });
 
 
-// ── 작성 중 이탈 경고 ────────────────────────────────────────
-//   글을 쓰다가 실수로 뒤로가기·창닫기를 하면 쓰던 내용이 사라진다.
-//   내용을 건드린 적이 있을 때만 경고한다. (빈 폼에서 나가는데 막으면 짜증남)
+// ── 작성 중 이탈 경고 → week16에서 걷어냄 ────────────────────
+//   여기 원래 beforeunload 경고가 있었다. 글을 쓰다 나가면 브라우저가
+//   "변경사항이 저장되지 않을 수 있습니다"를 물어보게 하는 코드였다.
 //
-//   ★ 브라우저 보안 규칙: 경고 문구는 우리가 정할 수 없다.
-//     사이트가 겁주는 메시지를 띄우는 걸 막으려고, 브라우저가 정해진 문장만 보여준다.
-//     우리는 "물어볼지 말지"만 정할 수 있다.
-
-const writeForm = document.querySelector('.write-form');
-
-if (writeForm) {
-    let isDirty = false;   // 'dirty' = 손댄 흔적이 있다는 뜻 (편집기에서 쓰는 표현)
-
-    writeForm.addEventListener('input', function () {
-        isDirty = true;
-    });
-
-    // 제출은 정상적인 이탈이므로 경고하지 않는다.
-    //   ★ submit 이벤트가 beforeunload 보다 먼저 일어나기 때문에 이 순서가 통한다.
-    writeForm.addEventListener('submit', function () {
-        isDirty = false;
-    });
-
-    // 'beforeunload' = 페이지를 떠나기 직전에 발생하는 이벤트.
-    window.addEventListener('beforeunload', function (event) {
-        if (isDirty) {
-            // preventDefault() 를 부르면 브라우저가 "정말 나갈까요?" 를 대신 물어본다.
-            event.preventDefault();
-        }
-    });
-}
+//   ★ 없앤 이유: 이제 **거짓말이 되기 때문**이다.
+//     글쓰기 폼은 쓰는 동안 세션에 초안을 저장하고(post/write.php + api/draft.php),
+//     페이지를 떠나기 직전에도 sendBeacon으로 한 번 더 저장한다.
+//     실제로는 저장되는데 "저장 안 될 수 있다"고 물으면, 새로고침할 때마다
+//     쓸데없는 확인창이 뜨고 사용자는 그 경고를 신뢰하지 않게 된다.
+//
+//   ★ 남는 한계는 화면에 글로 알린다 — 창을 닫으면 세션과 함께 초안도 사라진다.
+//     '막는 장치'가 아니라 '되살리는 장치'로 바꾼 셈이다.
 
 
 // ── 작품 가로 줄: 좌우 화살표 + 마우스휠 가로 스크롤 ─────────

@@ -15,6 +15,11 @@ $userRow  = find_user($username);
 $avatar   = $userRow['avatar'] ?? null;
 $nickname = $userRow['nickname'] ?? $username;   // 표시 이름(변경 폼에 미리 채워둔다)
 
+// 지금 이 기기 말고 다른 곳에서 몇 개의 세션이 살아 있는가.
+//   ★ 이 숫자를 보여주는 이유: 버튼만 있으면 눌러도 무엇이 달라졌는지 알 수 없다.
+//     "2곳에서 로그인 중" → 누르고 나면 "다른 기기에 로그인된 곳이 없어요"로 바뀐다.
+$otherSessions = count_other_sessions(current_user_id(), session_id());
+
 $pageTitle = '설정';
 $containerClass = 'narrow';
 require __DIR__ . '/../includes/header.php';
@@ -73,6 +78,24 @@ require __DIR__ . '/../includes/header.php';
         <input type="password" name="new" minlength="4" required>
       </label>
       <button type="submit">변경</button>
+    </form>
+  </section>
+
+  <!-- ── 로그인 기기 관리 ───────────────────────────────────── -->
+  <?php // 세션을 DB로 옮기면서 비로소 만들 수 있게 된 기능. (settings/logout_others.php 주석 참고) ?>
+  <section class="settings-section">
+    <h2>로그인 기기</h2>
+    <?php if ($otherSessions > 0): ?>
+      <p class="muted">지금 이 기기 외에 <strong><?= $otherSessions ?>곳</strong>에서 로그인되어 있어요.</p>
+    <?php else: ?>
+      <p class="muted">다른 기기에 로그인된 곳이 없어요.</p>
+    <?php endif; ?>
+    <p class="muted">PC방이나 남의 기기에 로그인해 둔 게 걱정되면 한 번에 끊을 수 있어요.
+      <strong>지금 이 기기는 그대로 유지</strong>됩니다.</p>
+    <form method="post" action="/settings/logout_others.php"
+          onsubmit="return confirm('다른 기기에서 모두 로그아웃할까요?');">
+      <?= csrf_field() ?>
+      <button type="submit" class="btn-settings">🔒 다른 기기에서 모두 로그아웃</button>
     </form>
   </section>
 

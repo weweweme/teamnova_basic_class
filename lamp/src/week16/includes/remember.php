@@ -97,6 +97,21 @@ function remember_forget(): void {
     remember_clear_cookie();
 }
 
+// 이 회원의 '로그인 유지' 표를 전부 버린다. ('다른 기기에서 모두 로그아웃'에서 부른다)
+//   ★ 세션만 끊고 이걸 안 하면 아무 소용이 없다.
+//     다른 기기의 브라우저에는 remember 쿠키가 그대로 남아 있어서,
+//     다음 접속에 그 쿠키가 세션을 새로 만들어 **다시 로그인시켜 버린다.**
+//     (로그아웃에서 remember_forget()을 빠뜨렸을 때와 똑같은 함정이다)
+//   ★ 지금 쓰는 기기 것까지 함께 지운 뒤, 이 기기만 새 표를 다시 발급한다.
+//     '내 것만 빼고 지우기'로 만들면 지금 쿠키가 없을 때(체크 안 하고 로그인) 갈피를 잃는다.
+//     전부 지우고 다시 주는 쪽이 경우의 수가 하나뿐이라 안전하다.
+//   반환값 = 버린 표의 개수.
+function remember_forget_all(int $userId): int {
+    $stmt = db()->prepare('DELETE FROM remember_tokens WHERE user_id = ?');
+    $stmt->execute([$userId]);
+    return $stmt->rowCount();
+}
+
 // 쿠키에 붙일 안전장치. 발급할 때와 지울 때가 '한 글자도 다르면 안 되므로' 한곳에서 만든다.
 //   ★ 옵션이 하나라도 다르면 브라우저가 '다른 쿠키'로 보고, 지우려던 옛 쿠키가 그대로 남는다.
 function remember_cookie_options(int $expires): array {

@@ -39,15 +39,25 @@ if (!in_array($sentiment, ['호평', '보통', '혹평'], true)) {
     $sentiment = '보통';
 }
 
+// 되돌아갈 때 값을 들고 갈 수 있게, 검증 전에 한 번 맡겨 둔다.
+//   ★ 아래 어느 검증에서 걸리든 폼에는 방금 쓴 내용이 그대로 남는다.
+//     성공하면 안 쓰이고 다음 화면이 그냥 지운다(read-once) — 남아서 새는 일이 없다.
+keep_old_input([
+    'title'     => $title,
+    'content'   => $content,
+    'sentiment' => $sentiment,
+]);
+
 // ── 2) 검증: 제목/내용이 비었으면 다시 폼으로 ────────────────
 if ($title === '' || $content === '') {
-    redirect('/post/write.php');
+    set_flash('제목과 내용을 모두 채워 주세요.', 'error');
+    redirect('/post/write.php', ['work' => $work]);
 }
 // 길이 제한 (mb_strlen = 한글도 1글자로 정확히 세는 글자 수)
 //   ★ 브라우저의 maxlength는 개발자도구로 지울 수 있으므로 서버에서 반드시 확인.
 if (mb_strlen($title) > POST_TITLE_MAX || mb_strlen($content) > POST_CONTENT_MAX) {
     set_flash('제목 또는 내용이 너무 깁니다. 줄여서 다시 시도해 주세요.', 'error');
-    redirect('/post/write.php');
+    redirect('/post/write.php', ['work' => $work]);
 }
 // 작품 검증 + 우리 DB에 보장: 실제로 존재하는 작품이어야 한다.
 //   ★ ensure_media_by_slug: 그 작품이 media 표에 없으면(아직 아무도 글 안 씀)

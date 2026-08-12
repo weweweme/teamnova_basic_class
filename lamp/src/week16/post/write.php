@@ -57,14 +57,20 @@ require __DIR__ . '/../includes/header.php';
          (dropdown이 아닌 이유: 글쓰기는 특정 작품 게시판에서만 시작하므로 작품이 이미 정해짐) -->
     <input type="hidden" name="work" value="<?= e($work) ?>">
 
+    <?php /* ★ old() = 방금 보냈다가 검증에 걸려 되돌아온 값. 없으면 빈칸.
+             (util.php — 세션에 잠깐 맡겨둔 것을 꺼내면서 지운다. 플래시와 같은 방식) */ ?>
+
     <!-- label = 입력칸 설명표. input의 name = 서버에서 값 꺼낼 '열쇠'($_POST['title']) -->
     <label>제목
-      <input type="text" name="title" maxlength="100" required>
+      <input type="text" name="title" maxlength="100" required value="<?= e(old('title')) ?>">
     </label>
 
-    <!-- textarea = 여러 줄 입력칸 (내용용) -->
+    <!-- textarea = 여러 줄 입력칸 (내용용)
+         ★ textarea는 value 속성이 없다. 여는 태그와 닫는 태그 '사이'가 곧 값이다.
+           그래서 되살릴 값도 태그 안쪽에 출력한다.
+           줄바꿈이 값에 그대로 들어가므로 여는 태그 바로 뒤에 붙여 쓴다. -->
     <label>내용
-      <textarea name="content" rows="6" maxlength="5000" required></textarea>
+      <textarea name="content" rows="6" maxlength="5000" required><?= e(old('content')) ?></textarea>
     </label>
 
     <!-- radio = 여러 개 중 하나만 선택. 같은 name이면 한 묶음.
@@ -72,10 +78,12 @@ require __DIR__ . '/../includes/header.php';
            CSS의 label:has(input:checked)로 '지금 고른 것'만 색을 넣어 강조. -->
     <fieldset class="sentiment-field">
       <legend>감상</legend>
+      <?php // 되돌아온 값이 있으면 그걸 고른 상태로, 없으면 기본값 '호평'. ?>
+      <?php $oldSentiment = old('sentiment', '호평'); ?>
       <div class="sentiment-opts">
-        <label class="sentiment-opt s-good"><input type="radio" name="sentiment" value="호평" checked><span>👍 호평</span></label>
-        <label class="sentiment-opt s-mid"><input type="radio" name="sentiment" value="보통"><span>😐 보통</span></label>
-        <label class="sentiment-opt s-bad"><input type="radio" name="sentiment" value="혹평"><span>👎 혹평</span></label>
+        <label class="sentiment-opt s-good"><input type="radio" name="sentiment" value="호평" <?= $oldSentiment === '호평' ? 'checked' : '' ?>><span>👍 호평</span></label>
+        <label class="sentiment-opt s-mid"><input type="radio" name="sentiment" value="보통" <?= $oldSentiment === '보통' ? 'checked' : '' ?>><span>😐 보통</span></label>
+        <label class="sentiment-opt s-bad"><input type="radio" name="sentiment" value="혹평" <?= $oldSentiment === '혹평' ? 'checked' : '' ?>><span>👎 혹평</span></label>
       </div>
     </fieldset>
 

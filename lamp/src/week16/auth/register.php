@@ -20,6 +20,11 @@ require_csrf();
 $username = trim(post_str('username'));
 $password = post_str('password', '');
 
+// 검증에 걸려 폼으로 되돌아갈 때 아이디는 다시 안 치게 맡겨 둔다.
+//   ★ 비밀번호는 절대 넣지 않는다. 세션은 DB의 payload에 평문으로 저장되므로,
+//     담는 순간 비밀번호가 표에 그대로 찍힌다. 다시 치는 불편보다 이쪽이 훨씬 위험하다.
+keep_old_input(['username' => $username]);
+
 // ── 2) 검증 ──────────────────────────────────────────────────
 //   브라우저의 required·minlength는 1차 검사일 뿐, 서버에서 다시 확인한다.
 //   mb_strlen = 글자 수 세기 (mb_ = 한글도 1글자로 정확히 셈).

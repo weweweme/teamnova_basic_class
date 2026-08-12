@@ -41,6 +41,37 @@ require_once __DIR__ . '/db.php';
 //     사용자가 늘릴 수 있다. 진짜 기준은 언제나 서버가 쥐고 있어야 한다.
 const SESSION_TTL = 1800;          // 30분
 
+// 번호표(세션 ID) → DB에 넣을 지문.
+//   ★ 클래스 밖에 둔 이유: 아래 핸들러 말고 '다른 기기에서 로그아웃'도 같은 지문을 내야 한다.
+//     지문 내는 방법이 두 곳으로 갈리면, 한쪽을 고쳤을 때 다른 쪽이 조용히 못 찾게 된다.
+//     (remember.php가 쿠키 옵션을 한 함수에 모아 둔 것과 같은 이유다)
+function session_fingerprint(string $sessionId): string {
+    return hash('sha256', $sessionId);
+}
+
+// 이 회원의 세션 중 '지금 쓰는 것만 빼고' 전부 지운다. → 다른 기기가 즉시 로그아웃된다.
+//   ★ 파일 방식으로는 이게 아예 불가능했다. 남의 기기 세션 파일을 찾을 방법이 없기 때문.
+//     세션을 DB로 옮겨서 생긴 능력이다.
+//   반환값 = 끊어낸 세션 수 (몇 곳에서 로그아웃됐는지 알림에 쓴다).
+function destroy_other_sessions(int $userId, string $keepSessionId): int {
+    $sql = 'DELETE FROM sessions WHERE user_id = ? AND id_hash <> ?';
+    $stmt = db()->prepare($sql);
+    $stmt->execute([$userId, session_fingerprint($keepSessionId)]);
+    return $stmt->rowCount();
+}
+
+// 이 회원이 지금 몇 곳에서 로그인 중인가 (지금 쓰는 기기는 빼고).
+//   설정 화면에 "다른 기기 2곳에서 로그인 중"을 보여주려고 쓴다.
+//   ★ expires_at 조건을 거는 이유: 청소(gc)는 가끔 돌아서 만료된 행이 잠시 남아 있다.
+//     그걸 세면 "로그인 중"이라고 거짓말을 하게 된다.
+function count_other_sessions(int $userId, string $keepSessionId): int {
+    $sql = 'SELECT COUNT(*) FROM sessions
+             WHERE user_id = ? AND id_hash <> ? AND expires_at > NOW()';
+    $stmt = db()->prepare($sql);
+    $stmt->execute([$userId, session_fingerprint($keepSessionId)]);
+    return (int) $stmt->fetchColumn();
+}
+
 // 세션을 DB에 읽고 쓰는 담당자.
 //   PHP가 정해준 6개 메서드를 채우면 된다. 우리가 직접 부르는 메서드는 하나도 없고,
 //   PHP가 알맞은 때에 알아서 부른다:
@@ -49,12 +80,6 @@ const SESSION_TTL = 1800;          // 30분
 //     destroy  session_destroy()   gc     만료된 것 청소할 때
 final class DbSessionHandler implements SessionHandlerInterface
 {
-    // 번호표(세션 ID) → 지문. DB에는 이 값만 들어간다.
-    //   찾을 때도 같은 방식으로 지문을 내서 대조하므로, 원본이 없어도 조회가 된다.
-    private function fingerprint(string $sessionId): string {
-        return hash('sha256', $sessionId);
-    }
-
     // 저장소를 여는 단계. 파일 방식이라면 파일을 열었겠지만,
     //   우리는 db()가 필요할 때 알아서 연결하므로 여기서 할 일이 없다.
     public function open(string $path, string $name): bool {
@@ -73,7 +98,7 @@ final class DbSessionHandler implements SessionHandlerInterface
         //   expires_at 조건을 같이 거는 이유: 청소(gc)는 가끔 돌기 때문에, 만료된 행이
         //   잠시 남아 있을 수 있다. 읽을 때 한 번 더 걸러야 '만료됐는데 로그인된' 상태를 막는다.
         $stmt = db()->prepare($sql);
-        $stmt->execute([$this->fingerprint($id)]);
+        $stmt->execute([session_fingerprint($id)]);
 
         $payload = $stmt->fetchColumn();
         return $payload === false ? '' : (string) $payload;
@@ -99,7 +124,7 @@ final class DbSessionHandler implements SessionHandlerInterface
                     expires_at  = VALUES(expires_at)';
 
         return db()->prepare($sql)->execute([
-            $this->fingerprint($id),
+            session_fingerprint($id),
             $userId !== null ? (int) $userId : null,
             $data,
             // 접속 정보. 세션 동작에는 필요 없지만 '내 로그인 기기 목록' 같은 화면에 쓰인다.
@@ -113,7 +138,7 @@ final class DbSessionHandler implements SessionHandlerInterface
     // 이 세션 하나를 없앤다. 로그아웃의 session_destroy()가 여기로 온다.
     public function destroy(string $id): bool {
         return db()->prepare('DELETE FROM sessions WHERE id_hash = ?')
-                   ->execute([$this->fingerprint($id)]);
+                   ->execute([session_fingerprint($id)]);
     }
 
     // 만료된 세션 청소. PHP가 가끔(확률적으로) 부른다.

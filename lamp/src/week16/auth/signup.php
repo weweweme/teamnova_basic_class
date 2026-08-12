@@ -22,7 +22,8 @@ require __DIR__ . '/../includes/header.php';
   <form class="auth-form" method="post" action="/auth/register.php">
     <?= csrf_field() ?>
     <label>아이디
-      <input type="text" name="username" required autofocus>
+      <?php // old() = 가입에 실패해 되돌아온 아이디. 비밀번호는 일부러 안 남긴다. ?>
+      <input type="text" name="username" required autofocus value="<?= e(old('username')) ?>">
     </label>
     <label>비밀번호
       <!-- minlength = 최소 글자 수(브라우저 1차 검사). 서버에서도 다시 확인한다. -->

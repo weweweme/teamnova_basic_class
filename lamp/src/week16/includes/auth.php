@@ -148,6 +148,43 @@ function is_logged_in(): bool {
     return current_user_row() !== null;
 }
 
+// ── '원래 가려던 곳' 기억하기 ────────────────────────────────
+//   로그인 안 한 사람이 글쓰기를 누르면 로그인 화면으로 보내는데, 로그인하고 나면
+//   홈으로 튕겨서 다시 글쓰기를 찾아 들어가야 했다. 그 자리를 기억해 뒀다가 되돌려준다.
+//
+//   ★★ 왜 주소(?next=)가 아니라 세션인가 — 이게 이 기능의 핵심이다.
+//     주소로 나르면 `/auth/login.php?next=…` 가 되는데, 그 값은 사용자가 고칠 수 있다.
+//     공격자가 next 자리에 **남의 사이트 주소**를 넣은 링크를 뿌리면,
+//     우리 사이트에서 로그인한 직후 가짜 로그인 화면으로 튕겨나간다(오픈 리다이렉트).
+//     week15의 ?as= 와 똑같은 구조다 — 사용자 손에 쥐여준 값을 믿었다가 뚫리는 것.
+//
+//   ★ 그래도 '적어 넣을 때' 검증한다. 세션에 있는 값은 우리가 넣은 것이라 믿을 수 있지만,
+//     그 값의 **출처**는 사용자가 보낸 주소($_SERVER['REQUEST_URI'])이기 때문이다.
+//     "믿을 수 있는 그릇에 담았다"와 "담은 내용이 안전하다"는 다른 이야기다.
+const SESSION_INTENDED = 'intended';
+
+// 로그인 후 돌아갈 곳을 적어둔다. 우리 사이트 안의 주소일 때만.
+function remember_intended(string $path): void {
+    // ① 우리 사이트 안이어야 한다 = '/'로 시작.
+    // ② 그런데 '//'로 시작하면 '/'로 시작하지만 **바깥 주소**다.
+    //    //evil.com 은 브라우저가 'https://evil.com'으로 읽는다(프로토콜 상대 주소).
+    //    오픈 리다이렉트 방어를 뚫는 가장 흔한 수법이라 반드시 함께 막는다.
+    $isInternal = str_starts_with($path, '/') && !str_starts_with($path, '//');
+    if (!$isInternal) {
+        return;                       // 수상하면 그냥 기억하지 않는다 → 로그인 후 홈으로
+    }
+    $_SESSION[SESSION_INTENDED] = $path;
+}
+
+// 적어둔 목적지를 꺼낸다. 없으면 $default.
+//   ★ 꺼내면서 지운다(read-once) — 플래시와 같은 이유다.
+//     안 지우면 다음에 그냥 로그인했을 때도 엉뚱하게 옛 주소로 끌려간다.
+function take_intended(string $default = '/'): string {
+    $path = $_SESSION[SESSION_INTENDED] ?? '';
+    unset($_SESSION[SESSION_INTENDED]);
+    return $path !== '' ? $path : $default;
+}
+
 // 세션에 '이 사람이 로그인했다'를 적는다.
 //   ★ 로그인 화면을 거친 경우와 '로그인 유지' 쿠키로 되살아난 경우가 **둘 다 여기를 지난다.**
 //     한쪽만 아래 방어를 빠뜨리면 그 경로만 조용히 뚫리는데, 그런 구멍은 눈에 잘 안 띈다.
@@ -178,7 +215,10 @@ function login_and_redirect(int $userId, bool $remember = false, string $path = 
         remember_issue($userId);
     }
 
-    redirect($path);
+    // 로그인 화면으로 밀려나기 전에 보던 곳이 있으면 그리로, 없으면 $path(기본 홈).
+    //   ★ start_session_for()가 번호표를 갈아 끼웠는데도 이 값이 살아 있는 이유:
+    //     session_regenerate_id()는 번호만 바꾸고 **금고 안의 내용은 그대로 옮겨준다.**
+    redirect(take_intended($path));
 }
 
 // 로그아웃 → 서버 금고를 비운다.
@@ -227,6 +267,12 @@ function logout_and_redirect(string $path = '/'): never {
 //     (화면 숨김 = 편의, 서버 확인 = 진짜 보안)
 function require_login(): void {
     if (!is_logged_in()) {
+        // ★ 화면(GET)일 때만 돌아갈 곳으로 기억한다.
+        //   POST 액션 주소를 기억해 봐야 소용없다 — 로그인 후 그리로 보내면 폼 값이 없는
+        //   빈 POST가 되고, 그러면 또 튕긴다. 되돌아가서 의미가 있는 건 '보던 화면'뿐이다.
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
+            remember_intended($_SERVER['REQUEST_URI'] ?? '/');
+        }
         set_flash('🔒 로그인이 필요한 기능입니다.', 'error');
         redirect('/auth/login.php');
     }

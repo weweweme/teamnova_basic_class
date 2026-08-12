@@ -106,7 +106,9 @@
       "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -B review_community -e \"SELECT id, LEFT\\(password,20\\) hash20 FROM users WHERE id IN \\(1,2,3,4,8\\);\")",
       "Bash(curl -sS \"http://localhost:8081/post/write.php?work=tmdb-496243\")",
       "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp sh -c 'tail -5 /usr/local/apache2/logs/error_log')",
-      "Bash(grep -n \"week16\\\\`/ : \\\\|세션을 하나도 안 쓴다\\\\|✅ \\\\*\\\\*\" CLAUDE.md)"
+      "Bash(grep -n \"week16\\\\`/ : \\\\|세션을 하나도 안 쓴다\\\\|✅ \\\\*\\\\*\" CLAUDE.md)",
+      "Bash(?remember_tokens)",
+      "Bash(grep -nE \"^#{2,3} |^\\\\| *`?remember_tokens)"
     ],
     "additionalDirectories": [
       "c:\\git-work\\teamnova_basic_class\\lamp\\src\\week16\\includes"

@@ -113,7 +113,9 @@
       "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -B review_community -e \"SHOW TABLES;\")",
       "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -B review_community -e \"SELECT COUNT\\(*\\) total, SUM\\(user_id IS NULL\\) anon, SUM\\(user_id IS NOT NULL\\) logged_in, SUM\\(expires_at < NOW\\(\\)\\) expired FROM sessions;\")",
       "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -B review_community -e \"DELETE FROM sessions WHERE expires_at < NOW\\(\\); SELECT ROW_COUNT\\(\\) AS deleted;\")",
-      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -B review_community -e \"SELECT COUNT\\(*\\) total, SUM\\(user_id IS NULL\\) anon FROM sessions; SELECT COUNT\\(*\\) remember_rows FROM remember_tokens;\")"
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -B review_community -e \"SELECT COUNT\\(*\\) total, SUM\\(user_id IS NULL\\) anon FROM sessions; SELECT COUNT\\(*\\) remember_rows FROM remember_tokens;\")",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 --default-character-set=utf8mb4 -B review_community -e \"SELECT id, title, created_at FROM posts WHERE author_id=1 ORDER BY id DESC LIMIT 5;\")",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 --default-character-set=utf8mb4 review_community -e \"UPDATE posts SET deleted_at = NOW\\(\\) WHERE id IN \\(192,195\\) AND deleted_at IS NULL; SELECT ROW_COUNT\\(\\) AS soft_deleted;\")"
     ],
     "additionalDirectories": [
       "c:\\git-work\\teamnova_basic_class\\lamp\\src\\week16\\includes"

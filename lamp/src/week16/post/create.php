@@ -7,7 +7,8 @@
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/works.php';   // 작품이 실제로 있는지 확인하려고
-require_once __DIR__ . '/../includes/posts.php';   // 길이 제한 상수(POST_TITLE_MAX 등)
+require_once __DIR__ . '/../includes/posts.php';
+require_once __DIR__ . '/../includes/drafts.php';   // 쓰다 만 초안 저장·삭제
 
 // ★ 로그인 필수 — 화면에서 버튼을 숨겨도 요청은 조작할 수 있으므로
 //   '처리하는 쪽'에서 반드시 다시 확인한다. (안 했으면 로그인 페이지로 보내고 중단)
@@ -39,11 +40,12 @@ if (!in_array($sentiment, ['호평', '보통', '혹평'], true)) {
     $sentiment = '보통';
 }
 
-// 되돌아갈 때 값을 들고 갈 수 있게, 검증 전에 한 번 맡겨 둔다.
-//   ★ 아래 어느 검증에서 걸리든 폼에는 방금 쓴 내용이 그대로 남는다.
-//   ★ 성공했을 때는 맨 아래에서 forget_old_input()으로 직접 버린다 — 안 버리면
-//     세션에 남아 있다가 다음에 글쓰기를 열 때 되살아난다.
-keep_old_input([
+// 검증 전에 초안을 한 번 갱신해 둔다.
+//   ★ 아래 어느 검증에서 걸려 되돌아가든 폼에는 방금 쓴 내용이 그대로 남는다.
+//     (JS 자동 저장이 꺼져 있거나 아직 안 돌았을 때를 위한 안전망이기도 하다)
+//   ★ 성공했을 때는 맨 아래에서 forget_draft()로 버린다 — 안 버리면 방금 올린 글이
+//     다음 글쓰기 화면에 그대로 되살아난다.
+save_draft($work, [
     'title'     => $title,
     'content'   => $content,
     'sentiment' => $sentiment,
@@ -83,10 +85,9 @@ add_post($work, $workTitle, $title, $content, $sentiment, (string)$author);
 //   왜 redirect? 처리 화면을 그대로 보여주면 '새로고침' 시 POST 재전송 → 글 중복 등록.
 //   글은 '그 작품'에 속하므로, 홈이 아니라 그 작품 게시판으로 돌려보낸다.
 //   ★ 작품 slug를 배열로 넘긴다 → redirect()가 인코딩과 신원(?as=) 붙이기를 함께 처리.
-// 성공했으니 맡겨둔 입력값을 버린다.
-//   ★ 안 버리면 세션에 남아 있다가 **다음에 글쓰기를 열 때 그대로 되살아난다.**
-//     성공 후 가는 게시판 화면은 old()를 부르지 않으므로 아무도 안 치워준다.
-forget_old_input();
+// 글이 실제로 등록됐으니 초안을 버린다.
+//   ★ 초안을 지우는 시점은 여기 하나뿐이다. (쓰는 동안에는 계속 살아 있어야 하므로)
+forget_draft($work);
 
 set_flash('✅ 글이 등록되었습니다.');
 redirect('/board/', ['work' => $work]);

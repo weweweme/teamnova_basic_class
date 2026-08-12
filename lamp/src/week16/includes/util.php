@@ -319,6 +319,14 @@ function keep_old_input(array $values): void {
     $_SESSION[SESSION_OLD_INPUT] = $clean;
 }
 
+// 맡아둔 값을 버린다. (처리에 성공해서 폼으로 돌아갈 일이 없어졌을 때 호출)
+//   ★ 이게 없으면 성공한 값이 세션에 남아 다음에 폼을 열 때 되살아난다.
+//     '읽으면 지워진다'는 old()를 **부르는 화면**에만 해당한다 — 성공 후 가는 목록 화면은
+//     old()를 부르지 않으므로 아무도 안 치운다. 그래서 성공한 쪽에서 직접 버려야 한다.
+function forget_old_input(): void {
+    unset($_SESSION[SESSION_OLD_INPUT]);
+}
+
 // 맡아둔 값을 꺼낸다. 없으면 $default. (폼 화면이 value= 자리에서 호출)
 //   ★ static을 쓰는 이유: 폼에는 칸이 여러 개라 이 함수가 한 화면에서 여러 번 불린다.
 //     부를 때마다 지우면 첫 칸만 채워지고 나머지는 빈칸이 된다.

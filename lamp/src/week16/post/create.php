@@ -41,7 +41,8 @@ if (!in_array($sentiment, ['호평', '보통', '혹평'], true)) {
 
 // 되돌아갈 때 값을 들고 갈 수 있게, 검증 전에 한 번 맡겨 둔다.
 //   ★ 아래 어느 검증에서 걸리든 폼에는 방금 쓴 내용이 그대로 남는다.
-//     성공하면 안 쓰이고 다음 화면이 그냥 지운다(read-once) — 남아서 새는 일이 없다.
+//   ★ 성공했을 때는 맨 아래에서 forget_old_input()으로 직접 버린다 — 안 버리면
+//     세션에 남아 있다가 다음에 글쓰기를 열 때 되살아난다.
 keep_old_input([
     'title'     => $title,
     'content'   => $content,
@@ -82,5 +83,10 @@ add_post($work, $workTitle, $title, $content, $sentiment, (string)$author);
 //   왜 redirect? 처리 화면을 그대로 보여주면 '새로고침' 시 POST 재전송 → 글 중복 등록.
 //   글은 '그 작품'에 속하므로, 홈이 아니라 그 작품 게시판으로 돌려보낸다.
 //   ★ 작품 slug를 배열로 넘긴다 → redirect()가 인코딩과 신원(?as=) 붙이기를 함께 처리.
+// 성공했으니 맡겨둔 입력값을 버린다.
+//   ★ 안 버리면 세션에 남아 있다가 **다음에 글쓰기를 열 때 그대로 되살아난다.**
+//     성공 후 가는 게시판 화면은 old()를 부르지 않으므로 아무도 안 치워준다.
+forget_old_input();
+
 set_flash('✅ 글이 등록되었습니다.');
 redirect('/board/', ['work' => $work]);

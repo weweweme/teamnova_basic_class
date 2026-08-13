@@ -579,7 +579,7 @@ week15까지 **`posts.views`는 한 번도 안 움직였다.** seed 숫자가 �
   닉네임·아바타를 바꿨는데 **다시 로그인해야 반영되는** 버그가 생기기 때문이다.
   (조회는 `current_user_row()`의 `static` 캐시가 이미 요청당 1회로 줄여준다)
 
-### 진행 순서 — ①~⑱ **전부 완료**
+### 진행 순서 — ①~㉒ **전부 완료**
 
 **① → ② → ③ → ④ → ⑤ → ⑥ → ⑦.** 앞의 것이 뒤의 것의 토대였다 —
 세션이 없으면 CSRF 토큰도, 최근 본 글도, 자동 로그인도 시작할 수 없다.
@@ -600,6 +600,10 @@ week15까지 **`posts.views`는 한 번도 안 움직였다.** seed 숫자가 �
 | ⑯ | **민감 작업 재인증**(sudo 15분) | 영구삭제·기기 로그아웃 앞에서 비번을 다시 묻는다 |
 | ⑰ | **로그인 기기 목록** | 어느 기기에서 로그인 중인지 보고 **골라서 끊는다** |
 | ⑱ | **감상 필터 기본값 쿠키** | 정렬과 같은 방식 |
+| ⑲ | **게시판 🆕 배지** | 지난 방문 이후 올라온 글을 표시 (시각을 담는 쿠키) |
+| ⑳ | **쿠키 안내 배너** | **JS가 직접 심는 유일한 쿠키** — httponly를 안 켜서 가능 |
+| ㉑ | **최근 본 작품** | 작품 목록 상단에 다시 보여준다 |
+| ㉒ | **한 페이지 글 수** | 15/30/50 — "숫자니까 안전"이 아니라 허용 목록 대조 |
 
 - **⑧ 왜 DB로 옮겼나** — ①서버를 여러 대로 늘리면 파일 세션은 공유가 안 된다
   ②`user_id` 칼럼이 생겨 '이 회원의 세션 전부 끊기'가 가능해진다 ③시연에서 눈으로 보인다.
@@ -650,8 +654,11 @@ week15까지 **`posts.views`는 한 번도 안 움직였다.** seed 숫자가 �
 
 - **세션 8개** — `user_id` · `flash` · `csrf_token` · `viewed_posts` · `intended` · `old_input`
   · `auth_at`(sudo) · `last_seen`(유휴)
-- **우리가 심는 쿠키 5개** — `remember` · `pref_sort` · `pref_sentiment` · `recent_search`
-  · `recent_posts` (+ PHP가 심는 `PHPSESSID`)
+- **우리가 심는 쿠키 9개** — `remember` · `pref_sort` · `pref_sentiment` · `per_page` ·
+  `recent_search` · `recent_posts` · `recent_works` · `last_visit` · `cookie_notice`
+  (+ PHP가 심는 `PHPSESSID`)
+- **쿠키 검증은 담는 값마다 다르다** — 선택값=허용 목록 / 숫자=`ctype_digit`+목록 /
+  시각=숫자+미래 거부 / slug=모양(정규식)
 - **DB 표 11개** — week15의 8개 + `remember_tokens` · `sessions` · `drafts`
 
 > **시연 포인트**: 먼저 week15에서 주소창의 `as=`를 남의 아이디로 고쳐 **사칭을 성공시켜 보이고**,

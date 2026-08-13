@@ -158,31 +158,54 @@ function is_logged_in(): bool {
 //     우리 사이트에서 로그인한 직후 가짜 로그인 화면으로 튕겨나간다(오픈 리다이렉트).
 //     week15의 ?as= 와 똑같은 구조다 — 사용자 손에 쥐여준 값을 믿었다가 뚫리는 것.
 //
-//   ★ 그래도 '적어 넣을 때' 검증한다. 세션에 있는 값은 우리가 넣은 것이라 믿을 수 있지만,
-//     그 값의 **출처**는 사용자가 보낸 주소($_SERVER['REQUEST_URI'])이기 때문이다.
+//   ★ 그 값의 **출처**는 사용자가 보낸 주소($_SERVER['REQUEST_URI'])다.
 //     "믿을 수 있는 그릇에 담았다"와 "담은 내용이 안전하다"는 다른 이야기다.
-const SESSION_INTENDED = 'intended';
+//
+//   [★ 세션이 아니라 쿠키에 담는 이유]
+//     이 값은 고쳐봐야 **자기가 엉뚱한 데로 갈 뿐**이다. 남는 것도, 남에게 미치는 것도 없다.
+//     "틀리면 손해 보는 값만 세션"이라는 기준에 걸리지 않으므로 쿠키 자리다. (handoff.php)
+//
+//   [★★ 그래서 검사를 두 번 한다 — 적을 때 한 번, 읽을 때 또 한 번]
+//     세션이었다면 적을 때 한 번이면 충분했다. 담아둔 뒤엔 아무도 못 건드리니까.
+//     쿠키는 담아둔 뒤에도 사용자가 고칠 수 있다 → **읽는 쪽이 다시 확인해야 한다.**
+//     이 두 줄이 이번 변경의 핵심이고, 쿠키를 쓸 때 가장 많이 빠뜨리는 부분이다.
+const INTENDED_MAX_LEN = 300;   // 주소 길이 한도. 쿠키는 4KB뿐이라 미리 자른다.
+
+// 이 주소가 '우리 사이트 안'인가?
+//   ① 우리 사이트 안이어야 한다 = '/'로 시작.
+//   ② 그런데 '//'로 시작하면 '/'로 시작하지만 **바깥 주소**다.
+//      //evil.com 은 브라우저가 'https://evil.com'으로 읽는다(프로토콜 상대 주소).
+//      오픈 리다이렉트 방어를 뚫는 가장 흔한 수법이라 반드시 함께 막는다.
+//   ★ 함수로 뽑아낸 이유: 쓰는 곳이 두 곳(적을 때·읽을 때)이 됐기 때문이다.
+//     같은 판단이 두 군데로 복사되면, 나중에 한쪽만 고쳐져서 그쪽만 뚫린다.
+function is_internal_path(string $path): bool {
+    return str_starts_with($path, '/') && !str_starts_with($path, '//');
+}
 
 // 로그인 후 돌아갈 곳을 적어둔다. 우리 사이트 안의 주소일 때만.
 function remember_intended(string $path): void {
-    // ① 우리 사이트 안이어야 한다 = '/'로 시작.
-    // ② 그런데 '//'로 시작하면 '/'로 시작하지만 **바깥 주소**다.
-    //    //evil.com 은 브라우저가 'https://evil.com'으로 읽는다(프로토콜 상대 주소).
-    //    오픈 리다이렉트 방어를 뚫는 가장 흔한 수법이라 반드시 함께 막는다.
-    $isInternal = str_starts_with($path, '/') && !str_starts_with($path, '//');
-    if (!$isInternal) {
+    if (!is_internal_path($path)) {
         return;                       // 수상하면 그냥 기억하지 않는다 → 로그인 후 홈으로
     }
-    $_SESSION[SESSION_INTENDED] = $path;
+    handoff_put(HANDOFF_INTENDED, ['path' => mb_substr($path, 0, INTENDED_MAX_LEN)]);
 }
 
-// 적어둔 목적지를 꺼낸다. 없으면 $default.
-//   ★ 꺼내면서 지운다(read-once) — 플래시와 같은 이유다.
+// 적어둔 목적지를 꺼낸다. 없거나 수상하면 $default.
+//   ★ handoff_claim = 꺼내면서 브라우저에서도 지운다(read-once).
+//     알림과 달리 **자동으로는 안 걷힌다** — 로그인 화면을 띄우는 요청에서 지워지면
+//     정작 로그인할 때 목적지가 없기 때문이다. (handoff.php의 HANDOFF_NAMES 주석)
+//     그래서 '다 썼다'를 아는 이 자리에서 직접 지운다.
 //     안 지우면 다음에 그냥 로그인했을 때도 엉뚱하게 옛 주소로 끌려간다.
 function take_intended(string $default = '/'): string {
-    $path = $_SESSION[SESSION_INTENDED] ?? '';
-    unset($_SESSION[SESSION_INTENDED]);
-    return $path !== '' ? $path : $default;
+    $data = handoff_claim(HANDOFF_INTENDED);
+    $path = handoff_str($data['path'] ?? null, INTENDED_MAX_LEN);
+
+    // ★★ 여기가 쿠키로 옮기면서 새로 생긴 줄이다.
+    //   쿠키를 '//evil.com'으로 고쳐놓고 로그인하면, 이 검사가 없을 때
+    //   로그인 직후 남의 사이트로 튕겨 나간다(오픈 리다이렉트).
+    //   내가 나를 보내는 것이라 피해는 적지만, 같은 코드가 '로그인하면 여기로'
+    //   같은 링크에 쓰이는 순간 진짜 구멍이 된다. 읽는 쪽에서 막는 게 원칙이다.
+    return is_internal_path($path) ? $path : $default;
 }
 
 // ── 민감한 작업 앞에서 비밀번호를 다시 묻는다 (sudo 모드) ────

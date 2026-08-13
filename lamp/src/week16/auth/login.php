@@ -18,16 +18,20 @@ require __DIR__ . '/../includes/header.php';
 
   <h1>로그인</h1>
 
-  <?php // 가입 완료 / 로그인 실패 / 로그인 필요 안내는 header.php가 주소(?flash=)에서 읽어 그린다 ?>
+  <?php // 가입 완료 / 로그인 실패 / 로그인 필요 안내는 header.php가 flash 쿠키에서 읽어 그린다 ?>
 
   <!-- 로그인 정보는 민감하므로 반드시 POST (주소에 비밀번호가 남으면 큰일) -->
   <form class="auth-form" method="post" action="/auth/authenticate.php">
     <?= csrf_field() ?>
+    <?php // old() = 로그인에 실패해 되돌아온 아이디. 비밀번호는 일부러 안 남긴다. ?>
     <label>아이디
-      <input type="text" name="username" required autofocus>
+      <input type="text" name="username" required autofocus value="<?= e(old('username')) ?>">
     </label>
     <label>비밀번호
-      <!-- type="password" = 입력 글자가 ●●●로 가려진다 -->
+      <!-- type="password" = 입력 글자가 ●●●로 가려진다
+           ★ 여기만은 절대 value를 채우지 않는다. 되살리려면 어딘가에 평문으로 담아야 하는데,
+             비밀번호는 그 '어딘가'가 존재해서는 안 되는 값이다.
+             아이디를 다시 치는 불편 < 비밀번호가 브라우저에 남는 위험 -->
       <input type="password" name="password" required>
     </label>
     <!-- 로그인 유지 (week16 쿠키 주제)

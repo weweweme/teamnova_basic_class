@@ -45,7 +45,7 @@ $pageTitle = '홈 · 리뷰 커뮤니티';
 require __DIR__ . '/includes/header.php';
 ?>
 
-  <?php // 로그인·글등록 완료 알림은 header.php가 주소(?flash=)에서 읽어 그린다 (set_flash) ?>
+  <?php // 로그인·글등록 완료 알림은 header.php가 flash 쿠키에서 읽어 그린다 (set_flash) ?>
 
   <?php // ── 히어로 영역: 넓으면 [히어로 | 사이드바] 2단, 좁으면 세로 1단 ── ?>
   <?php if ($hero && !empty($hero['backdrop_url'])): ?>

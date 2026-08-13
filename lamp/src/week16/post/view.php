@@ -109,7 +109,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="post-content"><?= nl2br(e($post['content'])) ?></div>
   </article>
 
-  <?php // 추천·신고·수정·권한거부 알림은 header.php가 주소(?flash=)에서 읽어 그린다 (set_flash) ?>
+  <?php // 추천·신고·수정·권한거부 알림은 header.php가 flash 쿠키에서 읽어 그린다 (set_flash) ?>
 
   <!-- 글에 대한 '행동'들 — 상태를 바꾸는 것은 링크가 아니라 POST 폼 -->
   <div class="post-actions">

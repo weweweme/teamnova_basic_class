@@ -129,7 +129,11 @@
       "Bash(grep -oiE \"\\(fatal|parse\\) error[^<]{0,160}\")",
       "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp sh -c 'tail -3 /usr/local/apache2/logs/error_log')",
       "Bash(curl -sS \"http://localhost:8081/board/?work=tmdb-496243&sentiment=%ED%98%B9%ED%8F%89\")",
-      "Bash(grep -n 'sentiments\\\\s*=\\\\|filter_posts_by_sentiment\\($posts' board/index.php)"
+      "Bash(grep -n 'sentiments\\\\s*=\\\\|filter_posts_by_sentiment\\($posts' board/index.php)",
+      "Bash(grep -vE \"^\\\\s*//\" post/restore.php)",
+      "Bash(curl -s -o /dev/null -w \"week16 root: %{http_code}\\\\n\" http://localhost:8081/week16/)",
+      "Bash(curl -s -o /dev/null -w \"login: %{http_code}\\\\n\" http://localhost:8081/week16/auth/login.php)",
+      "Bash(curl -s -o /dev/null -w \"site root: %{http_code}\\\\n\" http://localhost:8081/)"
     ],
     "additionalDirectories": [
       "c:\\git-work\\teamnova_basic_class\\lamp\\src\\week16\\includes"

@@ -22,6 +22,10 @@ require_csrf();
 $username = trim(post_str('username'));
 $password = post_str('password', '');
 
+// 실패해서 폼으로 되돌아갈 때 아이디는 다시 안 치게 맡겨 둔다.
+//   ★ 비밀번호는 넣지 않는다 — 이 값은 쿠키에 평문으로 담겨 브라우저에 남는다.
+keep_old_input(['username' => $username]);
+
 // ── 2) 검증 ──────────────────────────────────────────────────
 $user = verify_login($username, $password);
 
@@ -41,6 +45,9 @@ if ($user === null) {
 //   '로그인 유지'는 체크박스라 **체크했을 때만 값이 온다.** 안 왔으면 안 누른 것.
 //   → 체크했으면 세션과 별도로 30일짜리 쿠키를 하나 더 받는다 (includes/remember.php).
 $remember = post_str('remember') !== '';
+
+// 성공했으니 맡겨둔 아이디를 버린다 (안 버리면 다음 로그인 화면에 되살아난다).
+forget_old_input();
 
 set_flash('👋 ' . $user['username'] . '님, 환영합니다!');
 login_and_redirect((int) $user['id'], $remember);

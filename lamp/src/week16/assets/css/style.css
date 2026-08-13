@@ -1059,3 +1059,10 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
   margin-left: .5rem; padding: .1rem .45rem; border-radius: 999px;
   font-size: .75rem; background: rgba(120,180,255,.18); color: #9ec5ff;
 }
+
+/* 🆕 배지 — 지난 방문 이후 올라온 글 (게시판 목록) */
+.badge-new {
+  margin-left: .35rem; padding: .05rem .3rem; border-radius: 3px;
+  font-size: .65rem; font-weight: 700; letter-spacing: .02em;
+  background: #e5484d; color: #fff; vertical-align: middle;
+}

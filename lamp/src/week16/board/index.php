@@ -109,6 +109,16 @@ $pagePosts = paginate_posts($posts, $page, POSTS_PER_PAGE);         // 이 페�
 $sortTabs   = SORT_TABS;
 $sentiments = ['' => '전체', '호평' => '호평', '보통' => '보통', '혹평' => '혹평'];
 
+// ── 🆕 배지: 지난 방문 이후 올라온 글 표시 ──────────────────
+//   ★ 순서가 중요하다 — **그리기 전에 '지난 방문 시각'을 먼저 읽어둔다.**
+//     갱신을 먼저 해버리면 방금 온 나 자신이 기준이 되어 배지가 하나도 안 뜬다.
+$lastVisit = last_visit_at();
+
+//   ★ 그리고 곧바로 갱신한다. setcookie()는 **화면에 한 글자라도 출력되기 전에** 불러야 한다
+//     (쿠키는 HTTP 헤더로 나가므로). 그래서 '다 그리고 나서 갱신'은 아예 불가능하다.
+//   ★ 30분 안에 다시 오면 갱신하지 않는다 → 둘러보는 동안 배지가 유지된다. (prefs.php)
+touch_visit();
+
 $pageTitle = $title . ' 게시판';
 require __DIR__ . '/../includes/header.php';
 ?>
@@ -240,6 +250,10 @@ require __DIR__ . '/../includes/header.php';
                   // (create_highlighted가 e() 처리까지 끝내주므로 여기선 그대로 출력) ?>
             <?php // title 속성 = 길어서 '…'으로 잘렸을 때 마우스를 올리면 전체 제목이 뜬다. ?>
             <a href="/post/view.php?id=<?= e((string)$p['id']) ?>" title="<?= e($p['title']) ?>"><?= create_highlighted($p['title'], $q) ?></a>
+            <?php // 지난 방문 이후에 올라온 글이면 🆕. ($lastVisit이 0이면 = 첫 방문이라 안 붙인다) ?>
+            <?php if ($lastVisit > 0 && (int) $p['created'] > $lastVisit): ?>
+              <span class="badge-new" title="지난 방문 이후 올라온 글">NEW</span>
+            <?php endif; ?>
             <span class="tag"><?= e($p['sentiment']) ?></span>
             <?php // 댓글 수는 '이 글에 이야기가 오갔나'를 알려주므로 제목 옆에 둔다.
                   //   0이면 아예 안 보여준다 — 없는 정보로 줄을 채우지 않는다. ?>

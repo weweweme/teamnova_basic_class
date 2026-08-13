@@ -33,6 +33,7 @@ const PREF_SORT_COOKIE     = 'pref_sort';     // 게시판 정렬 기본값
 const RECENT_SEARCH_COOKIE = 'recent_search'; // 최근 검색어 (JSON 배열)
 const RECENT_POSTS_COOKIE  = 'recent_posts';  // 최근 본 글 번호 ("3,2,1")
 const PREF_SENTIMENT_COOKIE = 'pref_sentiment'; // 게시판 감상 필터 기본값 ('' | 호평 | 보통 | 혹평)
+const LAST_VISIT_COOKIE     = 'last_visit';     // 마지막으로 게시판을 본 시각(초)
 
 // 최근 검색어를 몇 개까지 기억할지
 const RECENT_SEARCH_MAX = 5;
@@ -200,4 +201,46 @@ function get_recent_post_ids(): array {
         }
     }
     return $result;
+}
+
+
+// ── 마지막 방문 시각 → 게시판의 🆕 배지 ──────────────────────
+//   [무엇을 하나]
+//     "지난번에 왔다 간 뒤로 올라온 글"에 🆕 를 붙인다. 커뮤니티에서 흔히 보는 그것.
+//
+//   [★ 지금까지의 쿠키와 다른 점]
+//     정렬·감상·최근 검색어는 **사용자가 고른 값**이었다. 이건 **시각**이다 —
+//     사용자가 고르는 게 아니라 우리가 자동으로 적어둔다.
+//     그래도 쿠키가 맞는 자리다: ①브라우저를 닫아도 남아야 하고 ②비로그인도 쓰고
+//     ③조작당해도 배지가 잘못 뜰 뿐이다.
+//
+//   [왜 '볼 때마다' 갱신하지 않나]
+//     열자마자 갱신하면 새로고침 한 번에 배지가 전부 사라진다. 방금 뭐가 새 글이었는지
+//     확인할 틈이 없다. 그래서 **VISIT_GAP(30분) 이상 지났을 때만** 갱신한다
+//     → 한 번 둘러보는 동안에는 배지가 그대로 있고, 다음에 다시 올 때 새로 계산된다.
+const VISIT_GAP = 1800;      // 30분. 이보다 짧은 간격의 재방문은 '같은 방문'으로 친다.
+
+// 지난번에 왔던 시각. 없거나 이상하면 0(= 배지를 안 붙인다).
+function last_visit_at(): int {
+    $raw = $_COOKIE[LAST_VISIT_COOKIE] ?? '';
+
+    // ★ 쿠키는 사용자가 고칠 수 있다 — 숫자인지부터 확인한다.
+    //   ctype_digit을 쓰는 이유: (int)로 먼저 바꾸면 "17abc"가 17로 통과한다.
+    if (!is_string($raw) || !ctype_digit($raw)) {
+        return 0;
+    }
+
+    $at = (int) $raw;
+
+    // 미래 시각이 적혀 있으면(시계를 앞당겨 놓았거나 조작) 믿지 않는다.
+    //   그대로 쓰면 '모든 글이 옛날 글'이 되어 배지가 영영 안 뜬다.
+    return $at > time() ? 0 : $at;
+}
+
+// 방문 시각을 갱신한다. (게시판을 그린 뒤에 부른다)
+function touch_visit(): void {
+    if (time() - last_visit_at() < VISIT_GAP) {
+        return;                       // 아직 '같은 방문' — 그대로 두어 배지를 유지한다
+    }
+    setcookie(LAST_VISIT_COOKIE, (string) time(), pref_cookie_options());
 }

@@ -185,6 +185,43 @@ function take_intended(string $default = '/'): string {
     return $path !== '' ? $path : $default;
 }
 
+// ── 민감한 작업 앞에서 비밀번호를 다시 묻는다 (sudo 모드) ────
+//   [무엇을 막나]
+//     로그인한 채 자리를 비운 사이, 지나가던 사람이 **되돌릴 수 없는 일**을 저지르는 것.
+//     글 영구삭제나 '다른 기기 모두 로그아웃' 같은 것들이다.
+//     세션만으로는 "지금 키보드 앞에 있는 사람이 계정 주인인가"를 알 수 없다 —
+//     세션은 '이 브라우저가 로그인했다'까지만 증명한다.
+//
+//   [어떻게 하나]
+//     비밀번호를 마지막으로 확인한 시각을 세션에 적어두고, 민감한 작업 앞에서
+//     그 시각이 너무 오래됐으면 **한 번 더 묻는다.** 창(15분) 안이면 그냥 통과.
+//     GitHub·GitHub Actions·AWS 콘솔이 쓰는 방식이라 'sudo 모드'라고 부른다.
+//
+//   [★ 왜 로그아웃시키지 않고 '다시 묻기'인가]
+//     로그아웃시키면 하던 일이 전부 끊긴다. 위험한 건 그 작업 하나뿐이므로,
+//     **그 작업 앞에서만** 문턱을 세우는 게 맞다. 나머지는 그대로 쓰게 둔다.
+const SESSION_AUTH_AT = 'auth_at';   // 비밀번호를 마지막으로 확인한 시각(초)
+const SUDO_WINDOW     = 900;         // 15분. 이 안이면 다시 안 묻는다.
+
+// 최근에 비밀번호를 확인했나?
+function has_recent_auth(): bool {
+    $at = (int) ($_SESSION[SESSION_AUTH_AT] ?? 0);
+    return $at !== 0 && time() - $at <= SUDO_WINDOW;
+}
+
+// 확인한 지 오래됐으면 비밀번호 확인 화면으로 보낸다. (민감한 액션 파일이 맨 앞에서 부른다)
+//   $backTo = 확인이 끝나면 돌아갈 화면.
+function require_recent_auth(string $backTo): void {
+    if (has_recent_auth()) {
+        return;
+    }
+    // 확인 후 어디로 돌려보낼지는 '가려던 곳'과 같은 장치를 재사용한다.
+    //   ★ 새 장치를 또 만들지 않는다 — 하는 일이 완전히 같기 때문이다.
+    remember_intended($backTo);
+    set_flash('🔐 안전을 위해 비밀번호를 한 번 더 확인합니다.', 'error');
+    redirect('/settings/confirm.php');
+}
+
 // 세션에 '이 사람이 로그인했다'를 적는다.
 //   ★ 로그인 화면을 거친 경우와 '로그인 유지' 쿠키로 되살아난 경우가 **둘 다 여기를 지난다.**
 //     한쪽만 아래 방어를 빠뜨리면 그 경로만 조용히 뚫리는데, 그런 구멍은 눈에 잘 안 띈다.
@@ -207,6 +244,11 @@ function start_session_for(int $userId): void {
     //   ★ 여기서 안 넣으면 '로그인한 그 순간'은 시계가 없는 상태가 된다.
     //     다음 페이지를 열어야 비로소 시작돼서, 만료 판정이 한 박자씩 밀린다.
     $_SESSION[SESSION_LAST_SEEN] = time();
+
+    // 방금 비밀번호를 확인하고 들어왔으므로 sudo 창도 지금부터 연다.
+    //   ★ '로그인 유지' 쿠키로 되살아난 경우에도 여기를 지난다 — 그건 비밀번호를 안 물었는데?
+    //     맞다. 그래서 아래 remember 복구 블록에서 이 값을 도로 지운다.
+    $_SESSION[SESSION_AUTH_AT] = time();
 }
 
 // 로그인 성공 → 세션에 회원 번호를 적고 보낸다.
@@ -329,6 +371,8 @@ if (!empty($_SESSION[SESSION_USER_ID])) {
         set_flash('⏰ 오랫동안 활동이 없어 자동으로 로그아웃되었습니다.', 'error');
     } else {
         // 움직였으니 시각을 갱신한다 → 쓰는 동안에는 계속 연장된다(sliding).
+        //   ★ 여기서 갱신하는 건 '마지막으로 움직인 시각'뿐이다.
+        //     비밀번호 확인 시각(auth_at)까지 같이 갱신하면 sudo 창이 영원히 안 닫힌다.
         $_SESSION[SESSION_LAST_SEEN] = time();
     }
 }
@@ -339,5 +383,9 @@ if (empty($_SESSION[SESSION_USER_ID]) && isset($_COOKIE[REMEMBER_COOKIE])) {
     if ($rememberedId !== 0) {
         // ★ 로그인 화면을 거친 것과 똑같은 함수를 쓴다 → 세션 고정 방어가 양쪽에 똑같이 걸린다.
         start_session_for($rememberedId);
+
+        // ★ 다만 이 경로는 **비밀번호를 묻지 않았다.** 쿠키 한 장으로 들어온 것이므로
+        //   sudo 창은 열어주지 않는다 → 민감한 작업을 하려면 비밀번호를 다시 물어본다.
+        unset($_SESSION[SESSION_AUTH_AT]);
     }
 }

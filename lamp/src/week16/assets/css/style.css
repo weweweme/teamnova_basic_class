@@ -1102,6 +1102,33 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 .btn-consent-all { border-color: rgba(70,167,88,.6); color: #7ee2a8; }
 .btn-consent-all:hover { background: rgba(70,167,88,.15); }
 .btn-consent-none { border-color: rgba(255,255,255,.18); }
+.consent-hint { font-size: 12px; margin: .3rem 0 0; }
+.consent-hint a { color: #9aa0aa; }
+
+/* 쿠키 설정 화면 (/cookies.php) */
+.consent-form .cookie-item { font-size: 14px; padding: .4rem .5rem; }
+.consent-actions { display: flex; gap: .5rem; margin-top: .8rem; flex-wrap: wrap; }
+.consent-actions button {
+  padding: .45rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600;
+  background: transparent; color: #c9ced6; border: 1px solid rgba(255,255,255,.18);
+}
+.consent-actions button:hover { background: rgba(255,255,255,.08); }
+.consent-version {
+  font-size: 12px; padding: .1rem .4rem; border-radius: 4px;
+  border: 1px solid rgba(255,255,255,.14); color: #8b919b;
+}
+.cookie-list-label { margin: .8rem 0 .2rem; font-size: 13px; font-weight: 600; color: #c9ced6; }
+.cookie-list {
+  margin: 0; font-size: 13px; color: #9aa0aa; word-break: break-all;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+/* '동의 창 다시 보기' — 파괴적이지 않은 보조 동작이라 링크처럼 낮춘다 */
+.consent-reset { margin-top: 1rem; }
+.btn-link {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: #8b919b; font-size: 13px; text-decoration: underline;
+}
+.btn-link:hover { color: #c9ced6; }
 
 /* 페이지당 글 수 선택 (게시판) */
 .per-page { display: inline-flex; gap: .25rem; margin-right: .5rem; font-size: 13px; }

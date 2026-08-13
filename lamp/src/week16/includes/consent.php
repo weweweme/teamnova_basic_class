@@ -92,6 +92,24 @@ function consent_state(): ?array {
     return $items;
 }
 
+// 언제 골랐나. 없으면 0.
+//   ★ 지금은 화면에 보여주는 데만 쓴다. 하지만 증빙에서 **제일 먼저 묻는 것이 '언제'** 라
+//     처음부터 담아뒀다. (DB로 옮길 때 이 값이 그대로 한 칸이 된다)
+function consent_saved_at(): int {
+    $raw = $_COOKIE[CONSENT_COOKIE] ?? null;
+    if (!is_string($raw)) {
+        return 0;
+    }
+    $data = json_decode($raw, true);
+    $at   = is_array($data) ? ($data['at'] ?? 0) : 0;
+
+    // 쿠키는 사용자가 고칠 수 있다 → 숫자인지 확인하고, 미래 시각이면 믿지 않는다.
+    if (!is_int($at) || $at <= 0 || $at > time()) {
+        return 0;
+    }
+    return $at;
+}
+
 // 이 항목에 동의했나? (쿠키를 심기 직전에 부른다)
 //   ★ 안 물어본 상태(null)에서도 false다 — **모르면 안 심는다**가 기본값이어야 한다.
 function has_consent(string $item): bool {

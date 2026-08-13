@@ -5,6 +5,9 @@
        ============================================================ -->
   <footer class="foot">
     <small>🎬 리뷰 커뮤니티 · 영화·드라마 리뷰 커뮤니티 · TMDB 제공</small>
+    <?php // ★ 로그인과 무관한 자리에 둔다 — 동의는 비회원에게도 받으므로
+          //   철회도 비회원이 할 수 있어야 한다. (settings/ 안에 있으면 회원만 거둘 수 있다) ?>
+    <small><a href="/cookies.php">🍪 쿠키 설정</a></small>
   </footer>
 
   <!-- 삭제 확인 팝업 — 모든 페이지에 하나만 두고 재사용한다.
@@ -49,6 +52,12 @@
             <span>선택 — <?= e($label) ?></span>
           </label>
         <?php endforeach; ?>
+
+        <?php // ★ 지금 누르는 것이 '되돌릴 수 있는 선택'임을 그 자리에서 알린다.
+              //   거둘 방법을 나중에 찾아야 한다면, 그건 있으나 마나다. ?>
+        <p class="muted consent-hint">
+          <a href="/cookies.php">쿠키 설정</a>에서 언제든 바꾸거나 <strong>철회</strong>할 수 있습니다.
+        </p>
       </div>
 
       <?php // name="choice" 가 같고 value가 다르다 → 누른 버튼의 값만 서버로 간다. ?>

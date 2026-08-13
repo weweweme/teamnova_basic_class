@@ -62,8 +62,9 @@ require __DIR__ . '/../includes/header.php';
          (dropdown이 아닌 이유: 글쓰기는 특정 작품 게시판에서만 시작하므로 작품이 이미 정해짐) -->
     <input type="hidden" name="work" value="<?= e($work) ?>">
 
-    <?php /* ★ 값 채우기 = 세션에 저장된 초안($draft). 아래 셋 다 같은 출처다.
-             초안은 JS가 몇 초마다 저장하고, 검증에 걸려 되돌아왔을 때도 서버가 갱신한다. */ ?>
+    <?php /* ★ 값 채우기 = DB에 저장해 둔 초안($draft). 아래 셋 다 같은 출처다.
+             초안은 '💾 임시저장'을 눌렀을 때 저장되고, 등록했다가 검증에 걸려
+             되돌아왔을 때도 서버가 갱신한다(create.php). */ ?>
 
     <!-- label = 입력칸 설명표. input의 name = 서버에서 값 꺼낼 '열쇠'($_POST['title']) -->
     <label>제목
@@ -95,28 +96,34 @@ require __DIR__ . '/../includes/header.php';
     <!-- submit 버튼을 누르면 → 위 값들이 POST로 create.php에 전송됨 -->
     <div class="write-submit">
       <button type="submit">등록</button>
-      <?php // 자동 저장 상태를 알려주는 자리. JS가 글자를 채운다(처음엔 비어 있음). ?>
-      <span id="draft-status" class="muted"></span>
+      <?php // type="button" — 이걸 빼면 폼이 그냥 제출된다(button의 기본 동작이 submit이므로). ?>
+      <button type="button" id="draft-save" class="btn-draft">💾 임시저장</button>
+      <?php // 저장 결과를 알려주는 자리. JS가 글자를 채운다(처음엔 비어 있음). ?>
+      <span id="draft-status" class="muted">
+        <?php if (!empty($draft['title']) || !empty($draft['content'])): ?>
+          이어서 쓰는 중 (임시저장해 둔 글)
+        <?php endif; ?>
+      </span>
     </div>
   </form>
 
 <script>
-// ── 임시저장(초안) 자동 저장 ────────────────────────────────
-//   입력이 '멈춘 뒤' 2초에 한 번만 서버로 보낸다.
-//   ★ 글자를 칠 때마다 보내면 요청이 수백 번 간다. 그래서 타이머를 매번 새로 건다
-//     (= 디바운스). 계속 치는 동안에는 타이머가 계속 밀려서 안 보내진다.
+// ── 임시저장(초안) — 버튼을 눌렀을 때만 저장한다 ────────────
+//   [왜 자동 저장이 아니라 버튼인가]
+//     자동 저장은 편하지만 **언제 저장됐는지 사용자가 모른다.** 글이 남았는지 아닌지를
+//     화면이 아니라 '느낌'으로 판단하게 된다.
+//     버튼은 **내가 눌렀으니 저장됐다**가 확실하다. 서버 요청도 누른 만큼만 간다.
+//   ★ 대신 안 누르고 새로고침하면 그 내용은 날아간다. 그게 '명시적 저장'의 대가다.
+//     (등록을 눌렀다가 검증에 걸린 경우는 서버가 알아서 초안을 갱신한다 — create.php)
 (function () {
   const form   = document.querySelector('.write-form');
+  const button = document.getElementById('draft-save');
   const status = document.getElementById('draft-status');
-  if (!form) return;
+  if (!form || !button) return;
 
-  let timer = null;
-  let lastSent = '';           // 마지막으로 보낸 내용 — 같으면 안 보낸다(헛요청 방지)
-  let submitted = false;       // 등록 버튼을 눌렀나 (눌렀으면 떠날 때 저장할 필요 없다)
-
-  function collect() {
+  button.addEventListener('click', async function () {
     const data = new FormData(form);
-    return {
+    const values = {
       work:      data.get('work')      || '',
       title:     data.get('title')     || '',
       content:   data.get('content')   || '',
@@ -124,57 +131,32 @@ require __DIR__ . '/../includes/header.php';
       // ★ CSRF 토큰도 같이 보낸다. 폼에 이미 hidden으로 들어 있는 그 값이다.
       _token:    data.get('_token')    || ''
     };
-  }
 
-  async function save() {
-    const values = collect();
-    if (values.title === '' && values.content === '') return;   // 빈 폼은 저장 안 함
+    if (values.title === '' && values.content === '') {
+      status.textContent = '쓴 내용이 없어요';
+      return;
+    }
 
-    const body = new URLSearchParams(values).toString();
-    if (body === lastSent) return;                              // 바뀐 게 없으면 안 보냄
+    button.disabled = true;                 // 연타로 같은 요청이 여러 번 가지 않게
+    status.textContent = '저장 중…';
 
     try {
-      const res = await fetch('/api/draft.php', {
+      const res  = await fetch('/api/draft.php', {
         method:  'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body:    body
+        body:    new URLSearchParams(values).toString()
       });
       const json = await res.json();
-      if (json.ok) {
-        lastSent = body;
-        // ★ 한계를 같이 적는다 — 이 초안은 세션에 있어서 창을 닫으면 사라진다.
-        //   "저장됐다"만 보여주면 사용자가 창을 닫아도 남을 거라 믿게 된다.
-        status.textContent = '임시저장됨 ' + json.at + ' · 창을 닫으면 사라집니다';
-      }
+      // ★ 이제 초안은 세션이 아니라 DB 표에 있다 → 창을 닫아도, 다른 기기에서도 남는다.
+      status.textContent = json.ok
+        ? '임시저장됨 ' + json.at + ' · 창을 닫아도 남아요'
+        : '임시저장 실패';
     } catch (e) {
       // 저장에 실패해도 글쓰기 자체를 막지는 않는다 — 어디까지나 보조 장치다.
       status.textContent = '임시저장 실패 (계속 쓰셔도 됩니다)';
+    } finally {
+      button.disabled = false;
     }
-  }
-
-  form.addEventListener('input', function () {
-    clearTimeout(timer);                 // 이전 예약을 취소하고
-    timer = setTimeout(save, 2000);      // 2초 뒤로 다시 예약
-    status.textContent = '';
-  });
-
-  // ★ 페이지를 떠나기 직전에 한 번 더 저장한다 — 새로고침·뒤로가기·주소 이동 전부 여기로 온다.
-  //   [왜 fetch가 아니라 sendBeacon인가]
-  //     페이지가 사라지는 중에 보낸 fetch는 브라우저가 그냥 취소해 버린다.
-  //     sendBeacon은 '떠나는 중에도 끝까지 보내달라'고 브라우저에 맡기는 전용 함수다.
-  //     응답은 못 받지만(그래서 화면 표시는 못 함) 저장은 확실히 된다.
-  //   [왜 pagehide 인가] beforeunload는 모바일에서 안 불릴 때가 있다. pagehide가 더 확실하다.
-  window.addEventListener('pagehide', function () {
-    if (submitted) return;               // 등록 중이면 저장할 필요 없다 (서버가 곧 지운다)
-    const values = collect();
-    if (values.title === '' && values.content === '') return;
-    navigator.sendBeacon('/api/draft.php', new URLSearchParams(values));
-  });
-
-  // 등록을 누르면 예약된 저장을 취소한다 (등록되면 초안은 서버가 지운다).
-  form.addEventListener('submit', function () {
-    submitted = true;
-    clearTimeout(timer);
   });
 })();
 </script>

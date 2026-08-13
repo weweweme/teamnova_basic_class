@@ -19,10 +19,30 @@
 //          말로만 지웠다고 하면 그건 또 믿어달라는 것이다.
 // ============================================================
 require_once __DIR__ . '/includes/util.php';
+require_once __DIR__ . '/includes/auth.php';    // 로그인했으면 다른 기기의 기록까지 보여주려고
 require_once __DIR__ . '/includes/prefs.php';
 
 $state = consent_state();               // null = 아직 안 고름
 $saved = consent_saved_at();            // 고른 시각 (0이면 없음)
+
+// ★ 서버에 남은 증빙을 그대로 보여준다.
+//   **증빙은 보여줄 수 있어야 의미가 있다** — "기록하고 있습니다"라고 말만 하는 것과
+//   그 줄을 화면에 띄우는 것은 다르다. 사용자도 자기 기록을 볼 권리가 있다.
+$myUserId = is_logged_in() ? current_user_id() : null;
+$history  = consent_history(consent_id(), $myUserId);
+
+// 화면에 쓸 말. 코드값(grant·revoke…)을 그대로 보여주면 아무도 못 읽는다.
+$actionLabels = [
+    'grant'  => '동의',
+    'revoke' => '철회',
+    'reset'  => '선택 지움',
+    'link'   => '회원과 연결',
+];
+$sourceLabels = [
+    'banner'   => '배너',
+    'settings' => '쿠키 설정',
+    'login'    => '로그인',
+];
 
 // 지금 브라우저에 실제로 있는 쿠키를 '필수 / 선택'으로 갈라 보여준다.
 //   ★ 값은 안 보여준다 — 화면에 굳이 늘어놓을 이유가 없고, 개발자 도구가 그 일을 더 잘한다.
@@ -118,7 +138,50 @@ require __DIR__ . '/includes/header.php';
     </p>
   </section>
 
-  <?php // ── ③ 동의 창 다시 보기 (철회가 아니다) ─────────────────
+  <?php // ── ③ 서버에 남은 증빙 ──────────────────────────────────
+        //   ★ 이 목록이 이 화면의 핵심이다.
+        //     쿠키를 지워도 **이 줄들은 남는다** — 그래서 나중에 증명할 수 있다.
+        //     반대로 쿠키만 있고 이게 없으면, "동의한 적 없다"는 말에 반박할 방법이 없다. ?>
+  <section class="settings-section">
+    <h2>동의 기록 <span class="muted consent-version">서버에 보관</span></h2>
+
+    <?php if (!$history): ?>
+      <p class="muted">아직 기록이 없습니다.</p>
+    <?php else: ?>
+      <ul class="consent-history">
+        <?php foreach ($history as $row): ?>
+          <?php
+            // items는 DB에 {"view":1,"search":0} 문자열로 들어 있다 → 사람이 읽을 말로 바꾼다.
+            $picked = json_decode((string) $row['items'], true);
+            $names  = [];
+            foreach (CONSENT_ITEMS as $key => $label) {
+                if (!empty($picked[$key])) {
+                    $names[] = $label;
+                }
+            }
+          ?>
+          <li>
+            <span class="consent-when"><?= e(format_time_full((int) $row['at'])) ?></span>
+            <strong><?= e($actionLabels[$row['action']] ?? $row['action']) ?></strong>
+            <span class="muted">· <?= e($sourceLabels[$row['source']] ?? $row['source']) ?>에서</span>
+            <span class="muted">· 안내 v<?= (int) $row['policy_version'] ?></span>
+            <?php // 비로그인 기록은 user_id가 NULL이다. 그게 정상 — 동의는 로그인보다 먼저 받는다. ?>
+            <span class="muted">· <?= $row['user_id'] === null ? '비회원' : '회원 #' . (int) $row['user_id'] ?></span>
+            <div class="consent-items">
+              <?= $names ? e(implode(' + ', $names)) : '<span class="muted">선택 항목 없음 (필수만)</span>' ?>
+            </div>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+
+      <p class="muted consent-hint">
+        ※ 이 기록은 <strong>고쳐지지 않고 쌓이기만 합니다.</strong>
+        철회해도 지난 줄을 지우지 않아요 — <strong>‘동의했다가 철회함’과 ‘동의한 적 없음’은 다른 사실</strong>이니까요.
+      </p>
+    <?php endif; ?>
+  </section>
+
+  <?php // ── ④ 동의 창 다시 보기 (철회가 아니다) ─────────────────
         //   기록을 아예 지워 '안 물어본 상태'로 되돌린다 → 배너가 다시 뜬다.
         //   ★ 철회와 다르다. 철회는 '싫다'는 선택이고, 이건 '처음부터 다시'다.
         //     버튼을 나눠둔 이유가 그것이다 — 둘을 한 버튼에 묶으면 어느 쪽인지 알 수 없다. ?>

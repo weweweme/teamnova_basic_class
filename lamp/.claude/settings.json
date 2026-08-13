@@ -139,7 +139,9 @@
       "Bash(curl -s -c m.txt -o /dev/null __TRACKED_VAR__/settings/)",
       "Bash(rm -f s.txt)",
       "Bash(curl -s -c s.txt -o /dev/null -D - __TRACKED_VAR__/settings/)",
-      "Bash(curl -s -b v.txt __TRACKED_VAR__/cookies.php)"
+      "Bash(curl -s -b v.txt __TRACKED_VAR__/cookies.php)",
+      "Bash(curl -s -b w.txt __TRACKED_VAR__/cookies.php)",
+      "Bash(grep -v '^\\\\s*$')"
     ],
     "additionalDirectories": [
       "c:\\git-work\\teamnova_basic_class\\lamp\\src\\week16\\includes"

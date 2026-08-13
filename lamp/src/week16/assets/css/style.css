@@ -1122,6 +1122,16 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
   margin: 0; font-size: 13px; color: #9aa0aa; word-break: break-all;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
+/* 동의 기록 — 시간순으로 쌓이는 목록이라 왼쪽에 선을 둬 '이력'임을 보이게 한다 */
+.consent-history { list-style: none; margin: .6rem 0 0; padding: 0; font-size: 13px; }
+.consent-history li {
+  padding: .5rem 0 .5rem .8rem; border-left: 2px solid rgba(255,255,255,.12);
+  margin-bottom: .3rem;
+}
+.consent-history li:first-child { border-left-color: rgba(70,167,88,.6); }  /* 가장 최근 = 지금 상태 */
+.consent-when { font-variant-numeric: tabular-nums; color: #9aa0aa; margin-right: .3rem; }
+.consent-items { margin-top: .15rem; color: #c9ced6; }
+
 /* '동의 창 다시 보기' — 파괴적이지 않은 보조 동작이라 링크처럼 낮춘다 */
 .consent-reset { margin-top: 1rem; }
 .btn-link {

@@ -32,8 +32,11 @@ $back   = post_str('back');
 //   ★ 철회(none)와 다르다. 철회는 **'싫다'는 선택**이라 기록으로 남고 배너가 다시 안 뜬다.
 //     reset은 **아무것도 안 고른 상태**라 배너가 다시 뜬다.
 //     둘을 한 버튼에 묶으면 눌렀을 때 어느 쪽인지 알 수 없다.
+//   ★ 로그인 상태면 회원 번호도 함께 남긴다. 비로그인이면 NULL이 정상이다.
+$userId = is_logged_in() ? current_user_id() : null;
+
 if ($choice === 'reset') {
-    forget_consent();
+    forget_consent($userId);
     forget_unconsented_cookies();       // 안 고른 상태 = 아무것도 동의 안 함 → 쌓인 것도 치운다
     set_flash('🍪 선택을 지웠습니다. 동의 창이 다시 나타납니다.');
     redirect(is_internal_path($back) ? $back : '/');
@@ -49,7 +52,11 @@ foreach (array_keys(CONSENT_ITEMS) as $key) {
     };
 }
 
-save_consent($items);
+// ★ 어느 화면에서 골랐는지도 함께 남긴다 — '어떻게 받았는가'는 증빙에서 반드시 묻는 것이다.
+//   배너는 back이 지금 보던 화면, 쿠키 설정 화면은 /cookies.php 로 고정돼 있다.
+$source = $back === '/cookies.php' ? 'settings' : 'banner';
+
+save_consent($items, $source, $userId);
 
 // ★ 거절한 항목의 쿠키는 여기서 바로 치운다.
 //   "앞으로 안 심겠다"만으로는 부족하다 — 이미 쌓인 것도 없애야 거절이 거절이다.

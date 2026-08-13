@@ -6,6 +6,7 @@
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/consent.php';   // 비로그인 때 받아둔 동의를 회원과 잇는다
 
 // ── 0) POST로 온 게 맞나? ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -48,6 +49,11 @@ $remember = post_str('remember') !== '';
 
 // 성공했으니 맡겨둔 아이디를 버린다 (안 버리면 다음 로그인 화면에 되살아난다).
 forget_old_input();
+
+// ★ 이 브라우저에서 받아둔 동의를 회원과 잇는다 (consent_log에 'link' 줄 한 줄).
+//   비로그인일 때 동의했다면 그 기록의 user_id가 NULL이었다 —
+//   이제 누구였는지 알게 됐으므로 그 사실을 남긴다.
+link_consent_to_user((int) $user['id']);
 
 set_flash('👋 ' . $user['username'] . '님, 환영합니다!');
 login_and_redirect((int) $user['id'], $remember);

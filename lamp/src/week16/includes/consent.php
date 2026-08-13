@@ -23,15 +23,22 @@
 //   [★★ JS가 아니라 서버가 심는다 — 바뀐 이유]
 //     예전엔 이 쿠키만 브라우저(JS)가 직접 심었다. 서버 왕복이 없어 빨랐기 때문이다.
 //     동의로 바뀌면서 그게 문제가 됐다 — **서버가 모르는 동의는 나중에 증명할 수 없다.**
-//     지금은 쿠키에 적지만, 곧 DB에도 남길 것이다(증빙용). 그때 호출부를 안 고치려고
-//     저장 위치를 이 파일 안에만 두었다. (초안을 세션→DB로 옮길 때 쓴 것과 같은 방법)
 //
-//   [아직 남은 숙제]
-//     · 설정 화면에서 **철회**하기
-//     · **동의 전에는 아예 안 심기** — 지금은 배너를 처음 보는 화면에서도 recent_works가 심어진다
-//       (동의는 '사전' 동의여야 한다. 다 심어놓고 나중에 받으면 순서가 틀린 것)
-//     · 받은 동의를 **DB에 남기기** — 쿠키는 사용자가 지울 수 있어 증거가 못 된다
+//   [★★★ 그래서 같은 사실이 두 군데에 있다 — 역할이 다르다]
+//     · **쿠키** = 판단용 캐시. "배너를 띄울까? 이 쿠키를 심어도 되나?"를 DB 왕복 없이 답한다
+//     · **consent_log 표** = 증빙 원본. 지워지지 않고 쌓이기만 한다
+//     쿠키가 사라져도 사실은 안 사라진다. 그게 이 구조의 전부다.
+//
+//   [갖춰진 것 — 하나라도 빠지면 '동의'가 아니다]
+//     ① 거절할 수 있다        — 버튼이 [확인] 하나면 물어본 게 아니다
+//     ② 항목별로 고를 수 있다  — 검색 기록과 열람 기록을 따로
+//     ③ 철회할 수 있다        — 비회원도. `/cookies.php` (그래서 settings/ 안에 두지 않았다)
+//     ④ 동의 전엔 안 심는다   — `has_consent()` 게이트가 '모르면 안 심는다'를 기본값으로
+//     ⑤ 증빙이 남는다         — `consent_log` (append-only)
 // ============================================================
+
+// 증빙은 서버에 남긴다 — 쿠키는 사용자가 지울 수 있어 증거가 못 되기 때문이다.
+require_once __DIR__ . '/db.php';
 
 const CONSENT_COOKIE = 'consent';
 const CONSENT_DAYS   = 90;
@@ -50,6 +57,36 @@ const CONSENT_ITEMS = [
     'view'   => '최근 본 글·작품, 마지막 방문 시각',   // recent_posts · recent_works · last_visit
     'search' => '최근 검색어',                          // recent_search
 ];
+
+// ── 이 브라우저의 동의 식별자 ────────────────────────────────
+//   [왜 필요한가]
+//     증빙은 DB에 남기는데, 배너는 **로그인 안 한 사람에게도** 뜬다.
+//     "누가 눌렀는지"를 적을 칸이 있어야 하므로 무작위 번호를 하나 만들어 쿠키에 넣는다.
+//   ★ 아이러니 — **동의 기록을 남기려고 만든 식별자 자체가 수집이다.**
+//     그래서 이것 말고는 아무것도 안 담는다. 뜻 없는 무작위 값 하나뿐이다.
+//   ★ remember 토큰과 모양이 같지만 **성격이 다르다** — 저건 훔치면 계정이 넘어가는 열쇠고,
+//     이건 훔쳐봐야 같은 동의 화면을 볼 뿐이다. 그래서 DB에 지문이 아니라 원본을 담는다.
+function consent_id(): string {
+    $data = consent_payload();
+    $id   = $data['id'] ?? '';
+
+    // 모양이 안 맞으면(없거나 고쳐놨거나) 새로 만든다.
+    if (!is_string($id) || !preg_match('/^[a-f0-9]{32}$/', $id)) {
+        $id = bin2hex(random_bytes(16));
+    }
+    return $id;
+}
+
+// 쿠키에 든 원본 배열. 없거나 깨졌으면 빈 배열.
+function consent_payload(): array {
+    $raw = $_COOKIE[CONSENT_COOKIE] ?? null;
+    if (!is_string($raw) || strlen($raw) > 300) {
+        return [];
+    }
+    $data = json_decode($raw, true);
+
+    return is_array($data) ? $data : [];
+}
 
 function consent_cookie_options(int $expires): array {
     return [
@@ -123,10 +160,14 @@ function needs_consent(): bool {
 }
 
 // 고른 결과를 저장한다. $items = ['view' => true, 'search' => false] 모양.
-//   ★ 아직은 쿠키다. 곧 DB에도 남긴다 — 그때 이 함수 안만 고치면 된다.
-//     `at`(고른 시각)은 지금 쓰이지 않지만 넣어둔다. 증빙에서 제일 먼저 묻는 것이 '언제'다.
-function save_consent(array $items): void {
-    $data = ['v' => CONSENT_VERSION, 'at' => time()];
+//   ★ **쿠키와 DB 양쪽에 적는다.** 쿠키는 다음 요청부터 빨리 판단하려고,
+//     DB는 나중에 증명하려고. 호출부는 그 사정을 몰라도 된다 — 이 함수 하나만 부르면 된다.
+function save_consent(array $items, string $source = 'banner', ?int $userId = null): void {
+    // ★ 식별자는 '고르기 전에' 정한다 — 아래에서 쿠키를 덮어쓰기 때문이다.
+    //   이미 있으면 그대로 이어 쓴다 → 같은 브라우저의 이력이 한 줄로 이어진다.
+    $id = consent_id();
+
+    $data = ['v' => CONSENT_VERSION, 'at' => time(), 'id' => $id];
     foreach (array_keys(CONSENT_ITEMS) as $key) {
         $data[$key] = !empty($items[$key]) ? 1 : 0;
     }
@@ -134,10 +175,101 @@ function save_consent(array $items): void {
 
     setcookie(CONSENT_COOKIE, $json, consent_cookie_options(time() + CONSENT_DAYS * 86400));
     $_COOKIE[CONSENT_COOKIE] = $json;   // ★ 이 요청에서도 곧바로 새 값이 읽히게
+
+    // ★★ 그리고 서버에도 남긴다. 쿠키는 사용자가 지울 수 있어 증거가 못 되기 때문이다.
+    //   전부 껐으면 '철회'로 기록한다 — 동의와 철회는 다른 사건이다.
+    log_consent($id, $userId, $items, count(array_filter($items)) > 0 ? 'grant' : 'revoke', $source);
 }
 
-// 동의를 지운다 (= 안 물어본 상태로 되돌린다). 철회 화면에서 쓸 예정.
-function forget_consent(): void {
+// ── 증빙 남기기 ──────────────────────────────────────────────
+//   ★★ 이 표는 **고치지 않는다(append-only).** 바꾸든 철회하든 새 줄을 넣는다.
+//     "동의했다가 철회함"과 "동의한 적 없음"은 **다른 사실**이라, 덮어쓰면 그 차이가 사라진다.
+//   ★ 실패해도 화면을 막지 않는다 — 동의 자체는 이미 쿠키에 반영됐다.
+//     여기서 예외를 던지면 "동의를 눌렀는데 화면이 깨진다"가 된다. 기록은 부수적인 일이다.
+//     (실무라면 이 자리에서 별도 로그를 남겨 나중에 확인한다)
+function log_consent(string $consentId, ?int $userId, array $items, string $action, string $source): void {
+    $snapshot = [];
+    foreach (array_keys(CONSENT_ITEMS) as $key) {
+        $snapshot[$key] = !empty($items[$key]) ? 1 : 0;
+    }
+
+    try {
+        db()->prepare(
+            'INSERT INTO consent_log (consent_id, user_id, action, source, policy_version, items, user_agent)
+             VALUES (?, ?, ?, ?, ?, ?, ?)'
+        )->execute([
+            $consentId,
+            $userId,
+            $action,
+            $source,
+            CONSENT_VERSION,
+            (string) json_encode($snapshot),
+            mb_substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255),
+        ]);
+    } catch (Throwable) {
+        // 삼킨다. 위 주석 참고.
+    }
+}
+
+// 이 브라우저(또는 이 회원)의 동의 이력. 최근 것이 먼저.
+//   ★ 화면에 보여주려고 만든 함수다 — **증빙은 보여줄 수 있어야 의미가 있다.**
+//     "기록은 남기고 있습니다"라고 말만 하는 것과, 그 줄을 화면에 띄우는 것은 다르다.
+function consent_history(string $consentId, ?int $userId, int $limit = 10): array {
+    try {
+        // 이 브라우저의 것 + (로그인했으면) 이 회원이 다른 기기에서 고른 것까지.
+        $stmt = db()->prepare(
+            'SELECT action, source, policy_version, items, user_id, UNIX_TIMESTAMP(created_at) AS at
+               FROM consent_log
+              WHERE consent_id = ? OR (? IS NOT NULL AND user_id = ?)
+              ORDER BY id DESC
+              LIMIT ' . (int) $limit
+        );
+        $stmt->execute([$consentId, $userId, $userId]);
+
+        return $stmt->fetchAll();
+    } catch (Throwable) {
+        return [];
+    }
+}
+
+// 로그인했을 때 '이 브라우저의 동의 = 이 회원의 것'을 이어 붙인다.
+//   ★ 기존 줄을 UPDATE 하지 않고 **새 줄('link')을 넣는다.** append-only를 지키기 위해서다.
+//     기록되는 사실도 다르다 — "그때 동의했다"가 아니라 "이 시점에 회원과 연결됐다"이다.
+//   ★ 이미 연결된 브라우저면 아무 일도 하지 않는다 (로그인할 때마다 줄이 쌓이지 않게).
+function link_consent_to_user(int $userId): void {
+    $state = consent_state();
+    if ($state === null) {
+        return;                         // 아직 아무것도 안 골랐으면 이을 것이 없다
+    }
+    $id = consent_id();
+
+    try {
+        $stmt = db()->prepare('SELECT user_id FROM consent_log WHERE consent_id = ? ORDER BY id DESC LIMIT 1');
+        $stmt->execute([$id]);
+        $last = $stmt->fetch();
+
+        if ($last === false || (int) ($last['user_id'] ?? 0) === $userId) {
+            return;                     // 기록이 없거나 이미 이 회원 것이면 그대로 둔다
+        }
+    } catch (Throwable) {
+        return;
+    }
+
+    log_consent($id, $userId, $state, 'link', 'login');
+}
+
+// 동의를 지운다 (= 안 물어본 상태로 되돌린다).
+//   ★ **쿠키만 지운다. 서버 기록은 그대로 둔다.**
+//     여기서 DB 줄까지 지우면 "동의를 지우면 증빙도 지워진다"가 되어, 증빙이 아니게 된다.
+//     대신 '지웠다'는 사실 자체를 새 줄로 남긴다 — 그것도 사건이다.
+function forget_consent(?int $userId = null): void {
+    $id    = consent_id();
+    $state = consent_state();
+
     unset($_COOKIE[CONSENT_COOKIE]);
     setcookie(CONSENT_COOKIE, '', consent_cookie_options(time() - 3600));
+
+    if ($state !== null) {
+        log_consent($id, $userId, [], 'reset', 'settings');
+    }
 }

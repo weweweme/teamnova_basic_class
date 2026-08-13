@@ -202,3 +202,28 @@ CREATE TABLE drafts (
     INDEX idx_drafts_updated (updated_at),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+
+-- ── consent_log : 쿠키 동의 증빙 ──────────────────────────
+--   week16에서 추가. **고치지 않고 쌓기만 하는(append-only) 표.**
+--   ★ 왜 쿠키만으로는 안 되나: 동의를 받았다는 사실을 증명할 책임은 우리에게 있는데,
+--     쿠키는 사용자가 지울 수도 만들 수도 있어 증거가 못 된다.
+--     → 쿠키는 '배너를 띄울까'를 빨리 답하는 캐시, 이 표가 증빙 원본이다.
+--   ★ 철회해도 지난 줄을 안 지운다 — '동의했다가 철회함'과 '동의한 적 없음'은 다른 사실이다.
+--   ★ IP는 일부러 안 담는다 — 증빙을 남기려고 개인정보를 더 모으면 본말이 전도된다.
+--   자세한 설명은 migrations/007_consent_log.sql
+CREATE TABLE consent_log (
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    consent_id     CHAR(32)     NOT NULL,     -- 이 브라우저의 무작위 번호 (열쇠가 아니라 지문을 안 쓴다)
+    user_id        INT          NULL,         -- 비로그인이면 NULL — 동의는 로그인보다 먼저 받는다
+    action         VARCHAR(10)  NOT NULL,     -- grant | revoke | reset | link
+    source         VARCHAR(10)  NOT NULL,     -- banner | settings | login
+    policy_version SMALLINT     NOT NULL,     -- 어떤 안내문에 동의했나
+    items          VARCHAR(255) NOT NULL,     -- {"view":1,"search":0} — 그 시점의 선택 통째로
+    user_agent     VARCHAR(255) NOT NULL DEFAULT '',
+    created_at     DATETIME     NOT NULL DEFAULT NOW(),
+
+    INDEX idx_consent_browser (consent_id, id),
+    INDEX idx_consent_user (user_id, id)
+    -- ★ users로 가는 FOREIGN KEY를 안 건다 — 탈퇴하면 증빙이 사라지면 증빙이 아니다.
+);

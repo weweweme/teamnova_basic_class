@@ -47,15 +47,20 @@ if ($sortFromUrl !== '') {
 //   주소에 있으면 그걸 쓰고 기억한다 / 없으면 지난번 취향을 꺼낸다.
 //   ★ 여기도 주소가 항상 이긴다. 공유된 링크를 눌러 온 사람이 내 쿠키 때문에
 //     다른 화면을 보면 안 되기 때문이다.
-$sentimentKeys = ['', '호평', '보통', '혹평'];   // '' = 전체. 이 목록이 곧 허용 목록이다.
+//   ★ '전체'를 빈 문자열이 아니라 'all'로 둔다 — 이유가 있다.
+//     query_url()은 값이 빈 파라미터를 주소에서 빼버린다(주소를 깨끗하게 유지하려고).
+//     그래서 '전체'를 ''로 두면 링크가 그냥 /board/?work=… 가 되고,
+//     **주소에 sentiment가 없으니 쿠키가 이겨서 '혹평'이 그대로 남는 버그**가 났다.
+//     → '전체'도 하나의 선택이므로 주소에 남을 수 있는 이름을 준다.
+$sentimentKeys = ['all', '호평', '보통', '혹평'];   // 이 목록이 곧 허용 목록이다.
 if (isset($_GET['sentiment'])) {
     // 주소로 온 값도 그대로 믿지 않는다 — 허용 목록에 있을 때만 인정하고 기억한다.
     $fromUrl   = get_str('sentiment');
-    $sentiment = in_array($fromUrl, $sentimentKeys, true) ? $fromUrl : '';
+    $sentiment = in_array($fromUrl, $sentimentKeys, true) ? $fromUrl : 'all';
     remember_sentiment($sentiment);
 } else {
     // ★ 쿠키 값도 허용 목록으로 다시 검증한다 (preferred_sentiment 안에서).
-    $sentiment = preferred_sentiment($sentimentKeys, '');
+    $sentiment = preferred_sentiment($sentimentKeys, 'all');
 }
 
 // ── 한 페이지 글 수: 정렬·감상과 같은 규칙 (주소가 이기고, 쿠키도 허용 목록 대조) ──
@@ -104,7 +109,9 @@ $downPct    = 100 - $upPct;   // 나머지가 비추천 (합이 항상 100이 �
 $posts = get_posts();
 $posts = filter_posts_by_work($posts, $work);           // ① 이 작품 글만
 $posts = search_posts($posts, $q);                      // ② 그 안에서 검색어로 추리기
-$posts = filter_posts_by_sentiment($posts, $sentiment); // ③ 호평/혹평으로 추리기
+//   filter_posts_by_sentiment는 ''를 '전체'로 알아듣는다 → 'all'일 때만 ''로 바꿔 넘긴다.
+//   ★ 화면·주소에서 쓰는 이름('all')과 필터 함수가 쓰는 값('')을 여기 한 줄에서만 잇는다.
+$posts = filter_posts_by_sentiment($posts, $sentiment === 'all' ? '' : $sentiment); // ③ 호평/혹평으로 추리기
 $posts = sort_posts($posts, $sort);                     // ④ 정렬
 
 $totalCount = count($posts);                                        // 조건에 맞는 전체 개수
@@ -117,7 +124,7 @@ $pagePosts = paginate_posts($posts, $page, $perPage);               // 이 페�
 // ── 5) 탭 목록 ───────────────────────────────────────────────
 //   정렬 탭(SORT_TABS)은 검증에도 쓰이므로 파일 맨 위에 있다.
 $sortTabs   = SORT_TABS;
-$sentiments = ['' => '전체', '호평' => '호평', '보통' => '보통', '혹평' => '혹평'];
+$sentiments = ['all' => '전체', '호평' => '호평', '보통' => '보통', '혹평' => '혹평'];
 
 // ── 🆕 배지: 지난 방문 이후 올라온 글 표시 ──────────────────
 //   ★ 순서가 중요하다 — **그리기 전에 '지난 방문 시각'을 먼저 읽어둔다.**

@@ -11,7 +11,8 @@ require_once __DIR__ . '/../includes/tmdb.php';    // 작품 상세(감독·출�
 require_once __DIR__ . '/../includes/prefs.php';   // 정렬 취향 쿠키 (week16)
 
 // 한 페이지에 보여줄 글 수. (매직값 금지 — 이름 붙인 상수로)
-const POSTS_PER_PAGE = 15;
+const POSTS_PER_PAGE = 15;                       // 기본값
+const PER_PAGE_CHOICES = [15, 30, 50];           // 고를 수 있는 값 = 곧 허용 목록
 
 // 정렬 탭 목록 (키 = URL에 들어갈 값, 값 = 화면에 보일 이름)
 //   ★ 화면보다 위에 둔 이유: 이 목록이 곧 '허용된 정렬값'이라, 아래 검증에서 먼저 필요하다.
@@ -56,6 +57,15 @@ if (isset($_GET['sentiment'])) {
     // ★ 쿠키 값도 허용 목록으로 다시 검증한다 (preferred_sentiment 안에서).
     $sentiment = preferred_sentiment($sentimentKeys, '');
 }
+
+// ── 한 페이지 글 수: 정렬·감상과 같은 규칙 (주소가 이기고, 쿠키도 허용 목록 대조) ──
+$perPageFromUrl = get_int('per', 0);
+if ($perPageFromUrl !== 0) {
+    $perPage = in_array($perPageFromUrl, PER_PAGE_CHOICES, true) ? $perPageFromUrl : POSTS_PER_PAGE;
+    remember_per_page($perPage);
+} else {
+    $perPage = preferred_per_page(PER_PAGE_CHOICES, POSTS_PER_PAGE);
+}
 // 페이지 최소값 보정 (?page=0, ?page=-5 같은 장난 방어)
 if ($page < 1) {
     $page = 1;
@@ -98,11 +108,11 @@ $posts = filter_posts_by_sentiment($posts, $sentiment); // ③ 호평/혹평으�
 $posts = sort_posts($posts, $sort);                     // ④ 정렬
 
 $totalCount = count($posts);                                        // 조건에 맞는 전체 개수
-$totalPages = max(1, (int)ceil($totalCount / POSTS_PER_PAGE));      // 총 페이지 수(올림)
+$totalPages = max(1, (int)ceil($totalCount / $perPage));            // 총 페이지 수(올림)
 if ($page > $totalPages) {                                          // 범위 넘으면 마지막으로
     $page = $totalPages;
 }
-$pagePosts = paginate_posts($posts, $page, POSTS_PER_PAGE);         // 이 페이지 분량만
+$pagePosts = paginate_posts($posts, $page, $perPage);               // 이 페이지 분량만
 
 // ── 5) 탭 목록 ───────────────────────────────────────────────
 //   정렬 탭(SORT_TABS)은 검증에도 쓰이므로 파일 맨 위에 있다.
@@ -118,6 +128,10 @@ $lastVisit = last_visit_at();
 //     (쿠키는 HTTP 헤더로 나가므로). 그래서 '다 그리고 나서 갱신'은 아예 불가능하다.
 //   ★ 30분 안에 다시 오면 갱신하지 않는다 → 둘러보는 동안 배지가 유지된다. (prefs.php)
 touch_visit();
+
+// 이 작품을 '최근 본 작품'으로 기록한다. (작품 목록 화면에서 다시 보여준다)
+//   ★ setcookie는 출력 전이어야 하므로 여기(화면 그리기 직전)에 둔다.
+remember_recent_work($work);
 
 $pageTitle = $title . ' 게시판';
 require __DIR__ . '/../includes/header.php';
@@ -224,6 +238,13 @@ require __DIR__ . '/../includes/header.php';
   <div class="board-toolbar">
     <p class="muted">총 <?= $totalCount ?>개 · <?= $page ?>/<?= $totalPages ?> 페이지</p>
     <!-- 이 작품으로 글쓰기 — GET으로 work를 넘기면 글쓰기 폼에서 그 작품이 미리 선택된다. -->
+    <?php // 한 페이지에 몇 개씩 볼지 — 고르면 쿠키에 기억된다(취향). ?>
+    <span class="per-page">
+      <?php foreach (PER_PAGE_CHOICES as $n): ?>
+        <a class="<?= $perPage === $n ? 'active' : '' ?>"
+           href="<?= e(query_url('/board/', ['per' => (string) $n, 'page' => ''])) ?>"><?= $n ?></a>
+      <?php endforeach; ?>
+    </span>
     <a class="btn-write" href="/post/write.php?work=<?= e($work) ?>">✏️ 글쓰기</a>
   </div>
 

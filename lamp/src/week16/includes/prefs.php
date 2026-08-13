@@ -35,6 +35,8 @@ const RECENT_POSTS_COOKIE  = 'recent_posts';  // 최근 본 글 번호 ("3,2,1")
 const PREF_SENTIMENT_COOKIE = 'pref_sentiment'; // 게시판 감상 필터 기본값 ('' | 호평 | 보통 | 혹평)
 const LAST_VISIT_COOKIE     = 'last_visit';     // 마지막으로 게시판을 본 시각(초)
 const COOKIE_NOTICE_COOKIE  = 'cookie_notice';  // 쿠키 안내를 읽었는지 (JS가 심는 유일한 쿠키)
+const RECENT_WORKS_COOKIE   = 'recent_works';   // 최근 본 작품 slug ("tmdb-496243,tmdb-27205")
+const PER_PAGE_COOKIE       = 'per_page';       // 게시판 한 페이지 글 수 (15 | 30 | 50)
 
 // 최근 검색어를 몇 개까지 기억할지
 const RECENT_SEARCH_MAX = 5;
@@ -264,4 +266,74 @@ function touch_visit(): void {
 //       훔쳐가면 계정이 넘어가는 값이기 때문. **값의 무게에 따라 다루는 방식이 갈린다.**
 function has_seen_cookie_notice(): bool {
     return isset($_COOKIE[COOKIE_NOTICE_COOKIE]);
+}
+
+
+// ── 최근 본 작품 ─────────────────────────────────────────────
+//   최근 본 글(recent_posts)과 같은 자리·같은 방식이다. 담는 것만 '글 번호'에서 '작품 slug'로 바뀐다.
+//   ★ 검증이 달라지는 지점: 글은 숫자라 ctype_digit이면 끝인데, slug는 글자다.
+//     그래서 **모양을 정해두고 그 모양만 통과**시킨다 (영문 소문자·숫자·하이픈).
+//     쿠키에서 온 글자를 그대로 화면·쿼리에 흘리면 안 되기 때문이다.
+
+// 이 작품을 '방금 봤다'고 기록한다. (작품 게시판을 열 때 부른다)
+function remember_recent_work(string $slug): void {
+    if ($slug === '' || !is_valid_work_slug($slug)) {
+        return;
+    }
+
+    $recent = get_recent_work_slugs();
+    $recent = array_values(array_filter($recent, fn($seen) => $seen !== $slug));
+    array_unshift($recent, $slug);
+    $recent = array_slice($recent, 0, RECENT_POSTS_MAX);   // 개수 기준은 최근 본 글과 같게
+
+    setcookie(RECENT_WORKS_COOKIE, implode(',', $recent), pref_cookie_options());
+}
+
+// 최근 본 작품 slug 목록. 이상한 값은 전부 걸러낸다.
+function get_recent_work_slugs(): array {
+    $raw = $_COOKIE[RECENT_WORKS_COOKIE] ?? '';
+    if (!is_string($raw) || $raw === '') {
+        return [];
+    }
+
+    $result = [];
+    foreach (explode(',', $raw) as $piece) {
+        if (!is_valid_work_slug($piece) || in_array($piece, $result, true)) {
+            continue;
+        }
+        $result[] = $piece;
+        if (count($result) >= RECENT_POSTS_MAX) {
+            break;
+        }
+    }
+    return $result;
+}
+
+// slug 모양 검사 — 영문 소문자·숫자·하이픈만, 최대 50글자.
+//   ★ '있는 작품인가'는 여기서 안 본다. 그건 작품을 꺼내는 쪽(works.php)이 판단하고,
+//     없는 작품은 목록에서 자연히 빠진다. 여기서는 **모양만** 본다.
+function is_valid_work_slug(string $slug): bool {
+    return $slug !== '' && preg_match('/^[a-z0-9-]{1,50}$/', $slug) === 1;
+}
+
+
+// ── 게시판 한 페이지 글 수 ───────────────────────────────────
+//   정렬·감상 필터와 완전히 같은 자리다 — "나는 한 화면에 많이 보는 게 편하다"도 취향이므로.
+//   ★ 숫자라는 점만 다르다. 그래도 **허용 목록 대조**는 똑같이 한다 —
+//     숫자라고 안심하고 그대로 쓰면 ?per=100000 으로 서버를 갈아버릴 수 있다.
+//     "숫자니까 안전하다"가 아니라 "**우리가 정한 값인가**"가 기준이다.
+
+// 고른 값을 기억한다.
+function remember_per_page(int $perPage): void {
+    setcookie(PER_PAGE_COOKIE, (string) $perPage, pref_cookie_options());
+}
+
+// 기억해 둔 값을 꺼낸다. 허용 목록에 없으면 $default.
+function preferred_per_page(array $allowed, int $default): int {
+    $raw = $_COOKIE[PER_PAGE_COOKIE] ?? '';
+    if (!is_string($raw) || !ctype_digit($raw)) {
+        return $default;
+    }
+    $value = (int) $raw;
+    return in_array($value, $allowed, true) ? $value : $default;
 }

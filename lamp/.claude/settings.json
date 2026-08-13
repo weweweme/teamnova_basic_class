@@ -125,7 +125,9 @@
       "Bash(sed -n '/function get_pref_sort/,/^}/p' includes/prefs.php)",
       "Bash(curl -sS \"http://localhost:8081/board/?work=tmdb-496243\")",
       "Bash(grep -n 'last_visit_at\\(\\)\\\\|touch_visit\\(\\)\\\\|^$pageTitle' board/index.php)",
-      "Bash(cat)"
+      "Bash(cat)",
+      "Bash(grep -oiE \"\\(fatal|parse\\) error[^<]{0,160}\")",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp sh -c 'tail -3 /usr/local/apache2/logs/error_log')"
     ],
     "additionalDirectories": [
       "c:\\git-work\\teamnova_basic_class\\lamp\\src\\week16\\includes"

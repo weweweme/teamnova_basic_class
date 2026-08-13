@@ -22,7 +22,6 @@ const SORT_DEFAULT = 'new';
 // ── 1) 파라미터 받기 ─────────────────────────────────────────
 $work      = get_str('work', '');
 $q         = mb_substr(trim(get_str('q')), 0, SEARCH_QUERY_MAX);       // 이 게시판 '안에서' 글 검색어
-$sentiment = get_str('sentiment', '');     // '' = 전체 | 호평 | 보통 | 혹평
 $page      = get_int('page', 1);    // 1부터 시작
 
 // ── 정렬: 주소에 있으면 그걸 쓰고 기억한다, 없으면 지난번 취향을 꺼낸다 ──
@@ -43,9 +42,19 @@ if ($sortFromUrl !== '') {
     $sort = preferred_sort($sortKeys, SORT_DEFAULT);
 }
 
-// 감상 값 검증: 허용된 값만 인정하고, 이상한 값이 오면 '전체'로 되돌린다.
-if (!in_array($sentiment, ['호평', '보통', '혹평'], true)) {
-    $sentiment = '';
+// ── 감상 필터: 정렬과 완전히 같은 규칙 ──────────────────────
+//   주소에 있으면 그걸 쓰고 기억한다 / 없으면 지난번 취향을 꺼낸다.
+//   ★ 여기도 주소가 항상 이긴다. 공유된 링크를 눌러 온 사람이 내 쿠키 때문에
+//     다른 화면을 보면 안 되기 때문이다.
+$sentimentKeys = ['', '호평', '보통', '혹평'];   // '' = 전체. 이 목록이 곧 허용 목록이다.
+if (isset($_GET['sentiment'])) {
+    // 주소로 온 값도 그대로 믿지 않는다 — 허용 목록에 있을 때만 인정하고 기억한다.
+    $fromUrl   = get_str('sentiment');
+    $sentiment = in_array($fromUrl, $sentimentKeys, true) ? $fromUrl : '';
+    remember_sentiment($sentiment);
+} else {
+    // ★ 쿠키 값도 허용 목록으로 다시 검증한다 (preferred_sentiment 안에서).
+    $sentiment = preferred_sentiment($sentimentKeys, '');
 }
 // 페이지 최소값 보정 (?page=0, ?page=-5 같은 장난 방어)
 if ($page < 1) {

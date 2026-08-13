@@ -32,6 +32,7 @@ const PREF_DAYS = 90;
 const PREF_SORT_COOKIE     = 'pref_sort';     // 게시판 정렬 기본값
 const RECENT_SEARCH_COOKIE = 'recent_search'; // 최근 검색어 (JSON 배열)
 const RECENT_POSTS_COOKIE  = 'recent_posts';  // 최근 본 글 번호 ("3,2,1")
+const PREF_SENTIMENT_COOKIE = 'pref_sentiment'; // 게시판 감상 필터 기본값 ('' | 호평 | 보통 | 혹평)
 
 // 최근 검색어를 몇 개까지 기억할지
 const RECENT_SEARCH_MAX = 5;
@@ -70,6 +71,28 @@ function preferred_sort(array $allowed, string $default): string {
     }
     return $saved;
 }
+
+// ── 게시판 감상 필터 기본값 ──────────────────────────────────
+//   정렬(pref_sort)과 완전히 같은 자리다 — "나는 혹평만 골라 본다"도 취향이기 때문.
+//   ★ 그래서 새 규칙을 만들지 않고 같은 함수 모양을 그대로 따른다.
+//     같은 성격의 값이 서로 다른 방식으로 저장되면, 나중에 한쪽만 고치는 실수가 난다.
+
+// 고른 감상 필터를 기억한다. ('전체'도 기억한다 — 빈 문자열이 곧 '전체'라는 선택이다)
+function remember_sentiment(string $sentiment): void {
+    setcookie(PREF_SENTIMENT_COOKIE, $sentiment, pref_cookie_options());
+}
+
+// 기억해 둔 감상 필터를 꺼낸다. 허용 목록에 없으면 $default.
+//   ★★ 쿠키에서 읽은 값은 주소로 들어온 값과 똑같이 취급한다 — 반드시 허용 목록과 대조한다.
+//     그냥 쓰면 ?sentiment= 자리에 아무 문자열이나 흘러들어가고, 그 값이 화면·쿼리로 퍼진다.
+function preferred_sentiment(array $allowed, string $default): string {
+    $saved = $_COOKIE[PREF_SENTIMENT_COOKIE] ?? '';
+    if (!is_string($saved) || !in_array($saved, $allowed, true)) {
+        return $default;
+    }
+    return $saved;
+}
+
 
 // ── 최근 검색어 ──────────────────────────────────────────────
 

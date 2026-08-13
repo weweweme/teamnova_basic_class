@@ -121,6 +121,12 @@ require __DIR__ . '/../includes/header.php';
   const status = document.getElementById('draft-status');
   if (!form || !button) return;
 
+  // 'dirty' = 마지막 저장 이후 손댄 흔적이 있나. (편집기에서 쓰는 표현)
+  //   ★ 이 값이 있어야 이탈 경고가 **정직해진다** — 저장한 뒤엔 묻지 않고,
+  //     안 저장한 변경이 있을 때만 묻는다.
+  let dirty = false;
+  form.addEventListener('input', function () { dirty = true; });
+
   button.addEventListener('click', async function () {
     const data = new FormData(form);
     const values = {
@@ -148,14 +154,36 @@ require __DIR__ . '/../includes/header.php';
       });
       const json = await res.json();
       // ★ 이제 초안은 세션이 아니라 DB 표에 있다 → 창을 닫아도, 다른 기기에서도 남는다.
-      status.textContent = json.ok
-        ? '임시저장됨 ' + json.at + ' · 창을 닫아도 남아요'
-        : '임시저장 실패';
+      if (json.ok) {
+        dirty = false;                      // 저장했으니 나가도 잃을 게 없다
+        status.textContent = '임시저장됨 ' + json.at + ' · 창을 닫아도 남아요';
+      } else {
+        status.textContent = '임시저장 실패';
+      }
     } catch (e) {
       // 저장에 실패해도 글쓰기 자체를 막지는 않는다 — 어디까지나 보조 장치다.
       status.textContent = '임시저장 실패 (계속 쓰셔도 됩니다)';
     } finally {
       button.disabled = false;
+    }
+  });
+
+  // 등록은 정상적인 이탈이므로 경고하지 않는다.
+  //   ★ submit 이벤트가 beforeunload 보다 먼저 일어나기 때문에 이 순서가 통한다.
+  form.addEventListener('submit', function () { dirty = false; });
+
+  // ── 저장 안 한 채로 떠나려 하면 한 번 묻는다 ──────────────
+  //   [왜 다시 넣었나]
+  //     자동 저장이던 시절엔 어차피 저장되니 이 경고가 **거짓말**이라 지웠다.
+  //     지금은 **버튼을 눌러야만** 저장되므로, 안 누르고 나가면 진짜로 날아간다.
+  //     → 경고가 사실이 되었으니 되살린다.
+  //   ★ 단, '저장 뒤 바뀐 게 있을 때'만 묻는다. 저장하고 그대로 나가는데도 물으면
+  //     사용자는 그 경고를 곧 무시하게 된다 — 늘 뜨는 경고는 없는 경고와 같다.
+  //   ★ 문구는 우리가 못 정한다. 사이트가 겁주는 메시지를 띄우지 못하게
+  //     브라우저가 정해진 문장만 보여준다. 우리는 '물어볼지 말지'만 정할 수 있다.
+  window.addEventListener('beforeunload', function (event) {
+    if (dirty) {
+      event.preventDefault();
     }
   });
 })();

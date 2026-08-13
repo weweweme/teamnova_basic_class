@@ -7,6 +7,7 @@
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';   // 로그인·소유권에 따라 화면이 달라지므로
 require_once __DIR__ . '/../includes/posts.php';
+require_once __DIR__ . '/../includes/prefs.php';   // 최근 본 글 기록 (쿠키)
 require_once __DIR__ . '/../includes/comments.php';   // 이 글의 댓글 목록
 
 // ── 1) id 받기 ───────────────────────────────────────────────

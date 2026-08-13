@@ -9,6 +9,7 @@ require_once __DIR__ . '/includes/util.php';
 require_once __DIR__ . '/includes/tmdb.php';       // 인기작·인기영화·인기드라마
 require_once __DIR__ . '/includes/works.php';      // 우리 커뮤니티 작품
 require_once __DIR__ . '/includes/posts.php';      // 최근 글 (게시판)
+require_once __DIR__ . '/includes/prefs.php';      // 최근 본 글 (쿠키에서 읽는다)
 require_once __DIR__ . '/includes/media_row.php';  // 가로 줄 렌더링 조각
 
 // ── 우리 DB 데이터 (빠름 — 서버가 즉시 그린다) ──────────────

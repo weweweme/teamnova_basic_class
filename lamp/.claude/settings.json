@@ -115,7 +115,11 @@
       "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -B review_community -e \"DELETE FROM sessions WHERE expires_at < NOW\\(\\); SELECT ROW_COUNT\\(\\) AS deleted;\")",
       "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -B review_community -e \"SELECT COUNT\\(*\\) total, SUM\\(user_id IS NULL\\) anon FROM sessions; SELECT COUNT\\(*\\) remember_rows FROM remember_tokens;\")",
       "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 --default-character-set=utf8mb4 -B review_community -e \"SELECT id, title, created_at FROM posts WHERE author_id=1 ORDER BY id DESC LIMIT 5;\")",
-      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 --default-character-set=utf8mb4 review_community -e \"UPDATE posts SET deleted_at = NOW\\(\\) WHERE id IN \\(192,195\\) AND deleted_at IS NULL; SELECT ROW_COUNT\\(\\) AS soft_deleted;\")"
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 --default-character-set=utf8mb4 review_community -e \"UPDATE posts SET deleted_at = NOW\\(\\) WHERE id IN \\(192,195\\) AND deleted_at IS NULL; SELECT ROW_COUNT\\(\\) AS soft_deleted;\")",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec manual_lamp /usr/local/mariadb/bin/mariadb -udev -pdev1234 -B review_community -e \"SELECT COUNT\\(*\\) total, SUM\\(payload=''\\) AS 빈세션, SUM\\(user_id IS NULL\\) AS 비회원 FROM sessions;\")",
+      "Bash(sed -n '/function remember_search/,/^}/p' includes/prefs.php)",
+      "Bash(sed -n '/function get_recent_searches/,/^}/p' includes/prefs.php)",
+      "Bash(cd c:/git-work/teamnova_basic_class/lamp/src/week16 && sed -n '/최근 본 글/,/^}/p' includes/posts.php | head -50 && echo \"=== 상수 ===\" && grep -n \"RECENT_POSTS_MAX\\\\|SESSION_RECENT_POSTS\" includes/posts.php)"
     ],
     "additionalDirectories": [
       "c:\\git-work\\teamnova_basic_class\\lamp\\src\\week16\\includes"

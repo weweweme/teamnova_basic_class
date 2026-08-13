@@ -183,3 +183,22 @@ CREATE TABLE sessions (
 
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+
+-- ── drafts : 글쓰기 임시저장(초안) ────────────────────────
+--   week16에서 추가. 처음엔 세션에 담았다가 표로 옮겼다 —
+--   세션은 창을 닫으면 사라지는데, 임시저장은 그때도 살아 있어야 쓸모가 있기 때문.
+--   ★ 복합 기본키(user_id, work_slug) = "한 사람이 한 작품에 초안 하나".
+--   자세한 설계 근거는 sql/migrations/006_drafts.sql 주석 참고.
+CREATE TABLE drafts (
+    user_id    INT          NOT NULL,        -- 누구의 초안인가 → users.id
+    work_slug  VARCHAR(100) NOT NULL,        -- 어느 작품 게시판에 쓰던 글인가
+    title      VARCHAR(200) NOT NULL DEFAULT '',
+    content    TEXT         NOT NULL,
+    sentiment  VARCHAR(10)  NOT NULL DEFAULT '',
+    updated_at DATETIME     NOT NULL,        -- 오래된 초안 정리 기준
+
+    PRIMARY KEY (user_id, work_slug),
+    INDEX idx_drafts_updated (updated_at),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

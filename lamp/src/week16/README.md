@@ -57,7 +57,7 @@ docker compose up -d
 코드는 Git, **데이터는 SQL로 재생성**한다. DB 데이터는 Git으로 옮길 수 없기 때문이다.
 
 ```
-① sql/schema.sql  — 표 10개 + 외래키 생성
+① sql/schema.sql  — 표 11개 + 외래키 생성
 ② sql/seed.sql    — 시연용 데이터 대량 (아래 규모)
 ```
 
@@ -124,6 +124,7 @@ users ──┬─< posts >──┬── media
 | **notifications** | 알림 | 내 글에 댓글 시 생성 · `is_read`로 안읽음/읽음 |
 | **remember_tokens** | 자동 로그인 | ★week16 · 쿠키엔 원본 토큰, 여기엔 **지문(SHA-256)** 만 |
 | **sessions** | 세션 저장소 | ★week16 · PHP 기본값(임시 파일) 대신 여기에 · 세션 ID도 **지문**만 |
+| **drafts** | 글쓰기 초안 | ★week16 · 세션에 담았다가 옮김 · **복합키**(user_id, work_slug) |
 
 **삭제 정책**: 글을 지우면 그 댓글·추천도 함께(`ON DELETE CASCADE`).
 회원은 함부로 못 지우게(`RESTRICT`). 글·댓글 자체는 **소프트삭제**(`deleted_at`)라 되돌리기 가능.
@@ -168,7 +169,7 @@ works/  search/  rank/  profile/  settings/  notifications/  board/
    └ index.php = 그 자원의 '화면'(GET)   (+ 처리 파일이 있으면 같은 폴더에)
 post/   ├ view·write·edit (화면)  └ create·update·delete·restore (처리 POST)
 comment/  vote/  like/  report/  auth/    그 자원의 처리(POST) 파일들
-profile/avatar.php · settings/{nickname,password,logout_others}.php   내 정보 편집 처리
+profile/avatar.php · settings/{nickname,password,logout_others,logout_session,confirm,reauth}.php
 api/    row.php · browse.php   화면(HTML) 대신 데이터(JSON) — 지연 로딩용
 includes/   모든 화면이 공유하는 로직 모듈 + 레이아웃
 assets/  sql/  uploads/  cache/   정적파일 · DB재생성 · 업로드물 · TMDB캐시
@@ -186,7 +187,8 @@ includes/
 ├── session_db.php ★week16 세션을 파일 대신 DB 표에 저장 (SessionHandlerInterface 구현)
 ├── csrf.php       ★week16 위조 요청 방어 (csrf_field / require_csrf)
 ├── remember.php   ★week16 자동 로그인 쿠키 (토큰 발급·대조·회전·회수)
-├── prefs.php      ★week16 취향 쿠키 (정렬 기본값·최근 검색어) — 읽을 땐 반드시 검증
+├── prefs.php      ★week16 취향 쿠키 (정렬·감상 기본값·최근 검색어·최근 본 글) — 읽을 땐 검증
+├── drafts.php     ★week16 글쓰기 초안 (drafts 표) — 세션에 담았다가 DB로 옮김
 ├── db.php         PDO 연결(static 재사용) · db_scalar() 헬퍼
 ├── tmdb.php       TMDB 호출 (검색·인기작·상세·형식변환) + 30분 캐싱
 ├── media.php      작품 저장/조회 (ensure_media)
@@ -577,7 +579,7 @@ week15까지 **`posts.views`는 한 번도 안 움직였다.** seed 숫자가 �
   닉네임·아바타를 바꿨는데 **다시 로그인해야 반영되는** 버그가 생기기 때문이다.
   (조회는 `current_user_row()`의 `static` 캐시가 이미 요청당 1회로 줄여준다)
 
-### 진행 순서 — ①~⑪ **전부 완료**
+### 진행 순서 — ①~⑱ **전부 완료**
 
 **① → ② → ③ → ④ → ⑤ → ⑥ → ⑦.** 앞의 것이 뒤의 것의 토대였다 —
 세션이 없으면 CSRF 토큰도, 최근 본 글도, 자동 로그인도 시작할 수 없다.
@@ -591,6 +593,13 @@ week15까지 **`posts.views`는 한 번도 안 움직였다.** seed 숫자가 �
 | ⑨ | **다른 기기에서 모두 로그아웃** | 남의 기기 로그인을 **여기서 끊는다** (⑧이 있어야 가능) |
 | ⑩ | **로그인 후 원래 가려던 곳으로** | 글쓰기 누르면 로그인 후 **글쓰기로 복귀** |
 | ⑪ | **폼 입력값 되살리기** | 검증에 걸려도 **쓴 글이 안 날아간다** |
+| ⑫ | **글쓰기 임시저장** (`drafts` 표) | 쓰는 동안 자동 저장 · **창을 닫아도 남는다** |
+| ⑬ | **최근 본 글을 쿠키로** | 창을 껐다 켜도 목록이 유지된다 |
+| ⑭ | **빈 세션은 표에 안 남김** | 그냥 구경만 하면 아무것도 안 쌓인다 |
+| ⑮ | **자동 로그아웃**(유휴 20분) | 자리를 비우면 끊고 **이유를 알려준다** |
+| ⑯ | **민감 작업 재인증**(sudo 15분) | 영구삭제·기기 로그아웃 앞에서 비번을 다시 묻는다 |
+| ⑰ | **로그인 기기 목록** | 어느 기기에서 로그인 중인지 보고 **골라서 끊는다** |
+| ⑱ | **감상 필터 기본값 쿠키** | 정렬과 같은 방식 |
 
 - **⑧ 왜 DB로 옮겼나** — ①서버를 여러 대로 늘리면 파일 세션은 공유가 안 된다
   ②`user_id` 칼럼이 생겨 '이 회원의 세션 전부 끊기'가 가능해진다 ③시연에서 눈으로 보인다.
@@ -622,6 +631,28 @@ week15까지 **`posts.views`는 한 번도 안 움직였다.** seed 숫자가 �
 
 **한 줄 기준: 틀리면 손해 보는 것은 세션, 틀려도 취향일 뿐인 것은 쿠키.**
 그리고 **쿠키에서 읽은 값은 주소로 들어온 값과 똑같이 검증한다.**
+
+### ★ 한 단계 더 — "이 값의 주인이 누구인가"
+
+만들다 보니 기준 하나로는 부족했다. **주인을 먼저 묻는다.**
+
+- **주인이 브라우저** → 쿠키 — 최근 본 글·정렬/감상 취향·최근 검색어 *(로그인 안 해도 쓴다)*
+- **주인이 이 방문** → 세션 — 로그인 신원·CSRF 토큰·알림·조회 기록·가려던 곳·폼 입력값
+- **주인이 회원** → DB — 글 초안 *(기기가 바뀌어도 내 것이어야 한다)*
+
+실제로 **판단을 두 번 바꿨다.**
+- **최근 본 글**: 세션 → 쿠키 *(창을 껐다 켤 때마다 목록이 비어서)*
+- **글 초안**: 세션 → DB *(창을 닫으면 사라지는데, 임시저장은 그때도 살아야 하므로)*
+
+두 번 다 **부르는 쪽은 한 글자도 안 고쳤다** — 저장 방식이 그 파일 안에만 있었기 때문.
+
+### 최종 목록
+
+- **세션 8개** — `user_id` · `flash` · `csrf_token` · `viewed_posts` · `intended` · `old_input`
+  · `auth_at`(sudo) · `last_seen`(유휴)
+- **우리가 심는 쿠키 5개** — `remember` · `pref_sort` · `pref_sentiment` · `recent_search`
+  · `recent_posts` (+ PHP가 심는 `PHPSESSID`)
+- **DB 표 11개** — week15의 8개 + `remember_tokens` · `sessions` · `drafts`
 
 > **시연 포인트**: 먼저 week15에서 주소창의 `as=`를 남의 아이디로 고쳐 **사칭을 성공시켜 보이고**,
 > week16에서 같은 짓이 안 통하는 걸 보여준다. 그 다음 **지워진 코드**(URL 리라이터·플래시

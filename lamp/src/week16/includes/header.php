@@ -11,6 +11,7 @@ require_once __DIR__ . '/util.php';
 require_once __DIR__ . '/auth.php';   // 로그인 상태에 따라 메뉴가 달라지므로
 require_once __DIR__ . '/level.php';  // 작성자 옆 등급 배지(user_level) — 모든 화면에서 씀
 require_once __DIR__ . '/notifications.php';  // 상단바 🔔 안읽은 개수
+require_once __DIR__ . '/prefs.php';          // 쿠키 안내 배너 (footer.php에서 씀)
 
 // ★ week16에서 여기 있던 'URL 리라이터' 블록이 통째로 사라졌다.
 //   week15는 세션이 없어서 신원(?as=영화광)을 링크 30여 곳에 빠짐없이 붙여야 했고,

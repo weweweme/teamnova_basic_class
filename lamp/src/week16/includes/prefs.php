@@ -34,6 +34,7 @@ const RECENT_SEARCH_COOKIE = 'recent_search'; // 최근 검색어 (JSON 배열)
 const RECENT_POSTS_COOKIE  = 'recent_posts';  // 최근 본 글 번호 ("3,2,1")
 const PREF_SENTIMENT_COOKIE = 'pref_sentiment'; // 게시판 감상 필터 기본값 ('' | 호평 | 보통 | 혹평)
 const LAST_VISIT_COOKIE     = 'last_visit';     // 마지막으로 게시판을 본 시각(초)
+const COOKIE_NOTICE_COOKIE  = 'cookie_notice';  // 쿠키 안내를 읽었는지 (JS가 심는 유일한 쿠키)
 
 // 최근 검색어를 몇 개까지 기억할지
 const RECENT_SEARCH_MAX = 5;
@@ -243,4 +244,24 @@ function touch_visit(): void {
         return;                       // 아직 '같은 방문' — 그대로 두어 배지를 유지한다
     }
     setcookie(LAST_VISIT_COOKIE, (string) time(), pref_cookie_options());
+}
+
+
+// ── 쿠키 안내 배너 ───────────────────────────────────────────
+//   [무엇인가]
+//     "이 사이트는 쿠키를 씁니다"를 한 번 알리고, 확인을 누르면 다시 안 띄운다.
+//     유럽 GDPR 이후 거의 모든 사이트에 붙은 그 배너다.
+//
+//   [★ 이 프로젝트에서 이게 재밌는 이유]
+//     **"쿠키를 쓰겠다는 안내를 읽었다"는 사실 자체를 쿠키에 적는다.**
+//     달리 적을 데가 없다 — 로그인 안 한 사람에게도 기억해야 하고, 창을 닫아도 남아야 하니까.
+//
+//   [★★ 지금까지의 쿠키와 결정적으로 다른 점]
+//     다른 쿠키는 전부 **서버가 setcookie()로 심는다.** 이건 **브라우저(JS)가 직접 심는다.**
+//     그래서 화면이 즉시 사라지고 서버를 한 번도 안 거친다.
+//     · 가능한 이유: 우리 취향 쿠키들은 `httponly`를 켜지 않기 때문이다(JS가 읽고 쓸 수 있다).
+//     · 로그인 토큰(remember)·세션 번호표는 정반대다 — `httponly`를 켜서 JS가 아예 못 만진다.
+//       훔쳐가면 계정이 넘어가는 값이기 때문. **값의 무게에 따라 다루는 방식이 갈린다.**
+function has_seen_cookie_notice(): bool {
+    return isset($_COOKIE[COOKIE_NOTICE_COOKIE]);
 }

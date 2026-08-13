@@ -124,7 +124,8 @@
       "Bash(sed -n '/function remember_sort/,/^}/p' includes/prefs.php)",
       "Bash(sed -n '/function get_pref_sort/,/^}/p' includes/prefs.php)",
       "Bash(curl -sS \"http://localhost:8081/board/?work=tmdb-496243\")",
-      "Bash(grep -n 'last_visit_at\\(\\)\\\\|touch_visit\\(\\)\\\\|^$pageTitle' board/index.php)"
+      "Bash(grep -n 'last_visit_at\\(\\)\\\\|touch_visit\\(\\)\\\\|^$pageTitle' board/index.php)",
+      "Bash(cat)"
     ],
     "additionalDirectories": [
       "c:\\git-work\\teamnova_basic_class\\lamp\\src\\week16\\includes"

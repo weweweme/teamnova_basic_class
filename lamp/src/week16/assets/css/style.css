@@ -1066,3 +1066,18 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
   font-size: .65rem; font-weight: 700; letter-spacing: .02em;
   background: #e5484d; color: #fff; vertical-align: middle;
 }
+
+/* 쿠키 안내 배너 — 화면 아래 고정. 확인을 누르면 JS가 쿠키를 심고 즉시 제거한다. */
+.cookie-notice {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 60;
+  display: flex; align-items: center; gap: 1rem; max-width: min(720px, calc(100% - 32px));
+  padding: .8rem 1rem; border-radius: 10px;
+  background: rgba(31,31,38,.94); backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.12); box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  font-size: 14px;
+}
+.cookie-notice p { margin: 0; }
+.cookie-notice button {
+  flex-shrink: 0; padding: .4rem 1rem; border: 0; border-radius: 6px;
+  background: #e5484d; color: #fff; font-weight: 600; cursor: pointer;
+}

@@ -21,5 +21,27 @@
       <button type="button" id="confirm-ok" class="btn-danger">삭제</button>
     </div>
   </dialog>
+  <?php // ── 쿠키 안내 배너 (아직 확인 안 한 사람에게만) ────────────
+        //   prefs.php를 부르지 않은 화면도 있으므로 함수가 있는지 먼저 확인한다. ?>
+  <?php if (function_exists('has_seen_cookie_notice') && !has_seen_cookie_notice()): ?>
+    <div class="cookie-notice" id="cookie-notice">
+      <p>
+        이 사이트는 <strong>로그인 유지·정렬 취향·최근 본 글</strong>을 기억하려고 쿠키를 사용합니다.
+        <span class="muted">개인정보를 담지는 않아요.</span>
+      </p>
+      <button type="button" id="cookie-notice-ok">확인</button>
+    </div>
+    <script>
+    // ★ 이 쿠키만은 **브라우저가 직접** 심는다 (다른 쿠키는 전부 서버가 setcookie로 심는다).
+    //   가능한 이유: 취향 쿠키들은 httponly를 안 켜서 JS가 읽고 쓸 수 있기 때문.
+    //   로그인 토큰은 정반대다 — httponly라 JS가 아예 못 만진다.
+    document.getElementById('cookie-notice-ok').addEventListener('click', function () {
+      // max-age = 초 단위 수명(90일). path=/ 로 사이트 전체에서 같은 값을 본다.
+      // samesite=Lax = 다른 사이트가 시작한 요청엔 안 실린다.
+      document.cookie = 'cookie_notice=1; path=/; max-age=7776000; samesite=Lax';
+      document.getElementById('cookie-notice').remove();   // 서버를 안 거치고 즉시 사라진다
+    });
+    </script>
+  <?php endif; ?>
 </body>
 </html>

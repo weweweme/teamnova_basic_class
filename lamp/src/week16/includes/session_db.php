@@ -72,6 +72,60 @@ function count_other_sessions(int $userId, string $keepSessionId): int {
     return (int) $stmt->fetchColumn();
 }
 
+// 이 회원이 지금 로그인해 둔 기기 목록. (설정 화면의 '로그인 기기')
+//   ★ 파일 세션이었으면 이 기능은 아예 만들 수 없다 — 남의 기기 세션 파일을 찾을 방법이 없다.
+//     세션을 표로 옮기고 user_id 칼럼을 둔 덕에 SQL 한 줄이 됐다.
+//   최근에 쓴 것부터 보여준다.
+function list_sessions_for(int $userId): array {
+    $sql = 'SELECT id_hash, ip_address, user_agent, last_active
+              FROM sessions
+             WHERE user_id = ? AND expires_at > NOW()
+             ORDER BY last_active DESC';
+    $stmt = db()->prepare($sql);
+    $stmt->execute([$userId]);
+    return $stmt->fetchAll();
+}
+
+// 그 기기 하나만 끊는다.
+//   ★★ user_id 조건을 반드시 함께 건다. 지문만 보고 지우면, 남의 지문을 알아낸 사람이
+//     아무 세션이나 끊을 수 있다. "내 것 중에서 이 하나"라야 안전하다.
+//   반환값 = 실제로 지워졌나 (남의 것을 지우려 하면 0줄이라 false).
+function destroy_session_of(int $userId, string $idHash): bool {
+    $stmt = db()->prepare('DELETE FROM sessions WHERE user_id = ? AND id_hash = ?');
+    $stmt->execute([$userId, $idHash]);
+    return $stmt->rowCount() > 0;
+}
+
+// 브라우저가 보낸 긴 user_agent 문자열을 사람이 읽을 수 있게 줄인다.
+//   예: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 … Chrome/141.0 …"
+//       → "Chrome · Windows"
+//   ★ 정확히 알아내는 건 불가능하다 — user_agent는 브라우저가 스스로 밝히는 값이라
+//     얼마든지 고칠 수 있다. 그래서 '참고용 표시'로만 쓰고 판단에는 쓰지 않는다.
+function describe_user_agent(?string $ua): string {
+    $ua = (string) $ua;
+    if ($ua === '') {
+        return '알 수 없는 기기';
+    }
+
+    // 순서가 중요하다 — Edge·Chrome은 서로의 이름을 문자열에 함께 담기 때문에
+    // 더 구체적인 쪽을 먼저 본다.
+    $browsers = ['Edg' => 'Edge', 'OPR' => 'Opera', 'Whale' => 'Whale',
+                 'Firefox' => 'Firefox', 'Chrome' => 'Chrome', 'Safari' => 'Safari'];
+    $systems  = ['Windows' => 'Windows', 'Android' => 'Android', 'iPhone' => 'iPhone',
+                 'iPad' => 'iPad', 'Mac OS X' => 'macOS', 'Linux' => 'Linux'];
+
+    $browser = '브라우저';
+    foreach ($browsers as $needle => $label) {
+        if (str_contains($ua, $needle)) { $browser = $label; break; }
+    }
+    $system = '';
+    foreach ($systems as $needle => $label) {
+        if (str_contains($ua, $needle)) { $system = $label; break; }
+    }
+
+    return $system === '' ? $browser : $browser . ' · ' . $system;
+}
+
 // 세션을 DB에 읽고 쓰는 담당자.
 //   PHP가 정해준 6개 메서드를 채우면 된다. 우리가 직접 부르는 메서드는 하나도 없고,
 //   PHP가 알맞은 때에 알아서 부른다:

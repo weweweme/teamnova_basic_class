@@ -109,6 +109,19 @@ final class DbSessionHandler implements SessionHandlerInterface
     //   ★ INSERT와 UPDATE를 따로 하면 '있는지 확인 → 넣기' 사이에 다른 요청이 끼어들 수 있다.
     //     ON DUPLICATE KEY UPDATE는 DB가 그 판단을 한 번에 하므로 그런 틈이 없다.
     public function write(string $id, string $data): bool {
+        // ── 담긴 게 하나도 없으면 표에 남기지 않는다 ─────────────
+        //   홈만 잠깐 보고 나가는 방문까지 행을 만들 이유가 없다. 그런 행이 쌓이면
+        //   표가 '아무것도 아닌 것'으로 가득 차서, 정작 봐야 할 세션이 안 보인다.
+        //
+        //   ★ 그냥 '저장을 건너뛰기'로 하면 안 된다 — 함정이 있다.
+        //     알림 하나만 들어 있던 세션이 그 알림을 읽고 비워졌을 때,
+        //     건너뛰면 DB에는 **옛 payload(알림 포함)가 그대로 남는다.**
+        //     그러면 다음 요청이 그걸 다시 읽어서 **알림이 되살아난다.**
+        //   → 그래서 '비었으면 지운다'. 없던 행이면 지울 것도 없으니 그대로 아무 일도 안 일어난다.
+        if ($data === '') {
+            return $this->destroy($id);
+        }
+
         // user_id는 payload 안에도 들어 있지만, 칼럼으로 한 번 더 꺼내 둔다.
         //   payload는 통째로 직렬화된 덩어리라 SQL로 뒤질 수가 없기 때문이다.
         //   이 칼럼이 있어야 "이 회원의 세션 전부 삭제"를 WHERE 한 줄로 할 수 있다.

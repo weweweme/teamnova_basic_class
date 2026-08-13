@@ -21,27 +21,43 @@
       <button type="button" id="confirm-ok" class="btn-danger">삭제</button>
     </div>
   </dialog>
-  <?php // ── 쿠키 안내 배너 (아직 확인 안 한 사람에게만) ────────────
-        //   prefs.php를 부르지 않은 화면도 있으므로 함수가 있는지 먼저 확인한다. ?>
-  <?php if (function_exists('has_seen_cookie_notice') && !has_seen_cookie_notice()): ?>
-    <div class="cookie-notice" id="cookie-notice">
-      <p>
-        이 사이트는 <strong>로그인 유지·정렬 취향·최근 본 글</strong>을 기억하려고 쿠키를 사용합니다.
-        <span class="muted">개인정보를 담지는 않아요.</span>
-      </p>
-      <button type="button" id="cookie-notice-ok">확인</button>
-    </div>
-    <script>
-    // ★ 이 쿠키만은 **브라우저가 직접** 심는다 (다른 쿠키는 전부 서버가 setcookie로 심는다).
-    //   가능한 이유: 취향 쿠키들은 httponly를 안 켜서 JS가 읽고 쓸 수 있기 때문.
-    //   로그인 토큰은 정반대다 — httponly라 JS가 아예 못 만진다.
-    document.getElementById('cookie-notice-ok').addEventListener('click', function () {
-      // max-age = 초 단위 수명(90일). path=/ 로 사이트 전체에서 같은 값을 본다.
-      // samesite=Lax = 다른 사이트가 시작한 요청엔 안 실린다.
-      document.cookie = 'cookie_notice=1; path=/; max-age=7776000; samesite=Lax';
-      document.getElementById('cookie-notice').remove();   // 서버를 안 거치고 즉시 사라진다
-    });
-    </script>
+  <?php // ── 쿠키 동의 배너 (아직 안 고른 사람에게만) ──────────────
+        //   prefs.php를 부르지 않은 화면도 있으므로 함수가 있는지 먼저 확인한다.
+        //
+        //   ★ [확인] 버튼 하나짜리 '안내'에서 '동의'로 바꾼 자리다.
+        //     거절할 수 없으면 물어본 게 아니기 때문에, 버튼이 셋이 됐다.
+        //   ★ JS가 없다 — 폼으로 서버에 보낸다. 서버가 모르는 동의는 증명할 수 없으므로. ?>
+  <?php if (function_exists('needs_cookie_consent') && needs_cookie_consent()): ?>
+    <form class="cookie-notice" method="post" action="/consent.php">
+      <?= csrf_field() ?>
+      <?php // 누른 뒤 보던 화면으로 돌아가려고 지금 주소를 함께 보낸다. (받는 쪽에서 검증한다) ?>
+      <input type="hidden" name="back" value="<?= e($_SERVER['REQUEST_URI'] ?? '/') ?>">
+
+      <div class="cookie-notice-text">
+        <p><strong>쿠키 사용에 동의해 주세요.</strong></p>
+
+        <?php // 필수는 고를 수 없다 — 이게 없으면 로그인·글쓰기가 아예 안 된다. 대신 무엇인지 밝힌다. ?>
+        <p class="muted cookie-required">
+          <strong>필수</strong> — 로그인 유지, 위조 요청 방어, 화면 설정(정렬·감상·글 수).
+          서비스가 돌아가려면 반드시 필요해서 <strong>끌 수 없습니다.</strong>
+        </p>
+
+        <?php // 여기부터가 진짜 '고르는' 부분. 기본값은 꺼짐 — 동의는 켜져 있으면 안 된다. ?>
+        <?php foreach (CONSENT_ITEMS as $key => $label): ?>
+          <label class="cookie-item">
+            <input type="checkbox" name="item_<?= e($key) ?>" value="1">
+            <span>선택 — <?= e($label) ?></span>
+          </label>
+        <?php endforeach; ?>
+      </div>
+
+      <?php // name="choice" 가 같고 value가 다르다 → 누른 버튼의 값만 서버로 간다. ?>
+      <div class="cookie-notice-actions">
+        <button type="submit" name="choice" value="all" class="btn-consent-all">모두 동의</button>
+        <button type="submit" name="choice" value="selected">선택한 것만</button>
+        <button type="submit" name="choice" value="none" class="btn-consent-none">거절</button>
+      </div>
+    </form>
   <?php endif; ?>
 </body>
 </html>

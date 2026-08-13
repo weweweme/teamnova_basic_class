@@ -133,7 +133,12 @@
       "Bash(grep -vE \"^\\\\s*//\" post/restore.php)",
       "Bash(curl -s -o /dev/null -w \"week16 root: %{http_code}\\\\n\" http://localhost:8081/week16/)",
       "Bash(curl -s -o /dev/null -w \"login: %{http_code}\\\\n\" http://localhost:8081/week16/auth/login.php)",
-      "Bash(curl -s -o /dev/null -w \"site root: %{http_code}\\\\n\" http://localhost:8081/)"
+      "Bash(curl -s -o /dev/null -w \"site root: %{http_code}\\\\n\" http://localhost:8081/)",
+      "Bash(grep -n 'get_str\\('\\\\''sort'\\\\''\\\\|get_str\\('\\\\''sentiment'\\\\''\\\\|get_int\\('\\\\''per\\\\|get_str\\('\\\\''per\\\\|isset\\($_GET\\\\[' board/index.php)",
+      "Bash(rm -f m.txt)",
+      "Bash(curl -s -c m.txt -o /dev/null __TRACKED_VAR__/settings/)",
+      "Bash(rm -f s.txt)",
+      "Bash(curl -s -c s.txt -o /dev/null -D - __TRACKED_VAR__/settings/)"
     ],
     "additionalDirectories": [
       "c:\\git-work\\teamnova_basic_class\\lamp\\src\\week16\\includes"

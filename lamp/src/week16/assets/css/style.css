@@ -1068,19 +1068,40 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 }
 
 /* 쿠키 안내 배너 — 화면 아래 고정. 확인을 누르면 JS가 쿠키를 심고 즉시 제거한다. */
+/* 쿠키 '동의' 배너.
+   ★ 확인 하나였을 땐 한 줄이면 됐는데, 고를 것이 생기면서 세로로 쌓인다.
+     동의는 '읽고 고르는' 화면이라 정보량이 늘어나는 게 자연스럽다. */
 .cookie-notice {
   position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 60;
-  display: flex; align-items: center; gap: 1rem; max-width: min(720px, calc(100% - 32px));
-  padding: .8rem 1rem; border-radius: 10px;
-  background: rgba(31,31,38,.94); backdrop-filter: blur(6px);
+  display: flex; flex-direction: column; gap: .75rem;
+  width: min(560px, calc(100% - 32px));
+  padding: 1rem 1.1rem; border-radius: 10px;
+  background: rgba(31,31,38,.96); backdrop-filter: blur(6px);
   border: 1px solid rgba(255,255,255,.12); box-shadow: 0 8px 24px rgba(0,0,0,.4);
   font-size: 14px;
 }
-.cookie-notice p { margin: 0; }
-.cookie-notice button {
-  flex-shrink: 0; padding: .4rem 1rem; border: 0; border-radius: 6px;
-  background: #e5484d; color: #fff; font-weight: 600; cursor: pointer;
+.cookie-notice p { margin: 0 0 .5rem; }
+.cookie-notice-text { display: flex; flex-direction: column; gap: .35rem; }
+.cookie-required { font-size: 13px; line-height: 1.5; margin-bottom: .3rem; }
+
+/* 고를 수 있는 항목 — 클릭 범위를 넓히려고 label 전체를 줄로 만든다 */
+.cookie-item {
+  display: flex; align-items: center; gap: .5rem; cursor: pointer;
+  padding: .3rem .5rem; border-radius: 6px; font-size: 13px;
 }
+.cookie-item:hover { background: rgba(255,255,255,.06); }
+
+.cookie-notice-actions { display: flex; gap: .5rem; justify-content: flex-end; flex-wrap: wrap; }
+.cookie-notice button {
+  flex-shrink: 0; padding: .45rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600;
+  background: transparent; color: #c9ced6; border: 1px solid rgba(255,255,255,.18);
+}
+.cookie-notice button:hover { background: rgba(255,255,255,.08); }
+/* ★ '모두 동의'만 눈에 띄게 하고 '거절'을 흐리게 하면 그게 곧 유도(dark pattern)다.
+   → 거절도 같은 무게로 둔다. 강조는 초록 테두리 정도로만. */
+.btn-consent-all { border-color: rgba(70,167,88,.6); color: #7ee2a8; }
+.btn-consent-all:hover { background: rgba(70,167,88,.15); }
+.btn-consent-none { border-color: rgba(255,255,255,.18); }
 
 /* 페이지당 글 수 선택 (게시판) */
 .per-page { display: inline-flex; gap: .25rem; margin-right: .5rem; font-size: 13px; }

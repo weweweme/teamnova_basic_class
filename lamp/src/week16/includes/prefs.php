@@ -29,13 +29,16 @@ require_once __DIR__ . '/posts.php';   // SEARCH_QUERY_MAX — 검색어 길이 
 // 취향은 오래 기억해도 손해가 없으므로 넉넉히 잡는다.
 const PREF_DAYS = 90;
 
+// 어느 쿠키를 심어도 되는지 판단하려면 '무엇에 동의했나'를 알아야 한다.
+//   ★ 한 방향으로만 안다 — consent.php는 쿠키 이름을 하나도 모른다.
+require_once __DIR__ . '/consent.php';
+
 // 쿠키 이름들
 const PREF_SORT_COOKIE     = 'pref_sort';     // 게시판 정렬 기본값
 const RECENT_SEARCH_COOKIE = 'recent_search'; // 최근 검색어 (JSON 배열)
 const RECENT_POSTS_COOKIE  = 'recent_posts';  // 최근 본 글 번호 ("3,2,1")
 const PREF_SENTIMENT_COOKIE = 'pref_sentiment'; // 게시판 감상 필터 기본값 ('' | 호평 | 보통 | 혹평)
 const LAST_VISIT_COOKIE     = 'last_visit';     // 마지막으로 게시판을 본 시각(초)
-const COOKIE_NOTICE_COOKIE  = 'cookie_notice';  // 쿠키 안내를 읽었는지 (JS가 심는 유일한 쿠키)
 const RECENT_WORKS_COOKIE   = 'recent_works';   // 최근 본 작품 slug ("tmdb-496243,tmdb-27205")
 const PER_PAGE_COOKIE       = 'per_page';       // 게시판 한 페이지 글 수 (15 | 30 | 50)
 
@@ -104,6 +107,11 @@ function preferred_sentiment(array $allowed, string $default): string {
 // 방금 검색한 말을 목록 맨 앞에 넣는다.
 //   '최근 본 글'(세션)과 규칙이 같다 — 있으면 빼고, 앞에 넣고, 넘치면 자른다.
 function remember_search(string $query): void {
+    // ★ 동의 게이트. 이 한 줄이 [거절] 버튼을 '진짜'로 만든다.
+    //   기록만 하고 계속 심으면 거절 버튼은 장식이다.
+    if (!has_consent('search')) {
+        return;
+    }
     $recent = get_recent_searches();
 
     // 같은 말을 또 검색하면 줄이 늘지 않고 맨 앞으로 올라온다.
@@ -170,6 +178,10 @@ function get_recent_searches(): array {
 function remember_recent_post(int $id): void {
     if ($id <= 0) {
         return;
+    }
+
+    if (!has_consent('view')) {
+        return;                       // 동의 안 함 → 기록하지 않는다
     }
 
     $recent = get_recent_post_ids();
@@ -243,6 +255,9 @@ function last_visit_at(): int {
 
 // 방문 시각을 갱신한다. (게시판을 그린 뒤에 부른다)
 function touch_visit(): void {
+    if (!has_consent('view')) {
+        return;                       // 동의 안 함 → 방문 시각을 남기지 않는다(🆕 배지도 안 뜬다)
+    }
     if (time() - last_visit_at() < VISIT_GAP) {
         return;                       // 아직 '같은 방문' — 그대로 두어 배지를 유지한다
     }
@@ -250,23 +265,48 @@ function touch_visit(): void {
 }
 
 
-// ── 쿠키 안내 배너 ───────────────────────────────────────────
-//   [무엇인가]
-//     "이 사이트는 쿠키를 씁니다"를 한 번 알리고, 확인을 누르면 다시 안 띄운다.
-//     유럽 GDPR 이후 거의 모든 사이트에 붙은 그 배너다.
+// ── 동의하지 않은 항목의 쿠키를 치운다 ───────────────────────
+//   [왜 필요한가]
+//     동의는 "앞으로 안 심겠다"가 아니라 **"지금 것도 치우겠다"** 까지다.
+//     이게 없으면 [거절]을 눌러도 이미 쌓인 검색어·열람 기록이 브라우저에 90일간 남는다.
+//   ★ 이 함수가 consent.php가 아니라 여기 있는 이유:
+//     '어느 쿠키가 어느 항목에 속하는지'는 쿠키를 만든 이 파일이 아는 사실이다.
+//     consent.php는 '무엇에 동의했나'만 알고, 쿠키 이름은 하나도 모른다. (서로를 덜 알수록 안 엉킨다)
+function forget_unconsented_cookies(): void {
+    $expired = pref_cookie_options();
+    $expired['expires'] = time() - 3600;
+
+    $toClear = [];
+    if (!has_consent('view')) {
+        $toClear = [RECENT_POSTS_COOKIE, RECENT_WORKS_COOKIE, LAST_VISIT_COOKIE];
+    }
+    if (!has_consent('search')) {
+        $toClear[] = RECENT_SEARCH_COOKIE;
+    }
+
+    foreach ($toClear as $name) {
+        if (isset($_COOKIE[$name])) {
+            unset($_COOKIE[$name]);             // 이 요청에서도 즉시 안 보이게
+            setcookie($name, '', $expired);     // 브라우저에서도 지우게
+        }
+    }
+}
+
+
+// ── 쿠키 동의 배너 ───────────────────────────────────────────
+//   [★ '확인'에서 '동의'로 바뀐 자리]
+//     예전엔 `cookie_notice=1` 하나로 "안내를 읽었다"만 표시했고 버튼도 [확인]뿐이었다.
+//     그런데 **거절할 수 없으면 물어본 게 아니다.** 지금은 항목별로 고르고 거절할 수 있다.
+//     판단 근거와 저장 방식은 consent.php에 있다.
 //
-//   [★ 이 프로젝트에서 이게 재밌는 이유]
-//     **"쿠키를 쓰겠다는 안내를 읽었다"는 사실 자체를 쿠키에 적는다.**
-//     달리 적을 데가 없다 — 로그인 안 한 사람에게도 기억해야 하고, 창을 닫아도 남아야 하니까.
-//
-//   [★★ 지금까지의 쿠키와 결정적으로 다른 점]
-//     다른 쿠키는 전부 **서버가 setcookie()로 심는다.** 이건 **브라우저(JS)가 직접 심는다.**
-//     그래서 화면이 즉시 사라지고 서버를 한 번도 안 거친다.
-//     · 가능한 이유: 우리 취향 쿠키들은 `httponly`를 켜지 않기 때문이다(JS가 읽고 쓸 수 있다).
-//     · 로그인 토큰(remember)·세션 번호표는 정반대다 — `httponly`를 켜서 JS가 아예 못 만진다.
-//       훔쳐가면 계정이 넘어가는 값이기 때문. **값의 무게에 따라 다루는 방식이 갈린다.**
-function has_seen_cookie_notice(): bool {
-    return isset($_COOKIE[COOKIE_NOTICE_COOKIE]);
+//   [★★ 그리고 이 쿠키만 하던 특별한 일이 사라졌다]
+//     `cookie_notice`는 **우리 사이트에서 유일하게 브라우저(JS)가 직접 심던 쿠키**였다.
+//     서버를 안 거쳐서 배너가 즉시 사라지는 게 장점이었는데, 동의로 바뀌며 그게 단점이 됐다 —
+//     **서버가 모르는 동의는 나중에 증명할 수 없다.**
+//     → 이제 폼으로 서버에 보낸다(POST /consent.php). JS는 한 줄도 안 쓴다.
+//     ※ 남은 '읽는 쪽'도 httponly라 JS가 못 본다. **값의 무게가 달라지면 다루는 방식도 바뀐다.**
+function needs_cookie_consent(): bool {
+    return needs_consent();
 }
 
 
@@ -278,7 +318,7 @@ function has_seen_cookie_notice(): bool {
 
 // 이 작품을 '방금 봤다'고 기록한다. (작품 게시판을 열 때 부른다)
 function remember_recent_work(string $slug): void {
-    if ($slug === '' || !is_valid_work_slug($slug)) {
+    if ($slug === '' || !is_valid_work_slug($slug) || !has_consent('view')) {
         return;
     }
 

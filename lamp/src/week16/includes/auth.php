@@ -362,6 +362,18 @@ function is_owner(string $author): bool {
 const IDLE_LIMIT = 1200;                // 20분. SESSION_TTL(30분)보다 반드시 짧게.
 const SESSION_LAST_SEEN = 'last_seen';   // 마지막으로 움직인 시각(초)
 
+// 자동 로그아웃까지 남은 시간(초). 로그인 안 했으면 0.
+//   ★ 화면에 카운트다운을 띄우려고 쓴다. 판정은 어디까지나 서버가 하고,
+//     이 숫자는 '지금 이 페이지를 연 시점' 기준의 참고값이다.
+//     (페이지를 새로 열 때마다 last_seen이 갱신되므로 카운트다운도 다시 시작된다)
+function idle_seconds_left(): int {
+    if (empty($_SESSION[SESSION_USER_ID])) {
+        return 0;
+    }
+    $lastSeen = (int) ($_SESSION[SESSION_LAST_SEEN] ?? time());
+    return max(0, IDLE_LIMIT - (time() - $lastSeen));
+}
+
 if (!empty($_SESSION[SESSION_USER_ID])) {
     $lastSeen = (int) ($_SESSION[SESSION_LAST_SEEN] ?? 0);
 

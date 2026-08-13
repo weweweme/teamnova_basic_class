@@ -107,6 +107,12 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
           if ($unread > 0): ?><span class="nav-bell-badge"><?= $unread > 99 ? '99+' : (int)$unread ?></span><?php endif; ?></a>
         <!-- 내 이름을 누르면 내 프로필로 (GET으로 user 전달)
              urlencode = 한글 아이디를 주소에 안전하게 넣기 위해 변환 -->
+        <?php // ⏱ 자동 로그아웃까지 남은 시간. 서버가 준 초를 JS가 1초씩 깎는다.
+              //   ★ 판정은 서버가 한다 — 이건 '보여주기'일 뿐이라, 0이 되면 새로고침해서
+              //     서버의 판단을 받는다(그 요청에서 로그아웃 처리 + 안내가 뜬다). ?>
+        <span class="idle-timer" id="idle-timer"
+              data-left="<?= (int) idle_seconds_left() ?>"
+              title="이 시간 동안 아무 동작이 없으면 자동 로그아웃됩니다">⏱ --:--</span>
         <a class="nav-user" href="/profile/?user=<?= urlencode((string)current_user()) ?>"><?= e(current_nickname()) ?>님</a>
         <!-- 로그아웃은 '상태를 바꾸는' 동작이라 링크(GET)가 아니라 POST 폼 버튼 -->
         <form class="logout-form" method="post" action="/auth/logout.php">

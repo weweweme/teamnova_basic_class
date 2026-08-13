@@ -468,3 +468,38 @@ function fillDailyPick(items) {
     link.querySelector('.side-pick-title').textContent = m.title;
     box.hidden = false;                              // 다 채워졌으니 이제 보여준다
 }
+
+
+// ── ⏱ 자동 로그아웃 카운트다운 (상단바) ─────────────────────
+//   서버가 내려준 '남은 초'를 1초씩 깎아 보여준다.
+//   ★ 이 숫자가 로그아웃을 시키는 게 아니다 — 판정은 서버가 한다.
+//     0이 되면 새로고침해서 서버의 판단을 받는다(그 요청에서 로그아웃 + 안내가 뜬다).
+//   ★ 페이지를 새로 열 때마다 서버가 last_seen을 갱신하므로 카운트다운도 다시 시작된다.
+//     즉 '이 화면에 가만히 머문 시간'이 표시되는 셈이다.
+const idleTimer = document.getElementById('idle-timer');
+
+if (idleTimer) {
+    let left = parseInt(idleTimer.dataset.left, 10) || 0;
+
+    // 남은 초를 mm:ss 로. padStart = 한 자리 수 앞에 0을 채워 '9:5'가 아니라 '09:05'로.
+    function renderIdle() {
+        const m = Math.floor(left / 60);
+        const s = left % 60;
+        idleTimer.textContent = '⏱ ' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+
+        // 2분 이하로 남으면 색을 바꿔 눈에 띄게 한다.
+        idleTimer.classList.toggle('idle-warn', left <= 120);
+    }
+
+    renderIdle();
+
+    const tick = setInterval(function () {
+        left -= 1;
+        if (left <= 0) {
+            clearInterval(tick);
+            location.reload();      // 서버에게 판단을 맡긴다
+            return;
+        }
+        renderIdle();
+    }, 1000);
+}

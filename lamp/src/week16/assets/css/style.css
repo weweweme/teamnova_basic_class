@@ -1094,3 +1094,10 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 }
 .btn-draft:hover:not(:disabled) { background: rgba(255,255,255,.06); }
 .btn-draft:disabled { opacity: .5; cursor: default; }
+
+/* ⏱ 자동 로그아웃 카운트다운 (상단바) */
+.idle-timer {
+  font-size: 12px; color: #8b919b; font-variant-numeric: tabular-nums;
+  padding: .1rem .4rem; border-radius: 4px; border: 1px solid rgba(255,255,255,.1);
+}
+.idle-timer.idle-warn { color: #ff9ea2; border-color: rgba(229,72,77,.5); background: rgba(229,72,77,.12); }

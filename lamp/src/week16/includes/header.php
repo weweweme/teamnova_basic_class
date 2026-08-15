@@ -11,6 +11,7 @@ require_once __DIR__ . '/util.php';
 require_once __DIR__ . '/auth.php';   // 로그인 상태에 따라 메뉴가 달라지므로
 require_once __DIR__ . '/level.php';  // 작성자 옆 등급 배지(user_level) — 모든 화면에서 씀
 require_once __DIR__ . '/notifications.php';  // 상단바 🔔 안읽은 개수
+require_once __DIR__ . '/devices.php';        // 새 기기 로그인 알림
 require_once __DIR__ . '/prefs.php';          // 쿠키 안내 배너 (footer.php에서 씀)
 
 // ★ week16에서 여기 있던 'URL 리라이터' 블록이 통째로 사라졌다.
@@ -136,6 +137,25 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
     //   ★ take_flash()는 꺼내면서 flash 쿠키를 지운다(read-once) → 새로고침해도 다시 뜨지 않는다.
     //     week15에는 알림이 주소에 있어서 JS가 주소창을 청소해야 했다. 그 일이 없어졌다.
     $flash = take_flash();
+
+    // ── 새 기기 로그인 알림 ──────────────────────────────────
+    //   ★ **다른 곳에서 내 계정에 로그인이 있었다**를 주인에게 알린다.
+    //     지금 이 기기는 제외한다 — 방금 자기가 로그인한 걸 자기에게 알려봐야 소용없다.
+    //   ★ 알림이 이미 떠 있으면 덮어쓰지 않는다. 두 개를 겹쳐 띄우면 둘 다 안 읽힌다.
+    //   ⚠️ **한계**: 이건 '로그인'을 잡는다. **세션 쿠키를 훔쳐 붙여넣은 경우엔 로그인이
+    //     없으므로 안 잡힌다.** 비밀번호 유출에는 강하고 세션 탈취에는 약하다 — 다른 공격이다.
+    if ($flash === null && is_logged_in()) {
+        $newDevices = take_new_devices(current_user_id());
+        if ($newDevices) {
+            $names = array_map(fn($d) => describe_device($d['user_agent']), $newDevices);
+            $flash = [
+                'message' => '🔔 새 기기에서 로그인되었습니다 — ' . implode(' · ', $names)
+                             . '. 본인이 아니라면 비밀번호를 바꿔 주세요.',
+                'type'    => 'error',
+                'action'  => null,
+            ];
+        }
+    }
     ?>
     <?php if ($flash !== null): ?>
       <?php // 화면 우상단에 '떠 있는' 토스트. JS가 몇 초 뒤 스르륵 걷어낸다. ?>

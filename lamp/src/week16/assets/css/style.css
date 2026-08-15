@@ -1130,6 +1130,19 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 }
 .btn-link:hover { color: #c9ced6; }
 
+/* 로그인한 기기 목록 (설정) */
+.device-list { list-style: none; padding: 0; margin: .6rem 0 0; }
+.device-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: .7rem 0; border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.device-item:last-child { border-bottom: 0; }
+.device-item .muted { font-size: 12px; margin-top: .15rem; }
+.device-current {
+  margin-left: .4rem; font-size: 11px; padding: .1rem .4rem; border-radius: 4px;
+  background: rgba(70,167,88,.18); color: #7ee2a8; border: 1px solid rgba(70,167,88,.4);
+}
+
 /* 페이지당 글 수 선택 (게시판) */
 .per-page { display: inline-flex; gap: .25rem; margin-right: .5rem; font-size: 13px; }
 .per-page a { padding: .15rem .45rem; border-radius: 4px; color: #9aa0aa; text-decoration: none; }

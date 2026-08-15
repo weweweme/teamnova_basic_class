@@ -6,6 +6,8 @@
 
 require_once __DIR__ . '/db.php';     // users 표를 조회하므로
 require_once __DIR__ . '/util.php';   // redirect() · set_flash() (util.php가 session.php를 켜준다)
+require_once __DIR__ . '/session_db.php';   // destroy_other_sessions — 함수를 쓰는 파일은 직접 require
+require_once __DIR__ . '/devices.php';      // 로그인한 기기 기록
 
 // ★★ 비밀번호는 '절대' 그대로 저장하지 않는다.
 //    password_hash()로 만든 '해시'(단방향으로 뒤섞은 값)만 users.password에 저장한다.
@@ -277,6 +279,17 @@ function start_session_for(int $userId): void {
 
     // ★ 아이디(이름)가 아니라 번호를 담는다. 변하지 않는 열쇠이기 때문 (find_user_by_id 주석 참고).
     $_SESSION[SESSION_USER_ID] = $userId;
+
+    // ★ 이 기기를 회원의 '로그인한 기기' 목록에 올린다 (이미 있으면 시각만 갱신).
+    //   [왜 '다른 로그인을 전부 끊기'가 아니라 이것인가]
+    //     한 곳만 허용하면 **PC와 폰을 같이 못 쓴다.** 그래서 여러 곳을 허용하되,
+    //     대신 **볼 수 있게** 해준다 — 그게 기기 목록이다.
+    //     ★★ 둘은 짝이다. **여러 곳을 허용하면서 목록이 없으면**, 훔친 세션이
+    //       '내 기기 중 하나'로 숨어들어 아무도 눈치채지 못한다.
+    //     (네이버·구글이 여러 기기를 허용하는 것도 '내 기기 목록'을 주기 때문이다)
+    //
+    //   ★ 처음 보는 기기면 주인에게 한 번 알린다 — header.php가 take_new_devices()로 띄운다.
+    remember_device($userId);
 
     // 유휴 시계를 지금부터 시작한다.
     //   ★ 여기서 안 넣으면 '로그인한 그 순간'은 시계가 없는 상태가 된다.

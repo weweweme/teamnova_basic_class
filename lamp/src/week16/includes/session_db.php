@@ -164,11 +164,17 @@ final class DbSessionHandler implements SessionHandlerInterface
         //   이 칼럼이 있어야 "이 회원의 세션 전부 삭제"를 WHERE 한 줄로 할 수 있다.
         $userId = $_SESSION[SESSION_USER_ID] ?? null;
 
+        // ★ 이 세션이 '어느 기기의 것인지'도 함께 적는다.
+        //   기기를 끊을 때 그 기기의 세션까지 지우려면 **칼럼**이어야 한다 —
+        //   payload 안에 있으면 직렬화된 덩어리라 SQL로 못 찾는다. (user_id를 뺀 것과 같은 이유)
+        $deviceId = function_exists('device_id') ? device_id() : null;
+
         $sql = 'INSERT INTO sessions
-                    (id_hash, user_id, payload, ip_address, user_agent, last_active, expires_at)
-                VALUES (?, ?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? SECOND))
+                    (id_hash, user_id, device_id, payload, ip_address, user_agent, last_active, expires_at)
+                VALUES (?, ?, ?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? SECOND))
                 ON DUPLICATE KEY UPDATE
                     user_id     = VALUES(user_id),
+                    device_id   = VALUES(device_id),
                     payload     = VALUES(payload),
                     last_active = NOW(),
                     expires_at  = VALUES(expires_at)';
@@ -176,6 +182,7 @@ final class DbSessionHandler implements SessionHandlerInterface
         return db()->prepare($sql)->execute([
             session_fingerprint($id),
             $userId !== null ? (int) $userId : null,
+            $deviceId,
             $data,
             // 접속 정보. 세션 동작에는 필요 없지만, 이상한 접속을 나중에 되짚어볼 때 쓴다.
             //   길이를 잘라 두는 이유: 칼럼 길이를 넘으면 저장이 실패해 세션이 통째로 날아간다.

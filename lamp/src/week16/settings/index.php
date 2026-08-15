@@ -15,6 +15,11 @@ $userRow  = find_user($username);
 $avatar   = $userRow['avatar'] ?? null;
 $nickname = $userRow['nickname'] ?? $username;   // 표시 이름(변경 폼에 미리 채워둔다)
 
+// 로그인한 기기 목록. ★ sessions가 아니라 user_devices에서 읽는다 —
+//   세션은 30분이면 죽지만 기기 기록은 남아야 하기 때문이다. (devices.php 주석)
+$myDevices  = list_devices(current_user_id());
+$thisDevice = device_id();
+
 $pageTitle = '설정';
 $containerClass = 'narrow';
 require __DIR__ . '/../includes/header.php';
@@ -74,6 +79,41 @@ require __DIR__ . '/../includes/header.php';
       </label>
       <button type="submit">변경</button>
     </form>
+  </section>
+
+  <!-- ── 로그인한 기기 ───────────────────────────────────── -->
+  <?php // ★ user_devices 표를 그대로 보여준다. 세션이 죽어 있어도 기록은 남아 있다 —
+        //   "지난주 PC방에서 로그인한 걸 끊고 싶다"가 되는 이유다. ?>
+  <section class="settings-section">
+    <h2>로그인한 기기</h2>
+    <p class="muted">
+      이 계정으로 로그인한 적 있는 기기들이에요.
+      <strong>모르는 기기가 있으면 끊고 비밀번호를 바꿔 주세요.</strong>
+    </p>
+
+    <ul class="device-list">
+      <?php foreach ($myDevices as $dev): ?>
+        <?php $isThis = $dev['device_id'] === $thisDevice; ?>
+        <li class="device-item">
+          <div>
+            <strong><?= e(describe_device($dev['user_agent'])) ?></strong>
+            <?php if ($isThis): ?><span class="device-current">이 기기</span><?php endif; ?>
+            <div class="muted">
+              마지막 로그인 <?= e(format_time_short((int) $dev['last_at'])) ?>
+              · 처음 <?= e(format_time_short((int) $dev['first_at'])) ?>
+            </div>
+          </div>
+          <?php if (!$isThis): ?>
+            <form method="post" action="/settings/revoke_device.php">
+              <?= csrf_field() ?>
+              <?php // 기기 번호를 그대로 실어 보낸다. 남의 것을 실어도 서버가 user_id로 막는다. ?>
+              <input type="hidden" name="device_id" value="<?= e($dev['device_id']) ?>">
+              <button type="submit" class="btn-settings">끊기</button>
+            </form>
+          <?php endif; ?>
+        </li>
+      <?php endforeach; ?>
+    </ul>
   </section>
 
   <!-- ── 휴지통 ─────────────────────────────────────────────── -->

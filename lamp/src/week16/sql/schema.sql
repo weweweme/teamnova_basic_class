@@ -212,3 +212,21 @@ CREATE TABLE consent_log (
     INDEX idx_consent_user (user_id, id)
     -- ★ users로 가는 FOREIGN KEY를 안 건다 — 탈퇴하면 증빙이 사라지면 증빙이 아니다.
 );
+
+
+-- ── login_attempts : 로그인 시도 제한 ─────────────────────
+--   week16에서 추가. 무차별 대입(brute force) 방어.
+--   ★ '몇 번 틀렸나'는 공격자가 0으로 되돌리고 싶은 값이라 세션·쿠키에 두면 안 된다 → DB.
+--   ★ (아이디 + 접속지) 조합으로 센다 — 아이디만 세면 남의 계정을 일부러 잠글 수 있다.
+--   ★ 판정용이라 창(15분)이 지나면 버린다. consent_log(증빙, 영구)와 정반대.
+--   자세한 설명은 migrations/010_login_attempts.sql
+CREATE TABLE login_attempts (
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username     VARCHAR(50) NOT NULL,     -- 없는 아이디여도 기록한다 (정찰도 막아야 하므로)
+    ip_hash      CHAR(64)    NOT NULL,     -- 접속지 지문. 비교만 하면 되니 원본은 안 담는다
+    attempted_at DATETIME    NOT NULL DEFAULT NOW(),
+
+    INDEX idx_attempt_ip   (ip_hash, attempted_at),
+    INDEX idx_attempt_pair (ip_hash, username, attempted_at)
+    -- ★ users로 가는 FK를 안 건다 — 없는 아이디로 온 시도도 기록해야 하기 때문.
+);

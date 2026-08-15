@@ -6,7 +6,8 @@
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';
-require_once __DIR__ . '/../includes/consent.php';   // 비로그인 때 받아둔 동의를 회원과 잇는다
+require_once __DIR__ . '/../includes/consent.php';      // 비로그인 때 받아둔 동의를 회원과 잇는다
+require_once __DIR__ . '/../includes/login_guard.php'; // 무차별 대입 방어
 
 // ── 0) POST로 온 게 맞나? ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -27,10 +28,22 @@ $password = post_str('password', '');
 //   ★ 비밀번호는 넣지 않는다 — 이 값은 쿠키에 평문으로 담겨 브라우저에 남는다.
 keep_old_input(['username' => $username]);
 
+// ── 1-1) 너무 많이 틀린 자리인가? ────────────────────────────
+//   ★ **비밀번호를 대조하기 전에** 막는다. 대조부터 하면 그게 곧 무한 시도를 허용하는 것이다.
+//   ★ 문구에 아이디가 있는지 없는지를 흘리지 않는다 — 막혔을 때도 메시지는 하나뿐이다.
+$blocked = login_block_seconds($username);
+if ($blocked > 0) {
+    set_flash('🚫 로그인 시도가 너무 많습니다. ' . ceil($blocked / 60) . '분 후에 다시 시도해 주세요.', 'error');
+    redirect('/auth/login.php');
+}
+
 // ── 2) 검증 ──────────────────────────────────────────────────
 $user = verify_login($username, $password);
 
 if ($user === null) {
+    // ★ 실패를 서버에 기록한다. 세션·쿠키에 세면 브라우저만 바꿔도 0이 되므로 소용없다.
+    record_login_failure($username);
+
     // ★ 실패 이유를 "아이디가 없음 / 비번이 틀림"으로 나눠 알려주지 않는다.
     //   나누면 공격자가 "이 아이디는 존재하는구나"를 알아낼 수 있기 때문(계정 열거).
     //   그래서 항상 뭉뚱그려 하나의 메시지로 돌려보낸다.
@@ -45,6 +58,9 @@ if ($user === null) {
 //
 // 성공했으니 맡겨둔 아이디를 버린다 (안 버리면 다음 로그인 화면에 되살아난다).
 forget_old_input();
+
+// ★ 이 자리의 실패 기록도 지운다. 안 지우면 몇 번 틀렸다 들어온 사람이 조금 뒤에 또 막힌다.
+clear_login_failures($username);
 
 // ★ 이 브라우저에서 받아둔 동의를 회원과 잇는다 (consent_log에 'link' 줄 한 줄).
 //   비로그인일 때 동의했다면 그 기록의 user_id가 NULL이었다 —

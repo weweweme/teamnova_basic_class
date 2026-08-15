@@ -72,21 +72,37 @@ function current_nickname(): ?string {
     return $nickname !== '' ? $nickname : (string) $user['username'];
 }
 
+// ── 아이디가 없을 때 대신 대조할 '가짜 해시' ─────────────────
+//   [★★ 왜 이런 게 필요한가 — 시간으로 새는 정보]
+//     예전 코드는 아이디가 없으면 곧바로 return 했다. 그런데 bcrypt는 **일부러 느리게**
+//     설계돼 있어서(cost 12 → 수십~수백 ms), 있는 아이디와 없는 아이디의 응답 시간이 확연히 갈렸다:
+//       · 없는 아이디 → 즉시 반환            (빠르다)
+//       · 있는 아이디 → 해시 대조 후 반환    (느리다)
+//     화면 메시지는 "아이디 또는 비밀번호가 올바르지 않습니다"로 뭉뚱그렸는데,
+//     **응답 시간이 그 구분을 그대로 알려주고 있었다.** (계정 열거 — authenticate.php 주석 참고)
+//
+//   ★ CSRF 토큰을 hash_equals로 비교하는 것과 **정확히 같은 이야기**다:
+//     "같은지 비교할 때는 **걸리는 시간까지 같아야 한다.**"
+//     거기서는 글자 비교의 시간차였고, 여기서는 '비교를 하느냐 마느냐'의 시간차다.
+//
+//   ★ 이 값은 실제 비밀번호가 아니다. 아무 문자열의 해시이고, 어떤 비밀번호와도 맞지 않는다.
+//     중요한 건 **우리가 쓰는 것과 같은 알고리즘·같은 cost**여야 한다는 것 —
+//     그래야 계산에 걸리는 시간이 진짜와 같아진다. (지금은 bcrypt cost 12)
+const DUMMY_PASSWORD_HASH = '$2y$12$SClCbG93inmWb6ntjXPXDeoRE7k.cU7/6LPxpqFCvfMxk5BWTHbNG';
+
 // 아이디+비밀번호가 맞는지 확인. 맞으면 회원 배열, 틀리면 null.
 //   password_verify(입력한 비번, 저장된 해시) = 해시와 대조해 맞는지 확인.
 //     ★ 해시를 '풀어서' 비교하는 게 아니라, 입력값을 같은 방식으로 뒤섞어 비교한다.
 function verify_login(string $username, string $password): ?array {
     $user = find_user($username);
 
-    // 아이디가 없으면 실패
-    if ($user === null) {
-        return null;
-    }
-    // 비밀번호가 틀리면 실패 (users 표의 password 열에 해시가 들어있음)
-    if (!password_verify($password, $user['password'])) {
-        return null;
-    }
-    return $user;
+    // ★ 아이디가 없어도 **대조는 한다.** 걸리는 시간을 맞추기 위해서다.
+    //   (없으면 가짜 해시와 대조한다 → 어차피 안 맞지만 시간은 똑같이 쓴다)
+    $hash    = $user['password'] ?? DUMMY_PASSWORD_HASH;
+    $matches = password_verify($password, $hash);
+
+    // ★ 판정도 한 번에 한다. 여기서 다시 갈라 return 하면 시간차가 되살아난다.
+    return ($user !== null && $matches) ? $user : null;
 }
 
 // ── '지금 누구인지' 읽기 (세션에 적힌 신원) ───────────────────

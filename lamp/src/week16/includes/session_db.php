@@ -60,6 +60,20 @@ function destroy_other_sessions(int $userId, string $keepSessionId): int {
     return $stmt->rowCount();
 }
 
+// 이 회원의 세션을 **지금 쓰는 것까지 포함해 전부** 지운다.
+//   [언제 쓰나 — '아무도 남기지 않아야 하는' 상황]
+//     · 자동 로그인 토큰 도난이 감지됐을 때 (remember.php)
+//     · 비밀번호를 바꿨을 때
+//   ★ destroy_other_sessions와 달리 **남기는 게 없다.**
+//     도난 상황에서는 **어느 쪽이 주인이고 어느 쪽이 도둑인지 알 수 없기 때문**이다.
+//     한 곳이라도 살려두면 그게 도둑일 수 있다. 그래서 전부 끊고 비밀번호를 다시 묻는다.
+//   반환값 = 끊어낸 세션 수.
+function destroy_all_sessions(int $userId): int {
+    $stmt = db()->prepare('DELETE FROM sessions WHERE user_id = ?');
+    $stmt->execute([$userId]);
+    return $stmt->rowCount();
+}
+
 // 이 회원이 지금 몇 곳에서 로그인 중인가 (지금 쓰는 기기는 빼고).
 //   설정 화면에 "다른 기기 2곳에서 로그인 중"을 보여주려고 쓴다.
 //   ★ expires_at 조건을 거는 이유: 청소(gc)는 가끔 돌아서 만료된 행이 잠시 남아 있다.

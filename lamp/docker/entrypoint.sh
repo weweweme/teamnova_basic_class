@@ -36,6 +36,29 @@ else
     say "경고: /host-apache/httpd.conf 가 없다 — 컨테이너 안 기존 설정을 그대로 쓴다"
 fi
 
+# ── 1-1. HTTPS 인증서 (없으면 만든다) ───────────────────────
+#   [왜 HTTPS인가]
+#     세션 번호표와 자동 로그인 토큰이 쿠키로 오간다. http면 그 값이 **평문으로 흐른다.**
+#     쿠키를 아무리 잘 설계해도(httponly·samesite·토큰 회전·재사용 탐지)
+#     **채널이 평문이면 도청 한 번에 전부 무의미**해진다. 그래서 채널부터 막는다.
+#
+#   ★ 자체 서명(self-signed) 인증서다. 브라우저가 "안전하지 않음"이라고 경고하는데,
+#     그건 **암호화가 안 된다는 뜻이 아니라 "이 인증서를 누가 보증하는지 모르겠다"는 뜻**이다.
+#     통신 내용은 정상적으로 암호화된다. 실서비스라면 Let's Encrypt 같은 공인 CA를 쓴다.
+#
+#   ★ subjectAltName이 반드시 필요하다 — 요즘 브라우저는 CN(Common Name)을 안 보고
+#     SAN만 본다. 빠뜨리면 예외를 승인해도 계속 막힌다.
+if [ ! -f "$APACHE_DIR/conf/server.crt" ]; then
+    say "HTTPS 인증서 생성 (자체 서명, 825일)"
+    CERT_SUBJ="/CN=localhost"
+    CERT_SAN="subjectAltName=DNS:localhost,IP:127.0.0.1"
+    if openssl req -x509 -newkey rsa:2048 -nodes -days 825 -subj "$CERT_SUBJ" -addext "$CERT_SAN" -keyout "$APACHE_DIR/conf/server.key" -out "$APACHE_DIR/conf/server.crt" >/dev/null 2>&1; then
+        say "인증서 생성 완료"
+    else
+        say "경고: 인증서 생성 실패 — HTTPS 없이 뜬다 (http는 그대로 동작)"
+    fi
+fi
+
 # ── 2. MariaDB '설치' (데이터 폴더가 비었을 때만) ───────────
 #   mariadb-install-db 는 DB 서버가 돌아가는 데 필요한 시스템 표(계정 목록 등)를 만든다.
 #   게임으로 치면 세이브 파일이 아니라 '게임 설치' 단계. 한 번만 하면 된다.

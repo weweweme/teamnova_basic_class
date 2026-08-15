@@ -141,7 +141,16 @@
       "Bash(curl -s -c s.txt -o /dev/null -D - __TRACKED_VAR__/settings/)",
       "Bash(curl -s -b v.txt __TRACKED_VAR__/cookies.php)",
       "Bash(curl -s -b w.txt __TRACKED_VAR__/cookies.php)",
-      "Bash(grep -v '^\\\\s*$')"
+      "Bash(grep -v '^\\\\s*$')",
+      "WebSearch",
+      "WebFetch(domain:support.cookiebot.com)",
+      "Bash(grep -vE \"^\\\\s*\\(//|\\\\*|/\\\\*\\)\" settings/password.php)",
+      "WebFetch(domain:developer.chrome.com)",
+      "Bash(PYTHONIOENCODING=utf-8 python -c ' *)",
+      "Bash(PYTHONIOENCODING=utf-8 python -)",
+      "Bash(awk '{print $6\" = \"substr\\($7,1,24\\)}')",
+      "Bash(openssl s_client -connect localhost:8443 -servername localhost)",
+      "Bash(openssl x509 *)"
     ],
     "additionalDirectories": [
       "c:\\git-work\\teamnova_basic_class\\lamp\\src\\week16\\includes"

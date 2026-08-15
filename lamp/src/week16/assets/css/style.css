@@ -1049,16 +1049,6 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 
 /* ── 로그인 기기 목록 (설정) ─────────────────────────────────
    세션 한 줄 = 기기 하나. '이 기기'만 배지를 달고 로그아웃 버튼을 숨긴다. */
-.device-list { list-style: none; padding: 0; margin: 0 0 1rem; }
-.device-item {
-  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
-  padding: .75rem 0; border-bottom: 1px solid rgba(255,255,255,.08);
-}
-.device-item:last-child { border-bottom: 0; }
-.device-current {
-  margin-left: .5rem; padding: .1rem .45rem; border-radius: 999px;
-  font-size: .75rem; background: rgba(120,180,255,.18); color: #9ec5ff;
-}
 
 /* 🆕 배지 — 지난 방문 이후 올라온 글 (게시판 목록) */
 .badge-new {

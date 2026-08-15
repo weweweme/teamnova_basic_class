@@ -34,15 +34,6 @@ require __DIR__ . '/../includes/header.php';
              아이디를 다시 치는 불편 < 비밀번호가 브라우저에 남는 위험 -->
       <input type="password" name="password" required>
     </label>
-    <!-- 로그인 유지 (week16 쿠키 주제)
-         세션은 브라우저를 닫으면 사라진다 — 그게 세션의 성질이다.
-         체크하면 30일짜리 쿠키를 따로 받아, 다음에 와도 로그인 상태가 되살아난다.
-         ★ 체크박스는 '체크했을 때만' 값이 전송된다. 안 하면 아예 안 온다(0이 오는 게 아니다).
-           그래서 서버는 "값이 왔나?"만 보면 된다. -->
-    <label class="auth-remember">
-      <input type="checkbox" name="remember" value="1">
-      로그인 유지 <span class="muted">(공용 PC에서는 체크하지 마세요)</span>
-    </label>
     <button type="submit">로그인</button>
   </form>
 

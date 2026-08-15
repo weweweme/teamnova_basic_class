@@ -159,10 +159,13 @@
       "Bash(curl -s -D - -o body.txt \"http://localhost:8081/board/?work=tmdb-496243\")",
       "Bash(curl -sk -b sec.txt -o /dev/null -v \"https://localhost:8443/\")",
       "Bash(grep -v \"^$\")",
-      "Bash(awk -F'\\\\t' '{printf \"%-12s %-6s %-3s secure=%-6s %s\\\\n\", $1, $2, $3, $4, $6}')"
+      "Bash(awk -F'\\\\t' '{printf \"%-12s %-6s %-3s secure=%-6s %s\\\\n\", $1, $2, $3, $4, $6}')",
+      "Bash(rm -f settings/logout_session.php settings/logout_others.php)",
+      "Read(//c/Users/argen/.claude/projects/c--git-work-teamnova-basic-class/memory/**)"
     ],
     "additionalDirectories": [
-      "c:\\git-work\\teamnova_basic_class\\lamp\\src\\week16\\includes"
+      "c:\\git-work\\teamnova_basic_class\\lamp\\src\\week16\\includes",
+      "c:\\Users\\argen\\.claude\\projects\\c--git-work-teamnova-basic-class\\memory"
     ]
   }
 }

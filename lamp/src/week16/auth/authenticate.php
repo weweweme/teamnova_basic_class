@@ -43,10 +43,6 @@ if ($user === null) {
 //     주소는 그냥 `/` 로 깨끗하게 나가고, 그 뒤 요청들은 번호표만 들고 온다.
 //   ★ 아이디가 아니라 번호(id)를 넘긴다 — 세션에 담는 것이 번호이기 때문.
 //
-//   '로그인 유지'는 체크박스라 **체크했을 때만 값이 온다.** 안 왔으면 안 누른 것.
-//   → 체크했으면 세션과 별도로 30일짜리 쿠키를 하나 더 받는다 (includes/remember.php).
-$remember = post_str('remember') !== '';
-
 // 성공했으니 맡겨둔 아이디를 버린다 (안 버리면 다음 로그인 화면에 되살아난다).
 forget_old_input();
 
@@ -56,4 +52,4 @@ forget_old_input();
 link_consent_to_user((int) $user['id']);
 
 set_flash('👋 ' . $user['username'] . '님, 환영합니다!');
-login_and_redirect((int) $user['id'], $remember);
+login_and_redirect((int) $user['id']);

@@ -145,29 +145,14 @@ CREATE TABLE notifications (
     FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE
 );
 
--- ── remember_tokens : 로그인 유지(자동 로그인) ─────────────
---   week16에서 추가. 세션은 브라우저를 닫으면 사라지므로, 오래 남는 쿠키를 따로 주고
---   그 쿠키로 세션을 되살린다.
---   ★ 쿠키에는 추측 불가능한 무작위 '표'(토큰)만 담고, 서버는 그 표의 '지문'(SHA-256)만 갖는다.
---     쿠키에 아이디·비밀번호를 담으면 사용자가 고칠 수 있어서 안 된다.
---   자세한 설계 근거는 sql/migrations/004_remember_tokens.sql 주석 참고.
-CREATE TABLE remember_tokens (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    user_id    INT      NOT NULL,             -- 누구의 표인가 → users.id
-    token_hash CHAR(64) NOT NULL UNIQUE,      -- SHA-256 16진수 = 항상 64글자. UNIQUE라 찾기도 빠르다
-    expires_at DATETIME NOT NULL,             -- 이 시각이 지나면 무효 (기본 30일)
-    created_at DATETIME DEFAULT NOW(),
 
-    -- 회원이 사라지면 표도 함께 삭제. (글과 달리 '남겨야 할 내용물'이 아니라 로그인 부속물이므로)
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
 
 
 -- ── sessions : 세션 저장소 ────────────────────────────────
 --   week16에서 추가. PHP 기본값은 '서버의 임시 파일'인데, 그걸 이 표로 옮겼다.
 --   ★ 옮긴 이유 셋: ①서버를 늘리면 파일은 공유가 안 된다 ②'이 회원의 세션 전부 끊기'가
 --     가능해진다(user_id 칼럼) ③세션이 눈에 보인다.
---   ★ 세션 ID도 원본이 아니라 지문(SHA-256)으로 넣는다 — remember_tokens와 같은 방침.
+--   ★ 세션 ID도 원본이 아니라 지문(SHA-256)으로 넣는다 — 유출돼도 되돌릴 수 없게.
 --   자세한 설계 근거는 sql/migrations/005_sessions.sql 주석 참고.
 CREATE TABLE sessions (
     id_hash     CHAR(64) PRIMARY KEY,          -- SHA-256(세션 ID). 원본은 어디에도 안 남긴다

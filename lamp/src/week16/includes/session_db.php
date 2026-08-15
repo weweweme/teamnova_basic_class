@@ -24,7 +24,7 @@
 //     세션 ID는 '지금 로그인한 상태' 그 자체다. 아는 사람이 곧 그 사람이 된다.
 //     DB가 유출됐을 때 원본이 적혀 있으면 그 값을 쿠키에 넣어 남의 계정에 들어갈 수 있다.
 //     지문만 있으면 원래 값을 되돌릴 수 없으므로 쓸모가 없다.
-//     → remember_tokens와 완전히 같은 방침이다. **서버가 들고 있는 건 언제나 지문.**
+//     → **서버가 들고 있는 건 언제나 지문**이다. 원본은 브라우저에만 있다.
 //     ※ Django·Laravel의 기본값은 원본 저장이다. 우리는 한 단계 더 조인 쪽을 골랐다.
 //
 //   [실무에서는]
@@ -42,9 +42,9 @@ require_once __DIR__ . '/db.php';
 const SESSION_TTL = 1800;          // 30분
 
 // 번호표(세션 ID) → DB에 넣을 지문.
-//   ★ 클래스 밖에 둔 이유: 아래 핸들러 말고 '다른 기기에서 로그아웃'도 같은 지문을 내야 한다.
+//   ★ 클래스 밖에 둔 이유: 아래 핸들러 말고 '이 회원의 세션 전부 끊기'도 같은 지문을 내야 한다.
 //     지문 내는 방법이 두 곳으로 갈리면, 한쪽을 고쳤을 때 다른 쪽이 조용히 못 찾게 된다.
-//     (remember.php가 쿠키 옵션을 한 함수에 모아 둔 것과 같은 이유다)
+//     (같은 값을 두 곳에서 만들면 한쪽만 고쳐졌을 때 조용히 어긋난다)
 function session_fingerprint(string $sessionId): string {
     return hash('sha256', $sessionId);
 }
@@ -62,7 +62,6 @@ function destroy_other_sessions(int $userId, string $keepSessionId): int {
 
 // 이 회원의 세션을 **지금 쓰는 것까지 포함해 전부** 지운다.
 //   [언제 쓰나 — '아무도 남기지 않아야 하는' 상황]
-//     · 자동 로그인 토큰 도난이 감지됐을 때 (remember.php)
 //     · 비밀번호를 바꿨을 때
 //   ★ destroy_other_sessions와 달리 **남기는 게 없다.**
 //     도난 상황에서는 **어느 쪽이 주인이고 어느 쪽이 도둑인지 알 수 없기 때문**이다.
@@ -72,72 +71,6 @@ function destroy_all_sessions(int $userId): int {
     $stmt = db()->prepare('DELETE FROM sessions WHERE user_id = ?');
     $stmt->execute([$userId]);
     return $stmt->rowCount();
-}
-
-// 이 회원이 지금 몇 곳에서 로그인 중인가 (지금 쓰는 기기는 빼고).
-//   설정 화면에 "다른 기기 2곳에서 로그인 중"을 보여주려고 쓴다.
-//   ★ expires_at 조건을 거는 이유: 청소(gc)는 가끔 돌아서 만료된 행이 잠시 남아 있다.
-//     그걸 세면 "로그인 중"이라고 거짓말을 하게 된다.
-function count_other_sessions(int $userId, string $keepSessionId): int {
-    $sql = 'SELECT COUNT(*) FROM sessions
-             WHERE user_id = ? AND id_hash <> ? AND expires_at > NOW()';
-    $stmt = db()->prepare($sql);
-    $stmt->execute([$userId, session_fingerprint($keepSessionId)]);
-    return (int) $stmt->fetchColumn();
-}
-
-// 이 회원이 지금 로그인해 둔 기기 목록. (설정 화면의 '로그인 기기')
-//   ★ 파일 세션이었으면 이 기능은 아예 만들 수 없다 — 남의 기기 세션 파일을 찾을 방법이 없다.
-//     세션을 표로 옮기고 user_id 칼럼을 둔 덕에 SQL 한 줄이 됐다.
-//   최근에 쓴 것부터 보여준다.
-function list_sessions_for(int $userId): array {
-    $sql = 'SELECT id_hash, ip_address, user_agent, last_active
-              FROM sessions
-             WHERE user_id = ? AND expires_at > NOW()
-             ORDER BY last_active DESC';
-    $stmt = db()->prepare($sql);
-    $stmt->execute([$userId]);
-    return $stmt->fetchAll();
-}
-
-// 그 기기 하나만 끊는다.
-//   ★★ user_id 조건을 반드시 함께 건다. 지문만 보고 지우면, 남의 지문을 알아낸 사람이
-//     아무 세션이나 끊을 수 있다. "내 것 중에서 이 하나"라야 안전하다.
-//   반환값 = 실제로 지워졌나 (남의 것을 지우려 하면 0줄이라 false).
-function destroy_session_of(int $userId, string $idHash): bool {
-    $stmt = db()->prepare('DELETE FROM sessions WHERE user_id = ? AND id_hash = ?');
-    $stmt->execute([$userId, $idHash]);
-    return $stmt->rowCount() > 0;
-}
-
-// 브라우저가 보낸 긴 user_agent 문자열을 사람이 읽을 수 있게 줄인다.
-//   예: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 … Chrome/141.0 …"
-//       → "Chrome · Windows"
-//   ★ 정확히 알아내는 건 불가능하다 — user_agent는 브라우저가 스스로 밝히는 값이라
-//     얼마든지 고칠 수 있다. 그래서 '참고용 표시'로만 쓰고 판단에는 쓰지 않는다.
-function describe_user_agent(?string $ua): string {
-    $ua = (string) $ua;
-    if ($ua === '') {
-        return '알 수 없는 기기';
-    }
-
-    // 순서가 중요하다 — Edge·Chrome은 서로의 이름을 문자열에 함께 담기 때문에
-    // 더 구체적인 쪽을 먼저 본다.
-    $browsers = ['Edg' => 'Edge', 'OPR' => 'Opera', 'Whale' => 'Whale',
-                 'Firefox' => 'Firefox', 'Chrome' => 'Chrome', 'Safari' => 'Safari'];
-    $systems  = ['Windows' => 'Windows', 'Android' => 'Android', 'iPhone' => 'iPhone',
-                 'iPad' => 'iPad', 'Mac OS X' => 'macOS', 'Linux' => 'Linux'];
-
-    $browser = '브라우저';
-    foreach ($browsers as $needle => $label) {
-        if (str_contains($ua, $needle)) { $browser = $label; break; }
-    }
-    $system = '';
-    foreach ($systems as $needle => $label) {
-        if (str_contains($ua, $needle)) { $system = $label; break; }
-    }
-
-    return $system === '' ? $browser : $browser . ' · ' . $system;
 }
 
 // 세션을 DB에 읽고 쓰는 담당자.
@@ -208,7 +141,7 @@ final class DbSessionHandler implements SessionHandlerInterface
             session_fingerprint($id),
             $userId !== null ? (int) $userId : null,
             $data,
-            // 접속 정보. 세션 동작에는 필요 없지만 '내 로그인 기기 목록' 같은 화면에 쓰인다.
+            // 접속 정보. 세션 동작에는 필요 없지만, 이상한 접속을 나중에 되짚어볼 때 쓴다.
             //   길이를 잘라 두는 이유: 칼럼 길이를 넘으면 저장이 실패해 세션이 통째로 날아간다.
             substr($_SERVER['REMOTE_ADDR'] ?? '', 0, 45),
             substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255),

@@ -6,7 +6,6 @@
 
 require_once __DIR__ . '/db.php';     // users 표를 조회하므로
 require_once __DIR__ . '/util.php';   // redirect() · set_flash() (util.php가 session.php를 켜준다)
-require_once __DIR__ . '/remember.php';   // '로그인 유지' 쿠키로 세션을 되살리므로
 
 // ★★ 비밀번호는 '절대' 그대로 저장하지 않는다.
 //    password_hash()로 만든 '해시'(단방향으로 뒤섞은 값)만 users.password에 저장한다.
@@ -269,21 +268,19 @@ function start_session_for(int $userId): void {
     $_SESSION[SESSION_LAST_SEEN] = time();
 
     // 방금 비밀번호를 확인하고 들어왔으므로 sudo 창도 지금부터 연다.
-    //   ★ '로그인 유지' 쿠키로 되살아난 경우에도 여기를 지난다 — 그건 비밀번호를 안 물었는데?
-    //     맞다. 그래서 아래 remember 복구 블록에서 이 값을 도로 지운다.
+    //   ★ 여기에 오는 길은 이제 **비밀번호를 거친 하나뿐**이다.
+    //     '로그인 유지'가 있던 시절에는 쿠키 한 장으로 들어오는 두 번째 길이 있어서,
+    //     그쪽에서는 이 값을 도로 지워야 했다. 길이 하나가 되면서 그 예외가 사라졌다.
     $_SESSION[SESSION_AUTH_AT] = time();
 }
 
 // 로그인 성공 → 세션에 회원 번호를 적고 보낸다.
 //   week15처럼 주소에 '넘겨주는' 게 아니라, 서버가 '기록'한다.
-//   $remember = 로그인 화면에서 '로그인 유지'를 체크했는가.
-//     체크했으면 세션과 **별도로** 오래 사는 쿠키를 하나 더 발급한다 (remember.php).
-function login_and_redirect(int $userId, bool $remember = false, string $path = '/'): never {
+//   ★ 로그인 상태는 **세션 하나로만** 유지한다. 오래 사는 쿠키를 따로 주지 않는다.
+//     세션 쿠키(PHPSESSID)는 만료 시각이 없어서 **브라우저를 닫으면 사라진다** —
+//     그게 '자리를 뜨면 풀린다'는 성질이고, 우리가 일부러 남긴 성질이다.
+function login_and_redirect(int $userId, string $path = '/'): never {
     start_session_for($userId);
-
-    if ($remember) {
-        remember_issue($userId);
-    }
 
     // 로그인 화면으로 밀려나기 전에 보던 곳이 있으면 그리로, 없으면 $path(기본 홈).
     //   ★ start_session_for()가 번호표를 갈아 끼웠는데도 이 값이 살아 있는 이유:
@@ -296,12 +293,6 @@ function login_and_redirect(int $userId, bool $remember = false, string $path = 
 //     '?as= 를 안 붙인 주소로 보내는 것'이 곧 로그아웃이었다.
 //     이제는 진짜로 지울 것이 생겼다 — 네 단계를 모두 밟아야 깨끗이 지워진다.
 function logout_and_redirect(string $path = '/'): never {
-    // ⓪ '로그인 유지' 표를 먼저 없앤다 (DB의 표 + 브라우저의 쿠키).
-    //   ★ 이걸 빠뜨리면 로그아웃해도 다음 접속에 쿠키가 다시 로그인시켜 버린다.
-    //     사용자 눈에는 "로그아웃이 안 된다"로 보이는, 아주 나쁜 버그다.
-    //   ★ 세션을 비우기 '전에' 해야 한다 — 쿠키 값을 읽어야 어느 표를 지울지 알 수 있다.
-    remember_forget();
-
     // ① 금고 안의 내용물을 비운다
     $_SESSION = [];
 
@@ -378,7 +369,7 @@ function is_owner(string $author): bool {
 //     (세션이 아직 살아 있어야 알림을 남길 수 있으므로 반드시 TTL보다 짧아야 한다)
 //
 //   [★ '로그인 유지'와 충돌하는 것 아닌가]
-//     아니다. 자리 비움으로 끊는 건 **세션(지금 이 방문)**뿐이고, remember 쿠키는 안 건드린다.
+//     끊는 대상은 **세션(지금 이 방문)** 하나뿐이다. 되살릴 다른 쿠키가 없으므로 그대로 끝난다.
 //     그 쿠키는 사용자가 "이 기기는 내 것"이라고 직접 체크한 의사표시이기 때문이다.
 //     → '로그인 유지'를 켠 사람은 곧바로 다시 로그인되고, 안 켠 사람만 로그인 화면으로 간다.
 //       (그래서 공용 PC에서는 '로그인 유지'를 켜지 말라고 하는 것이다)
@@ -412,15 +403,4 @@ if (!empty($_SESSION[SESSION_USER_ID])) {
     }
 }
 
-// ── ② 세션이 없고 '로그인 유지' 쿠키가 있으면 되살린다 ───────
-if (empty($_SESSION[SESSION_USER_ID]) && isset($_COOKIE[REMEMBER_COOKIE])) {
-    $rememberedId = remember_lookup();     // 표가 맞으면 회원 번호, 아니면 0 (+ 표를 새것으로 회전)
-    if ($rememberedId !== 0) {
-        // ★ 로그인 화면을 거친 것과 똑같은 함수를 쓴다 → 세션 고정 방어가 양쪽에 똑같이 걸린다.
-        start_session_for($rememberedId);
 
-        // ★ 다만 이 경로는 **비밀번호를 묻지 않았다.** 쿠키 한 장으로 들어온 것이므로
-        //   sudo 창은 열어주지 않는다 → 민감한 작업을 하려면 비밀번호를 다시 물어본다.
-        unset($_SESSION[SESSION_AUTH_AT]);
-    }
-}

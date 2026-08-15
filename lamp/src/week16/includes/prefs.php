@@ -51,7 +51,7 @@ const RECENT_POSTS_MAX = 5;
 // 취향 쿠키에 공통으로 붙일 옵션.
 //   ★ httponly를 켜지 '않는' 유일한 자리다 — 나중에 JS가 읽어 쓸 수도 있는 값이고,
 //     훔쳐가 봐야 '이 사람은 조회순을 좋아한다' 정도라 가릴 이유가 없기 때문이다.
-//     (로그인 토큰은 반대다 — remember.php에서는 반드시 httponly를 켠다)
+//     (세션 번호표는 반대다 — session.php에서 반드시 httponly를 켠다)
 function pref_cookie_options(): array {
     return [
         'expires'  => time() + PREF_DAYS * 86400,

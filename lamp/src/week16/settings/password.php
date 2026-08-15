@@ -6,7 +6,6 @@
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';
-require_once __DIR__ . '/../includes/remember.php';   // remember_forget_all · REMEMBER_COOKIE
 require_once __DIR__ . '/../includes/session_db.php'; // destroy_other_sessions
 
 require_login();
@@ -45,17 +44,10 @@ set_password(current_user_id(), $new);
 //     "털린 것 같은데?" 싶을 때 사람이 제일 먼저 하는 행동이 비밀번호 변경이다.
 //     그런데 세션과 자동 로그인 표를 그대로 두면 **공격자는 계속 들어와 있다.**
 //     비밀번호를 바꿨는데도 쫓아내지 못하면, 그 기능은 사용자를 안심시키기만 하는 셈이다.
-//   ★ 세션과 remember를 **둘 다** 끊어야 한다.
-//     세션만 끊으면 상대 브라우저의 remember 쿠키가 다음 접속에 다시 로그인시킨다.
+//   ★ 세션이 DB에 있어서 가능한 일이다 — WHERE user_id = ? 한 줄이면 된다.
+//     파일 세션이었으면 남의 기기 세션 파일을 찾을 방법이 아예 없다.
 $userId = current_user_id();
-remember_forget_all($userId);                          // 모든 기기의 자동 로그인 표
 $cut = destroy_other_sessions($userId, session_id());  // 이 기기만 빼고 세션 전부
-
-// 이 기기는 계속 쓰게 두고, 자동 로그인 표만 새로 발급한다.
-//   ★ 위에서 전부 지웠으므로 '원래 켜져 있었는지'는 쿠키가 남아 있는지로만 알 수 있다.
-if (isset($_COOKIE[REMEMBER_COOKIE])) {
-    remember_issue($userId);
-}
 
 set_flash($cut > 0
     ? '🔑 비밀번호를 변경하고 다른 기기 ' . $cut . '곳에서 로그아웃했습니다.'

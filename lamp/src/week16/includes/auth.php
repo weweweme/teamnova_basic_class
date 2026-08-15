@@ -408,7 +408,7 @@ if (!empty($_SESSION[SESSION_USER_ID])) {
     $lastSeen = (int) ($_SESSION[SESSION_LAST_SEEN] ?? 0);
 
     if ($lastSeen !== 0 && time() - $lastSeen > IDLE_LIMIT) {
-        // 세션만 비운다. (쿠키 표는 그대로 → '로그인 유지'를 켠 사람은 다음 줄에서 되살아난다)
+        // 세션을 비운다. 되살릴 쿠키가 따로 없으므로 이걸로 끝이다 — 다시 로그인해야 한다.
         $_SESSION = [];
         set_flash('⏰ 오랫동안 활동이 없어 자동으로 로그아웃되었습니다.', 'error');
     } else {

@@ -230,3 +230,22 @@ CREATE TABLE login_attempts (
     INDEX idx_attempt_pair (ip_hash, username, attempted_at)
     -- ★ users로 가는 FK를 안 건다 — 없는 아이디로 온 시도도 기록해야 하기 때문.
 );
+
+
+-- ── post_views : 조회수 중복 방지 ─────────────────────────
+--   week16에서 추가. Discourse의 topic_views와 같은 구조.
+--   ★ 원래는 세션에 담았는데, 세션엔 **시각이 없어서** "몇 시간 뒤에 다시 셀지"를
+--     정할 수가 없었다 — 세션 수명(유휴 20분)이 그 정책을 우연히 대신 정하고 있었다.
+--     게다가 브라우저를 닫으면 리셋돼서 부풀리기가 쉬웠다.
+--   ★ viewed_on이 DATE = "같은 날이면 안 센다". 시각을 쓰면 UTC/KST가 어긋난다.
+--   ★ 복합 기본키 = "한 사람이 한 글에 한 줄" → 행이 무한정 늘지 않는다.
+--   자세한 설명은 migrations/012_post_views.sql
+CREATE TABLE post_views (
+    post_id    INT         NOT NULL,
+    viewer_key VARCHAR(72) NOT NULL,   -- 'u:1'(로그인) 또는 'd:4f8a…'(device 쿠키)
+    viewed_on  DATE        NOT NULL,   -- 시각이 아니라 날짜
+
+    PRIMARY KEY (post_id, viewer_key),
+    INDEX idx_post_views_day (viewed_on),
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+);

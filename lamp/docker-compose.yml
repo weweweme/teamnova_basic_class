@@ -15,6 +15,12 @@ services:
       # 이번 주차 폴더. 주차가 바뀌면 여기와 apache/httpd.conf 의 DocumentRoot 를 함께 바꾼다.
       APP_DIR: /var/www/html/week16
 
+      # http로 들어온 사람을 https로 보낼 때 쓸 주소.
+      #   ★ 왜 필요한가: 컨테이너 안 Apache는 자기가 443에서 듣는 것만 알지,
+      #     내 PC의 8443으로 이어져 있다는 건 모른다. 그래서 밖에서 알려줘야 한다.
+      #     (실서비스라면 443이 기본 포트라 번호를 적을 일이 아예 없다)
+      HTTPS_HOST: "localhost:${WEB_PORT_SSL:-8443}"
+
     # 도커가 실행되면 이 컨테이너도 알아서 켜진다.
     #   unless-stopped = 내가 직접 멈춘 게 아니라면 항상 다시 켠다.
     #   (PC를 껐다 켜도, 도커 데스크톱만 실행되면 사이트가 떠 있다)

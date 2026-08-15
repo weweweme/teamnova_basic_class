@@ -150,7 +150,16 @@
       "Bash(PYTHONIOENCODING=utf-8 python -)",
       "Bash(awk '{print $6\" = \"substr\\($7,1,24\\)}')",
       "Bash(openssl s_client -connect localhost:8443 -servername localhost)",
-      "Bash(openssl x509 *)"
+      "Bash(openssl x509 *)",
+      "Bash(export MSYS2_ARG_CONV_EXCL='*')",
+      "Bash(curl -s -o /dev/null -D - \"http://localhost:8081/board/?work=tmdb-496243\")",
+      "Bash(curl -sk -L -o /dev/null -w \"  최종 주소: %{url_effective}\\\\n  HTTP %{http_code}\\\\n\" \"http://localhost:8081/\")",
+      "Bash(curl -sk -o /dev/null -w \"  HTTP %{http_code}\\\\n\" \"https://localhost:8443/\")",
+      "Bash(curl -sk -o /dev/null -D - \"https://localhost:8443/cookies.php\")",
+      "Bash(curl -s -D - -o body.txt \"http://localhost:8081/board/?work=tmdb-496243\")",
+      "Bash(curl -sk -b sec.txt -o /dev/null -v \"https://localhost:8443/\")",
+      "Bash(grep -v \"^$\")",
+      "Bash(awk -F'\\\\t' '{printf \"%-12s %-6s %-3s secure=%-6s %s\\\\n\", $1, $2, $3, $4, $6}')"
     ],
     "additionalDirectories": [
       "c:\\git-work\\teamnova_basic_class\\lamp\\src\\week16\\includes"

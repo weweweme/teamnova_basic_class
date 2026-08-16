@@ -390,13 +390,21 @@ function recent_view_counts(int $days = POST_VIEWS_KEEP_DAYS): array {
 function trending_posts(array $posts, int $limit): array {
     $recent = recent_view_counts();
 
-    usort($posts, function ($a, $b) use ($recent) {
-        $ra = $recent[$a['id']] ?? 0;
-        $rb = $recent[$b['id']] ?? 0;
-        if ($ra !== $rb) {
-            return $rb - $ra;              // 최근 조회 많은 순
+    // ★ 최근 조회수를 각 글에 붙여 둔다 — **화면이 그 숫자를 그대로 보여주기 위해서**다.
+    //   [왜 중요한가]
+    //     정렬은 '최근 조회'로 하는데 화면에는 '누적 조회'를 찍고 있었다. 그러면
+    //     **조회 502짜리가 조회 1497짜리보다 위에** 뜬다 — 보는 사람은 순서를 이해할 수 없다.
+    //   ★ 원칙 하나로 정리된다: **줄마다, 그 줄의 순서를 결정한 숫자를 보여준다.**
+    foreach ($posts as &$post) {
+        $post['recentViews'] = $recent[$post['id']] ?? 0;
+    }
+    unset($post);   // 참조로 돌린 뒤에는 반드시 끊는다 (안 끊으면 마지막 원소가 다음 루프에서 덮인다)
+
+    usort($posts, function ($a, $b) {
+        if ($a['recentViews'] !== $b['recentViews']) {
+            return $b['recentViews'] - $a['recentViews'];   // 최근 조회 많은 순
         }
-        return $b['views'] - $a['views'];  // 같으면 누적으로 (초기 대비)
+        return $b['views'] - $a['views'];                   // 같으면 누적으로 (초기 대비)
     });
 
     return array_slice($posts, 0, $limit);

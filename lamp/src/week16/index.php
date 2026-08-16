@@ -73,7 +73,17 @@ require __DIR__ . '/includes/header.php';
               <?php foreach ($hotPosts as $p): ?>
                 <li>
                   <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= e($p['title']) ?></a>
-                  <span class="side-meta"><?= e($p['workTitle']) ?> · 조회 <?= (int)$p['views'] ?></span>
+                  <?php // ★ 정렬 기준(최근 7일 조회)을 그대로 보여준다.
+                        //   누적을 찍으면 '조회 502'가 '조회 1497'보다 위에 떠서 순서가 이해되지 않는다.
+                        //   ★ 최근 기록이 아직 없으면(표가 방금 생겨서) 그 줄은 누적으로 정렬되므로,
+                        //     그때는 누적을 보여준다 — **그 줄의 순서를 결정한 숫자**를 찍는 것이다. ?>
+                  <span class="side-meta"><?= e($p['workTitle']) ?> ·
+                    <?php if ((int)$p['recentViews'] > 0): ?>
+                      최근 <?= (int)$p['recentViews'] ?>회
+                    <?php else: ?>
+                      조회 <?= (int)$p['views'] ?>
+                    <?php endif; ?>
+                  </span>
                 </li>
               <?php endforeach; ?>
             </ol>

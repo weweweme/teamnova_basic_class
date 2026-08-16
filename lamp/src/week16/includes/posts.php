@@ -348,6 +348,74 @@ function viewer_key(): string {
     return 'd:' . device_id();
 }
 
+// 조회 기록을 며칠 보관할지.
+//   ★ 처음엔 '판정에 필요한 만큼'만 두려고 이틀이었다. 그런데 이 표가 생기면서
+//     **'최근 며칠간 몇 번 봤나'를 셀 수 있게 됐다** → '지금 뜨는 글'의 근거가 된다.
+//     그래서 보관 기간이 곧 **"'지금'을 며칠로 볼 것인가"** 가 됐다.
+//   ★ 판정(하루)과 집계(7일)의 기간이 다르다 — **쓰임이 다르면 기간도 다르다.**
+const POST_VIEWS_KEEP_DAYS = 7;
+
+// 최근 며칠간 이 글들이 몇 번 조회됐나. [글번호 => 횟수]
+//   [★ 왜 필요한가 — '지금 뜨는 글'이 시간을 안 보고 있었다]
+//     지금까지 '지금 뜨는 글'은 posts.views(누적)로 뽑았다. 그런데 그 값은
+//     **글이 생긴 이후로 쌓이기만 한다** → 1년 전 글이 영원히 1등이고 오늘 글은 못 올라온다.
+//     **이름은 '지금 뜨는'인데 동작은 '역대 많이 본'** 이었던 것이다.
+//     ★ 조회수를 **세는 쪽**만 시간을 안 본 게 아니라 **쓰는 쪽**도 안 보고 있었다.
+//
+//   [왜 이제 가능한가]
+//     post_views에 **날짜가 남기 때문**이다. 세션에 번호만 담던 시절엔 셀 수가 없었다.
+//     → 같은 표가 '중복 방지'와 '최근 인기'를 동시에 떠받친다.
+function recent_view_counts(int $days = POST_VIEWS_KEEP_DAYS): array {
+    $stmt = db()->prepare(
+        'SELECT post_id, COUNT(*) AS hits
+           FROM post_views
+          WHERE viewed_on >= ?
+          GROUP BY post_id'
+    );
+    $stmt->execute([date('Y-m-d', strtotime('-' . $days . ' days'))]);
+
+    $counts = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $counts[(int) $row['post_id']] = (int) $row['hits'];
+    }
+    return $counts;
+}
+
+// '지금 뜨는 글' — 최근 조회가 많은 순.
+//   ★ 최근 조회가 같거나 없으면 **누적 조회수로 갈린다.**
+//     [왜 그 대비가 필요한가]
+//       표가 방금 생겼으니 처음엔 기록이 거의 없다. 최근 조회만 보면 **화면이 텅 빈다.**
+//       기존 글에도 누적 조회수는 있으므로, 그걸 뒷순위 기준으로 두면 자연스럽게 채워진다.
+//       기록이 쌓일수록 앞 기준이 이기면서 **저절로 '최근'으로 옮겨간다.**
+function trending_posts(array $posts, int $limit): array {
+    $recent = recent_view_counts();
+
+    usort($posts, function ($a, $b) use ($recent) {
+        $ra = $recent[$a['id']] ?? 0;
+        $rb = $recent[$b['id']] ?? 0;
+        if ($ra !== $rb) {
+            return $rb - $ra;              // 최근 조회 많은 순
+        }
+        return $b['views'] - $a['views'];  // 같으면 누적으로 (초기 대비)
+    });
+
+    return array_slice($posts, 0, $limit);
+}
+
+// 이 접속지가 오늘 이 글을 이미 봤나?
+//   ★ 쿠키가 없던 요청에서만 부른다. 그 외에는 device 쿠키가 더 정확하다.
+function ip_viewed_today(int $postId, ?string $ipHash): bool {
+    if ($ipHash === null) {
+        return false;
+    }
+    $stmt = db()->prepare(
+        'SELECT 1 FROM post_views WHERE post_id = ? AND ip_hash = ? AND viewed_on = ? LIMIT 1'
+    );
+    $stmt->execute([$postId, $ipHash, date('Y-m-d')]);
+
+    return $stmt->fetchColumn() !== false;
+}
+
 // 이 글의 조회수를 1 올린다. 단, **오늘 이미 봤으면** 아무 일도 하지 않는다.
 //   돌려주는 값 = 실제로 올렸는지. 화면이 이 값을 보고 방금 올린 1을 반영한다.
 //
@@ -365,11 +433,50 @@ function count_post_view(int $id): bool {
         return false;
     }
 
+    // ── 쿠키를 지우고 다시 온 상대 막기 ──────────────────────
+    //   [왜 이게 필요한가 — 조회수가 첫 화면을 결정하기 때문]
+    //     조회수는 표시만 되는 숫자가 아니다. 홈 '지금 뜨는 글'·게시판 정렬·랭킹을 움직인다.
+    //     **부풀리면 첫 화면에 올라간다** → 부풀릴 이유가 실제로 있다.
+    //     게다가 '지금 뜨는 글'을 최근 7일 기준으로 바꾸면서, 누적 5,000짜리 글을
+    //     이기는 데 **열 번이면 충분**해졌다. 개선 하나가 다른 쪽 구멍을 키운 것이다.
+    //
+    //   ★ 검사 대상을 **쿠키가 없던 요청**으로 좁힌다.
+    //     항상 IP로 판정하면(Discourse 방식) 같은 건물 사람들이 통째로 한 명이 된다.
+    //     여기서는:
+    //       · 쿠키 지우고 재방문   → 같은 IP가 오늘 이미 봄 → **막힌다**
+    //       · 공유 IP의 다른 사람 → **자기가 처음 여는 글 하나만** 안 세어진다.
+    //         그 뒤엔 쿠키가 생겨 정상 판정된다 (오탐의 범위가 좁다)
+    //
+    //   ★ 로그인 사용자는 건너뛴다 — 회원 번호로 이미 정확히 판정된다.
+    //     ('필요 없는 개인정보는 안 모은다' — Discourse 소스에도 같은 주석이 있다)
+    //   ★★ 순서가 중요하다: viewer_key()가 **쿠키를 심기 전에** 확인해야 한다.
+    //     심고 나면 $_COOKIE에 값이 채워져서 '원래 있었는지'를 알 수 없게 된다.
+    $loggedIn = is_logged_in();
+    $hadCookie = isset($_COOKIE[DEVICE_COOKIE]);
+    $ipHash   = $loggedIn ? null : hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? ''));
+
+    if (!$loggedIn && !$hadCookie && ip_viewed_today($id, $ipHash)) {
+        return false;
+    }
+
+    // ★★ 날짜를 DB의 CURDATE()가 아니라 **PHP에서 계산해 넘긴다.**
+    //   [왜 — 실제로 밟은 함정]
+    //     DB는 UTC로, PHP는 Asia/Seoul로 돌아간다. CURDATE()를 쓰면 하루의 경계가
+    //     **자정이 아니라 오전 9시**가 된다. 사용자 입장에서는:
+    //       밤 11시에 본 글을 **새벽 1시에 다시 봐도 안 세어진다** (UTC로는 아직 같은 날)
+    //     "하루에 한 번"이라고 정해놓고 정작 그 '하루'가 우리가 아는 하루가 아니었던 것이다.
+    //   ★ 규칙은 하나다 — **시각 계산은 한쪽 세계 안에서만 한다.**
+    //     여기서는 넣는 쪽·비교하는 쪽·지우는 쪽을 전부 PHP(한국 시각) 기준으로 맞춘다.
+    //     (login_guard.php는 반대로 전부 DB 안에서 계산한다. 섞는 것만 아니면 어느 쪽이든 좋다)
+    $today = date('Y-m-d');
+
     $stmt = db()->prepare(
-        'INSERT INTO post_views (post_id, viewer_key, viewed_on) VALUES (?, ?, CURDATE())
-         ON DUPLICATE KEY UPDATE viewed_on = IF(viewed_on < CURDATE(), CURDATE(), viewed_on)'
+        'INSERT INTO post_views (post_id, viewer_key, ip_hash, viewed_on) VALUES (?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE
+             ip_hash   = VALUES(ip_hash),
+             viewed_on = IF(viewed_on < ?, ?, viewed_on)'
     );
-    $stmt->execute([$id, viewer_key()]);
+    $stmt->execute([$id, viewer_key(), $ipHash, $today, $today, $today]);
 
     if ($stmt->rowCount() === 0) {
         return false;                     // 오늘 이미 셌다
@@ -385,7 +492,8 @@ function count_post_view(int $id): bool {
     //   ★ **새로 셌을 때만** 돈다 — 사람당 하루 한 번꼴이라 부담이 없다.
     //     (login_attempts를 실패할 때만 청소하는 것과 같은 방식)
     //   ★ 하루 여유를 둔다. 자정 근처에 경계에서 어긋나는 것을 피하려고.
-    db()->query('DELETE FROM post_views WHERE viewed_on < CURDATE() - INTERVAL 1 DAY');
+    db()->prepare('DELETE FROM post_views WHERE viewed_on < ?')
+        ->execute([date('Y-m-d', strtotime('-' . POST_VIEWS_KEEP_DAYS . ' days'))]);
 
     return true;
 }

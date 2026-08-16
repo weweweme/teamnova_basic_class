@@ -243,9 +243,12 @@ CREATE TABLE login_attempts (
 CREATE TABLE post_views (
     post_id    INT         NOT NULL,
     viewer_key VARCHAR(72) NOT NULL,   -- 'u:1'(로그인) 또는 'd:4f8a…'(device 쿠키)
+    ip_hash    CHAR(64)    NULL,       -- 비로그인만. 쿠키를 지우고 다시 와도 하루 1회를 지키려고
+                                       --   ★ 로그인 사용자는 안 담는다 (회원 번호로 충분 = 필요 없는 개인정보)
     viewed_on  DATE        NOT NULL,   -- 시각이 아니라 날짜
 
     PRIMARY KEY (post_id, viewer_key),
     INDEX idx_post_views_day (viewed_on),
+    INDEX idx_post_views_ip (post_id, ip_hash, viewed_on),
     FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
 );

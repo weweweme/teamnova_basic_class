@@ -49,12 +49,15 @@ require __DIR__ . '/../includes/header.php';
 
   <?php // ★ 실패했을 때만 보이는 자리. 처음부터 띄우면 멀쩡한데도 겁을 준다. ?>
   <div id="key-error" hidden>
-    <p><strong>이 브라우저에서는 기기 확인을 할 수 없습니다.</strong></p>
+    <p><strong>이 기기의 도장을 확인하지 못했습니다.</strong></p>
+    <?php // ★ 가장 흔한 원인은 '저장소를 지웠다'이다. 그때는 다시 로그인하면 풀린다 —
+          //   비밀번호를 맞히면 도장을 새로 만들 수 있는 창이 열리기 때문이다. ?>
     <p class="muted">
-      개인정보 보호 모드이거나 브라우저가 오래된 경우일 수 있습니다.
-      다른 브라우저로 로그인해 주세요.
+      브라우저 저장 데이터를 지웠거나, 개인정보 보호 모드이거나,
+      브라우저가 오래된 경우입니다.
+      <strong>다시 로그인하면</strong> 이 기기의 도장을 새로 만듭니다.
     </p>
-    <p><a href="/auth/logout.php">로그아웃</a></p>
+    <p><a href="/auth/logout.php">로그아웃하고 다시 로그인</a></p>
   </div>
 
   <?php // 값을 JS에 넘길 때는 data-* 속성으로 넘긴다.
@@ -62,6 +65,7 @@ require __DIR__ . '/../includes/header.php';
         //     값에 따라 XSS가 된다. 속성으로 넘기면 e()가 그대로 막아준다. ?>
   <div id="key-boot"
        data-has-key="<?= $hasKey ? '1' : '0' ?>"
+       data-can-enroll="<?= can_enroll_key() ? '1' : '0' ?>"
        data-back="<?= e($back) ?>" hidden></div>
 
   <script src="/assets/js/verify-page.js?v=<?= e((string) @filemtime(__DIR__ . '/../assets/js/verify-page.js')) ?>" defer></script>

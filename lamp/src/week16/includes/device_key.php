@@ -54,13 +54,37 @@ const DEVICE_KEY_REQUIRED = true;
 
 // 도장 한 번으로 얼마나 버티나. **이것이 곧 '훔친 쿠키의 최대 수명'이다.**
 //   ★ 짧을수록 안전하지만 도장을 자주 찍어야 한다(0.2~0.6초). 10분은 그 사이의 타협점이다.
-const KEY_PROOF_TTL = 600;
+const KEY_PROOF_TTL = 60;
+
+// 만료 **몇 초 전에** 미리 찍을까.
+//   ★ 고정 60초로 두면 수명이 60초일 때 '항상 지금 당장'이 되어 **매 요청 도장을 찍게 된다.**
+//     그러면 "평소엔 쿠키로 빠르게, 만료 때만 도장"이라는 설계가 통째로 무너진다.
+//     그래서 고정값이 아니라 **수명에 대한 비율**로 잡는다.
+function key_proof_margin(): int {
+    return (int) min(60, KEY_PROOF_TTL / 3);
+}
 
 // 서버가 던진 숫자의 유효 시간. 짧아야 한다 — 오래 살면 미리 받아둔 자국을 쓸 여지가 생긴다.
 const KEY_CHALLENGE_TTL = 120;
 
 const SESSION_KEY_PROOF_AT  = 'key_proof_at';    // 이 세션이 마지막으로 도장을 확인한 시각
 const SESSION_KEY_CHALLENGE = 'key_challenge';   // 방금 던진 숫자 (한 번 쓰면 버린다)
+
+// ── 도장을 '다시' 등록할 수 있는 짧은 창 ─────────────────────
+//   [★ 왜 필요한가 — 안 두면 사용자가 스스로 잠긴다]
+//     사용자가 브라우저 저장소를 지우면 도장이 사라진다(흔한 일이다).
+//     그런데 서버엔 옛 도장이 남아 있어 대조가 영영 실패한다 →
+//     **그 브라우저로는 다시 로그인해도 못 들어온다.** 잠금이 풀릴 길이 없다.
+//
+//   [★★ 그럼 언제 허용해야 안전한가 — 비밀번호를 맞힌 직후]
+//     쿠키를 훔친 쪽에는 **비밀번호가 없다.** 그래서 '비밀번호를 방금 확인함'을
+//     조건으로 걸면, 주인은 풀 수 있고 훔친 쪽은 못 푼다.
+//     → start_session_for()에서만 이 표시를 남긴다(거기 오는 길은 비밀번호뿐이다).
+//
+//   ★ 그리고 창을 **짧게** 둔다. 로그인 직후 세션을 훔쳐가면 이 표시까지 같이 가므로,
+//     열려 있는 시간이 곧 위험 구간이다. 등록에 성공하면 **그 자리에서 닫는다.**
+const SESSION_KEY_ENROLL_OK = 'key_enroll_ok';
+const KEY_ENROLL_WINDOW     = 180;   // 3분
 
 // P-256 공개키(SPKI/DER)의 고정 머리말 26바이트.
 //   ★ 브라우저가 export('spki')로 뽑아준 값을 **그대로** 받는다. 서버가 손으로 조립하지 않는다.
@@ -96,19 +120,41 @@ function device_public_key(int $userId): ?string {
 //     덮어쓰게 두면, 세션을 훔친 쪽이 **자기 도장을 새로 등록**해 버리면 그만이다.
 //     그러면 도장 검사 전체가 무의미해진다 — 훔친 쿠키로 자기 열쇠를 만들어 끼우는 셈이니까.
 //     → 도장을 갈아 끼우려면 **기기를 끊고 비밀번호로 다시 로그인**해야 한다.
-function save_device_public_key(int $userId, string $spkiBase64): bool {
+function save_device_public_key(int $userId, string $spkiBase64, bool $replace = false): bool {
     if (!is_valid_public_key($spkiBase64)) {
         return false;
     }
 
+    // ★ 기본은 '빈 자리에만' 쓴다. 덮어쓰기는 비밀번호를 방금 확인했을 때만 열린다.
+    $onlyIfEmpty = $replace ? '' : ' AND public_key IS NULL';
+
     $stmt = db()->prepare(
         'UPDATE user_devices
             SET public_key = ?, key_added_at = NOW()
-          WHERE user_id = ? AND device_id = ? AND public_key IS NULL'
+          WHERE user_id = ? AND device_id = ?' . $onlyIfEmpty
     );
     $stmt->execute([$spkiBase64, $userId, device_id()]);
 
-    return $stmt->rowCount() === 1;
+    // ★ rowCount()는 '값이 실제로 바뀐 줄'만 센다 —
+    //   같은 도장을 다시 등록하면 0이 나오므로, 그 경우도 성공으로 본다.
+    return $stmt->rowCount() >= 1 || ($replace && device_public_key($userId) === $spkiBase64);
+}
+
+// 지금 도장을 새로(다시) 등록해도 되나? = 비밀번호를 방금 확인했나.
+function can_enroll_key(): bool {
+    $at = (int) ($_SESSION[SESSION_KEY_ENROLL_OK] ?? 0);
+
+    return $at !== 0 && time() - $at <= KEY_ENROLL_WINDOW;
+}
+
+// 등록 창을 연다 — **비밀번호를 확인한 자리에서만** 부른다.
+function open_key_enroll_window(): void {
+    $_SESSION[SESSION_KEY_ENROLL_OK] = time();
+}
+
+// 등록 창을 닫는다. 성공하면 곧바로 닫아 위험 구간을 최소로 줄인다.
+function close_key_enroll_window(): void {
+    unset($_SESSION[SESSION_KEY_ENROLL_OK]);
 }
 
 // ── 숫자 던지고 자국 받기 ────────────────────────────────────

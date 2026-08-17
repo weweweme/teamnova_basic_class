@@ -30,13 +30,33 @@
   //   ★ localStorage가 아니라 IndexedDB인 이유: localStorage는 **문자열만** 담는다.
   //     도장은 문자열로 꺼낼 수 없는 물건이라(그게 요점이다) 애초에 담기지 않는다.
   //     IndexedDB는 CryptoKey 객체를 그대로 담아준다 — 값이 아니라 손잡이째로.
-  function openDb() {
+  function rawOpen() {
     return new Promise((resolve, reject) => {
       const req = indexedDB.open(DB_NAME, 1);
       req.onupgradeneeded = () => req.result.createObjectStore(STORE);
       req.onsuccess = () => resolve(req.result);
       req.onerror   = () => reject(req.error);
     });
+  }
+
+  // ★ '같은 이름 · 같은 버전인데 저장소가 없는' DB가 있으면 스스로 고친다.
+  //   [어쩌다 그런 게 생기나]
+  //     누가 `indexedDB.open('device-key')` 를 버전 없이 한 번 부르면
+  //     **저장소가 하나도 없는 버전 1 DB**가 만들어진다.
+  //     그 뒤에는 우리가 `open(이름, 1)` 로 열어도 이미 버전 1이라
+  //     onupgradeneeded가 안 뜨고 → 저장소는 영영 안 생긴다.
+  //   ★ 사용자가 직접 지우기 전에는 안 풀리는 잠금이라, 여기서 한 번 되돌려준다.
+  //     (한 번 지우고 다시 만들 뿐이므로, 잃는 것은 어차피 못 쓰던 빈 DB다)
+  async function openDb() {
+    let db = await rawOpen();
+    if (db.objectStoreNames.contains(STORE)) return db;
+
+    db.close();
+    await new Promise((resolve) => {
+      const req = indexedDB.deleteDatabase(DB_NAME);
+      req.onsuccess = req.onerror = req.onblocked = () => resolve();
+    });
+    return rawOpen();
   }
 
   function dbGet(db, key) {
@@ -139,8 +159,13 @@
     const meta = document.querySelector('meta[name="key-proof-left"]');
     if (!meta) return;                       // 로그인 안 했거나 도장이 필요 없는 화면
 
+    // ★ 여유 시간도 서버가 알려준다. 여기서 60초로 고정하면
+    //   수명이 60초일 때 **매 요청 도장을 찍게 되어** "평소엔 쿠키로"가 무너진다.
+    const marginMeta = document.querySelector('meta[name="key-proof-margin"]');
+    const margin = parseInt(marginMeta?.content, 10) || 20;
+
     const left  = parseInt(meta.content, 10) || 0;
-    const delay = Math.max(0, (left - 60)) * 1000;
+    const delay = Math.max(0, left - margin) * 1000;
 
     setTimeout(() => {
       refresh().catch(() => {

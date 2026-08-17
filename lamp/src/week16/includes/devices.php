@@ -71,12 +71,37 @@ function remember_device(int $userId): void {
     ]);
 }
 
+// 이 브라우저가 '이 회원의 등록된 기기'인가?
+//   ★ 로그인을 거친 기기만 user_devices에 줄이 생긴다.
+//     쿠키만 훔쳐 온 브라우저는 로그인을 한 적이 없으므로 **여기서 걸린다.**
+function is_known_device(int $userId): bool {
+    $stmt = db()->prepare('SELECT 1 FROM user_devices WHERE user_id = ? AND device_id = ?');
+    $stmt->execute([$userId, device_id()]);
+
+    return $stmt->fetchColumn() !== false;
+}
+
 // 아직 안 알린 '새 기기'가 있으면 그 목록을 돌려주고, 알렸다고 표시한다.
 //   ★★ **지금 이 기기는 뺀다.** 방금 자기가 로그인한 걸 자기에게 알려봐야 소용없다.
 //     알아야 할 사람은 **다른 곳에 있는 주인**이다.
 //     → 그래서 주인이 **어느 기기로 접속하든** 그때 한 번 뜬다.
 //   ★ 읽으면서 표시를 바꾼다(read-once) — 플래시와 같은 구조다.
 function take_new_devices(int $userId): array {
+    // ★★ 등록된 기기가 아니면 **아무것도 보여주지 않는다.**
+    //   [왜 이 줄이 생겼나 — 시연하다 발견했다]
+    //     세션 쿠키를 훔쳐 붙여넣은 브라우저에서 *"새 기기에서 로그인됨"* 알림이 떴다.
+    //     그런데 이 알림은 **한 번 보이면 소비된다**(announced=1) →
+    //     ★ 훔친 쪽이 알림을 보고, **정작 주인은 못 보게 된다.**
+    //       못 잡는 데서 그치지 않고 **증거를 먹어치우고 있었다.**
+    //
+    //   [왜 이 조건이면 되나]
+    //     훔친 브라우저에는 기기 줄이 없다(로그인을 한 적이 없으므로).
+    //     → 알림을 **보지도 못하고 소비하지도 못한다.** 주인 쪽에 그대로 남는다.
+    //     덤으로 "이 계정에 다른 기기가 있다"는 사실도 안 새어 나간다.
+    if (!is_known_device($userId)) {
+        return [];
+    }
+
     $stmt = db()->prepare(
         'SELECT user_agent, UNIX_TIMESTAMP(first_seen_at) AS at
            FROM user_devices

@@ -15,8 +15,9 @@
     return;
   }
 
-  const hasKey = boot.dataset.hasKey === '1';
-  const back   = boot.dataset.back || '/';
+  const hasKey    = boot.dataset.hasKey === '1';
+  const canEnroll = boot.dataset.canEnroll === '1';
+  const back      = boot.dataset.back || '/';
 
   function showError() {
     document.getElementById('key-status')?.setAttribute('hidden', '');
@@ -24,17 +25,25 @@
   }
 
   // ★ 등록이냐 연장이냐는 **서버가 정해준 대로** 따른다.
-  //   브라우저에 도장이 있는지로 판단하면, 서버엔 등록돼 있는데 브라우저에서 지운 경우
-  //   (개인정보 보호 모드·저장소 청소) 새 도장을 만들어 등록하려다 거부당한다.
-  const run = hasKey ? window.deviceKey.refresh : window.deviceKey.enroll;
+  //   브라우저에 도장이 있는지로 판단하면, 서버엔 등록돼 있는데 브라우저에서 지운 경우를
+  //   구분하지 못한다.
+  const first = hasKey ? window.deviceKey.refresh : window.deviceKey.enroll;
 
-  run()
+  first()
     .then(() => { location.replace(back); })
-    .catch(async () => {
-      // 연장이 실패했다면 — 브라우저 쪽 도장이 사라진 경우다.
-      //   ★ 서버엔 아직 옛 도장이 등록돼 있어서 새로 등록할 수도 없다.
-      //     이때는 **다시 로그인하는 수밖에 없다.** 그게 정상 동작이다 —
-      //     도장을 갈아 끼우는 길이 열려 있으면 훔친 쪽도 그 길을 쓴다.
-      showError();
+    .catch(() => {
+      // 여기까지 왔다는 건 '서버엔 도장이 있는데 브라우저엔 없다'는 뜻이다.
+      //   (사용자가 저장 데이터를 지운 경우가 대부분)
+      //
+      //   ★★ 이때 새로 등록해도 되는 조건은 딱 하나 — **비밀번호를 방금 확인했나.**
+      //     쿠키를 훔친 쪽에는 비밀번호가 없으므로, 그 조건이 곧 '주인만'을 뜻한다.
+      //     서버가 그 판단을 내려 data-can-enroll로 알려준다.
+      if (!canEnroll) {
+        showError();          // 다시 로그인하라는 안내가 뜬다
+        return;
+      }
+      window.deviceKey.enroll()
+        .then(() => { location.replace(back); })
+        .catch(showError);
     });
 })();

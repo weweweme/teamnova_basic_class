@@ -85,7 +85,9 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
         //
         //   [★ 왜 남은 시간을 알려주나 — 만료 전에 미리 찍게 하려고]
         //     만료된 **뒤에** 찍으면 사용자가 '기기 확인 중' 화면을 보게 된다.
-        //     1분 전에 화면 뒤에서 조용히 찍으면 아무 일도 없었던 것처럼 이어진다.
+        //     조금 일찍(key_proof_margin) 화면 뒤에서 찍으면 아무 일도 없었던 것처럼 이어진다.
+        //     ★ 그 여유도 함께 알려준다 — 고정 60초로 두면 수명이 60초일 때
+        //       **매 요청 도장을 찍게 되어** '평소엔 쿠키로'가 무너진다.
         //     ※ DBSC도 같은 방식이다 — 브라우저가 쿠키 만료를 보고 알아서 갱신한다.
         //
         //   [★ 이 숫자를 알려줘도 되나]
@@ -101,6 +103,7 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
           //   (이 화면의 진행은 verify-page.js가 따로 몰고 간다) ?>
     <?php if (!is_key_exempt_path()): ?>
       <meta name="key-proof-left" content="<?= (int) key_proof_seconds_left() ?>">
+      <meta name="key-proof-margin" content="<?= (int) key_proof_margin() ?>">
     <?php endif; ?>
     <?php
       $keyJsPath = __DIR__ . '/../assets/js/device-key.js';

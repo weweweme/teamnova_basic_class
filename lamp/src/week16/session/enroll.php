@@ -42,8 +42,11 @@ if (!is_logged_in()) {
 }
 $userId = current_user_id();
 
-// 이미 도장이 있으면 등록이 아니라 연장으로 가야 한다.
-if (device_public_key($userId) !== null) {
+// 이미 도장이 있는데 '다시 등록해도 되는 창'이 안 열려 있으면 거부한다.
+//   ★ 창은 비밀번호를 방금 확인했을 때만 열린다(auth.php의 open_key_enroll_window).
+//     이 조건이 없으면 **훔친 세션으로 자기 도장을 심어** 영구히 눌러앉을 수 있다.
+$replacing = device_public_key($userId) !== null;
+if ($replacing && !can_enroll_key()) {
     $fail(409);
 }
 
@@ -60,9 +63,12 @@ if (!verify_key_signature($publicKey, $challenge, $signature)) {
     $fail();
 }
 
-if (!save_device_public_key($userId, $publicKey)) {
+if (!save_device_public_key($userId, $publicKey, $replacing)) {
     $fail(409);
 }
+
+// ★ 성공했으면 그 자리에서 창을 닫는다 — 열려 있는 시간이 곧 위험 구간이다.
+close_key_enroll_window();
 
 // 방금 자국까지 확인했으므로 도장 시계도 지금 시작한다.
 //   ★ 여기서 안 켜면 등록 직후 곧바로 '확인 필요' 상태가 되어 한 바퀴 더 돈다.

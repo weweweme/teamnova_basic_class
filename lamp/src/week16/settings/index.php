@@ -114,6 +114,17 @@ require __DIR__ . '/../includes/header.php';
         </li>
       <?php endforeach; ?>
     </ul>
+    <?php // ★ 기기 하나씩 끊는 것과 별개로 '한 번에 전부'가 필요하다.
+          //   기기가 다섯이면 다섯 번 눌러야 하고, 급할 때는 그게 부담이다. ?>
+    <form method="post" action="/settings/logout_all.php"
+          onsubmit="return confirm('이 기기만 남기고 모두 로그아웃할까요?');">
+      <?= csrf_field() ?>
+      <button type="submit" class="btn-settings">🔒 모든 기기에서 로그아웃</button>
+    </form>
+    <p class="muted">
+      계정이 털린 것 같으면 <strong>여기를 먼저 누르고</strong> 비밀번호를 바꾸세요.
+      <strong>이 기기는 그대로 유지</strong>됩니다.
+    </p>
   </section>
 
   <!-- ── 휴지통 ─────────────────────────────────────────────── -->

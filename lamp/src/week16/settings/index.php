@@ -102,6 +102,18 @@ require __DIR__ . '/../includes/header.php';
               마지막 로그인 <?= e(format_time_short((int) $dev['last_at'])) ?>
               · 처음 <?= e(format_time_short((int) $dev['first_at'])) ?>
             </div>
+            <?php // ★ 이 기기에 '도장'이 있는지 보여준다.
+                  //   도장이 있어야 세션이 연장되므로, 사용자 입장에서는
+                  //   **"이 기기는 쿠키를 훔쳐가도 10분이면 끊긴다"**는 뜻이다.
+                  //   ※ 도장 값 자체는 안 보여준다 — 볼 이유가 없고, 보여줄 것도 아니다. ?>
+            <div class="muted">
+              <?php if (!empty($dev['has_key'])): ?>
+                🔏 기기 도장 있음
+                <?= $dev['key_at'] ? '· ' . e(format_time_short((int) $dev['key_at'])) . ' 등록' : '' ?>
+              <?php else: ?>
+                도장 없음 — 다음 로그인 때 만들어집니다
+              <?php endif; ?>
+            </div>
           </div>
           <?php if (!$isThis): ?>
             <form method="post" action="/settings/revoke_device.php">

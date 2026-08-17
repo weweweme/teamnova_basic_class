@@ -8,6 +8,7 @@ require_once __DIR__ . '/db.php';     // users 표를 조회하므로
 require_once __DIR__ . '/util.php';   // redirect() · set_flash() (util.php가 session.php를 켜준다)
 require_once __DIR__ . '/session_db.php';   // destroy_other_sessions — 함수를 쓰는 파일은 직접 require
 require_once __DIR__ . '/devices.php';      // 로그인한 기기 기록
+require_once __DIR__ . '/device_key.php';   // 기기 도장 — 세션 연장의 조건
 
 // ★★ 비밀번호는 '절대' 그대로 저장하지 않는다.
 //    password_hash()로 만든 '해시'(단방향으로 뒤섞은 값)만 users.password에 저장한다.
@@ -314,7 +315,18 @@ function login_and_redirect(int $userId, string $path = '/'): never {
     // 로그인 화면으로 밀려나기 전에 보던 곳이 있으면 그리로, 없으면 $path(기본 홈).
     //   ★ start_session_for()가 번호표를 갈아 끼웠는데도 이 값이 살아 있는 이유:
     //     session_regenerate_id()는 번호만 바꾸고 **금고 안의 내용은 그대로 옮겨준다.**
-    redirect(take_intended($path));
+    $target = take_intended($path);
+
+    // ★★ 도장을 쓰는 동안에는 곧바로 목적지로 보내지 않는다.
+    //   비밀번호는 맞혔지만 **이 기기의 도장은 아직 확인하지 않았다.**
+    //   그 둘은 다른 질문이다 — "비밀번호를 아는가"와 "늘 쓰던 그 기기인가".
+    //   ※ 이 한 화면을 거치는 동안에만 '로그인은 됐는데 도장은 없는' 상태가 존재한다.
+    //     그래서 이 구간이 우리가 남긴 한계 ③이다(device_key.php 주석).
+    if (DEVICE_KEY_REQUIRED) {
+        redirect('/session/verify.php?back=' . urlencode($target));
+    }
+
+    redirect($target);
 }
 
 // 로그아웃 → 서버 금고를 비운다.
@@ -430,6 +442,34 @@ if (!empty($_SESSION[SESSION_USER_ID])) {
         //     비밀번호 확인 시각(auth_at)까지 같이 갱신하면 sudo 창이 영원히 안 닫힌다.
         $_SESSION[SESSION_LAST_SEEN] = time();
     }
+}
+
+// ── ② 도장 확인이 만료됐으면 확인 화면으로 보낸다 ────────────
+//   [★ 이 열 줄이 이번 변경의 핵심이다]
+//     위 ①(유휴)은 **요청만 오면 계속 밀린다**(sliding). 그래서 세션을 훔친 쪽도
+//     20분마다 한 번씩만 요청하면 무기한 유지할 수 있었다 —
+//     "아무도 안 쓰면 끊는 장치"였지, "주인이 안 쓰면 끊는 장치"가 아니었다.
+//
+//     이제 미는 조건이 하나 더 붙는다: **10분마다 도장을 찍어야 한다.**
+//     도장은 그 브라우저 안에만 있고 꺼낼 수 없으므로,
+//     → **훔친 쿠키의 수명이 최대 10분으로 못 박힌다.**
+//
+//   [★ 왜 여기(auth.php 맨 아래)인가]
+//     화면 파일들이 저마다 검사를 부르게 하면 **언젠가 한 곳이 빠진다.**
+//     모든 화면이 반드시 지나는 자리에 한 번만 두는 것이 안전하다.
+//     (require_login()을 화면마다 부르는 것과 같은 이유로, 그보다 더 아래 계층에 둔다)
+//
+//   [★ 예외 두 곳을 반드시 빼야 한다]
+//     도장을 받으러 가는 길(`/session/`)과 로그인·로그아웃(`/auth/`)까지 막으면
+//     **아무도 도장을 못 찍는다** — 화면이 무한히 튕긴다.
+if (DEVICE_KEY_REQUIRED && !is_key_exempt_path() && !has_key_proof() && is_logged_in()) {
+    // ★ 돌아갈 곳은 GET일 때만 기억한다. POST 주소로 되돌아가 봐야 값이 없는 빈 POST가 된다.
+    //   (require_login()이 remember_intended를 GET에만 거는 것과 같은 판단)
+    $backTo = ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET'
+        ? (string) ($_SERVER['REQUEST_URI'] ?? '/')
+        : '/';
+
+    redirect('/session/verify.php?back=' . urlencode($backTo));
 }
 
 

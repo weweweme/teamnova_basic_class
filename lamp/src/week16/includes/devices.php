@@ -96,7 +96,11 @@ function take_new_devices(int $userId): array {
 //   ★ 세션이 살아 있든 죽었든 **전부 나온다.** 그게 sessions 기반과의 결정적 차이다.
 function list_devices(int $userId): array {
     $stmt = db()->prepare(
+        // ★ 도장 자체(공개키)는 안 꺼낸다. 화면에 필요한 건 "있나 없나"뿐이다.
+        //   필요 없는 값을 끌고 나오면 언젠가 그걸 어딘가에 찍게 된다.
         'SELECT device_id, user_agent,
+                public_key IS NOT NULL AS has_key,
+                UNIX_TIMESTAMP(key_added_at)  AS key_at,
                 UNIX_TIMESTAMP(first_seen_at) AS first_at,
                 UNIX_TIMESTAMP(last_login_at) AS last_at
            FROM user_devices

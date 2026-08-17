@@ -77,6 +77,37 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
        이게 없으면 <head>에서 JS가 먼저 돌아 아직 만들어지지 않은 요소를 못 찾는다.
        (예전에 <script>를 body 맨 아래 뒀던 이유와 같은 문제를, defer로 더 깔끔하게 해결) -->
   <script src="/assets/js/main.js?v=<?= e((string)$jsVer) ?>" defer></script>
+
+  <?php // ── 기기 도장(세션 연장 조건) ─────────────────────────────
+        //   [★ 왜 <meta>로 넘기나]
+        //     JS가 서버에 물어보려면 그 자체가 요청이다. 어차피 이 페이지를 그리는 김에
+        //     **남은 시간을 같이 실어 보내면** 요청 한 번을 아낀다.
+        //
+        //   [★ 왜 남은 시간을 알려주나 — 만료 전에 미리 찍게 하려고]
+        //     만료된 **뒤에** 찍으면 사용자가 '기기 확인 중' 화면을 보게 된다.
+        //     1분 전에 화면 뒤에서 조용히 찍으면 아무 일도 없었던 것처럼 이어진다.
+        //     ※ DBSC도 같은 방식이다 — 브라우저가 쿠키 만료를 보고 알아서 갱신한다.
+        //
+        //   [★ 이 숫자를 알려줘도 되나]
+        //     된다. 남은 시간은 **자기 세션의 사정**이고, 알아도 도장을 만들 수는 없다.
+        //     비밀은 도장 그 자체이지 시계가 아니다. ?>
+  <?php if (DEVICE_KEY_REQUIRED && is_logged_in()): ?>
+    <?php // CSRF 토큰 — fetch로 보내는 POST에도 폼과 똑같이 붙어야 한다.
+          //   ★ "JS가 보내는 요청"이라고 예외를 두면 그 자리가 통로가 된다. ?>
+    <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
+    <?php // ★ 남은 시간은 **평범한 화면에서만** 알려준다.
+          //   '기기 확인' 화면(/session/)에서까지 알려주면, 그 화면이 스스로 갱신을 걸고
+          //   실패하면 다시 자기 자신으로 튕겨 **무한 루프**가 된다.
+          //   (이 화면의 진행은 verify-page.js가 따로 몰고 간다) ?>
+    <?php if (!is_key_exempt_path()): ?>
+      <meta name="key-proof-left" content="<?= (int) key_proof_seconds_left() ?>">
+    <?php endif; ?>
+    <?php
+      $keyJsPath = __DIR__ . '/../assets/js/device-key.js';
+      $keyJsVer  = file_exists($keyJsPath) ? filemtime($keyJsPath) : '1';
+    ?>
+    <script src="/assets/js/device-key.js?v=<?= e((string) $keyJsVer) ?>" defer></script>
+  <?php endif; ?>
 </head>
 <body>
   <!-- 공통 상단 메뉴바: 어느 페이지에서든 여기로 이동 가능 -->

@@ -8,7 +8,7 @@
 require_once __DIR__ . '/db.php';         // DB 연결
 require_once __DIR__ . '/auth.php';       // current_user_id() (추천 여부 확인)
 require_once __DIR__ . '/comments.php';   // 댓글 모듈 (일부 함수에서 사용)
-require_once __DIR__ . '/devices.php';    // viewer_key() — device 쿠키 재사용
+require_once __DIR__ . '/view_id.php';    // viewer_key() — 조회 판정 전용 번호
 require_once __DIR__ . '/bot.php';        // 봇 조회는 안 센다
 
 // ── 입력 길이 제한 (매직값 금지 — 이름 붙인 상수로) ──────────
@@ -345,7 +345,16 @@ function viewer_key(): string {
     if (is_logged_in()) {
         return 'u:' . current_user_id();
     }
-    return 'd:' . device_id();
+
+    // ★ 동의했으면 전용 번호로, 아니면 **접속지 지문으로** 판정한다.
+    //   거절한 사람에게는 **아무것도 심지 않는다** — 대신 이미 오고 있는 값(IP)만 쓴다.
+    //   ※ 그 대가로 같은 접속지를 쓰는 사람들이 한 명으로 묶인다. 거절의 대가는 정확도이지
+    //     '판정을 아예 포기하는 것'이 아니다 — 포기하면 조회수를 마음대로 부풀릴 수 있다.
+    $viewId = view_id();
+
+    return $viewId !== null
+        ? 'v:' . $viewId
+        : 'i:' . hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? ''));
 }
 
 // 조회 기록을 며칠 보관할지.
@@ -460,8 +469,19 @@ function count_post_view(int $id): bool {
     //   ★★ 순서가 중요하다: viewer_key()가 **쿠키를 심기 전에** 확인해야 한다.
     //     심고 나면 $_COOKIE에 값이 채워져서 '원래 있었는지'를 알 수 없게 된다.
     $loggedIn = is_logged_in();
-    $hadCookie = isset($_COOKIE[DEVICE_COOKIE]);
+    // ★ 조회 판정 전용 쿠키가 **원래 있었는지**를 본다. (기기 목록용 device 쿠키가 아니다 —
+    //   그건 다른 목적이라 쪼갰다. includes/view_id.php)
+    $hadCookie = isset($_COOKIE[VIEW_ID_COOKIE]);
     $ipHash   = $loggedIn ? null : hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? ''));
+
+    // ★★ 판정 키를 **IP 검사보다 먼저** 구한다.
+    //   [왜 — 실제로 밟은 함정]
+    //     IP 검사에 걸려 여기서 return 하면 viewer_key()까지 가지 못하고,
+    //     그러면 **판정 번호 쿠키를 심을 기회 자체가 없다.**
+    //     한 번 IP로 막힌 사람은 영영 쿠키를 못 받아 계속 IP로만 판정된다 —
+    //     공유 IP에서는 **하루 종일 아무 글도 안 세어지는** 상태가 된다.
+    //   ★ $hadCookie를 그 위에서 이미 읽어뒀으므로 순서를 바꿔도 판정은 그대로다.
+    $viewerKey = viewer_key();
 
     if (!$loggedIn && !$hadCookie && ip_viewed_today($id, $ipHash)) {
         return false;
@@ -484,7 +504,7 @@ function count_post_view(int $id): bool {
              ip_hash   = VALUES(ip_hash),
              viewed_on = IF(viewed_on < ?, ?, viewed_on)'
     );
-    $stmt->execute([$id, viewer_key(), $ipHash, $today, $today, $today]);
+    $stmt->execute([$id, $viewerKey, $ipHash, $today, $today, $today]);
 
     if ($stmt->rowCount() === 0) {
         return false;                     // 오늘 이미 셌다

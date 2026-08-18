@@ -95,9 +95,11 @@ require __DIR__ . '/includes/header.php';
             //   공들여 만든 동의가 다시 불성실해진다. ?>
       <p class="muted">
         <strong>기기 번호</strong> — 이 브라우저를 알아보는 무작위 번호입니다.
-        <strong>로그인한 기기 목록</strong>과 <strong>조회수 중복 방지</strong>(같은 사람이
-        같은 글을 하루에 한 번만 세도록)에 씁니다.
+        <strong>로그인한 기기 목록</strong>에만 씁니다.
       </p>
+      <?php // ★ 예전엔 이 번호가 조회수 중복 방지도 겸했다. 목적이 둘이면 규정상 전부 면제여야
+            //   동의 없이 심을 수 있어서, **쿠키를 쪼개고 조회수 쪽은 선택으로 내렸다.**
+            //   (근거는 includes/view_id.php 주석) ?>
       <p class="muted">
         이게 없으면 <strong>로그인도 글쓰기도 안 됩니다.</strong> 그래서 끌 수 없습니다.
       </p>

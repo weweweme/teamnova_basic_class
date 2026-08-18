@@ -26,12 +26,36 @@ require_once __DIR__ . '/util.php';    // e() · get_str
 require_once __DIR__ . '/posts.php';   // SEARCH_QUERY_MAX — 검색어 길이 제한은 검색 기능이 정한 값이라
                                        //   여기서 따로 정하지 않고 그쪽을 따른다 (숫자가 둘로 갈라지지 않게)
 
-// 취향은 오래 기억해도 손해가 없으므로 넉넉히 잡는다.
-const PREF_DAYS = 90;
+// ── 쿠키 수명 — 근거를 대고 정한다 ──────────────────────────
+//   [★ 왜 '넉넉히'가 아니라 '근거'인가]
+//     처음엔 *"취향은 오래 기억해도 손해가 없으니 넉넉히"* 로 90일을 줬다.
+//     그런데 **동의 없이 심는 쿠키는 얼마나 살아도 되는지가 정해져 있다.**
+//
+//   📄 Article 29 WP, Opinion 04/2012 on Cookie Consent Exemption (WP194)
+//      https://ec.europa.eu/justice/article-29/documentation/opinion-recommendation/files/2012/wp194_en.pdf
+//      · 인증 쿠키              → **세션**            (우리: PHPSESSID ✅)
+//      · 사용자 입력 쿠키        → 세션, 길어야 몇 시간 (우리: flash·intended·old_input ✅)
+//      · 보안 쿠키              → **제한된 기간**      (우리: device)
+//      · **화면 설정 쿠키**      → **세션 또는 약간 더** (우리: pref_* · per_page)
+//      · 원칙 — *"면제 쿠키의 수명은 그 목적에 직접 관계된 기간이어야 하고,
+//                필요 없어지면 만료돼야 한다"*
+//
+//   ★ 그래서 90일은 근거가 없었다. **"손해가 없다"는 우리 사정이지 기준이 아니다.**
+
+// 화면 설정(정렬·감상 필터·글 수). 문서가 말하는 "세션 또는 약간 더"를 **하루**로 잡았다.
+//   ★ 세션으로 두면 창을 닫을 때마다 초기화돼 기억하는 의미가 없고,
+//     하루면 "오늘 보던 대로"는 유지되면서 문서의 범위 안에 든다.
+const PREF_DAYS = 1;
+
+// 동의를 받고 심는 선택 항목(최근 본 글·작품·검색어·마지막 방문).
+//   ★ 이쪽은 **면제 대상이 아니라 동의를 받은 것**이라 위 기간 제한을 안 받는다.
+//     그래도 90일은 길다 — **필요한 만큼만 갖는다**는 원칙은 동의 여부와 무관하다.
+const OPTIONAL_DAYS = 30;
 
 // 어느 쿠키를 심어도 되는지 판단하려면 '무엇에 동의했나'를 알아야 한다.
 //   ★ 한 방향으로만 안다 — consent.php는 쿠키 이름을 하나도 모른다.
 require_once __DIR__ . '/consent.php';
+require_once __DIR__ . '/view_id.php';   // VIEW_ID_COOKIE — 선택 항목 목록에 넣으려고
 
 // 쿠키 이름들
 const PREF_SORT_COOKIE     = 'pref_sort';     // 게시판 정렬 기본값
@@ -52,6 +76,16 @@ const RECENT_POSTS_MAX = 5;
 //   ★ httponly를 켜지 '않는' 유일한 자리다 — 나중에 JS가 읽어 쓸 수도 있는 값이고,
 //     훔쳐가 봐야 '이 사람은 조회순을 좋아한다' 정도라 가릴 이유가 없기 때문이다.
 //     (세션 번호표는 반대다 — session.php에서 반드시 httponly를 켠다)
+// 선택 항목(동의받고 심는 것) 전용 — 수명만 다르고 나머지는 같다.
+//   ★ 함수를 나눈 이유: 같은 함수에 인자를 받게 하면 **부르는 쪽이 기간을 정하게** 된다.
+//     그러면 언젠가 한 곳이 다른 숫자를 쓴다. 기간은 '그 쿠키의 성격'이 정해야 한다.
+function optional_cookie_options(): array {
+    $options = pref_cookie_options();
+    $options['expires'] = time() + OPTIONAL_DAYS * 86400;
+
+    return $options;
+}
+
 function pref_cookie_options(): array {
     return [
         'expires'  => time() + PREF_DAYS * 86400,
@@ -121,7 +155,7 @@ function remember_search(string $query): void {
 
     // 여러 개를 한 칸에 담아야 하므로 JSON 한 줄로 바꾼다.
     //   JSON_UNESCAPED_UNICODE = 한글을 \uXXXX로 바꾸지 않는다(쿠키가 쓸데없이 길어지지 않게).
-    setcookie(RECENT_SEARCH_COOKIE, json_encode($recent, JSON_UNESCAPED_UNICODE), pref_cookie_options());
+    setcookie(RECENT_SEARCH_COOKIE, json_encode($recent, JSON_UNESCAPED_UNICODE), optional_cookie_options());
 }
 
 // 최근 검색어 목록. 쿠키가 없거나 이상하면 빈 배열.
@@ -191,7 +225,7 @@ function remember_recent_post(int $id): void {
     array_unshift($recent, $id);
     $recent = array_slice($recent, 0, RECENT_POSTS_MAX);
 
-    setcookie(RECENT_POSTS_COOKIE, implode(',', $recent), pref_cookie_options());
+    setcookie(RECENT_POSTS_COOKIE, implode(',', $recent), optional_cookie_options());
 }
 
 // 최근 본 글 번호 목록. 이상한 값은 전부 걸러낸다.
@@ -261,7 +295,7 @@ function touch_visit(): void {
     if (time() - last_visit_at() < VISIT_GAP) {
         return;                       // 아직 '같은 방문' — 그대로 두어 배지를 유지한다
     }
-    setcookie(LAST_VISIT_COOKIE, (string) time(), pref_cookie_options());
+    setcookie(LAST_VISIT_COOKIE, (string) time(), optional_cookie_options());
 }
 
 
@@ -272,6 +306,7 @@ function touch_visit(): void {
 //   ★ 새 쿠키를 만들 때 여기 넣을지 말지를 반드시 정한다 — 그게 '물어봐야 하나'의 답이다.
 const OPTIONAL_COOKIES = [
     RECENT_POSTS_COOKIE, RECENT_WORKS_COOKIE, LAST_VISIT_COOKIE, RECENT_SEARCH_COOKIE,
+    VIEW_ID_COOKIE,
 ];
 
 // ── 동의하지 않은 항목의 쿠키를 치운다 ───────────────────────
@@ -291,6 +326,9 @@ function forget_unconsented_cookies(): void {
     }
     if (!has_consent('search')) {
         $toClear[] = RECENT_SEARCH_COOKIE;
+    }
+    if (!has_consent('stats')) {
+        $toClear[] = VIEW_ID_COOKIE;
     }
 
     foreach ($toClear as $name) {
@@ -336,7 +374,7 @@ function remember_recent_work(string $slug): void {
     array_unshift($recent, $slug);
     $recent = array_slice($recent, 0, RECENT_POSTS_MAX);   // 개수 기준은 최근 본 글과 같게
 
-    setcookie(RECENT_WORKS_COOKIE, implode(',', $recent), pref_cookie_options());
+    setcookie(RECENT_WORKS_COOKIE, implode(',', $recent), optional_cookie_options());
 }
 
 // 최근 본 작품 slug 목록. 이상한 값은 전부 걸러낸다.

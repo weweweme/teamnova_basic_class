@@ -25,12 +25,23 @@
 //   [기기를 알아보는 방법]
 //     오래 사는 무작위 값을 쿠키에 심는다. consent_id와 **완전히 같은 구조** —
 //     쿠키엔 뜻 없는 열쇠, 내용은 전부 서버에.
+//
+//   [★ 이 쿠키는 '기기 목록' 전용이다]
+//     예전엔 이 하나가 **조회수 중복 방지**도 겸했다. 편했지만 규정에 걸렸다 —
+//     *"쿠키가 여러 목적을 가지면 모든 목적이 면제여야 동의가 필요 없다"*(WP194).
+//     기기 목록은 보안이라 면제지만 조회수 측정은 아니어서, **섞여 있으면 면제가 깨진다.**
+//     → 조회수 쪽은 `includes/view_id.php`로 떼어내고 **동의를 받는다.**
 // ============================================================
 
 require_once __DIR__ . '/db.php';
 
 const DEVICE_COOKIE = 'device';
-const DEVICE_DAYS   = 365;      // 기기 이름표는 오래 살아야 한다 (세션과 정반대)
+// 기기 이름표는 세션과 정반대로 오래 살아야 한다. 다만 **얼마나 오래인지도 근거가 필요하다.**
+//   📄 Article 29 WP Opinion 04/2012 — 보안 쿠키는 *"제한된 기간"*(a limited persistent duration).
+//      https://ec.europa.eu/justice/article-29/documentation/opinion-recommendation/files/2012/wp194_en.pdf
+//   ★ 1년은 '제한된'이라 부르기 어렵다. 이 쿠키가 하는 일("지난달 PC방 로그인을 끊고 싶다")에
+//     필요한 만큼이면 되므로 **90일**로 줄였다.
+const DEVICE_DAYS   = 90;
 
 function device_cookie_options(int $expires): array {
     return [

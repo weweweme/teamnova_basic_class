@@ -82,49 +82,49 @@ function remember_device(int $userId): void {
     ]);
 }
 
-// 이 브라우저가 '이 회원의 등록된 기기'인가?
-//   ★ 로그인을 거친 기기만 user_devices에 줄이 생긴다.
-//     쿠키만 훔쳐 온 브라우저는 로그인을 한 적이 없으므로 **여기서 걸린다.**
-function is_known_device(int $userId): bool {
-    $stmt = db()->prepare('SELECT 1 FROM user_devices WHERE user_id = ? AND device_id = ?');
-    $stmt->execute([$userId, device_id()]);
-
-    return $stmt->fetchColumn() !== false;
-}
-
 // 아직 안 알린 '새 기기'가 있으면 그 목록을 돌려주고, 알렸다고 표시한다.
-//   ★★ **지금 이 기기는 뺀다.** 방금 자기가 로그인한 걸 자기에게 알려봐야 소용없다.
-//     알아야 할 사람은 **다른 곳에 있는 주인**이다.
-//     → 그래서 주인이 **어느 기기로 접속하든** 그때 한 번 뜬다.
 //   ★ 읽으면서 표시를 바꾼다(read-once) — 플래시와 같은 구조다.
+//
+//   [★★ 알림은 '나보다 나중에 나타난 기기'만 대상으로 한다]
+//     처음엔 *"지금 이 기기만 빼고 전부"* 였다. 그런데 그러면 방향이 거꾸로 간다:
+//       D1 로그인(10:00) → D2 로그인(10:05) → **D2 화면에서 D1을 '새 기기'라고 알린다**
+//     D1은 D2보다 **먼저** 있던 기기인데 나중에 생긴 쪽이 "새 기기"라고 알리는 셈이다.
+//     (시크릿 창은 켤 때마다 새 기기가 되므로 이게 특히 도드라진다)
+//
+//     ★ 이 알림이 잡아야 하는 것은 **"내가 등록된 뒤에 새로 나타난 기기"** 다.
+//       공격자가 내 비밀번호로 로그인하면 그 기기는 **내 기기보다 나중에** 생긴다.
+//       그래서 기준을 `first_seen_at > 내 first_seen_at` 으로 좁혔다.
+//
+//   [★ 등록된 기기가 아니면 아무것도 보여주지 않는다]
+//     쿠키만 훔쳐 온 브라우저에는 기기 줄이 없다(로그인한 적이 없으므로) → 아래에서 걸린다.
+//     안 그러면 **훔친 쪽이 알림을 보고 소비해서, 정작 주인은 못 보게 된다.**
 function take_new_devices(int $userId): array {
-    // ★★ 등록된 기기가 아니면 **아무것도 보여주지 않는다.**
-    //   [왜 이 줄이 생겼나 — 시연하다 발견했다]
-    //     세션 쿠키를 훔쳐 붙여넣은 브라우저에서 *"새 기기에서 로그인됨"* 알림이 떴다.
-    //     그런데 이 알림은 **한 번 보이면 소비된다**(announced=1) →
-    //     ★ 훔친 쪽이 알림을 보고, **정작 주인은 못 보게 된다.**
-    //       못 잡는 데서 그치지 않고 **증거를 먹어치우고 있었다.**
-    //
-    //   [왜 이 조건이면 되나]
-    //     훔친 브라우저에는 기기 줄이 없다(로그인을 한 적이 없으므로).
-    //     → 알림을 **보지도 못하고 소비하지도 못한다.** 주인 쪽에 그대로 남는다.
-    //     덤으로 "이 계정에 다른 기기가 있다"는 사실도 안 새어 나간다.
-    if (!is_known_device($userId)) {
+    // 이 기기가 언제부터 등록돼 있었나. 줄이 없으면(=훔쳐 온 브라우저) 여기서 끝난다.
+    $stmt = db()->prepare('SELECT first_seen_at FROM user_devices WHERE user_id = ? AND device_id = ?');
+    $stmt->execute([$userId, device_id()]);
+    $mineSince = $stmt->fetchColumn();
+
+    if ($mineSince === false) {
         return [];
     }
 
     $stmt = db()->prepare(
         'SELECT user_agent, UNIX_TIMESTAMP(first_seen_at) AS at
            FROM user_devices
-          WHERE user_id = ? AND announced = 0 AND device_id <> ?'
+          WHERE user_id = ? AND announced = 0 AND device_id <> ? AND first_seen_at > ?'
     );
-    $stmt->execute([$userId, device_id()]);
+    $stmt->execute([$userId, device_id(), $mineSince]);
     $rows = $stmt->fetchAll();
 
     if ($rows) {
-        db()->prepare('UPDATE user_devices SET announced = 1 WHERE user_id = ? AND device_id <> ?')
-            ->execute([$userId, device_id()]);
+        // ★ 보여준 것만 표시한다. 조건이 위와 같아야 한다 —
+        //   여기서 전부 1로 만들면 아직 아무도 못 본 알림까지 조용히 사라진다.
+        db()->prepare(
+            'UPDATE user_devices SET announced = 1
+              WHERE user_id = ? AND announced = 0 AND device_id <> ? AND first_seen_at > ?'
+        )->execute([$userId, device_id(), $mineSince]);
     }
+
     return $rows;
 }
 

@@ -8,7 +8,7 @@
 require_once __DIR__ . '/db.php';         // DB 연결
 require_once __DIR__ . '/auth.php';       // current_user_id() (추천 여부 확인)
 require_once __DIR__ . '/comments.php';   // 댓글 모듈 (일부 함수에서 사용)
-require_once __DIR__ . '/view_id.php';    // viewer_key() — 조회 판정 전용 번호
+require_once __DIR__ . '/bot.php';        // 봇 조회는 안 센다
 require_once __DIR__ . '/bot.php';        // 봇 조회는 안 센다
 
 // ── 입력 길이 제한 (매직값 금지 — 이름 붙인 상수로) ──────────
@@ -341,20 +341,30 @@ function get_recent_posts(): array {
 //     ★ **그 자리는 봇 판별(is_bot)이 이미 막는다.** 쿠키를 안 받는 상대의 대부분은 크롤러다.
 //     남는 건 '쿠키를 막아둔 사람'인데 드물고, 그 사람은 로그인도 안 되는 상태다.
 //     ※ 판정을 한 겹 줄이는 대신 **두 번 세는 버그를 없앴다.** 둘 중 후자가 훨씬 흔하다.
+// 이 조회를 '누가' 한 것으로 볼까 — `post_views`의 한 줄을 가리키는 이름.
+//   [★ 로그인했으면 회원 번호, 아니면 접속지(IP)를 뒤섞은 값]
+//
+//   [★★ 한때 비로그인용 쿠키를 따로 뒀다가 도로 뺐다]
+//     조회 판정 전용 번호를 쿠키에 심으면 **사람 단위 판정이 훨씬 정확하다** —
+//     같은 공유기를 써도 브라우저마다 번호가 다르기 때문이다.
+//     그런데 그건 **기기에 저장하는 행위**라 동의를 받아야 하고, 동의 항목이 하나 늘고,
+//     거절한 사람은 어차피 IP로 판정하게 되어 **길이 둘로 갈라졌다.**
+//
+//   ★ 그래서 IP 하나로 합쳤다. 얻은 것과 잃은 것이 분명하다:
+//     · 얻음 — **비로그인 조회 판정에 기기에 아무것도 심지 않는다.** 물어볼 것도 없어진다
+//     · 잃음 — **같은 공유기 뒤 여러 사람이 한 명**이 된다(과소 집계).
+//              반대로 **모바일은 주소가 자주 바뀌어** 같은 사람이 여러 번 세어진다(과대)
+//     ※ Discourse도 IP로 판정한다 — 큰 서비스가 그 오차를 감수하고 고른 쪽이다.
+//
+//   ★ IP는 원본을 안 담는다. **SHA-256으로 뒤섞은 값만** 넣는다 —
+//     우리가 하는 일은 *"같은 곳인가"* 비교뿐이라 원본이 필요 없다.
+//     (로그인 사용자에게는 아예 안 쓴다. **필요 없는 개인정보는 안 모은다**)
 function viewer_key(): string {
     if (is_logged_in()) {
         return 'u:' . current_user_id();
     }
 
-    // ★ 동의했으면 전용 번호로, 아니면 **접속지 지문으로** 판정한다.
-    //   거절한 사람에게는 **아무것도 심지 않는다** — 대신 이미 오고 있는 값(IP)만 쓴다.
-    //   ※ 그 대가로 같은 접속지를 쓰는 사람들이 한 명으로 묶인다. 거절의 대가는 정확도이지
-    //     '판정을 아예 포기하는 것'이 아니다 — 포기하면 조회수를 마음대로 부풀릴 수 있다.
-    $viewId = view_id();
-
-    return $viewId !== null
-        ? 'v:' . $viewId
-        : 'i:' . hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? ''));
+    return 'i:' . hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? ''));
 }
 
 // 조회 기록을 며칠 보관할지.
@@ -421,17 +431,6 @@ function trending_posts(array $posts, int $limit): array {
 
 // 이 접속지가 오늘 이 글을 이미 봤나?
 //   ★ 쿠키가 없던 요청에서만 부른다. 그 외에는 device 쿠키가 더 정확하다.
-function ip_viewed_today(int $postId, ?string $ipHash): bool {
-    if ($ipHash === null) {
-        return false;
-    }
-    $stmt = db()->prepare(
-        'SELECT 1 FROM post_views WHERE post_id = ? AND ip_hash = ? AND viewed_on = ? LIMIT 1'
-    );
-    $stmt->execute([$postId, $ipHash, date('Y-m-d')]);
-
-    return $stmt->fetchColumn() !== false;
-}
 
 // 이 글의 조회수를 1 올린다. 단, **오늘 이미 봤으면** 아무 일도 하지 않는다.
 //   돌려주는 값 = 실제로 올렸는지. 화면이 이 값을 보고 방금 올린 1을 반영한다.
@@ -450,42 +449,9 @@ function count_post_view(int $id): bool {
         return false;
     }
 
-    // ── 쿠키를 지우고 다시 온 상대 막기 ──────────────────────
-    //   [왜 이게 필요한가 — 조회수가 첫 화면을 결정하기 때문]
-    //     조회수는 표시만 되는 숫자가 아니다. 홈 '지금 뜨는 글'·게시판 정렬·랭킹을 움직인다.
-    //     **부풀리면 첫 화면에 올라간다** → 부풀릴 이유가 실제로 있다.
-    //     게다가 '지금 뜨는 글'을 최근 7일 기준으로 바꾸면서, 누적 5,000짜리 글을
-    //     이기는 데 **열 번이면 충분**해졌다. 개선 하나가 다른 쪽 구멍을 키운 것이다.
-    //
-    //   ★ 검사 대상을 **쿠키가 없던 요청**으로 좁힌다.
-    //     항상 IP로 판정하면(Discourse 방식) 같은 건물 사람들이 통째로 한 명이 된다.
-    //     여기서는:
-    //       · 쿠키 지우고 재방문   → 같은 IP가 오늘 이미 봄 → **막힌다**
-    //       · 공유 IP의 다른 사람 → **자기가 처음 여는 글 하나만** 안 세어진다.
-    //         그 뒤엔 쿠키가 생겨 정상 판정된다 (오탐의 범위가 좁다)
-    //
-    //   ★ 로그인 사용자는 건너뛴다 — 회원 번호로 이미 정확히 판정된다.
-    //     ('필요 없는 개인정보는 안 모은다' — Discourse 소스에도 같은 주석이 있다)
-    //   ★★ 순서가 중요하다: viewer_key()가 **쿠키를 심기 전에** 확인해야 한다.
-    //     심고 나면 $_COOKIE에 값이 채워져서 '원래 있었는지'를 알 수 없게 된다.
-    $loggedIn = is_logged_in();
-    // ★ 조회 판정 전용 쿠키가 **원래 있었는지**를 본다. (기기 목록용 device 쿠키가 아니다 —
-    //   그건 다른 목적이라 쪼갰다. includes/view_id.php)
-    $hadCookie = isset($_COOKIE[VIEW_ID_COOKIE]);
-    $ipHash   = $loggedIn ? null : hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? ''));
-
-    // ★★ 판정 키를 **IP 검사보다 먼저** 구한다.
-    //   [왜 — 실제로 밟은 함정]
-    //     IP 검사에 걸려 여기서 return 하면 viewer_key()까지 가지 못하고,
-    //     그러면 **판정 번호 쿠키를 심을 기회 자체가 없다.**
-    //     한 번 IP로 막힌 사람은 영영 쿠키를 못 받아 계속 IP로만 판정된다 —
-    //     공유 IP에서는 **하루 종일 아무 글도 안 세어지는** 상태가 된다.
-    //   ★ $hadCookie를 그 위에서 이미 읽어뒀으므로 순서를 바꿔도 판정은 그대로다.
+    // 이 조회를 누구 것으로 볼지 정한다. (회원 번호 또는 접속지 해시 — viewer_key 주석 참고)
+    //   ★ 여기서 이미 '같은 사람'이 정해지므로, 아래 UPSERT 한 방이 곧 중복 판정이다.
     $viewerKey = viewer_key();
-
-    if (!$loggedIn && !$hadCookie && ip_viewed_today($id, $ipHash)) {
-        return false;
-    }
 
     // ★★ 날짜를 DB의 CURDATE()가 아니라 **PHP에서 계산해 넘긴다.**
     //   [왜 — 실제로 밟은 함정]
@@ -499,12 +465,10 @@ function count_post_view(int $id): bool {
     $today = date('Y-m-d');
 
     $stmt = db()->prepare(
-        'INSERT INTO post_views (post_id, viewer_key, ip_hash, viewed_on) VALUES (?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE
-             ip_hash   = VALUES(ip_hash),
-             viewed_on = IF(viewed_on < ?, ?, viewed_on)'
+        'INSERT INTO post_views (post_id, viewer_key, viewed_on) VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE viewed_on = IF(viewed_on < ?, ?, viewed_on)'
     );
-    $stmt->execute([$id, $viewerKey, $ipHash, $today, $today, $today]);
+    $stmt->execute([$id, $viewerKey, $today, $today, $today]);
 
     if ($stmt->rowCount() === 0) {
         return false;                     // 오늘 이미 셌다

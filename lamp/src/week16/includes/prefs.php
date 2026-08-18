@@ -55,7 +55,6 @@ const OPTIONAL_DAYS = 30;
 // 어느 쿠키를 심어도 되는지 판단하려면 '무엇에 동의했나'를 알아야 한다.
 //   ★ 한 방향으로만 안다 — consent.php는 쿠키 이름을 하나도 모른다.
 require_once __DIR__ . '/consent.php';
-require_once __DIR__ . '/view_id.php';   // VIEW_ID_COOKIE — 선택 항목 목록에 넣으려고
 
 // 쿠키 이름들
 const PREF_SORT_COOKIE     = 'pref_sort';     // 게시판 정렬 기본값
@@ -306,7 +305,6 @@ function touch_visit(): void {
 //   ★ 새 쿠키를 만들 때 여기 넣을지 말지를 반드시 정한다 — 그게 '물어봐야 하나'의 답이다.
 const OPTIONAL_COOKIES = [
     RECENT_POSTS_COOKIE, RECENT_WORKS_COOKIE, LAST_VISIT_COOKIE, RECENT_SEARCH_COOKIE,
-    VIEW_ID_COOKIE,
 ];
 
 // ── 동의하지 않은 항목의 쿠키를 치운다 ───────────────────────
@@ -326,9 +324,6 @@ function forget_unconsented_cookies(): void {
     }
     if (!has_consent('search')) {
         $toClear[] = RECENT_SEARCH_COOKIE;
-    }
-    if (!has_consent('stats')) {
-        $toClear[] = VIEW_ID_COOKIE;
     }
 
     foreach ($toClear as $name) {

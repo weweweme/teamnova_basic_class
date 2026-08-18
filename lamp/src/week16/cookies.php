@@ -177,6 +177,11 @@ require __DIR__ . '/includes/header.php';
             <span class="muted">· 안내 v<?= (int) $row['policy_version'] ?></span>
             <?php // 비로그인 기록은 user_id가 NULL이다. 그게 정상 — 동의는 로그인보다 먼저 받는다. ?>
             <span class="muted">· <?= $row['user_id'] === null ? '비회원' : '회원 #' . (int) $row['user_id'] ?></span>
+            <?php // ★ 담은 것을 그대로 보여준다. 뒤에서 몰래 남기는 값이 하나라도 있으면
+                  //   "증빙을 보여준다"는 말이 성립하지 않는다. ?>
+            <?php if (!empty($row['ip_prefix'])): ?>
+              <span class="muted">· 접속지 <?= e((string) $row['ip_prefix']) ?></span>
+            <?php endif; ?>
             <div class="consent-items">
               <?= $names ? e(implode(' + ', $names)) : '<span class="muted">선택 항목 없음 (필수만)</span>' ?>
             </div>

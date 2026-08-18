@@ -207,6 +207,28 @@ function save_consent(array $items, string $source = 'banner', ?int $userId = nu
 //   ★ 실패해도 화면을 막지 않는다 — 동의 자체는 이미 쿠키에 반영됐다.
 //     여기서 예외를 던지면 "동의를 눌렀는데 화면이 깨진다"가 된다. 기록은 부수적인 일이다.
 //     (실무라면 이 자리에서 별도 로그를 남겨 나중에 확인한다)
+// 접속지를 **되돌릴 수 없는 굵기로** 잘라낸다.
+//   IPv4 : 앞 16비트만 남긴다   203.0.113.7  →  203.0.0.0
+//   IPv6 : 앞 32비트만 남긴다
+//   ★ Cookiebot이 동의 기록에 쓰는 것과 같은 굵기다.
+//     해시로 만들지 않는 이유 — IPv4는 43억개뿐이라 **해시를 역산하는 게 쉽다.**
+//     '되돌릴 수 없게' 하려면 감추는 게 아니라 **버려야** 한다.
+function anonymize_ip(?string $ip): ?string {
+    $ip = (string) $ip;
+
+    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        $parts = explode('.', $ip);
+        return $parts[0] . '.' . $parts[1] . '.0.0';
+    }
+
+    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+        $packed = inet_pton($ip);
+        return $packed === false ? null : inet_ntop(substr($packed, 0, 4) . str_repeat(" ", 12));
+    }
+
+    return null;                        // 알 수 없으면 아무것도 안 담는다
+}
+
 function log_consent(string $consentId, ?int $userId, array $items, string $action, string $source): void {
     $snapshot = [];
     foreach (array_keys(CONSENT_ITEMS) as $key) {
@@ -215,8 +237,8 @@ function log_consent(string $consentId, ?int $userId, array $items, string $acti
 
     try {
         db()->prepare(
-            'INSERT INTO consent_log (consent_id, user_id, action, source, policy_version, items, user_agent)
-             VALUES (?, ?, ?, ?, ?, ?, ?)'
+            'INSERT INTO consent_log (consent_id, user_id, action, source, policy_version, items, user_agent, ip_prefix)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
         )->execute([
             $consentId,
             $userId,
@@ -225,6 +247,7 @@ function log_consent(string $consentId, ?int $userId, array $items, string $acti
             CONSENT_VERSION,
             (string) json_encode($snapshot),
             mb_substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255),
+            anonymize_ip($_SERVER['REMOTE_ADDR'] ?? null),
         ]);
     } catch (Throwable) {
         // 삼킨다. 위 주석 참고.
@@ -253,7 +276,7 @@ function consent_history(string $consentId, ?int $userId, int $limit = 10): arra
     try {
         // 이 브라우저의 것 + (로그인했으면) 이 회원이 다른 기기에서 고른 것까지.
         $stmt = db()->prepare(
-            'SELECT action, source, policy_version, items, user_id, UNIX_TIMESTAMP(created_at) AS at
+            'SELECT action, source, policy_version, items, user_id, ip_prefix, UNIX_TIMESTAMP(created_at) AS at
                FROM consent_log
               WHERE consent_id = ? OR (? IS NOT NULL AND user_id = ?)
               ORDER BY id DESC

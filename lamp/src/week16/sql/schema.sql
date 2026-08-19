@@ -157,7 +157,7 @@ CREATE TABLE notifications (
 CREATE TABLE sessions (
     id_hash     CHAR(64) PRIMARY KEY,          -- SHA-256(세션 ID). 원본은 어디에도 안 남긴다
     user_id     INT          NULL,             -- 비로그인 방문자도 세션이 있으므로 NULL 허용
-    payload     TEXT         NOT NULL,         -- PHP가 직렬화한 세션 내용
+    payload     MEDIUMTEXT   NOT NULL,         -- PHP가 직렬화한 세션 내용 (16MB — 019 참고)
     ip_address  VARCHAR(45)  NULL,             -- IPv6까지 담으려면 45글자
     user_agent  VARCHAR(255) NULL,
     last_active DATETIME     NOT NULL,         -- 새로고침할 때마다 갱신

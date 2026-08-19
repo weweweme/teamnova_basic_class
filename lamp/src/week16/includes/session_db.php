@@ -41,6 +41,22 @@ require_once __DIR__ . '/db.php';
 //     사용자가 늘릴 수 있다. 진짜 기준은 언제나 서버가 쥐고 있어야 한다.
 const SESSION_TTL = 1800;          // 30분
 
+// ── 조회 판정 세션 — 이름과 수명 ────────────────────────────
+//   ★★ 이 두 상수가 **여기** 있는 이유 (실제로 한 번 크게 밟았다):
+//     처음엔 view_session.php에 뒀는데, 그 파일을 안 부르는 화면
+//     (예: auth/authenticate.php)에서 **세션 저장이 통째로 터졌다** —
+//         Fatal error: Undefined constant "VIEW_SESSION_NAME"
+//         #1 session_write_close()
+//     세션 저장이 실패하면 그 요청의 $_SESSION이 통째로 사라지므로,
+//     **로그인해도 로그인이 안 되는** 증상이 된다. 화면엔 아무 말도 안 나온다.
+//
+//   ★ 옮길 곳을 고른 기준: **쓰는 파일이 곧 소유자.**
+//     세션 이름에 따라 수명을 다르게 주는 판단은 아래 write()가 한다 → 여기가 맞다.
+//   ⚠️ 반대로 이 파일이 view_session.php를 require 하면 안 된다 —
+//     그쪽은 '세션이 이미 열려 있다'는 전제로 session.php를 부르므로 고리가 생긴다.
+const VIEW_SESSION_NAME = 'VIEWSESS';   // 쿠키를 안 쓰므로 이름은 저장소 구분용일 뿐
+const VIEW_SESSION_DAYS = 1;            // 판정은 하루 단위
+
 // 번호표(세션 ID) → DB에 넣을 지문.
 //   ★ 클래스 밖에 둔 이유: 아래 핸들러 말고 '이 회원의 세션 전부 끊기'도 같은 지문을 내야 한다.
 //     지문 내는 방법이 두 곳으로 갈리면, 한쪽을 고쳤을 때 다른 쪽이 조용히 못 찾게 된다.
@@ -159,15 +175,23 @@ final class DbSessionHandler implements SessionHandlerInterface
             return $this->destroy($id);
         }
 
+        // ★★ 판정 세션이냐 아니냐로 **적는 칸이 갈린다.**
+        //   같은 표에 담기더라도 **무엇을 함께 적느냐**로 그 줄의 성격이 완전히 달라진다.
+        $isViewSession = session_name() === VIEW_SESSION_NAME;
+
         // user_id는 payload 안에도 들어 있지만, 칼럼으로 한 번 더 꺼내 둔다.
         //   payload는 통째로 직렬화된 덩어리라 SQL로 뒤질 수가 없기 때문이다.
         //   이 칼럼이 있어야 "이 회원의 세션 전부 삭제"를 WHERE 한 줄로 할 수 있다.
-        $userId = $_SESSION[SESSION_USER_ID] ?? null;
+        //   ★ 판정 세션에는 안 적는다 — 적으면 `WHERE user_id = ?` 한 줄로
+        //     **"이 회원이 오늘 본 글 전부"** 가 나온다. 그게 없애려던 바로 그 표다.
+        $userId = $isViewSession ? null : ($_SESSION[SESSION_USER_ID] ?? null);
 
         // ★ 이 세션이 '어느 기기의 것인지'도 함께 적는다.
         //   기기를 끊을 때 그 기기의 세션까지 지우려면 **칼럼**이어야 한다 —
         //   payload 안에 있으면 직렬화된 덩어리라 SQL로 못 찾는다. (user_id를 뺀 것과 같은 이유)
-        $deviceId = function_exists('device_id') ? device_id() : null;
+        //   ★ 판정 세션에는 안 적는다 — 위와 같은 이유이고, 애초에 판정 세션은
+        //     '기기별로 끊는' 대상이 아니다. 적을 이유가 없는 칸은 안 적는다.
+        $deviceId = $isViewSession ? null : (function_exists('device_id') ? device_id() : null);
 
         $sql = 'INSERT INTO sessions
                     (id_hash, user_id, device_id, payload, ip_address, user_agent, last_active, expires_at)
@@ -186,9 +210,25 @@ final class DbSessionHandler implements SessionHandlerInterface
             $data,
             // 접속 정보. 세션 동작에는 필요 없지만, 이상한 접속을 나중에 되짚어볼 때 쓴다.
             //   길이를 잘라 두는 이유: 칼럼 길이를 넘으면 저장이 실패해 세션이 통째로 날아간다.
-            substr($_SERVER['REMOTE_ADDR'] ?? '', 0, 45),
-            substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255),
-            SESSION_TTL,
+            //
+            //   [★★ 판정 세션에는 비워 둔다 — 이걸 빠뜨려서 없앤 표가 되살아나 있었다]
+            //     판정 세션의 payload에는 **"오늘 본 글 목록"** 이 들어 있다.
+            //     그 옆 칸에 접속지를 적으면 한 줄이 이렇게 된다:
+            //         접속지 172.18.0.1 │ 23·24·25번 글을 봤음
+            //     → `SELECT ip_address, payload FROM sessions` 한 줄로 **열람 이력**이 나온다.
+            //     `post_views` 표를 없앤 이유가 정확히 그것인데, 이름만 바꿔 그대로 있었다.
+            //
+            //     ★ 판정에는 이 칸을 **읽지도 않는다.** 판정은 '번호로 줄을 찾아
+            //       안에 오늘 날짜가 있나'만 본다. → 비워도 동작이 하나도 안 달라진다.
+            //     ⚠️ 완전한 익명은 아니다 — 접속지를 아는 사람은 번호를 계산해 그 줄을
+            //       찾을 수 있다. 막히는 것은 **표를 훑어서 전부 뽑기** 쪽이다.
+            $isViewSession ? null : substr($_SERVER['REMOTE_ADDR'] ?? '', 0, 45),
+            $isViewSession ? null : substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255),
+            // ★ 세션마다 수명이 다르다. 이름을 보고 갈라준다.
+            //   판정 세션(VIEWSESSID)은 쿠키가 하루인데 서버 쪽만 30분이면
+            //   **쿠키는 살아 있는데 내용이 비어 있는** 상태가 되어 매일 여러 번 세어진다.
+            //   → 쿠키 수명과 저장분 수명은 **반드시 같이 간다.**
+            $isViewSession ? VIEW_SESSION_DAYS * 86400 : SESSION_TTL,
         ]);
     }
 

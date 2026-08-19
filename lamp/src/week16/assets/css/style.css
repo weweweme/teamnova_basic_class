@@ -1050,13 +1050,6 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 /* ── 로그인 기기 목록 (설정) ─────────────────────────────────
    세션 한 줄 = 기기 하나. '이 기기'만 배지를 달고 로그아웃 버튼을 숨긴다. */
 
-/* 🆕 배지 — 지난 방문 이후 올라온 글 (게시판 목록) */
-.badge-new {
-  margin-left: .35rem; padding: .05rem .3rem; border-radius: 3px;
-  font-size: .65rem; font-weight: 700; letter-spacing: .02em;
-  background: #e5484d; color: #fff; vertical-align: middle;
-}
-
 /* 쿠키 안내 배너 — 화면 아래 고정. 확인을 누르면 JS가 쿠키를 심고 즉시 제거한다. */
 /* 쿠키 '동의' 배너.
    ★ 확인 하나였을 땐 한 줄이면 됐는데, 고를 것이 생기면서 세로로 쌓인다.

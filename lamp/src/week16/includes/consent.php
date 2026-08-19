@@ -10,7 +10,7 @@
 //         → 시킨 일을 하는 것이므로 **알려주면 된다.**
 //
 //       · **우리가 알아서 쌓는 것** — 검색하면 검색어가 남고, 글을 열면 그 글 번호가 남는다
-//         (recent_search · recent_posts · recent_works · last_visit)
+//         (recent_search · recent_posts · recent_works)
 //         → **사용자는 이게 쌓이는 줄 모른다.** 이건 물어봐야 한다.
 //
 //   [★ 확인과 동의의 결정적 차이 — 되돌릴 수 있는가]
@@ -74,7 +74,7 @@ const CONSENT_KEEP_YEARS = 3;
 //   ★ 검색 기록을 따로 뺀 이유: **검색어는 사람이 무엇을 궁금해했는지 그 자체**라
 //     열람 기록보다 민감하다. 하나로 묶으면 "글 기록은 되는데 검색은 싫다"를 고를 수 없다.
 const CONSENT_ITEMS = [
-    'view'   => '최근 본 글·작품, 마지막 방문 시각',   // recent_posts · recent_works · last_visit
+    'view'   => '최근 본 글·작품',                     // recent_posts · recent_works
     'search' => '최근 검색어',                          // recent_search
 ];
 

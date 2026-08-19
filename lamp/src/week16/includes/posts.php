@@ -440,16 +440,19 @@ function count_post_view(int $id, string $author): bool {
         return false;
     }
 
-    // ★★ 날짜를 DB의 CURDATE()가 아니라 **PHP에서 계산한다.**
-    //   DB는 UTC, PHP는 Asia/Seoul이라 CURDATE()를 쓰면 하루의 경계가
-    //   자정이 아니라 오전 9시가 된다. **시각 계산은 한쪽 세계 안에서만.**
-    $today = date('Y-m-d');
-
     // ★ 판정은 **사용자 세션이 아니라 판정 전용 세션**에서 한다.
     //   로그인·CSRF가 든 세션에 조회 기록을 섞지 않는다 (includes/view_session.php)
-    if (view_already_counted_today($id, $today)) {
+    //   ★ 기준은 달력 날짜가 아니라 **그 글을 본 시각부터 24시간**이다.
+    if (view_already_counted($id)) {
         return false;
     }
+
+    // ★★ 아래 집계는 **달력 날짜**로 쌓는다. 판정과 기준이 다른 게 맞다 —
+    //   판정은 *"이 사람이 최근에 봤나"*, 집계는 *"그날 몇 번 조회됐나"* 이기 때문이다.
+    //   ⚠️ 날짜를 DB의 CURDATE()가 아니라 **PHP에서 계산한다.**
+    //     DB는 UTC, PHP는 Asia/Seoul이라 CURDATE()를 쓰면 하루의 경계가
+    //     자정이 아니라 오전 9시가 된다. **시각 계산은 한쪽 세계 안에서만.**
+    $today = date('Y-m-d');
 
     // 그날의 집계를 올린다. **여기엔 누가 봤는지가 안 들어간다.**
     //   ★ '지금 뜨는 글'은 이 숫자로 뽑는다. 개인 기록 없이도 "요즘 뜨는가"는 셀 수 있다.

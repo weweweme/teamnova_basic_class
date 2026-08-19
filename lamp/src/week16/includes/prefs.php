@@ -36,19 +36,23 @@ require_once __DIR__ . '/posts.php';   // SEARCH_QUERY_MAX — 검색어 길이 
 //      · 인증 쿠키              → **세션**            (우리: PHPSESSID ✅)
 //      · 사용자 입력 쿠키        → 세션, 길어야 몇 시간 (우리: flash·intended·old_input ✅)
 //      · 보안 쿠키              → **제한된 기간**      (우리: device)
-//      · **화면 설정 쿠키**      → **세션 또는 약간 더** (우리: pref_* · per_page)
+//      · 화면 설정 쿠키          → 세션 또는 약간 더
+//        ★ 여기서 빠졌다 — pref_* · per_page 는 **동의 대상으로 옮겼다** (아래 참고)
 //      · 원칙 — *"면제 쿠키의 수명은 그 목적에 직접 관계된 기간이어야 하고,
 //                필요 없어지면 만료돼야 한다"*
 //
 //   ★ 그래서 90일은 근거가 없었다. **"손해가 없다"는 우리 사정이지 기준이 아니다.**
 
-// 화면 설정(정렬·감상 필터·글 수). 문서가 말하는 "세션 또는 약간 더"를 **하루**로 잡았다.
-//   ★ 세션으로 두면 창을 닫을 때마다 초기화돼 기억하는 의미가 없고,
-//     하루면 "오늘 보던 대로"는 유지되면서 문서의 범위 안에 든다.
-const PREF_DAYS = 1;
-
-// 동의를 받고 심는 선택 항목(최근 본 글·작품·검색어·마지막 방문).
-//   ★ 이쪽은 **면제 대상이 아니라 동의를 받은 것**이라 위 기간 제한을 안 받는다.
+// ★★ 화면 설정(정렬·감상 필터·글 수)도 **동의를 받고 심는다.**
+//   한때 면제로 보고 1일을 줬는데, WP194 §3.6 원문을 다시 읽으니 조건을 못 채우고 있었다:
+//     *"only set if the user has **explicitly requested the service to remember**
+//       a certain piece of information, for example, by clicking on a button or ticking a box"*
+//   ★ 우리는 **"기억해달라"는 요청을 받은 적이 없다.** 탭을 누른 건
+//     "이번엔 이렇게 보여줘"지 "다음에도 기억해줘"가 아니다.
+//   → 우리 기준("사용자가 시켰나")으로도 같은 답이라 동의 쪽으로 옮겼다.
+//
+// 동의를 받고 심는 것들의 수명. (최근 본 글·작품·검색어 + 화면 설정)
+//   ★ 이쪽은 **면제 대상이 아니라 동의를 받은 것**이라 문서의 기간 제한을 안 받는다.
 //     그래도 90일은 길다 — **필요한 만큼만 갖는다**는 원칙은 동의 여부와 무관하다.
 const OPTIONAL_DAYS = 30;
 
@@ -84,9 +88,11 @@ function optional_cookie_options(): array {
     return $options;
 }
 
+// 취향 쿠키 공통 옵션. **만료 시각이 없다** — 붙이는 쪽이 정한다.
+//   ★ 기본이 '창을 닫으면 사라짐'인 게 맞다. 오래 남기는 것은 **동의를 받은 뒤에만** 하는 일이라,
+//     기간을 주는 함수(optional_cookie_options)를 따로 거치게 했다.
 function pref_cookie_options(): array {
     return [
-        'expires'  => time() + PREF_DAYS * 86400,
         'path'     => '/',
         'samesite' => 'Lax',
         'secure'   => !empty($_SERVER['HTTPS']),
@@ -96,8 +102,12 @@ function pref_cookie_options(): array {
 // ── 게시판 정렬 기본값 ───────────────────────────────────────
 
 // 방금 고른 정렬을 기억한다. (게시판이 ?sort= 를 받았을 때 호출)
+//   ★ 동의를 안 받았으면 아무것도 안 한다 — 이번 화면은 그대로 정렬되고, 기억만 안 한다.
 function remember_sort(string $sort): void {
-    setcookie(PREF_SORT_COOKIE, $sort, pref_cookie_options());
+    if (!has_consent('ui')) {
+        return;
+    }
+    setcookie(PREF_SORT_COOKIE, $sort, optional_cookie_options());
 }
 
 // 기억해 둔 정렬을 꺼낸다. 없거나 이상한 값이면 $default.
@@ -119,7 +129,10 @@ function preferred_sort(array $allowed, string $default): string {
 
 // 고른 감상 필터를 기억한다. ('전체'도 기억한다 — 빈 문자열이 곧 '전체'라는 선택이다)
 function remember_sentiment(string $sentiment): void {
-    setcookie(PREF_SENTIMENT_COOKIE, $sentiment, pref_cookie_options());
+    if (!has_consent('ui')) {
+        return;
+    }
+    setcookie(PREF_SENTIMENT_COOKIE, $sentiment, optional_cookie_options());
 }
 
 // 기억해 둔 감상 필터를 꺼낸다. 허용 목록에 없으면 $default.
@@ -259,6 +272,7 @@ function get_recent_post_ids(): array {
 //   ★ 새 쿠키를 만들 때 여기 넣을지 말지를 반드시 정한다 — 그게 '물어봐야 하나'의 답이다.
 const OPTIONAL_COOKIES = [
     RECENT_POSTS_COOKIE, RECENT_WORKS_COOKIE, RECENT_SEARCH_COOKIE,
+    PREF_SORT_COOKIE, PREF_SENTIMENT_COOKIE, PER_PAGE_COOKIE,
 ];
 
 // ── 동의하지 않은 항목의 쿠키를 치운다 ───────────────────────
@@ -278,6 +292,9 @@ function forget_unconsented_cookies(): void {
     }
     if (!has_consent('search')) {
         $toClear[] = RECENT_SEARCH_COOKIE;
+    }
+    if (!has_consent('ui')) {
+        array_push($toClear, PREF_SORT_COOKIE, PREF_SENTIMENT_COOKIE, PER_PAGE_COOKIE);
     }
 
     foreach ($toClear as $name) {
@@ -362,7 +379,10 @@ function is_valid_work_slug(string $slug): bool {
 
 // 고른 값을 기억한다.
 function remember_per_page(int $perPage): void {
-    setcookie(PER_PAGE_COOKIE, (string) $perPage, pref_cookie_options());
+    if (!has_consent('ui')) {
+        return;
+    }
+    setcookie(PER_PAGE_COOKIE, (string) $perPage, optional_cookie_options());
 }
 
 // 기억해 둔 값을 꺼낸다. 허용 목록에 없으면 $default.

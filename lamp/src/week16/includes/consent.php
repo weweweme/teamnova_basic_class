@@ -49,8 +49,9 @@ const CONSENT_DAYS   = 90;
 //     다시 묻지 않았다. "저는 옛날 안내에만 동의했는데요"라고 하면 반박할 수가 없다.
 // ★ 항목이 바뀔 때마다 올린다 — 그래야 **이미 동의한 사람에게 다시 묻는다.**
 //   2 : 조회수 항목('stats')을 넣었다가  3 : 도로 뺐다.
+//   4 : 화면 설정('ui')을 **면제에서 동의 대상으로 옮겼다.** 아래 CONSENT_ITEMS 주석 참고.
 //   ※ 뺄 때도 올려야 한다. 안 올리면 없어진 항목에 동의한 상태가 그대로 남는다.
-const CONSENT_VERSION = 3;
+const CONSENT_VERSION = 4;
 
 // ── 증빙을 얼마나 보관할까 ───────────────────────────────────
 //   [★ 이 표만 기간이 비어 있었다]
@@ -73,9 +74,20 @@ const CONSENT_KEEP_YEARS = 3;
 // 물어보는 항목. 여기 없는 쿠키는 '필수'라 묻지 않는다.
 //   ★ 검색 기록을 따로 뺀 이유: **검색어는 사람이 무엇을 궁금해했는지 그 자체**라
 //     열람 기록보다 민감하다. 하나로 묶으면 "글 기록은 되는데 검색은 싫다"를 고를 수 없다.
+//
+//   [★★ 'ui'는 면제 대상이었다가 옮겨온 항목이다 — 원문을 다시 읽고 바꿨다]
+//     WP194 §3.6은 화면 설정 쿠키를 면제 목록에 넣어두고 조건을 둘 달았다:
+//       ① *"only set if the user has **explicitly requested the service to remember**
+//          a certain piece of information, for example, by clicking on a button or ticking a box"*
+//       ② *"only **session (or short term)** cookies storing such information are exempted"*
+//     ★ 우리는 ①을 못 채운다. 사용자는 **정렬 탭을 눌렀을 뿐**이고,
+//       그걸 다음에도 기억하기로 정한 건 우리다. **"이번엔 이렇게 보여줘"와
+//       "다음에도 기억해줘"는 다른 말이다.**
+//     → 우리가 세운 기준("사용자가 시켰나")으로 봐도 동의 쪽이라, 물어보기로 했다.
 const CONSENT_ITEMS = [
     'view'   => '최근 본 글·작품',                     // recent_posts · recent_works
     'search' => '최근 검색어',                          // recent_search
+    'ui'     => '게시판 정렬·감상 필터·페이지당 글 수',  // pref_sort · pref_sentiment · per_page
 ];
 
 // ── 이 브라우저의 동의 식별자 ────────────────────────────────

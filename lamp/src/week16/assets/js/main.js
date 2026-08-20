@@ -511,4 +511,49 @@ if (idleTimer) {
         }
         renderIdle();
     }, 1000);
+
+    // ── 타이핑도 '활동'이다 ────────────────────────────────────
+    //   [왜 필요한가]
+    //     글을 쓰는 동안에는 요청이 한 번도 안 나간다. 그래서 20분 넘게 쓰고
+    //     [등록]을 누르면 그 요청이 도착하는 순간 "활동이 없었다"로 판정되어
+    //     **본문이 통째로 버려진다.** 사람은 활동 중인데 서버가 유휴로 본 것이다.
+    //   ★ 그래서 자판을 두드렸다는 사실만 서버에 알린다. **내용은 안 보낸다.**
+    //     (초안 저장은 '💾 임시저장' 버튼이 따로 맡는다)
+    const PING_EVERY = 300;          // 5분. 유휴 한도(20분)의 1/4이라 여유가 넉넉하다.
+    let typed = false;
+
+    // 폼 안에서 무언가 입력되면 표시만 해둔다. **이때 요청을 보내지 않는다** —
+    //   한 글자마다 보내면 그게 곧 자동 저장만큼 시끄러운 통신이 된다.
+    document.addEventListener('input', function (e) {
+        if (e.target && e.target.closest && e.target.closest('form')) {
+            typed = true;
+        }
+    });
+
+    setInterval(function () {
+        // ★ 손을 놓고 있으면 아무것도 안 보낸다.
+        //   이게 없으면 '탭만 열어두면 안 끊긴다'로 되돌아간다.
+        if (!typed) {
+            return;
+        }
+        typed = false;
+
+        const meta = document.querySelector('meta[name="csrf-token"]');
+
+        fetch('/session/ping.php', {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: new URLSearchParams({ _token: meta ? meta.content : '' }),
+        })
+            .then(function (res) { return res.ok ? res.json() : null; })
+            .then(function (data) {
+                if (data && data.ok) {
+                    left = data.left;    // 카운트다운도 처음으로 되돌린다
+                    renderIdle();
+                }
+            })
+            .catch(function () {
+                // 실패해도 화면을 건드리지 않는다. 판정은 어차피 서버가 한다.
+            });
+    }, PING_EVERY * 1000);
 }

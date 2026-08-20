@@ -93,10 +93,15 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
         //   [★ 이 숫자를 알려줘도 되나]
         //     된다. 남은 시간은 **자기 세션의 사정**이고, 알아도 도장을 만들 수는 없다.
         //     비밀은 도장 그 자체이지 시계가 아니다. ?>
-  <?php if (DEVICE_KEY_REQUIRED && is_logged_in()): ?>
-    <?php // CSRF 토큰 — fetch로 보내는 POST에도 폼과 똑같이 붙어야 한다.
-          //   ★ "JS가 보내는 요청"이라고 예외를 두면 그 자리가 통로가 된다. ?>
+  <?php // CSRF 토큰 — fetch로 보내는 POST에도 폼과 똑같이 붙어야 한다.
+        //   ★ "JS가 보내는 요청"이라고 예외를 두면 그 자리가 통로가 된다.
+        //   ★★ 기기 도장과 **묶어두면 안 된다.** 한때 아래 블록 안에 있었는데,
+        //     DEVICE_KEY_REQUIRED를 끄는 순간 토큰이 사라져 **살아있음 신호(ping)가
+        //     통째로 막혔다.** 이 값은 도장이 아니라 **JS가 보내는 모든 POST**의 준비물이다. ?>
+  <?php if (is_logged_in()): ?>
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
+  <?php endif; ?>
+  <?php if (DEVICE_KEY_REQUIRED && is_logged_in()): ?>
     <?php // ★ 남은 시간은 **평범한 화면에서만** 알려준다.
           //   '기기 확인' 화면(/session/)에서까지 알려주면, 그 화면이 스스로 갱신을 걸고
           //   실패하면 다시 자기 자신으로 튕겨 **무한 루프**가 된다.

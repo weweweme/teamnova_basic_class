@@ -148,8 +148,45 @@ function destroy_all_sessions(int $userId): int {
 //     open   세션 시작할 때        close  요청이 끝날 때
 //     read   $_SESSION을 채울 때   write  $_SESSION을 저장할 때
 //     destroy  session_destroy()   gc     만료된 것 청소할 때
-final class DbSessionHandler implements SessionHandlerInterface
+// ★★ 인터페이스가 **둘**이다.
+//   SessionHandlerInterface           — 읽고 쓰고 지우는 6개 (저장소를 바꿔 끼우는 부분)
+//   SessionUpdateTimestampHandlerInterface — validateId + updateTimestamp
+//
+//   [★ 두 번째를 빠뜨려서 use_strict_mode 가 **꺼진 것과 같았다**]
+//     `session.use_strict_mode = 1` 은 *"서버가 발급한 적 없는 번호표는 거부하라"* 는 설정인데,
+//     PHP는 그 판단을 **핸들러의 validateId()에게 묻는다.** 우리가 그걸 구현하지 않아서
+//     PHP는 물어볼 곳이 없었고, 결국 **아무 번호표나 받아들이고 있었다.**
+//     실측: `PHPSESSID=deadbeef…` 를 지어내 보냈더니 거부는커녕 그 번호로 행이 생겼다.
+//   ★ 설정을 켜는 것과 그 설정이 도는 것은 다르다. **켜뒀다고 적기 전에 시험해봐야 한다.**
+final class DbSessionHandler implements SessionHandlerInterface, SessionUpdateTimestampHandlerInterface
 {
+    // 이 번호표가 **우리가 발급해서 실제로 저장한 것**인가?
+    //   [PHP가 이 함수를 두 곳에서 쓴다]
+    //     ① 사용자가 들고 온 번호표 검사 — false면 그 번호를 버리고 새로 발급한다
+    //     ② 새 번호를 만들 때 충돌 검사 — false(=아직 없음)가 나올 때까지 다시 뽑는다
+    //   → 그래서 뜻은 하나로 정리된다: **"이 번호로 살아 있는 세션이 있는가"**
+    //
+    //   ★ read()와 조건이 같아야 한다(`expires_at > NOW()`). 다르면
+    //     "검사는 통과하는데 읽으면 비어 있는" 어긋난 상태가 생긴다.
+    //
+    //   ⚠️ 조회 판정 세션(VIEWSESS)은 **서버가 계산한 번호**를 쓴다. 그 번호는 처음엔
+    //     저장된 적이 없으므로 여기서 false가 나고, 엄격 모드면 PHP가 번호를 갈아버려
+    //     **매번 새 서랍이 열린다.** → view_session.php가 그 구간만 use_strict_mode를 끈다.
+    //     (엄격 모드가 꺼져 있으면 PHP는 이 함수를 아예 부르지 않는다)
+    public function validateId(string $id): bool {
+        $stmt = db()->prepare('SELECT 1 FROM sessions WHERE id_hash = ? AND expires_at > NOW()');
+        $stmt->execute([session_fingerprint($id)]);
+
+        return (bool) $stmt->fetchColumn();
+    }
+
+    // 담긴 값이 하나도 안 바뀐 요청에서 PHP가 write() 대신 부른다(lazy_write).
+    //   ★ 우리에겐 그런 요청도 **수명을 미는 일**이 남아 있으므로 write()와 같은 일을 한다.
+    //     여기서 아무것도 안 하면 '읽기만 한 요청'에서 세션이 조용히 만료된다.
+    public function updateTimestamp(string $id, string $data): bool {
+        return $this->write($id, $data);
+    }
+
     // 저장소를 여는 단계. 파일 방식이라면 파일을 열었겠지만,
     //   우리는 db()가 필요할 때 알아서 연결하므로 여기서 할 일이 없다.
     public function open(string $path, string $name): bool {

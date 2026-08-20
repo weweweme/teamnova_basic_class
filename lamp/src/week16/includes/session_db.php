@@ -104,6 +104,23 @@ const SESSION_GRACE = 30;          // 옛 번호표를 몇 초 더 살려둘지
 //       세션이 눈에 보이는 게 이 프로젝트의 장점인데, **정작 봐야 할 행이 파묻힌다.**
 //     ※ 요청마다 DELETE가 한 번 더 도는 대가는 있다. 우리 규모에서는 무시할 만하고,
 //       표가 깨끗해서 얻는 게 더 크다고 판단했다.
+// 이 회원의 **유예 중인 행**을 지금 전부 지운다.
+//   [★ 왜 필요한가 — 로그아웃에 30초짜리 구멍이 있었다]
+//     로그아웃은 **지금 쓰는 번호표의 행**만 지운다. 그런데 요청마다 회전이 일어나므로,
+//     직전 몇 초 사이의 요청들이 남긴 **옛 행이 user_id를 든 채 30초씩 더 살아 있다.**
+//     실측: 로그인하고 세 번 눌렀더니 uid가 붙은 행이 **네 개**였다.
+//     그 30초 동안 옛 번호표로 접근하면 **로그아웃했는데 로그인 상태**다.
+//
+//   ★ 유예는 '겹친 요청을 살리려고' 준 것이지 '로그아웃을 늦추려고' 준 게 아니다.
+//     끊는 자리에서는 걷어낸다.
+//   ★ 지우는 대상을 '유예 중인 행'으로 좁힌 이유: 다른 기기의 **정상 세션**은
+//     만료가 30분 뒤라 여기 안 걸린다. 어차피 30초 안에 죽을 행만 앞당겨 죽인다.
+function destroy_graced_sessions(int $userId): void {
+    db()->prepare('DELETE FROM sessions
+                    WHERE user_id = ? AND expires_at <= DATE_ADD(NOW(), INTERVAL ? SECOND)')
+        ->execute([$userId, SESSION_GRACE]);
+}
+
 function expire_session_soon(string $oldSessionId): void {
     db()->prepare('UPDATE sessions SET expires_at = DATE_ADD(NOW(), INTERVAL ? SECOND)
                     WHERE id_hash = ?')

@@ -283,6 +283,19 @@ function key_proof_seconds_left(): int {
 // 이 요청이 도장 검사에서 빠지는 자리인가?
 //   ★ 도장을 받으러 가는 길까지 막으면 **아무도 도장을 못 찍는다**(무한 루프).
 //     검사를 넣을 때 가장 먼저 확인해야 하는 지점이다.
+// 이 요청이 **브라우저가 스스로 보낸 도장 갱신 요청**인가?
+//   [왜 구분해야 하나 — 실제로 크게 밟았다]
+//     device-key.js가 페이지를 열고 40초 뒤 이 두 곳을 자동으로 부른다.
+//     그런데 auth.php의 유휴 시계가 **모든 요청을 '사람이 움직였다'로 세는 바람에**,
+//     자리를 비워도 기계가 시계를 대신 밀어주어 **자동 로그아웃이 영영 안 걸렸다.**
+//   ★ 유휴 시계가 재려는 건 **"사람이 자리에 있나"** 다.
+//     기계가 밀어주는 시계는 시계가 아니다. (사용자가 들고 있는 시계가 시계가 아닌 것과 같다)
+const KEY_PROOF_PATHS = ['/session/challenge.php', '/session/refresh.php'];
+
+function is_key_proof_request(): bool {
+    return in_array((string) ($_SERVER['SCRIPT_NAME'] ?? ''), KEY_PROOF_PATHS, true);
+}
+
 function is_key_exempt_path(): bool {
     $path = (string) ($_SERVER['SCRIPT_NAME'] ?? '');
 

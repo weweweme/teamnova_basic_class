@@ -341,6 +341,14 @@ function login_and_redirect(int $userId, string $path = '/'): never {
 //     '?as= 를 안 붙인 주소로 보내는 것'이 곧 로그아웃이었다.
 //     이제는 진짜로 지울 것이 생겼다 — 네 단계를 모두 밟아야 깨끗이 지워진다.
 function logout_and_redirect(string $path = '/'): never {
+    // ★ 회전으로 밀려난 옛 행들부터 지운다. 안 지우면 그 행들이 user_id를 든 채
+    //   30초 더 살아 있어서, **로그아웃했는데 옛 번호표로는 로그인 상태**가 된다.
+    //   ★ $_SESSION을 비우기 **전에** 회원 번호를 읽어야 한다. (session_db.php)
+    $userId = current_user_id();
+    if ($userId > 0) {
+        destroy_graced_sessions($userId);
+    }
+
     // ① 금고 안의 내용물을 비운다
     $_SESSION = [];
 
@@ -439,14 +447,28 @@ function idle_seconds_left(): int {
 if (!empty($_SESSION[SESSION_USER_ID])) {
     $lastSeen = (int) ($_SESSION[SESSION_LAST_SEEN] ?? 0);
 
-    if ($lastSeen !== 0 && time() - $lastSeen > IDLE_LIMIT) {
-        // 세션을 비운다. 되살릴 쿠키가 따로 없으므로 이걸로 끝이다 — 다시 로그인해야 한다.
-        $_SESSION = [];
+    // ★★ **크거나 같으면** 끊는다. '초과'로 두었더니 무한 루프가 됐다:
+    //   화면 카운트다운은 `IDLE_LIMIT - (지금 - last_seen)` 으로 시작하는데,
+    //   렌더링에 1초가 걸려 **1199초**가 나간다. 그 카운트다운이 0이 되어 새로고침하면
+    //   서버가 보는 경과는 1199초 → `1199 > 1200` 이 거짓 → **로그아웃 대신 시계가 리셋**되고
+    //   카운트다운이 1200으로 다시 시작한다. → **자리를 비워도 영영 안 끊겼다.**
+    if ($lastSeen !== 0 && time() - $lastSeen >= IDLE_LIMIT) {
+        // ★ 세션만 비우는 게 아니라 **정상 로그아웃과 똑같이** 끊는다.
+        //   전에는 `$_SESSION = []` 한 줄이라 죽은 PHPSESSID 쿠키가 브라우저에 남았고,
+        //   회전으로 밀려난 옛 행도 30초 더 살아 있었다.
+        //   ★ 리다이렉트가 필요한 이유: 여기서 쿠키를 회수하면 이 화면에 찍히는
+        //     CSRF 토큰이 **저장될 곳을 잃는다.** 한 번 튕겨서 새 세션으로 시작해야 한다.
+        //     (알림은 flash 쿠키로 넘어가 다음 화면에서 뜬다 — PRG와 같은 이유)
         set_flash('⏰ 오랫동안 활동이 없어 자동으로 로그아웃되었습니다.', 'error');
-    } else {
-        // 움직였으니 시각을 갱신한다 → 쓰는 동안에는 계속 연장된다(sliding).
-        //   ★ 여기서 갱신하는 건 '마지막으로 움직인 시각'뿐이다.
-        //     비밀번호 확인 시각(auth_at)까지 같이 갱신하면 sudo 창이 영원히 안 닫힌다.
+        logout_and_redirect('/');
+    }
+
+    // 움직였으니 시각을 갱신한다 → 쓰는 동안에는 계속 연장된다(sliding).
+    //   ★ 여기서 갱신하는 건 '마지막으로 움직인 시각'뿐이다.
+    //     비밀번호 확인 시각(auth_at)까지 같이 갱신하면 sudo 창이 영원히 안 닫힌다.
+    //   ★★ 단, **브라우저가 스스로 보낸 도장 갱신 요청은 세지 않는다.**
+    //     그건 사람이 움직인 게 아니다. 세면 기계가 시계를 계속 밀어준다.
+    if (!is_key_proof_request()) {
         $_SESSION[SESSION_LAST_SEEN] = time();
     }
 }

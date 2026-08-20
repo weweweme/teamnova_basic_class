@@ -485,19 +485,26 @@ if (idleTimer) {
 
     // 남은 초를 mm:ss 로. padStart = 한 자리 수 앞에 0을 채워 '9:5'가 아니라 '09:05'로.
     function renderIdle() {
-        const m = Math.floor(left / 60);
-        const s = left % 60;
+        const shown = Math.max(0, left);       // 여유 구간(음수)은 00:00 으로 보여준다
+        const m = Math.floor(shown / 60);
+        const s = shown % 60;
         idleTimer.textContent = '⏱ ' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
 
         // 2분 이하로 남으면 색을 바꿔 눈에 띄게 한다.
         idleTimer.classList.toggle('idle-warn', left <= 120);
     }
 
+    // ★ 서버 시계보다 **늦게** 도착해야 한다.
+    //   서버가 내려준 값은 렌더링 지연 때문에 실제보다 1초쯤 적고,
+    //   setInterval도 정확히 1초가 아니다. 조금이라도 일찍 새로고침하면
+    //   서버는 "아직 안 지났다"고 보고 **시계를 리셋해버린다**(= 영영 안 끊긴다).
+    const RELOAD_GRACE = 2;
+
     renderIdle();
 
     const tick = setInterval(function () {
         left -= 1;
-        if (left <= 0) {
+        if (left <= -RELOAD_GRACE) {
             clearInterval(tick);
             location.reload();      // 서버에게 판단을 맡긴다
             return;

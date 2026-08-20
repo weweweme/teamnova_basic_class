@@ -519,24 +519,30 @@ if (idleTimer) {
     //     **본문이 통째로 버려진다.** 사람은 활동 중인데 서버가 유휴로 본 것이다.
     //   ★ 그래서 자판을 두드렸다는 사실만 서버에 알린다. **내용은 안 보낸다.**
     //     (초안 저장은 '💾 임시저장' 버튼이 따로 맡는다)
-    const PING_EVERY = 300;          // 5분. 유휴 한도(20분)의 1/4이라 여유가 넉넉하다.
+    //   [★ 서버에 알리는 주기와, 화면을 되돌리는 시점은 **다르다**]
+    //     · 서버에는 **1분에 한 번**만 알린다 — 한 글자마다 보내면 통신이 시끄럽다
+    //     · 화면은 **자판을 두드릴 때마다** 곧바로 되돌린다 —
+    //       쓰고 있는데 로그아웃 카운트가 도는 화면은 사용자를 불안하게 한다
+    //   ★ 둘을 나눠 두면 **화면은 즉각 반응하고, 통신은 조용하다.**
+    //     그리고 어긋나는 폭이 주기(1분)를 넘지 않으므로, 화면을 믿어도 탈이 없다.
+    const PING_EVERY = 60;           // 1분. 유휴 한도(20분)의 1/20이라 타이핑 중에는 절대 안 닿는다.
+
+    // 페이지를 열 때 서버가 준 값 = '가득 찬 상태'. 화면을 되돌릴 때 이 값으로 되돌린다.
+    //   ★ 20분을 여기에 숫자로 적지 않는다. 그 숫자의 주인은 서버(IDLE_LIMIT)이고,
+    //     양쪽에 적으면 언젠가 한쪽만 바뀐다.
+    const IDLE_FULL  = parseInt(idleTimer.dataset.left, 10) || 0;
     let typed = false;
+    let lastPingAt = Date.now();
 
-    // 폼 안에서 무언가 입력되면 표시만 해둔다. **이때 요청을 보내지 않는다** —
-    //   한 글자마다 보내면 그게 곧 자동 저장만큼 시끄러운 통신이 된다.
-    document.addEventListener('input', function (e) {
-        if (e.target && e.target.closest && e.target.closest('form')) {
-            typed = true;
-        }
-    });
-
-    setInterval(function () {
-        // ★ 손을 놓고 있으면 아무것도 안 보낸다.
-        //   이게 없으면 '탭만 열어두면 안 끊긴다'로 되돌아간다.
-        if (!typed) {
+    // 주기가 찼고 **그동안 타이핑이 있었으면** 보낸다.
+    //   ★ 두 조건이 다 필요하다 — 주기만 보면 손을 놓아도 계속 보내게 되어
+    //     '탭만 열어두면 안 끊긴다'로 되돌아가고, 타이핑만 보면 한 글자마다 보내게 된다.
+    function pingIfTyped() {
+        if (!typed || Date.now() - lastPingAt < PING_EVERY * 1000) {
             return;
         }
         typed = false;
+        lastPingAt = Date.now();
 
         const meta = document.querySelector('meta[name="csrf-token"]');
 
@@ -548,12 +554,33 @@ if (idleTimer) {
             .then(function (res) { return res.ok ? res.json() : null; })
             .then(function (data) {
                 if (data && data.ok) {
-                    left = data.left;    // 카운트다운도 처음으로 되돌린다
+                    left = data.left;    // 서버가 준 값으로 카운트다운을 되돌린다
                     renderIdle();
                 }
             })
             .catch(function () {
                 // 실패해도 화면을 건드리지 않는다. 판정은 어차피 서버가 한다.
             });
-    }, PING_EVERY * 1000);
+    }
+
+    document.addEventListener('input', function (e) {
+        if (!e.target || !e.target.closest || !e.target.closest('form')) {
+            return;
+        }
+        typed = true;
+
+        // ★ 화면을 곧바로 되돌린다. 자판을 두드리는 동안에는 20:00 에 붙어 있게 된다.
+        //   ⚠️ 이건 **화면만** 되돌리는 것이다. 서버 시계는 아래 ping이 1분에 한 번 민다.
+        //     그래서 손을 놓은 직후에는 화면이 서버보다 **최대 1분 이르게** 0에 닿을 수 있다.
+        //     이르게 닿는 쪽이라 로그인이 끊기지는 않는다 — 새로고침 한 번이 더 일어날 뿐이다.
+        //     (늦게 닿으면 "남았다는데 로그아웃되는" 반대 문제가 되므로, 이 방향이 안전하다)
+        left = IDLE_FULL;
+        renderIdle();
+
+        pingIfTyped();      // 주기가 이미 찼으면 다음 확인까지 기다리지 않는다
+    });
+
+    // ★ 짧게 치고 멈춘 경우에도 그 사실이 한 번은 전달되어야 한다.
+    //   그래서 입력 이벤트와 별개로 짧은 간격마다 한 번 더 확인한다.
+    setInterval(pingIfTyped, 5000);
 }

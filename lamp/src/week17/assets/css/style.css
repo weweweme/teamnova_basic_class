@@ -1046,3 +1046,112 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 }
 /* 카테고리에 결과가 없을 때 — 자리를 지키되 조용하게 (진짜 결과와 톤을 구분) */
 .search-empty { margin: 14px 4px 0; font-size: 14px; }
+
+/* ── 로그인 기기 목록 (설정) ─────────────────────────────────
+   세션 한 줄 = 기기 하나. '이 기기'만 배지를 달고 로그아웃 버튼을 숨긴다. */
+
+/* 쿠키 안내 배너 — 화면 아래 고정. 확인을 누르면 JS가 쿠키를 심고 즉시 제거한다. */
+/* 쿠키 '동의' 배너.
+   ★ 확인 하나였을 땐 한 줄이면 됐는데, 고를 것이 생기면서 세로로 쌓인다.
+     동의는 '읽고 고르는' 화면이라 정보량이 늘어나는 게 자연스럽다. */
+.cookie-notice {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 60;
+  display: flex; flex-direction: column; gap: .75rem;
+  width: min(560px, calc(100% - 32px));
+  padding: 1rem 1.1rem; border-radius: 10px;
+  background: rgba(31,31,38,.96); backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.12); box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  font-size: 14px;
+}
+.cookie-notice p { margin: 0 0 .5rem; }
+.cookie-notice-text { display: flex; flex-direction: column; gap: .35rem; }
+.cookie-required { font-size: 13px; line-height: 1.5; margin-bottom: .3rem; }
+
+/* 고를 수 있는 항목 — 클릭 범위를 넓히려고 label 전체를 줄로 만든다 */
+.cookie-item {
+  display: flex; align-items: center; gap: .5rem; cursor: pointer;
+  padding: .3rem .5rem; border-radius: 6px; font-size: 13px;
+}
+.cookie-item:hover { background: rgba(255,255,255,.06); }
+
+.cookie-notice-actions { display: flex; gap: .5rem; justify-content: flex-end; flex-wrap: wrap; }
+.cookie-notice button {
+  flex-shrink: 0; padding: .45rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600;
+  background: transparent; color: #c9ced6; border: 1px solid rgba(255,255,255,.18);
+}
+.cookie-notice button:hover { background: rgba(255,255,255,.08); }
+/* ★ '모두 동의'만 눈에 띄게 하고 '거절'을 흐리게 하면 그게 곧 유도(dark pattern)다.
+   → 거절도 같은 무게로 둔다. 강조는 초록 테두리 정도로만. */
+.btn-consent-all { border-color: rgba(70,167,88,.6); color: #7ee2a8; }
+.btn-consent-all:hover { background: rgba(70,167,88,.15); }
+.btn-consent-none { border-color: rgba(255,255,255,.18); }
+.consent-hint { font-size: 12px; margin: .3rem 0 0; }
+.consent-hint a { color: #9aa0aa; }
+
+/* 쿠키 설정 화면 (/cookies.php) */
+.consent-form .cookie-item { font-size: 14px; padding: .4rem .5rem; }
+.consent-actions { display: flex; gap: .5rem; margin-top: .8rem; flex-wrap: wrap; }
+.consent-actions button {
+  padding: .45rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600;
+  background: transparent; color: #c9ced6; border: 1px solid rgba(255,255,255,.18);
+}
+.consent-actions button:hover { background: rgba(255,255,255,.08); }
+.consent-version {
+  font-size: 12px; padding: .1rem .4rem; border-radius: 4px;
+  border: 1px solid rgba(255,255,255,.14); color: #8b919b;
+}
+.cookie-list-label { margin: .8rem 0 .2rem; font-size: 13px; font-weight: 600; color: #c9ced6; }
+.cookie-list {
+  margin: 0; font-size: 13px; color: #9aa0aa; word-break: break-all;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+/* 동의 기록 — 시간순으로 쌓이는 목록이라 왼쪽에 선을 둬 '이력'임을 보이게 한다 */
+.consent-history { list-style: none; margin: .6rem 0 0; padding: 0; font-size: 13px; }
+.consent-history li {
+  padding: .5rem 0 .5rem .8rem; border-left: 2px solid rgba(255,255,255,.12);
+  margin-bottom: .3rem;
+}
+.consent-history li:first-child { border-left-color: rgba(70,167,88,.6); }  /* 가장 최근 = 지금 상태 */
+.consent-when { font-variant-numeric: tabular-nums; color: #9aa0aa; margin-right: .3rem; }
+.consent-items { margin-top: .15rem; color: #c9ced6; }
+
+/* '동의 창 다시 보기' — 파괴적이지 않은 보조 동작이라 링크처럼 낮춘다 */
+.consent-reset { margin-top: 1rem; }
+.btn-link {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: #8b919b; font-size: 13px; text-decoration: underline;
+}
+.btn-link:hover { color: #c9ced6; }
+
+/* 로그인한 기기 목록 (설정) */
+.device-list { list-style: none; padding: 0; margin: .6rem 0 0; }
+.device-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: .7rem 0; border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.device-item:last-child { border-bottom: 0; }
+.device-item .muted { font-size: 12px; margin-top: .15rem; }
+.device-current {
+  margin-left: .4rem; font-size: 11px; padding: .1rem .4rem; border-radius: 4px;
+  background: rgba(70,167,88,.18); color: #7ee2a8; border: 1px solid rgba(70,167,88,.4);
+}
+
+/* 페이지당 글 수 선택 (게시판) */
+.per-page { display: inline-flex; gap: .25rem; margin-right: .5rem; font-size: 13px; }
+.per-page a { padding: .15rem .45rem; border-radius: 4px; color: #9aa0aa; text-decoration: none; }
+.per-page a.active { background: rgba(255,255,255,.1); color: #fff; font-weight: 600; }
+
+/* 임시저장 버튼 — 등록(주요 동작) 옆의 보조 버튼이라 톤을 낮춘다 */
+.btn-draft {
+  margin-left: .5rem; padding: .45rem .9rem; border-radius: 6px; cursor: pointer;
+  background: transparent; color: #c9ced6; border: 1px solid rgba(255,255,255,.18);
+}
+.btn-draft:hover:not(:disabled) { background: rgba(255,255,255,.06); }
+.btn-draft:disabled { opacity: .5; cursor: default; }
+
+/* ⏱ 자동 로그아웃 카운트다운 (상단바) */
+.idle-timer {
+  font-size: 12px; color: #8b919b; font-variant-numeric: tabular-nums;
+  padding: .1rem .4rem; border-radius: 4px; border: 1px solid rgba(255,255,255,.1);
+}
+.idle-timer.idle-warn { color: #ff9ea2; border-color: rgba(229,72,77,.5); background: rgba(229,72,77,.12); }

@@ -11,6 +11,8 @@ require_once __DIR__ . '/util.php';
 require_once __DIR__ . '/auth.php';   // 로그인 상태에 따라 메뉴가 달라지므로
 require_once __DIR__ . '/level.php';  // 작성자 옆 등급 배지(user_level) — 모든 화면에서 씀
 require_once __DIR__ . '/notifications.php';  // 상단바 🔔 안읽은 개수
+require_once __DIR__ . '/devices.php';        // 새 기기 로그인 알림
+require_once __DIR__ . '/prefs.php';          // 쿠키 안내 배너 (footer.php에서 씀)
 
 // ★ week16에서 여기 있던 'URL 리라이터' 블록이 통째로 사라졌다.
 //   week15는 세션이 없어서 신원(?as=영화광)을 링크 30여 곳에 빠짐없이 붙여야 했고,
@@ -75,6 +77,45 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
        이게 없으면 <head>에서 JS가 먼저 돌아 아직 만들어지지 않은 요소를 못 찾는다.
        (예전에 <script>를 body 맨 아래 뒀던 이유와 같은 문제를, defer로 더 깔끔하게 해결) -->
   <script src="/assets/js/main.js?v=<?= e((string)$jsVer) ?>" defer></script>
+
+  <?php // ── 기기 도장(세션 연장 조건) ─────────────────────────────
+        //   [★ 왜 <meta>로 넘기나]
+        //     JS가 서버에 물어보려면 그 자체가 요청이다. 어차피 이 페이지를 그리는 김에
+        //     **남은 시간을 같이 실어 보내면** 요청 한 번을 아낀다.
+        //
+        //   [★ 왜 남은 시간을 알려주나 — 만료 전에 미리 찍게 하려고]
+        //     만료된 **뒤에** 찍으면 사용자가 '기기 확인 중' 화면을 보게 된다.
+        //     조금 일찍(key_proof_margin) 화면 뒤에서 찍으면 아무 일도 없었던 것처럼 이어진다.
+        //     ★ 그 여유도 함께 알려준다 — 고정 60초로 두면 수명이 60초일 때
+        //       **매 요청 도장을 찍게 되어** '평소엔 쿠키로'가 무너진다.
+        //     ※ DBSC도 같은 방식이다 — 브라우저가 쿠키 만료를 보고 알아서 갱신한다.
+        //
+        //   [★ 이 숫자를 알려줘도 되나]
+        //     된다. 남은 시간은 **자기 세션의 사정**이고, 알아도 도장을 만들 수는 없다.
+        //     비밀은 도장 그 자체이지 시계가 아니다. ?>
+  <?php // CSRF 토큰 — fetch로 보내는 POST에도 폼과 똑같이 붙어야 한다.
+        //   ★ "JS가 보내는 요청"이라고 예외를 두면 그 자리가 통로가 된다.
+        //   ★★ 기기 도장과 **묶어두면 안 된다.** 한때 아래 블록 안에 있었는데,
+        //     DEVICE_KEY_REQUIRED를 끄는 순간 토큰이 사라져 **살아있음 신호(ping)가
+        //     통째로 막혔다.** 이 값은 도장이 아니라 **JS가 보내는 모든 POST**의 준비물이다. ?>
+  <?php if (is_logged_in()): ?>
+    <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
+  <?php endif; ?>
+  <?php if (DEVICE_KEY_REQUIRED && is_logged_in()): ?>
+    <?php // ★ 남은 시간은 **평범한 화면에서만** 알려준다.
+          //   '기기 확인' 화면(/session/)에서까지 알려주면, 그 화면이 스스로 갱신을 걸고
+          //   실패하면 다시 자기 자신으로 튕겨 **무한 루프**가 된다.
+          //   (이 화면의 진행은 verify-page.js가 따로 몰고 간다) ?>
+    <?php if (!is_key_exempt_path()): ?>
+      <meta name="key-proof-left" content="<?= (int) key_proof_seconds_left() ?>">
+      <meta name="key-proof-margin" content="<?= (int) key_proof_margin() ?>">
+    <?php endif; ?>
+    <?php
+      $keyJsPath = __DIR__ . '/../assets/js/device-key.js';
+      $keyJsVer  = file_exists($keyJsPath) ? filemtime($keyJsPath) : '1';
+    ?>
+    <script src="/assets/js/device-key.js?v=<?= e((string) $keyJsVer) ?>" defer></script>
+  <?php endif; ?>
 </head>
 <body>
   <!-- 공통 상단 메뉴바: 어느 페이지에서든 여기로 이동 가능 -->
@@ -106,6 +147,12 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
           if ($unread > 0): ?><span class="nav-bell-badge"><?= $unread > 99 ? '99+' : (int)$unread ?></span><?php endif; ?></a>
         <!-- 내 이름을 누르면 내 프로필로 (GET으로 user 전달)
              urlencode = 한글 아이디를 주소에 안전하게 넣기 위해 변환 -->
+        <?php // ⏱ 자동 로그아웃까지 남은 시간. 서버가 준 초를 JS가 1초씩 깎는다.
+              //   ★ 판정은 서버가 한다 — 이건 '보여주기'일 뿐이라, 0이 되면 새로고침해서
+              //     서버의 판단을 받는다(그 요청에서 로그아웃 처리 + 안내가 뜬다). ?>
+        <span class="idle-timer" id="idle-timer"
+              data-left="<?= (int) idle_seconds_left() ?>"
+              title="이 시간 동안 아무 동작이 없으면 자동 로그아웃됩니다">⏱ --:--</span>
         <a class="nav-user" href="/profile/?user=<?= urlencode((string)current_user()) ?>"><?= e(current_nickname()) ?>님</a>
         <!-- 로그아웃은 '상태를 바꾸는' 동작이라 링크(GET)가 아니라 POST 폼 버튼 -->
         <form class="logout-form" method="post" action="/auth/logout.php">
@@ -126,9 +173,28 @@ $pageTitle = $pageTitle ?? '리뷰 커뮤니티';
     // ── 플래시 알림 ──────────────────────────────────────────
     //   액션 파일(create/delete/…)이 set_flash()로 세션에 남긴 쪽지를 꺼내 보여준다.
     //   ★ 여기 한 군데서만 그린다 → 페이지마다 알림 코드를 복붙할 필요가 없다.
-    //   ★ take_flash()는 꺼내면서 세션에서 지운다(read-once) → 새로고침해도 다시 뜨지 않는다.
+    //   ★ take_flash()는 꺼내면서 flash 쿠키를 지운다(read-once) → 새로고침해도 다시 뜨지 않는다.
     //     week15에는 알림이 주소에 있어서 JS가 주소창을 청소해야 했다. 그 일이 없어졌다.
     $flash = take_flash();
+
+    // ── 새 기기 로그인 알림 ──────────────────────────────────
+    //   ★ **다른 곳에서 내 계정에 로그인이 있었다**를 주인에게 알린다.
+    //     지금 이 기기는 제외한다 — 방금 자기가 로그인한 걸 자기에게 알려봐야 소용없다.
+    //   ★ 알림이 이미 떠 있으면 덮어쓰지 않는다. 두 개를 겹쳐 띄우면 둘 다 안 읽힌다.
+    //   ⚠️ **한계**: 이건 '로그인'을 잡는다. **세션 쿠키를 훔쳐 붙여넣은 경우엔 로그인이
+    //     없으므로 안 잡힌다.** 비밀번호 유출에는 강하고 세션 탈취에는 약하다 — 다른 공격이다.
+    if ($flash === null && is_logged_in()) {
+        $newDevices = take_new_devices(current_user_id());
+        if ($newDevices) {
+            $names = array_map(fn($d) => describe_device($d['user_agent']), $newDevices);
+            $flash = [
+                'message' => '🔔 새 기기에서 로그인되었습니다 — ' . implode(' · ', $names)
+                             . '. 본인이 아니라면 비밀번호를 바꿔 주세요.',
+                'type'    => 'error',
+                'action'  => null,
+            ];
+        }
+    }
     ?>
     <?php if ($flash !== null): ?>
       <?php // 화면 우상단에 '떠 있는' 토스트. JS가 몇 초 뒤 스르륵 걷어낸다. ?>

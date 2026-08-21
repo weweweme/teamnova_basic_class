@@ -145,34 +145,19 @@ CREATE TABLE notifications (
     FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE
 );
 
--- ── remember_tokens : 로그인 유지(자동 로그인) ─────────────
---   week16에서 추가. 세션은 브라우저를 닫으면 사라지므로, 오래 남는 쿠키를 따로 주고
---   그 쿠키로 세션을 되살린다.
---   ★ 쿠키에는 추측 불가능한 무작위 '표'(토큰)만 담고, 서버는 그 표의 '지문'(SHA-256)만 갖는다.
---     쿠키에 아이디·비밀번호를 담으면 사용자가 고칠 수 있어서 안 된다.
---   자세한 설계 근거는 sql/migrations/004_remember_tokens.sql 주석 참고.
-CREATE TABLE remember_tokens (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    user_id    INT      NOT NULL,             -- 누구의 표인가 → users.id
-    token_hash CHAR(64) NOT NULL UNIQUE,      -- SHA-256 16진수 = 항상 64글자. UNIQUE라 찾기도 빠르다
-    expires_at DATETIME NOT NULL,             -- 이 시각이 지나면 무효 (기본 30일)
-    created_at DATETIME DEFAULT NOW(),
 
-    -- 회원이 사라지면 표도 함께 삭제. (글과 달리 '남겨야 할 내용물'이 아니라 로그인 부속물이므로)
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
 
 
 -- ── sessions : 세션 저장소 ────────────────────────────────
 --   week16에서 추가. PHP 기본값은 '서버의 임시 파일'인데, 그걸 이 표로 옮겼다.
 --   ★ 옮긴 이유 셋: ①서버를 늘리면 파일은 공유가 안 된다 ②'이 회원의 세션 전부 끊기'가
 --     가능해진다(user_id 칼럼) ③세션이 눈에 보인다.
---   ★ 세션 ID도 원본이 아니라 지문(SHA-256)으로 넣는다 — remember_tokens와 같은 방침.
+--   ★ 세션 ID도 원본이 아니라 지문(SHA-256)으로 넣는다 — 유출돼도 되돌릴 수 없게.
 --   자세한 설계 근거는 sql/migrations/005_sessions.sql 주석 참고.
 CREATE TABLE sessions (
     id_hash     CHAR(64) PRIMARY KEY,          -- SHA-256(세션 ID). 원본은 어디에도 안 남긴다
     user_id     INT          NULL,             -- 비로그인 방문자도 세션이 있으므로 NULL 허용
-    payload     TEXT         NOT NULL,         -- PHP가 직렬화한 세션 내용
+    payload     MEDIUMTEXT   NOT NULL,         -- PHP가 직렬화한 세션 내용 (16MB — 019 참고)
     ip_address  VARCHAR(45)  NULL,             -- IPv6까지 담으려면 45글자
     user_agent  VARCHAR(255) NULL,
     last_active DATETIME     NOT NULL,         -- 새로고침할 때마다 갱신
@@ -182,4 +167,88 @@ CREATE TABLE sessions (
     INDEX idx_sessions_expires (expires_at),
 
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
+-- ── drafts : 글쓰기 임시저장(초안) ────────────────────────
+--   week16에서 추가. 처음엔 세션에 담았다가 표로 옮겼다 —
+--   세션은 창을 닫으면 사라지는데, 임시저장은 그때도 살아 있어야 쓸모가 있기 때문.
+--   ★ 복합 기본키(user_id, work_slug) = "한 사람이 한 작품에 초안 하나".
+--   자세한 설계 근거는 sql/migrations/006_drafts.sql 주석 참고.
+CREATE TABLE drafts (
+    user_id    INT          NOT NULL,        -- 누구의 초안인가 → users.id
+    work_slug  VARCHAR(100) NOT NULL,        -- 어느 작품 게시판에 쓰던 글인가
+    title      VARCHAR(200) NOT NULL DEFAULT '',
+    content    TEXT         NOT NULL,
+    sentiment  VARCHAR(10)  NOT NULL DEFAULT '',
+    updated_at DATETIME     NOT NULL,        -- 오래된 초안 정리 기준
+
+    PRIMARY KEY (user_id, work_slug),
+    INDEX idx_drafts_updated (updated_at),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
+-- ── consent_log : 쿠키 동의 증빙 ──────────────────────────
+--   week16에서 추가. **고치지 않고 쌓기만 하는(append-only) 표.**
+--   ★ 왜 쿠키만으로는 안 되나: 동의를 받았다는 사실을 증명할 책임은 우리에게 있는데,
+--     쿠키는 사용자가 지울 수도 만들 수도 있어 증거가 못 된다.
+--     → 쿠키는 '배너를 띄울까'를 빨리 답하는 캐시, 이 표가 증빙 원본이다.
+--   ★ 철회해도 지난 줄을 안 지운다 — '동의했다가 철회함'과 '동의한 적 없음'은 다른 사실이다.
+--   ★ IP는 일부러 안 담는다 — 증빙을 남기려고 개인정보를 더 모으면 본말이 전도된다.
+--   자세한 설명은 migrations/007_consent_log.sql
+CREATE TABLE consent_log (
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    consent_id     CHAR(32)     NOT NULL,     -- 이 브라우저의 무작위 번호 (열쇠가 아니라 지문을 안 쓴다)
+    user_id        INT          NULL,         -- 비로그인이면 NULL — 동의는 로그인보다 먼저 받는다
+    action         VARCHAR(10)  NOT NULL,     -- grant | revoke | reset | link
+    source         VARCHAR(10)  NOT NULL,     -- banner | settings | login
+    policy_version SMALLINT     NOT NULL,     -- 어떤 안내문에 동의했나
+    items          VARCHAR(255) NOT NULL,     -- {"view":1,"search":0} — 그 시점의 선택 통째로
+    user_agent     VARCHAR(255) NOT NULL DEFAULT '',
+    created_at     DATETIME     NOT NULL DEFAULT NOW(),
+
+    INDEX idx_consent_browser (consent_id, id),
+    INDEX idx_consent_user (user_id, id)
+    -- ★ users로 가는 FOREIGN KEY를 안 건다 — 탈퇴하면 증빙이 사라지면 증빙이 아니다.
+);
+
+
+-- ── login_attempts : 로그인 시도 제한 ─────────────────────
+--   week16에서 추가. 무차별 대입(brute force) 방어.
+--   ★ '몇 번 틀렸나'는 공격자가 0으로 되돌리고 싶은 값이라 세션·쿠키에 두면 안 된다 → DB.
+--   ★ (아이디 + 접속지) 조합으로 센다 — 아이디만 세면 남의 계정을 일부러 잠글 수 있다.
+--   ★ 판정용이라 창(15분)이 지나면 버린다. consent_log(증빙, 영구)와 정반대.
+--   자세한 설명은 migrations/010_login_attempts.sql
+CREATE TABLE login_attempts (
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username     VARCHAR(50) NOT NULL,     -- 없는 아이디여도 기록한다 (정찰도 막아야 하므로)
+    ip_hash      CHAR(64)    NOT NULL,     -- 접속지 지문. 비교만 하면 되니 원본은 안 담는다
+    attempted_at DATETIME    NOT NULL DEFAULT NOW(),
+
+    INDEX idx_attempt_ip   (ip_hash, attempted_at),
+    INDEX idx_attempt_pair (ip_hash, username, attempted_at)
+    -- ★ users로 가는 FK를 안 건다 — 없는 아이디로 온 시도도 기록해야 하기 때문.
+);
+
+
+-- ── post_views : 조회수 중복 방지 ─────────────────────────
+--   week16에서 추가. Discourse의 topic_views와 같은 구조.
+--   ★ 원래는 세션에 담았는데, 세션엔 **시각이 없어서** "몇 시간 뒤에 다시 셀지"를
+--     정할 수가 없었다 — 세션 수명(유휴 20분)이 그 정책을 우연히 대신 정하고 있었다.
+--     게다가 브라우저를 닫으면 리셋돼서 부풀리기가 쉬웠다.
+--   ★ viewed_on이 DATE = "같은 날이면 안 센다". 시각을 쓰면 UTC/KST가 어긋난다.
+--   ★ 복합 기본키 = "한 사람이 한 글에 한 줄" → 행이 무한정 늘지 않는다.
+--   자세한 설명은 migrations/012_post_views.sql
+CREATE TABLE post_views (
+    post_id    INT         NOT NULL,
+    viewer_key VARCHAR(72) NOT NULL,   -- 'u:1'(로그인) 또는 'd:4f8a…'(device 쿠키)
+    ip_hash    CHAR(64)    NULL,       -- 비로그인만. 쿠키를 지우고 다시 와도 하루 1회를 지키려고
+                                       --   ★ 로그인 사용자는 안 담는다 (회원 번호로 충분 = 필요 없는 개인정보)
+    viewed_on  DATE        NOT NULL,   -- 시각이 아니라 날짜
+
+    PRIMARY KEY (post_id, viewer_key),
+    INDEX idx_post_views_day (viewed_on),
+    INDEX idx_post_views_ip (post_id, ip_hash, viewed_on),
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
 );

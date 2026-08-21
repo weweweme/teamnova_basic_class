@@ -11,7 +11,8 @@ require_once __DIR__ . '/../includes/tmdb.php';    // 작품 상세(감독·출�
 require_once __DIR__ . '/../includes/prefs.php';   // 정렬 취향 쿠키 (week16)
 
 // 한 페이지에 보여줄 글 수. (매직값 금지 — 이름 붙인 상수로)
-const POSTS_PER_PAGE = 15;
+const POSTS_PER_PAGE = 15;                       // 기본값
+const PER_PAGE_CHOICES = [15, 30, 50];           // 고를 수 있는 값 = 곧 허용 목록
 
 // 정렬 탭 목록 (키 = URL에 들어갈 값, 값 = 화면에 보일 이름)
 //   ★ 화면보다 위에 둔 이유: 이 목록이 곧 '허용된 정렬값'이라, 아래 검증에서 먼저 필요하다.
@@ -22,7 +23,6 @@ const SORT_DEFAULT = 'new';
 // ── 1) 파라미터 받기 ─────────────────────────────────────────
 $work      = get_str('work', '');
 $q         = mb_substr(trim(get_str('q')), 0, SEARCH_QUERY_MAX);       // 이 게시판 '안에서' 글 검색어
-$sentiment = get_str('sentiment', '');     // '' = 전체 | 호평 | 보통 | 혹평
 $page      = get_int('page', 1);    // 1부터 시작
 
 // ── 정렬: 주소에 있으면 그걸 쓰고 기억한다, 없으면 지난번 취향을 꺼낸다 ──
@@ -43,9 +43,33 @@ if ($sortFromUrl !== '') {
     $sort = preferred_sort($sortKeys, SORT_DEFAULT);
 }
 
-// 감상 값 검증: 허용된 값만 인정하고, 이상한 값이 오면 '전체'로 되돌린다.
-if (!in_array($sentiment, ['호평', '보통', '혹평'], true)) {
-    $sentiment = '';
+// ── 감상 필터: 정렬과 완전히 같은 규칙 ──────────────────────
+//   주소에 있으면 그걸 쓰고 기억한다 / 없으면 지난번 취향을 꺼낸다.
+//   ★ 여기도 주소가 항상 이긴다. 공유된 링크를 눌러 온 사람이 내 쿠키 때문에
+//     다른 화면을 보면 안 되기 때문이다.
+//   ★ '전체'를 빈 문자열이 아니라 'all'로 둔다 — 이유가 있다.
+//     query_url()은 값이 빈 파라미터를 주소에서 빼버린다(주소를 깨끗하게 유지하려고).
+//     그래서 '전체'를 ''로 두면 링크가 그냥 /board/?work=… 가 되고,
+//     **주소에 sentiment가 없으니 쿠키가 이겨서 '혹평'이 그대로 남는 버그**가 났다.
+//     → '전체'도 하나의 선택이므로 주소에 남을 수 있는 이름을 준다.
+$sentimentKeys = ['all', '호평', '보통', '혹평'];   // 이 목록이 곧 허용 목록이다.
+if (isset($_GET['sentiment'])) {
+    // 주소로 온 값도 그대로 믿지 않는다 — 허용 목록에 있을 때만 인정하고 기억한다.
+    $fromUrl   = get_str('sentiment');
+    $sentiment = in_array($fromUrl, $sentimentKeys, true) ? $fromUrl : 'all';
+    remember_sentiment($sentiment);
+} else {
+    // ★ 쿠키 값도 허용 목록으로 다시 검증한다 (preferred_sentiment 안에서).
+    $sentiment = preferred_sentiment($sentimentKeys, 'all');
+}
+
+// ── 한 페이지 글 수: 정렬·감상과 같은 규칙 (주소가 이기고, 쿠키도 허용 목록 대조) ──
+$perPageFromUrl = get_int('per', 0);
+if ($perPageFromUrl !== 0) {
+    $perPage = in_array($perPageFromUrl, PER_PAGE_CHOICES, true) ? $perPageFromUrl : POSTS_PER_PAGE;
+    remember_per_page($perPage);
+} else {
+    $perPage = preferred_per_page(PER_PAGE_CHOICES, POSTS_PER_PAGE);
 }
 // 페이지 최소값 보정 (?page=0, ?page=-5 같은 장난 방어)
 if ($page < 1) {
@@ -85,20 +109,26 @@ $downPct    = 100 - $upPct;   // 나머지가 비추천 (합이 항상 100이 �
 $posts = get_posts();
 $posts = filter_posts_by_work($posts, $work);           // ① 이 작품 글만
 $posts = search_posts($posts, $q);                      // ② 그 안에서 검색어로 추리기
-$posts = filter_posts_by_sentiment($posts, $sentiment); // ③ 호평/혹평으로 추리기
+//   filter_posts_by_sentiment는 ''를 '전체'로 알아듣는다 → 'all'일 때만 ''로 바꿔 넘긴다.
+//   ★ 화면·주소에서 쓰는 이름('all')과 필터 함수가 쓰는 값('')을 여기 한 줄에서만 잇는다.
+$posts = filter_posts_by_sentiment($posts, $sentiment === 'all' ? '' : $sentiment); // ③ 호평/혹평으로 추리기
 $posts = sort_posts($posts, $sort);                     // ④ 정렬
 
 $totalCount = count($posts);                                        // 조건에 맞는 전체 개수
-$totalPages = max(1, (int)ceil($totalCount / POSTS_PER_PAGE));      // 총 페이지 수(올림)
+$totalPages = max(1, (int)ceil($totalCount / $perPage));            // 총 페이지 수(올림)
 if ($page > $totalPages) {                                          // 범위 넘으면 마지막으로
     $page = $totalPages;
 }
-$pagePosts = paginate_posts($posts, $page, POSTS_PER_PAGE);         // 이 페이지 분량만
+$pagePosts = paginate_posts($posts, $page, $perPage);               // 이 페이지 분량만
 
 // ── 5) 탭 목록 ───────────────────────────────────────────────
 //   정렬 탭(SORT_TABS)은 검증에도 쓰이므로 파일 맨 위에 있다.
 $sortTabs   = SORT_TABS;
-$sentiments = ['' => '전체', '호평' => '호평', '보통' => '보통', '혹평' => '혹평'];
+$sentiments = ['all' => '전체', '호평' => '호평', '보통' => '보통', '혹평' => '혹평'];
+
+// 이 작품을 '최근 본 작품'으로 기록한다. (작품 목록 화면에서 다시 보여준다)
+//   ★ setcookie는 출력 전이어야 하므로 여기(화면 그리기 직전)에 둔다.
+remember_recent_work($work);
 
 $pageTitle = $title . ' 게시판';
 require __DIR__ . '/../includes/header.php';
@@ -137,7 +167,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
   <?php endif; ?>
 
-  <?php // 투표·글등록·삭제 완료 알림은 header.php가 주소(?flash=)에서 읽어 그린다 (set_flash) ?>
+  <?php // 투표·글등록·삭제 완료 알림은 header.php가 flash 쿠키에서 읽어 그린다 (set_flash) ?>
 
   <!-- 작품 추천/비추천 투표 — '글'이 아니라 '작품'에 대한 POST -->
   <section class="vote-box">
@@ -205,6 +235,13 @@ require __DIR__ . '/../includes/header.php';
   <div class="board-toolbar">
     <p class="muted">총 <?= $totalCount ?>개 · <?= $page ?>/<?= $totalPages ?> 페이지</p>
     <!-- 이 작품으로 글쓰기 — GET으로 work를 넘기면 글쓰기 폼에서 그 작품이 미리 선택된다. -->
+    <?php // 한 페이지에 몇 개씩 볼지 — 고르면 쿠키에 기억된다(취향). ?>
+    <span class="per-page">
+      <?php foreach (PER_PAGE_CHOICES as $n): ?>
+        <a class="<?= $perPage === $n ? 'active' : '' ?>"
+           href="<?= e(query_url('/board/', ['per' => (string) $n, 'page' => ''])) ?>"><?= $n ?></a>
+      <?php endforeach; ?>
+    </span>
     <a class="btn-write" href="/post/write.php?work=<?= e($work) ?>">✏️ 글쓰기</a>
   </div>
 

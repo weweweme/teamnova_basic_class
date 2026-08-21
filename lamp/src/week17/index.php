@@ -9,6 +9,7 @@ require_once __DIR__ . '/includes/util.php';
 require_once __DIR__ . '/includes/tmdb.php';       // 인기작·인기영화·인기드라마
 require_once __DIR__ . '/includes/works.php';      // 우리 커뮤니티 작품
 require_once __DIR__ . '/includes/posts.php';      // 최근 글 (게시판)
+require_once __DIR__ . '/includes/prefs.php';      // 최근 본 글 (쿠키에서 읽는다)
 require_once __DIR__ . '/includes/media_row.php';  // 가로 줄 렌더링 조각
 
 // ── 우리 DB 데이터 (빠름 — 서버가 즉시 그린다) ──────────────
@@ -32,8 +33,11 @@ if ($community) {
 }
 
 // ── 사이드바 데이터 ──────────────────────────────────────────
-//   B) 지금 뜨는 글 = 조회수 순 상위 4개 (우리 커뮤니티 = 우리 정체성)
-$hotPosts = paginate_posts(sort_posts(get_posts(), 'views'), 1, 4);
+//   B) 지금 뜨는 글 = **최근 7일** 조회가 많은 순 상위 4개
+//      ★ 전에는 posts.views(누적)로 뽑았다. 그런데 그 값은 쌓이기만 해서
+//        **1년 전 글이 영원히 1등**이었다 — 이름은 '지금 뜨는'인데 '역대 많이 본'이었던 것.
+//        post_views에 날짜가 남으면서 비로소 '최근'을 셀 수 있게 됐다.
+$hotPosts = trending_posts(get_posts(), 4);
 //   C) 최근 본 글 = 이 브라우저가 방금 본 글 (세션에 쌓인다 — week16에서 되살린 기능)
 //      ★ '지금 뜨는 글'과 축이 다르다: 저건 모두의 조회수, 이건 나 혼자의 발자국.
 //        로그인 여부와 무관하게 동작한다 — 세션은 '이 브라우저'의 공간이기 때문.
@@ -44,7 +48,7 @@ $pageTitle = '홈 · 리뷰 커뮤니티';
 require __DIR__ . '/includes/header.php';
 ?>
 
-  <?php // 로그인·글등록 완료 알림은 header.php가 주소(?flash=)에서 읽어 그린다 (set_flash) ?>
+  <?php // 로그인·글등록 완료 알림은 header.php가 flash 쿠키에서 읽어 그린다 (set_flash) ?>
 
   <?php // ── 히어로 영역: 넓으면 [히어로 | 사이드바] 2단, 좁으면 세로 1단 ── ?>
   <?php if ($hero && !empty($hero['backdrop_url'])): ?>
@@ -69,7 +73,17 @@ require __DIR__ . '/includes/header.php';
               <?php foreach ($hotPosts as $p): ?>
                 <li>
                   <a href="/post/view.php?id=<?= e((string)$p['id']) ?>"><?= e($p['title']) ?></a>
-                  <span class="side-meta"><?= e($p['workTitle']) ?> · 조회 <?= (int)$p['views'] ?></span>
+                  <?php // ★ 정렬 기준(최근 7일 조회)을 그대로 보여준다.
+                        //   누적을 찍으면 '조회 502'가 '조회 1497'보다 위에 떠서 순서가 이해되지 않는다.
+                        //   ★ 최근 기록이 아직 없으면(표가 방금 생겨서) 그 줄은 누적으로 정렬되므로,
+                        //     그때는 누적을 보여준다 — **그 줄의 순서를 결정한 숫자**를 찍는 것이다. ?>
+                  <span class="side-meta"><?= e($p['workTitle']) ?> ·
+                    <?php if ((int)$p['recentViews'] > 0): ?>
+                      최근 <?= (int)$p['recentViews'] ?>회
+                    <?php else: ?>
+                      조회 <?= (int)$p['views'] ?>
+                    <?php endif; ?>
+                  </span>
                 </li>
               <?php endforeach; ?>
             </ol>

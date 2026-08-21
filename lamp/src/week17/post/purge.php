@@ -19,6 +19,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 //   ★ POST를 처리하는 파일은 예외 없이 이 줄을 갖는다 — 한 곳이라도 빠지면 그 파일이 통로가 된다.
 require_csrf();
 
+// ── 0-2) 최근에 비밀번호를 확인했나? (sudo 모드) ─────────────
+//   ★ 영구삭제는 **되돌릴 수 없다.** 휴지통에서 복구할 수도 없어진다.
+//     CSRF는 '남의 사이트가 쏜 요청'을 막지만, '내 자리에 앉은 다른 사람'은 못 막는다.
+//     그 구멍을 이 한 줄이 메운다.
+require_recent_auth('/trash/');
+
 $id   = post_int('id', 0);
 $post = get_deleted_post($id);   // '지워진 상태'인 글만 (id·author 반환)
 

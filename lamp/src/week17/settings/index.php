@@ -15,10 +15,10 @@ $userRow  = find_user($username);
 $avatar   = $userRow['avatar'] ?? null;
 $nickname = $userRow['nickname'] ?? $username;   // 표시 이름(변경 폼에 미리 채워둔다)
 
-// 지금 이 기기 말고 다른 곳에서 몇 개의 세션이 살아 있는가.
-//   ★ 이 숫자를 보여주는 이유: 버튼만 있으면 눌러도 무엇이 달라졌는지 알 수 없다.
-//     "2곳에서 로그인 중" → 누르고 나면 "다른 기기에 로그인된 곳이 없어요"로 바뀐다.
-$otherSessions = count_other_sessions(current_user_id(), session_id());
+// 로그인한 기기 목록. ★ sessions가 아니라 user_devices에서 읽는다 —
+//   세션은 30분이면 죽지만 기기 기록은 남아야 하기 때문이다. (devices.php 주석)
+$myDevices  = list_devices(current_user_id());
+$thisDevice = device_id();
 
 $pageTitle = '설정';
 $containerClass = 'narrow';
@@ -28,7 +28,7 @@ require __DIR__ . '/../includes/header.php';
   <h1>⚙️ 설정</h1>
   <p class="muted"><a href="/profile/?user=<?= urlencode($username) ?>">← 내 프로필로</a></p>
 
-  <?php // 업로드 성공/실패 안내는 header.php가 주소(?flash=)에서 읽어 그린다 ?>
+  <?php // 업로드 성공/실패 안내는 header.php가 flash 쿠키에서 읽어 그린다 ?>
 
   <!-- ── 프로필 이미지 ─────────────────────────────────────── -->
   <section class="settings-section">
@@ -81,22 +81,62 @@ require __DIR__ . '/../includes/header.php';
     </form>
   </section>
 
-  <!-- ── 로그인 기기 관리 ───────────────────────────────────── -->
-  <?php // 세션을 DB로 옮기면서 비로소 만들 수 있게 된 기능. (settings/logout_others.php 주석 참고) ?>
+  <!-- ── 로그인한 기기 ───────────────────────────────────── -->
+  <?php // ★ user_devices 표를 그대로 보여준다. 세션이 죽어 있어도 기록은 남아 있다 —
+        //   "지난주 PC방에서 로그인한 걸 끊고 싶다"가 되는 이유다. ?>
   <section class="settings-section">
-    <h2>로그인 기기</h2>
-    <?php if ($otherSessions > 0): ?>
-      <p class="muted">지금 이 기기 외에 <strong><?= $otherSessions ?>곳</strong>에서 로그인되어 있어요.</p>
-    <?php else: ?>
-      <p class="muted">다른 기기에 로그인된 곳이 없어요.</p>
-    <?php endif; ?>
-    <p class="muted">PC방이나 남의 기기에 로그인해 둔 게 걱정되면 한 번에 끊을 수 있어요.
-      <strong>지금 이 기기는 그대로 유지</strong>됩니다.</p>
-    <form method="post" action="/settings/logout_others.php"
-          onsubmit="return confirm('다른 기기에서 모두 로그아웃할까요?');">
+    <h2>로그인한 기기</h2>
+    <p class="muted">
+      이 계정으로 로그인한 적 있는 기기들이에요.
+      <strong>모르는 기기가 있으면 끊고 비밀번호를 바꿔 주세요.</strong>
+    </p>
+
+    <ul class="device-list">
+      <?php foreach ($myDevices as $dev): ?>
+        <?php $isThis = $dev['device_id'] === $thisDevice; ?>
+        <li class="device-item">
+          <div>
+            <strong><?= e(describe_device($dev['user_agent'])) ?></strong>
+            <?php if ($isThis): ?><span class="device-current">이 기기</span><?php endif; ?>
+            <div class="muted">
+              마지막 로그인 <?= e(format_time_short((int) $dev['last_at'])) ?>
+              · 처음 <?= e(format_time_short((int) $dev['first_at'])) ?>
+            </div>
+            <?php // ★ 이 기기에 '도장'이 있는지 보여준다.
+                  //   도장이 있어야 세션이 연장되므로, 사용자 입장에서는
+                  //   **"이 기기는 쿠키를 훔쳐가도 10분이면 끊긴다"**는 뜻이다.
+                  //   ※ 도장 값 자체는 안 보여준다 — 볼 이유가 없고, 보여줄 것도 아니다. ?>
+            <div class="muted">
+              <?php if (!empty($dev['has_key'])): ?>
+                🔏 기기 도장 있음
+                <?= $dev['key_at'] ? '· ' . e(format_time_short((int) $dev['key_at'])) . ' 등록' : '' ?>
+              <?php else: ?>
+                도장 없음 — 다음 로그인 때 만들어집니다
+              <?php endif; ?>
+            </div>
+          </div>
+          <?php if (!$isThis): ?>
+            <form method="post" action="/settings/revoke_device.php">
+              <?= csrf_field() ?>
+              <?php // 기기 번호를 그대로 실어 보낸다. 남의 것을 실어도 서버가 user_id로 막는다. ?>
+              <input type="hidden" name="device_id" value="<?= e($dev['device_id']) ?>">
+              <button type="submit" class="btn-settings">끊기</button>
+            </form>
+          <?php endif; ?>
+        </li>
+      <?php endforeach; ?>
+    </ul>
+    <?php // ★ 기기 하나씩 끊는 것과 별개로 '한 번에 전부'가 필요하다.
+          //   기기가 다섯이면 다섯 번 눌러야 하고, 급할 때는 그게 부담이다. ?>
+    <form method="post" action="/settings/logout_all.php"
+          onsubmit="return confirm('이 기기만 남기고 모두 로그아웃할까요?');">
       <?= csrf_field() ?>
-      <button type="submit" class="btn-settings">🔒 다른 기기에서 모두 로그아웃</button>
+      <button type="submit" class="btn-settings">🔒 모든 기기에서 로그아웃</button>
     </form>
+    <p class="muted">
+      계정이 털린 것 같으면 <strong>여기를 먼저 누르고</strong> 비밀번호를 바꾸세요.
+      <strong>이 기기는 그대로 유지</strong>됩니다.
+    </p>
   </section>
 
   <!-- ── 휴지통 ─────────────────────────────────────────────── -->

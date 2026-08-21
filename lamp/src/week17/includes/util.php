@@ -18,7 +18,7 @@
 //       (+ header.php의 URL 리라이터, main.js의 withIdentity)
 //     build_url()은 이제 '주소 만들기'만 한다. 원래 함수 이름이 뜻하던 그 일만.
 //
-//   알림(flash)도 같은 이유로 세션으로 옮겼다 (아래 '플래시' 절).
+//   알림(flash)도 주소를 떠났다. 다만 최종 목적지는 세션이 아니라 쿠키다 (handoff.php).
 //   → 주소는 이제 '무엇을 보여줄지'(작품·검색어·정렬·페이지)만 담는다. 원래 주소가 할 일이다.
 // ============================================================
 
@@ -29,6 +29,14 @@ require_once __DIR__ . '/session.php';
 // CSRF(위조 요청) 방어. 모든 폼(csrf_field)과 모든 POST 처리(require_csrf)가 쓰므로
 //   여기서 한 번 불러 전체에서 쓸 수 있게 한다. 세션이 있어야 성립하는 방어라 session.php 다음에 둔다.
 require_once __DIR__ . '/csrf.php';
+
+// '다음 한 요청'에만 건네는 값들(알림·가려던 곳·폼 입력값)을 쿠키로 나르는 장치.
+require_once __DIR__ . '/handoff.php';
+
+// ★ 반드시 화면이 나가기 전에 불러야 한다 — 쿠키를 지우는 것도 응답 헤더이기 때문이다.
+//   여기서 '읽고 나면 지운다'를 예약해 두면, 알림을 그리는 header.php 한복판에서는
+//   지울 걱정 없이 꺼내 쓰기만 하면 된다.
+handoff_boot();
 
 // ── 시간대 ───────────────────────────────────────────────────
 //   [문제] 컨테이너(리눅스)와 DB는 UTC로 돌아간다. 한국보다 9시간 느리다.
@@ -198,7 +206,7 @@ function build_url(string $path, array $overrides = []): string {
 //   반환형 never = '이 함수는 절대 되돌아오지 않는다'(exit로 끝나므로).
 //     PHP가 이걸 알면, 호출한 뒤에 exit를 또 쓰지 않아도 뒷줄이 실행될 걱정이 없다.
 //   ★ week16: 알림을 주소에 실어 보내던 처리가 사라졌다.
-//     알림은 이제 세션에 있으므로 리다이렉트는 '주소만' 만들면 된다.
+//     알림은 이제 쿠키가 나르므로 리다이렉트는 '주소만' 만들면 된다.
 //     그런데도 30여 곳의 호출부(set_flash 다음 줄에 redirect)는 한 글자도 안 바뀌었다 —
 //     알림을 어떻게 나르는지는 원래 이 두 함수 안에만 있던 사정이기 때문이다.
 function redirect(string $path, array $overrides = []): never {
@@ -231,8 +239,16 @@ function redirect(string $path, array $overrides = []): never {
 //     → 파라미터 4개(flash·ftype·fundo·fid)와 대책 2개가 전부 지워졌다.
 //     Rails·Laravel 같은 실무 프레임워크가 쓰는 방식이 바로 이것이다.
 
-// 알림을 세션에 넣을 때 쓰는 열쇠 이름. (session.php의 SESSION_USER_ID와 같은 이유로 상수)
-const SESSION_FLASH = 'flash';
+//   [week16 후반 — 세션에서 쿠키로 다시 옮기기]
+//     세션으로 옮기고 나서 기준을 다시 대봤다: "사용자가 고쳐서 이득을 보나?"
+//     알림은 **아니다.** 문구를 고쳐봐야 자기 화면에 자기가 쓴 글자가 뜰 뿐이다.
+//     주소로 나르던 시절이 위험했던 건 **링크를 남에게 뿌릴 수 있어서**였는데,
+//     쿠키는 남이 못 심는다 → 그 위험이 통째로 없다.
+//     → 세션은 '고치면 진짜 손해가 나는 값'만 담는 금고로 남긴다. (handoff.php)
+//     ★ 대신 '읽을 때도 검사'가 새로 필요해졌다. 아래 take_flash가 그 일을 한다.
+
+// 알림 문구 길이 한도. 쿠키는 4KB뿐이라 담기 전에 우리가 먼저 자른다.
+const FLASH_MAX_LEN = 200;
 
 // '되돌리기' 버튼을 붙일 수 있는 곳 — 이름 → 버튼 정보 표.
 //   fields = 그 파일이 받아야 하는 값의 '이름과 순서'. set_flash의 $undoIds와 순서를 맞춘다.
@@ -249,16 +265,18 @@ const UNDO_TARGETS = [
 //   $undo    : 되돌리기 버튼을 띄우려면 UNDO_TARGETS의 키 ('post')
 //   $undoIds : 그 버튼이 보낼 번호들. UNDO_TARGETS의 fields와 '같은 순서'로 넣는다.
 //
-//   ★ 세션에 바로 적는다. week15에서는 '요청이 끝나면 사라지는 static 보관함'에 적어두고
+//   ★ 쿠키에 바로 적는다. week15에서는 '요청이 끝나면 사라지는 static 보관함'에 적어두고
 //     redirect()가 주소로 옮겨 실었는데, 그 중계가 통째로 필요 없어졌다.
 //     (그래서 flash_pending()·flash_params() 두 함수가 사라졌다)
+//   ★ 호출부 30여 곳은 세션→쿠키로 옮기면서도 한 글자도 안 바뀌었다.
+//     어디에 담는지는 원래 이 두 함수 안에만 있던 사정이기 때문이다.
 function set_flash(string $message, string $type = 'ok', string $undo = '', array $undoIds = []): void {
-    $_SESSION[SESSION_FLASH] = [
-        'message' => $message,
+    handoff_put(HANDOFF_FLASH, [
+        'message' => mb_substr($message, 0, FLASH_MAX_LEN),
         'type'    => $type,
         'undo'    => $undo,
         'ids'     => $undoIds,
-    ];
+    ]);
 }
 
 // 알림 꺼내기 (header.php가 화면에 그릴 때 호출). 없으면 null.
@@ -266,23 +284,34 @@ function set_flash(string $message, string $type = 'ok', string $undo = '', arra
 //     이 '읽으면 사라진다'가 플래시의 핵심이다. 지우지 않으면 다음 화면에도,
 //     그 다음 화면에도 계속 따라다닌다.
 //   반환 모양은 week15와 똑같은 ['message','type','action'] → header.php는 손댈 게 없다.
+//
+//   ★★ 여기가 '쿠키로 옮긴 대가'를 치르는 자리다.
+//     세션에 있을 땐 우리가 넣은 값이 그대로 나왔으므로 그냥 써도 됐다.
+//     쿠키는 사용자가 고칠 수 있으므로, 꺼낸 조각을 **하나씩 다시 검사**한다.
+//     그래도 검사가 간단한 이유는, 이 값들이 원래부터 '아는 것 중 하나'이기 때문이다:
+//       type은 둘 중 하나 · undo는 표에 있는 이름 · ids는 숫자.
+//     → 아는 것과 대조해서 아니면 버린다. 이게 사용자 입력을 다루는 기본 자세다.
 function take_flash(): ?array {
-    if (!isset($_SESSION[SESSION_FLASH])) {
+    $flash = handoff_take(HANDOFF_FLASH);
+    if ($flash === null) {
         return null;
     }
 
-    $flash = $_SESSION[SESSION_FLASH];
-    unset($_SESSION[SESSION_FLASH]);      // ★ 읽었으니 즉시 뗀다 (read-once)
+    // 색깔은 우리가 아는 두 가지만 인정한다. (모르는 값이면 무조건 'ok')
+    //   안 걸러내면 사용자가 넣은 글자가 그대로 CSS 클래스 자리에 박힌다.
+    $type = ($flash['type'] ?? null) === 'error' ? 'error' : 'ok';
 
-    // 색깔은 우리가 아는 두 가지만 인정한다.
-    //   week15에는 이 값이 주소로 들어와서 '믿을 수 없어' 걸러야 했다.
-    //   지금은 우리 코드가 넣은 값이라, 오타로 엉뚱한 CSS 클래스가 나가는 것만 막는 수준이다.
-    $type = ($flash['type'] ?? '') === 'error' ? 'error' : 'ok';
+    // 되돌리기 번호는 숫자만 남긴다. 배열이 중첩돼 들어와도 여기서 걸러진다.
+    //   ★ 고쳐봐야 소용없다 — restore.php가 '내 글인지'를 서버에서 다시 확인한다(is_owner).
+    //     즉 이 검사는 보안이 아니라 '화면이 안 깨지게' 하는 것이다. 진짜 방어는 저쪽에 있다.
+    //   array_values = 걸러내고 남은 것의 번호를 0,1,2…로 다시 매긴다.
+    //     (안 하면 중간이 빠졌을 때 $values[0] 이 없어서 create_undo_action이 어긋난다)
+    $ids = array_values(array_map('intval', array_filter((array) ($flash['ids'] ?? []), 'is_scalar')));
 
     return [
-        'message' => (string) ($flash['message'] ?? ''),
+        'message' => handoff_str($flash['message'] ?? null, FLASH_MAX_LEN),
         'type'    => $type,
-        'action'  => create_undo_action((string) ($flash['undo'] ?? ''), (array) ($flash['ids'] ?? [])),
+        'action'  => create_undo_action(handoff_str($flash['undo'] ?? null, 20), $ids),
     ];
 }
 
@@ -292,55 +321,69 @@ function take_flash(): ?array {
 //     액션 파일은 처리만 하고 redirect로 화면을 바꾸는데(PRG), 그 사이에 값을 들고 갈
 //     방법이 없었기 때문이다.
 //
-//   [왜 세션인가]
-//     본문을 주소에 실을 수는 없다 — 길이도 문제고, 브라우저 기록·서버 로그에 글이 통째로 남는다.
-//     서버가 잠깐 들고 있다가 다음 화면에서 꺼내 쓰고 지우는 것 — **플래시와 똑같은 구조**다.
+//   [왜 주소가 아닌가]
+//     주소에 실으면 브라우저 기록·서버 로그에 사용자가 친 값이 통째로 남는다.
+//     잠깐 맡아뒀다 다음 화면에서 꺼내 쓰고 지우는 것 — **플래시와 똑같은 구조**다.
+//
+//   [★ 왜 쿠키인가 — 그리고 왜 긴 글에는 안 쓰는가]
+//     이 값은 **짧은 폼 전용**이다. 지금 쓰는 곳은 회원가입·로그인의 '아이디' 한 칸뿐이다.
+//     글쓰기처럼 긴 본문은 여기 담지 않는다:
+//       ① 쿠키는 4KB뿐인데 본문은 5000자까지 허용된다 → 넘치면 **조용히 잘린다.**
+//       ② 긴 글은 애초에 '다음 한 요청'이 아니라 **며칠 뒤에도** 살아 있어야 한다.
+//          → 그건 임시저장(초안)의 일이고, drafts 표에 따로 산다. (drafts.php)
+//     ★ 같은 '입력값 되살리기'인데 **얼마나 오래 살아야 하는가**로 그릇이 갈린다.
+//
+//   ★ 비밀번호는 어느 쪽에도 절대 담지 않는다. 쿠키는 브라우저에 평문으로 남는다.
 //
 //   [Laravel의 old()와 같은 것]
 //     실무 프레임워크에는 이 기능이 기본으로 들어 있다. 이름도 old()다.
-const SESSION_OLD_INPUT = 'old_input';
+
+// 한 칸의 길이 한도. 아이디 정도만 담으므로 넉넉히 이 정도면 충분하다.
+const OLD_INPUT_MAX_LEN = 100;
 
 // 방금 보낸 값을 다음 화면까지 맡아둔다. (액션 파일이 redirect 하기 직전에 호출)
 //   ★ 비밀번호는 절대 넘기지 않는다 — 호출하는 쪽에서 빼고 넘긴다.
-//     세션은 DB에 평문으로 저장되므로, 담는 순간 비밀번호가 표에 찍힌다.
+//     쿠키는 브라우저 안에 평문으로 남으므로, 담는 순간 F12에서 그대로 보인다.
 //
-//   ★★ 깨진 글자를 걸러낸다 — 세션을 DB로 옮기면서 새로 생긴 숙제다.
-//     여기는 **사용자가 친 값이 세션에 처음 들어오는 자리**다. (그 전까지 세션에는
-//     회원 번호·토큰 같은 '우리가 만든 값'만 있었다)
-//     세션이 파일이던 시절엔 아무 바이트나 그냥 적혔지만, DB 표는 글자 인코딩을 검사한다.
-//     UTF-8이 아닌 바이트가 섞여 들어오면 저장이 통째로 실패하고 화면이 하얗게 된다.
-//     → 정상 브라우저는 UTF-8로 보내지만, 요청은 직접 만들어 보낼 수도 있으므로 서버가 막는다.
+//   ★★ 깨진 글자를 걸러낸다.
+//     여기는 **사용자가 친 값이 우리 보관 장치에 처음 들어오는 자리**다.
+//     (그 전까지 담긴 건 회원 번호·토큰 같은 '우리가 만든 값'뿐이었다)
+//     정상 브라우저는 UTF-8로 보내지만, 요청은 직접 만들어 보낼 수도 있다.
+//     성한 글자만 남겨 두면 다음 화면에서 그리다 깨질 일이 없다.
 function keep_old_input(array $values): void {
     $clean = [];
     foreach ($values as $key => $value) {
-        // 'UTF-8 → UTF-8' 변환은 이상한 바이트를 버리고 성한 글자만 남긴다.
-        $clean[$key] = mb_convert_encoding((string) $value, 'UTF-8', 'UTF-8');
+        $clean[(string) $key] = handoff_str($value, OLD_INPUT_MAX_LEN);
     }
-    $_SESSION[SESSION_OLD_INPUT] = $clean;
+    handoff_put(HANDOFF_OLD_INPUT, $clean);
 }
 
 // 맡아둔 값을 버린다. (처리에 성공해서 폼으로 돌아갈 일이 없어졌을 때 호출)
-//   ★ 이게 없으면 성공한 값이 세션에 남아 다음에 폼을 열 때 되살아난다.
+//   ★ 이게 없으면 성공한 값이 쿠키에 남아 다음에 폼을 열 때 되살아난다.
 //     '읽으면 지워진다'는 old()를 **부르는 화면**에만 해당한다 — 성공 후 가는 목록 화면은
 //     old()를 부르지 않으므로 아무도 안 치운다. 그래서 성공한 쪽에서 직접 버려야 한다.
 function forget_old_input(): void {
-    unset($_SESSION[SESSION_OLD_INPUT]);
+    handoff_drop(HANDOFF_OLD_INPUT);
 }
 
 // 맡아둔 값을 꺼낸다. 없으면 $default. (폼 화면이 value= 자리에서 호출)
 //   ★ static을 쓰는 이유: 폼에는 칸이 여러 개라 이 함수가 한 화면에서 여러 번 불린다.
-//     부를 때마다 지우면 첫 칸만 채워지고 나머지는 빈칸이 된다.
-//     → 요청 안에서 '처음 한 번'만 세션에서 꺼내 오고, 그 자리에서 세션은 비운다(read-once).
+//     handoff_take는 '꺼내면서 지우는' 함수라 두 번째 호출부터는 null이 온다.
+//     → 요청 안에서 '처음 한 번'만 꺼내 두고, 나머지 칸은 그 사본에서 읽는다.
 //     (static 지역변수는 요청이 끝나면 사라진다 — 딱 한 요청만 살면 되는 이 용도에 맞다)
+//   ★ 값은 쿠키에서 왔으므로 여기서도 handoff_str로 한 번 더 거른다.
+//     화면에 그리기 직전이라, 이상한 값이 통과하면 곧바로 눈에 보이는 자리다.
 function old(string $key, string $default = ''): string {
     static $input = null;
 
     if ($input === null) {
-        $input = $_SESSION[SESSION_OLD_INPUT] ?? [];
-        unset($_SESSION[SESSION_OLD_INPUT]);      // 읽었으니 즉시 뗀다
+        $input = handoff_take(HANDOFF_OLD_INPUT) ?? [];
+    }
+    if (!isset($input[$key])) {
+        return $default;
     }
 
-    return isset($input[$key]) ? (string) $input[$key] : $default;
+    return handoff_str($input[$key], OLD_INPUT_MAX_LEN);
 }
 
 // 세션에 담긴 undo·ids를 '되돌리기 버튼 하나'로 만든다. 표에 없는 이름이면 null(버튼 없음).

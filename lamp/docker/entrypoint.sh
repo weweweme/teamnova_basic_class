@@ -11,7 +11,7 @@
 # ============================================================
 
 # 설정값들 — 환경변수로 바꿀 수 있게 하되, 없으면 기본값을 쓴다
-APP_DIR="${APP_DIR:-/var/www/html/week16}"       # 이번 주차 폴더 (주차가 바뀌면 여기만 바꾼다)
+APP_DIR="${APP_DIR:-/var/www/html/week17}"       # 이번 주차 폴더 (주차가 바뀌면 여기만 바꾼다)
 DB_NAME="${DB_NAME:-review_community}"
 DB_USER="${DB_USER:-dev}"
 DB_PASS="${DB_PASS:-dev1234}"

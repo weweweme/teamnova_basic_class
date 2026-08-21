@@ -7,6 +7,7 @@
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';   // 로그인·소유권에 따라 화면이 달라지므로
 require_once __DIR__ . '/../includes/posts.php';
+require_once __DIR__ . '/../includes/prefs.php';   // 최근 본 글 기록 (쿠키)
 require_once __DIR__ . '/../includes/comments.php';   // 이 글의 댓글 목록
 
 // ── 1) id 받기 ───────────────────────────────────────────────
@@ -30,11 +31,13 @@ if ($post === null) {
 //   ★ 글이 있는 걸 확인한 '뒤에' 부른다. 없는 글 번호가 목록에 쌓이면 안 되니까.
 remember_recent_post($id);
 
-// ── 조회수 세기 (이번 방문에 처음 열 때만) ───────────────────
+// ── 조회수 세기 (같은 사람은 하루에 한 번만) ─────────────────
 //   ★ week15까지 posts.views 는 seed 숫자에서 한 번도 안 움직였다. 여기서 진짜로 센다.
-//   ★ 세션으로 '이미 봤는지'를 기억해 새로고침 연타로 부풀리는 걸 막는다.
-//     쿠키가 아니라 세션인 이유는 includes/posts.php의 '조회수' 절에 적어뒀다.
-if (count_post_view($id)) {
+//   ★ 판정은 **조회 전용 세션**이 한다 — "이 사람이 오늘 이 글을 이미 봤나".
+//     그 서랍 번호는 쿠키가 아니라 **접속지에서 계산**한다(지울 수 있으면 방어가 아니므로).
+//     자세한 사정은 includes/view_session.php.
+//   ★ 글쓴이는 제외한다 — 그래서 글쓴이 아이디를 함께 넘긴다.
+if (count_post_view($id, (string) $post['author'])) {
     // 방금 올린 1을 화면에도 반영한다.
     //   ($post는 올리기 '전'에 읽어온 값이라, 안 더하면 새로고침해야 반영된 것처럼 보인다.
     //    이것 하나 때문에 글을 DB에서 다시 읽는 건 낭비다)
@@ -108,7 +111,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="post-content"><?= nl2br(e($post['content'])) ?></div>
   </article>
 
-  <?php // 추천·신고·수정·권한거부 알림은 header.php가 주소(?flash=)에서 읽어 그린다 (set_flash) ?>
+  <?php // 추천·신고·수정·권한거부 알림은 header.php가 flash 쿠키에서 읽어 그린다 (set_flash) ?>
 
   <!-- 글에 대한 '행동'들 — 상태를 바꾸는 것은 링크가 아니라 POST 폼 -->
   <div class="post-actions">

@@ -9,6 +9,9 @@
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/tmdb.php';
+require_once __DIR__ . '/../includes/prefs.php';     // 최근 본 작품 (쿠키)
+require_once __DIR__ . '/../includes/works.php';     // slug → 작품 정보
+require_once __DIR__ . '/../includes/media_row.php'; // 가로 줄 렌더링 조각
 
 // ── 1) 장르·타입 받기 + 검증 ─────────────────────────────────
 $genres = tmdb_genres();                        // ['액션'=>..., 'SF'=>..., ...]
@@ -26,11 +29,25 @@ if (!in_array($media, ['all', 'movie', 'tv', 'anime'], true)) {
 //     탭·필터는 TMDB가 필요 없어 즉시 뜨고, 포스터만 스르륵 채워진다.
 $mediaTabs = ['all' => '전체', 'movie' => '영화', 'tv' => '드라마', 'anime' => '애니'];
 
+// ── 최근 본 작품 (쿠키) ──────────────────────────────────────
+//   ★ 쿠키엔 slug만 있다. 그걸 작품 정보로 바꾸는 건 여기서 한다 —
+//     없어진 작품은 get_work()가 null이라 자연히 빠진다. (최근 본 글과 같은 구조)
+$recentWorks = [];
+foreach (get_recent_work_slugs() as $slug) {
+    $w = get_work($slug);
+    if ($w !== null) {
+        $recentWorks[] = $w;
+    }
+}
+
 $pageTitle = '작품 둘러보기';
 require __DIR__ . '/../includes/header.php';
 ?>
 
   <h1 class="wide-title">작품 둘러보기</h1>
+
+  <?php // 최근에 게시판을 열어본 작품. 쿠키라 브라우저를 닫아도 남는다. ?>
+  <?php render_media_row('👀 최근 본 작품', $recentWorks, 'sm'); ?>
 
   <!-- 메인 축: 장르 탭 -->
   <div class="genre-tabs">

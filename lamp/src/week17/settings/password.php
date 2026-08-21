@@ -6,6 +6,7 @@
 // ============================================================
 require_once __DIR__ . '/../includes/util.php';
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/session_db.php'; // destroy_other_sessions
 
 require_login();
 
@@ -38,5 +39,17 @@ if (mb_strlen($new) < 4) {
 // ── ③ 해시로 바꿔 저장 ──────────────────────────────────────
 set_password(current_user_id(), $new);
 
-set_flash('🔑 비밀번호가 변경되었습니다.');
+// ★★ 비밀번호를 바꿨으면 **다른 곳의 로그인을 전부 끊는다.**
+//   [왜 이게 없으면 안 되나]
+//     "털린 것 같은데?" 싶을 때 사람이 제일 먼저 하는 행동이 비밀번호 변경이다.
+//     그런데 세션과 자동 로그인 표를 그대로 두면 **공격자는 계속 들어와 있다.**
+//     비밀번호를 바꿨는데도 쫓아내지 못하면, 그 기능은 사용자를 안심시키기만 하는 셈이다.
+//   ★ 세션이 DB에 있어서 가능한 일이다 — WHERE user_id = ? 한 줄이면 된다.
+//     파일 세션이었으면 남의 기기 세션 파일을 찾을 방법이 아예 없다.
+$userId = current_user_id();
+$cut = destroy_other_sessions($userId, session_id());  // 이 기기만 빼고 세션 전부
+
+set_flash($cut > 0
+    ? '🔑 비밀번호를 변경하고 다른 기기 ' . $cut . '곳에서 로그아웃했습니다.'
+    : '🔑 비밀번호가 변경되었습니다.');
 redirect('/settings/');

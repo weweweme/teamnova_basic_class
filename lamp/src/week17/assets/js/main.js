@@ -96,7 +96,7 @@ if (confirmDialog && confirmOk && confirmCancel) {
 
 
 // ── 알림(토스트) 자동으로 사라지게 하기 ─────────────────────
-//   ★ 알림 '내용'은 서버(PHP)가 세션에서 꺼내 이미 그려놨고,
+//   ★ 알림 '내용'은 서버(PHP)가 flash 쿠키에서 꺼내 이미 그려놨고,
 //     JS는 몇 초 뒤 걷어내는 '연출'만 담당한다.
 //
 //   ★ week16에서 여기 있던 '주소 청소' 블록이 사라졌다.
@@ -104,7 +104,7 @@ if (confirmDialog && confirmOk && confirmCancel) {
 //     그래서 화면을 그린 직후 JS가 history.replaceState로 주소에서 알림 파라미터
 //     4개를 지워야 했다. util.php의 FLASH_KEYS와 똑같은 목록을 여기에도 하나 더 두고,
 //     한쪽을 고치면 다른 쪽도 같이 고쳐야 하는 관리 부담까지 딸려 있었다.
-//     → 알림이 세션으로 가면서 주소에 아무것도 안 남는다. 지울 것이 없어졌다.
+//     → 알림이 주소를 떠나면서 주소에 아무것도 안 남는다. 지울 것이 없어졌다.
 
 const FLASH_STAY_MS        = 3000;   // 보통 알림: 3초
 const FLASH_STAY_ACTION_MS = 8000;   // '되돌리기' 버튼이 있으면 더 오래 (누를 시간을 줘야 하니까)
@@ -190,8 +190,10 @@ document.querySelectorAll('input[maxlength], textarea[maxlength]').forEach(funct
 //     실제로는 저장되는데 "저장 안 될 수 있다"고 물으면, 새로고침할 때마다
 //     쓸데없는 확인창이 뜨고 사용자는 그 경고를 신뢰하지 않게 된다.
 //
-//   ★ 남는 한계는 화면에 글로 알린다 — 창을 닫으면 세션과 함께 초안도 사라진다.
-//     '막는 장치'가 아니라 '되살리는 장치'로 바꾼 셈이다.
+//   ★ 그 뒤 임시저장이 **버튼 방식**으로 바뀌면서(안 누르면 진짜로 날아감) 경고가 다시
+//     사실이 되었고, **post/write.php 의 초안 스크립트 안으로 옮겨** 되살렸다.
+//     거기 있어야 '저장 뒤 바뀐 게 있나(dirty)'를 알 수 있어서 **저장했을 땐 안 묻는다.**
+//     → 경고와 저장 상태는 같은 자리에 있어야 정직해진다.
 
 
 // ── 작품 가로 줄: 좌우 화살표 + 마우스휠 가로 스크롤 ─────────
@@ -467,4 +469,118 @@ function fillDailyPick(items) {
     link.querySelector('img').src = m.poster_url;
     link.querySelector('.side-pick-title').textContent = m.title;
     box.hidden = false;                              // 다 채워졌으니 이제 보여준다
+}
+
+
+// ── ⏱ 자동 로그아웃 카운트다운 (상단바) ─────────────────────
+//   서버가 내려준 '남은 초'를 1초씩 깎아 보여준다.
+//   ★ 이 숫자가 로그아웃을 시키는 게 아니다 — 판정은 서버가 한다.
+//     0이 되면 새로고침해서 서버의 판단을 받는다(그 요청에서 로그아웃 + 안내가 뜬다).
+//   ★ 페이지를 새로 열 때마다 서버가 last_seen을 갱신하므로 카운트다운도 다시 시작된다.
+//     즉 '이 화면에 가만히 머문 시간'이 표시되는 셈이다.
+const idleTimer = document.getElementById('idle-timer');
+
+if (idleTimer) {
+    let left = parseInt(idleTimer.dataset.left, 10) || 0;
+
+    // 남은 초를 mm:ss 로. padStart = 한 자리 수 앞에 0을 채워 '9:5'가 아니라 '09:05'로.
+    function renderIdle() {
+        const shown = Math.max(0, left);       // 여유 구간(음수)은 00:00 으로 보여준다
+        const m = Math.floor(shown / 60);
+        const s = shown % 60;
+        idleTimer.textContent = '⏱ ' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+
+        // 2분 이하로 남으면 색을 바꿔 눈에 띄게 한다.
+        idleTimer.classList.toggle('idle-warn', left <= 120);
+    }
+
+    // ★ 서버 시계보다 **늦게** 도착해야 한다.
+    //   서버가 내려준 값은 렌더링 지연 때문에 실제보다 1초쯤 적고,
+    //   setInterval도 정확히 1초가 아니다. 조금이라도 일찍 새로고침하면
+    //   서버는 "아직 안 지났다"고 보고 **시계를 리셋해버린다**(= 영영 안 끊긴다).
+    const RELOAD_GRACE = 2;
+
+    renderIdle();
+
+    const tick = setInterval(function () {
+        left -= 1;
+        if (left <= -RELOAD_GRACE) {
+            clearInterval(tick);
+            location.reload();      // 서버에게 판단을 맡긴다
+            return;
+        }
+        renderIdle();
+    }, 1000);
+
+    // ── 타이핑도 '활동'이다 ────────────────────────────────────
+    //   [왜 필요한가]
+    //     글을 쓰는 동안에는 요청이 한 번도 안 나간다. 그래서 20분 넘게 쓰고
+    //     [등록]을 누르면 그 요청이 도착하는 순간 "활동이 없었다"로 판정되어
+    //     **본문이 통째로 버려진다.** 사람은 활동 중인데 서버가 유휴로 본 것이다.
+    //   ★ 그래서 자판을 두드렸다는 사실만 서버에 알린다. **내용은 안 보낸다.**
+    //     (초안 저장은 '💾 임시저장' 버튼이 따로 맡는다)
+    //   [★ 서버에 알리는 주기와, 화면을 되돌리는 시점은 **다르다**]
+    //     · 서버에는 **1분에 한 번**만 알린다 — 한 글자마다 보내면 통신이 시끄럽다
+    //     · 화면은 **자판을 두드릴 때마다** 곧바로 되돌린다 —
+    //       쓰고 있는데 로그아웃 카운트가 도는 화면은 사용자를 불안하게 한다
+    //   ★ 둘을 나눠 두면 **화면은 즉각 반응하고, 통신은 조용하다.**
+    //     그리고 어긋나는 폭이 주기(1분)를 넘지 않으므로, 화면을 믿어도 탈이 없다.
+    const PING_EVERY = 60;           // 1분. 유휴 한도(20분)의 1/20이라 타이핑 중에는 절대 안 닿는다.
+
+    // 페이지를 열 때 서버가 준 값 = '가득 찬 상태'. 화면을 되돌릴 때 이 값으로 되돌린다.
+    //   ★ 20분을 여기에 숫자로 적지 않는다. 그 숫자의 주인은 서버(IDLE_LIMIT)이고,
+    //     양쪽에 적으면 언젠가 한쪽만 바뀐다.
+    const IDLE_FULL  = parseInt(idleTimer.dataset.left, 10) || 0;
+    let typed = false;
+    let lastPingAt = Date.now();
+
+    // 주기가 찼고 **그동안 타이핑이 있었으면** 보낸다.
+    //   ★ 두 조건이 다 필요하다 — 주기만 보면 손을 놓아도 계속 보내게 되어
+    //     '탭만 열어두면 안 끊긴다'로 되돌아가고, 타이핑만 보면 한 글자마다 보내게 된다.
+    function pingIfTyped() {
+        if (!typed || Date.now() - lastPingAt < PING_EVERY * 1000) {
+            return;
+        }
+        typed = false;
+        lastPingAt = Date.now();
+
+        const meta = document.querySelector('meta[name="csrf-token"]');
+
+        fetch('/session/ping.php', {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: new URLSearchParams({ _token: meta ? meta.content : '' }),
+        })
+            .then(function (res) { return res.ok ? res.json() : null; })
+            .then(function (data) {
+                if (data && data.ok) {
+                    left = data.left;    // 서버가 준 값으로 카운트다운을 되돌린다
+                    renderIdle();
+                }
+            })
+            .catch(function () {
+                // 실패해도 화면을 건드리지 않는다. 판정은 어차피 서버가 한다.
+            });
+    }
+
+    document.addEventListener('input', function (e) {
+        if (!e.target || !e.target.closest || !e.target.closest('form')) {
+            return;
+        }
+        typed = true;
+
+        // ★ 화면을 곧바로 되돌린다. 자판을 두드리는 동안에는 20:00 에 붙어 있게 된다.
+        //   ⚠️ 이건 **화면만** 되돌리는 것이다. 서버 시계는 아래 ping이 1분에 한 번 민다.
+        //     그래서 손을 놓은 직후에는 화면이 서버보다 **최대 1분 이르게** 0에 닿을 수 있다.
+        //     이르게 닿는 쪽이라 로그인이 끊기지는 않는다 — 새로고침 한 번이 더 일어날 뿐이다.
+        //     (늦게 닿으면 "남았다는데 로그아웃되는" 반대 문제가 되므로, 이 방향이 안전하다)
+        left = IDLE_FULL;
+        renderIdle();
+
+        pingIfTyped();      // 주기가 이미 찼으면 다음 확인까지 기다리지 않는다
+    });
+
+    // ★ 짧게 치고 멈춘 경우에도 그 사실이 한 번은 전달되어야 한다.
+    //   그래서 입력 이벤트와 별개로 짧은 간격마다 한 번 더 확인한다.
+    setInterval(pingIfTyped, 5000);
 }

@@ -43,7 +43,7 @@ require __DIR__ . '/../includes/header.php';
         // type을 보고 고르지 않으면 답글 알림에도 "글에 댓글을 남겼어요"가 나온다.
         $isReply = $n['type'] === 'reply';
         // 그 댓글 자리로 바로 이동한다 (#c12) — 댓글이 많은 글에서 찾아 헤매지 않게.
-        //   ★ 댓글은 20개마다 페이지가 나뉘므로 '몇 페이지인지'(&cpage=)도 함께 알려줘야
+        //   ★ 댓글은 20줄마다 페이지가 나뉘므로 '몇 페이지인지'(&cpage=)도 함께 알려줘야
         //     그 댓글이 실제로 그려진다. 1페이지면 값이 null이라 주소에서 빠진다.
         $cpage = comment_page_param(comment_page_of((int)$n['commentPosition']));
         $link  = '/post/view.php?id=' . (int)$n['post_id']

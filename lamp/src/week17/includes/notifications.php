@@ -50,18 +50,21 @@ function get_notifications(int $userId, int $limit = 30): array {
                UNIX_TIMESTAMP(n.created_at) AS created,
                a.nickname AS actorNick,     -- 댓글·답글 단 사람(표시 이름)
                p.title    AS postTitle,     -- 어느 글
-               -- 그 댓글이 이 글의 몇 번째 '묶음'인가 → 댓글 몇 페이지인지 계산하는 재료.
-               --   댓글이 20개를 넘으면 페이지가 나뉘므로, 이게 없으면 알림을 눌러도
+               -- 그 댓글이 이 글의 몇 번째 '줄'인가 → 댓글 몇 페이지인지 계산하는 재료.
+               --   댓글이 20줄을 넘으면 페이지가 나뉘므로, 이게 없으면 알림을 눌러도
                --   1페이지만 열려서 정작 그 댓글(#c12)이 화면에 없다.
                --   ★ 목록을 다 읽고 알림마다 따로 물어보면 알림 30개에 쿼리가 30번 더 나간다(N+1).
                --     그래서 목록을 뽑는 이 한 번의 쿼리 안에서 함께 센다.
+               --   세는 기준은 댓글이 화면에 그려지는 순서(먼저 묶음 번호, 같으면 댓글 번호)와 같다.
                (SELECT COUNT(*) FROM comments r
-                 WHERE r.post_id = n.post_id AND r.parent_id IS NULL
-                   AND r.id <= COALESCE(c.parent_id, c.id)) AS commentPosition
+                 WHERE r.post_id = n.post_id
+                   AND (COALESCE(r.parent_id, r.id) <  COALESCE(c.parent_id, c.id)
+                     OR (COALESCE(r.parent_id, r.id) =  COALESCE(c.parent_id, c.id)
+                         AND r.id <= c.id))) AS commentPosition
         FROM notifications n
         JOIN users a ON n.actor_id = a.id
         JOIN posts p ON n.post_id  = p.id AND p.deleted_at IS NULL
-        -- 알림이 가리키는 댓글. 답글이면 부모(원댓글)를 기준으로 페이지를 세야 하므로 필요하다.
+        -- 알림이 가리키는 댓글. 그 댓글이 몇 번째 줄인지 세려면 묶음 번호와 댓글 번호가 필요하다.
         LEFT JOIN comments c ON n.comment_id = c.id
         WHERE n.user_id = ?
         ORDER BY n.id DESC

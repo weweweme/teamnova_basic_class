@@ -63,61 +63,39 @@ function count_comments(int $postId): int {
 }
 
 // ── 댓글 페이지 나누기 ──────────────────────────────────────
-//   ★ 자르는 단위는 '줄'이 아니라 '묶음'(원댓글 + 그에 달린 답글)이다.
-//     줄 20개로 자르면 원댓글은 1페이지, 그 답글은 2페이지로 찢어져
-//     "누구에게 한 말인지 알 수 없는 답글"이 생긴다. 그래서 원댓글 수로 센다.
-const COMMENTS_PER_PAGE = 20;   // 한 페이지에 보여줄 원댓글 수 (답글은 부모를 따라간다)
-
-// 목록에서 원댓글의 번호만 순서대로 뽑는다 (페이지를 세는 기준이 되는 목록).
-//   get_comments()가 이미 묶음 순서로 정렬해 주므로 순서를 다시 만들 필요는 없다.
-function create_root_comment_ids(array $comments): array {
-    $rootIds = [];
-    foreach ($comments as $c) {
-        if ($c['parentId'] === null) {   // parentId가 없다 = 원댓글
-            $rootIds[] = (int) $c['id'];
-        }
-    }
-    return $rootIds;
-}
+//   ★ 자르는 단위는 '줄'이다. 원댓글이든 답글이든 한 줄로 세어 20줄씩 자른다.
+//     묶음(원댓글 + 그에 달린 답글 전부) 단위로 자르면 페이지 길이가 들쭉날쭉해진다.
+//     답글 100개가 달린 원댓글 하나가 걸리면 그 페이지만 100줄이 넘게 길어진다.
+//     👍 한 페이지 길이가 일정하다.
+//     👎 부모 댓글이 1페이지 끝에 있고 그 답글은 2페이지 첫머리에 나와 대화가 끊긴다.
+//     길이가 일정한 쪽을 택했다 — 끊기는 묶음은 페이지 경계에 걸린 하나뿐이지만,
+//     스크롤 길이는 답글이 많은 글이면 매번 문제가 되기 때문이다.
+const COMMENTS_PER_PAGE = 20;   // 한 페이지에 보여줄 댓글 줄 수 (답글도 한 줄로 센다)
 
 // 총 댓글 페이지 수. 댓글이 하나도 없어도 '1페이지'다 (0페이지는 없으므로).
 function count_comment_pages(array $comments): int {
-    $rootCount = count(create_root_comment_ids($comments));
-    return max(1, (int) ceil($rootCount / COMMENTS_PER_PAGE));
+    return max(1, (int) ceil(count($comments) / COMMENTS_PER_PAGE));
 }
 
-// 이 페이지에 보여줄 줄만 남긴다 (원댓글 20개 + 거기 달린 답글 전부).
+// 이 페이지에 보여줄 줄만 남긴다.
+//   get_comments()가 이미 묶음 순서(원댓글 바로 밑에 그 답글)로 정렬해 주므로,
+//   그 순서 그대로 앞에서부터 20줄씩 잘라내면 된다.
 function paginate_comments(array $comments, int $page): array {
-    $rootIds     = create_root_comment_ids($comments);
-    $offset      = ($page - 1) * COMMENTS_PER_PAGE;
-    $pageRootIds = array_slice($rootIds, $offset, COMMENTS_PER_PAGE);   // 이 페이지의 원댓글들
-
-    // array_flip: [12, 15] → [12 => 0, 15 => 1]. 번호를 '키'로 뒤집어 두면
-    //   줄마다 목록 전체를 뒤지지 않고 isset() 한 번으로 "이 페이지 것인가"를 판단할 수 있다.
-    $isOnThisPage = array_flip($pageRootIds);
-
-    $result = [];
-    foreach ($comments as $c) {
-        // 이 줄이 속한 묶음의 번호 — 답글이면 부모 번호, 원댓글이면 자기 번호.
-        $rootId = (int) ($c['parentId'] ?? $c['id']);
-        if (isset($isOnThisPage[$rootId])) {
-            $result[] = $c;
-        }
-    }
-    return $result;
+    $offset = ($page - 1) * COMMENTS_PER_PAGE;
+    return array_slice($comments, $offset, COMMENTS_PER_PAGE);
 }
 
-// 원댓글 순번(그 글에서 몇 번째 묶음인가) → 몇 페이지인가.
+// 줄 순번(그 글에서 몇 번째 줄인가) → 몇 페이지인가.
 //   1~20번째 → 1페이지, 21~40번째 → 2페이지.
-function comment_page_of(int $rootPosition): int {
-    return max(1, (int) ceil($rootPosition / COMMENTS_PER_PAGE));
+function comment_page_of(int $position): int {
+    return max(1, (int) ceil($position / COMMENTS_PER_PAGE));
 }
 
-// 이 댓글이 보이는 페이지 번호를 DB에 물어본다 (답글이면 부모 원댓글 기준).
+// 이 댓글이 보이는 페이지 번호를 DB에 물어본다.
 //   댓글을 쓰거나 고친 뒤 '그 댓글이 실제로 보이는 페이지'로 돌려보내는 데 쓴다.
 //   없는 댓글이면 1페이지.
 function find_comment_page(int $commentId): int {
-    // 이 댓글이 속한 묶음의 원댓글 번호와, 어느 글의 댓글인지
+    // 이 댓글이 어느 글의 것이고, 어느 묶음에 속하는지(= 원댓글 번호)
     $stmt = db()->prepare(
         'SELECT post_id, COALESCE(parent_id, id) AS rootId FROM comments WHERE id = ?'
     );
@@ -127,11 +105,16 @@ function find_comment_page(int $commentId): int {
         return 1;
     }
 
-    // 그 원댓글이 이 글에서 몇 번째인가 = 자기보다 번호가 작거나 같은 원댓글의 수.
+    // 이 댓글이 화면에서 몇 번째 줄인가 = 자기보다 앞에 오는 줄의 수 + 자기 자신.
+    //   화면 순서는 get_comments()의 ORDER BY COALESCE(parent_id, id), id 다.
+    //   그래서 '앞'의 기준도 두 단계다 — 먼저 묶음 번호, 같은 묶음이면 댓글 번호.
     //   ★ 지운 댓글도 화면에 자리가 남으므로 여기서도 함께 센다 (화면과 기준이 같아야 한다).
     $position = (int) db_scalar(
-        'SELECT COUNT(*) FROM comments WHERE post_id = ? AND parent_id IS NULL AND id <= ?',
-        [$row['post_id'], $row['rootId']]
+        'SELECT COUNT(*) FROM comments
+          WHERE post_id = ?
+            AND (COALESCE(parent_id, id) < ?
+              OR (COALESCE(parent_id, id) = ? AND id <= ?))',
+        [$row['post_id'], $row['rootId'], $row['rootId'], $commentId]
     );
     return comment_page_of($position);
 }

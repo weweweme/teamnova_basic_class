@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Post;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -26,4 +27,21 @@ Route::get('/hello', function () {
         'name'   => '진수',
         'danger' => '<script>alert(1)</script>',   // escape 확인용
     ]);
+});
+
+// ── 연습 ④ 목록을 페이지로 자르기 ───────────────────────────
+//   ★ paginate(15) 한 줄이 세 가지를 한다.
+//     1) 총 몇 개인지 센다        → select count(*) ...
+//     2) 그 페이지 분량만 가져온다 → ... limit 15 offset 0
+//     3) 지금 몇 페이지인지 판단   → 주소의 ?page= 를 알아서 읽는다
+//
+//   지금 우리 코드(board/index.php)는 get_posts()로 190개를 전부 배열에 올린 뒤
+//   array_slice로 15개를 잘랐다. 여기서는 DB가 자른다.
+//
+//   latest('id') = order by id desc. 최신 글이 위로.
+Route::get('/posts', function () {
+    $posts = Post::latest('id')->paginate(15);
+
+    // 화면에는 '자른 결과'만 넘긴다. 총 개수·현재 페이지·링크는 $posts 안에 함께 들어 있다.
+    return view('posts.index', ['posts' => $posts]);
 });

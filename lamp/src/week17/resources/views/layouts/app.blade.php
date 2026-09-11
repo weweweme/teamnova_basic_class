@@ -45,6 +45,9 @@
            지금 is_logged_in() 으로 if 문을 쓰던 자리다. --}}
       @auth
         {{-- auth()->user() 로 로그인한 회원의 모델을 바로 꺼낸다 --}}
+        {{-- 🔔 안 읽은 알림 개수. 있으면 뱃지로 표시한다 --}}
+        @php $unread = auth()->user()->unreadNotifications()->count(); @endphp
+        <a class="nav-bell" href="/notifications" title="알림">🔔@if ($unread > 0)<span class="nav-bell-badge">{{ $unread > 99 ? '99+' : $unread }}</span>@endif</a>
         <a href="/trash">휴지통</a>
         <span class="nav-user">{{ auth()->user()->nickname }}님</span>
 

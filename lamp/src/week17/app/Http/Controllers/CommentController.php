@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
+use App\Models\Notification;
 use App\Models\Post;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
@@ -35,6 +36,17 @@ class CommentController extends Controller
             'parent_id' => $data['parent_id'] ?? null,
             'content'   => $data['content'],
         ]);
+
+        // ── 알림 ───────────────────────────────────────────
+        //   규칙 — 댓글은 '글 주인'에게, 답글은 '부모 댓글 주인'에게.
+        //   ★ 답글일 때 글 주인에게도 보내면 한 번의 답글로 알림이 둘 생겨 도배가 된다.
+        //     "누가 내게 말을 걸었나"를 기준으로 받는 사람을 정하면 규칙이 자연스럽다.
+        //   (자기 자신에게 보내는 알림은 Notification::notify 안에서 걸러진다)
+        if ($comment->parent_id === null) {
+            Notification::notify($post->author_id, $comment->author_id, $comment, 'comment');
+        } else {
+            Notification::notify($comment->parent?->author_id, $comment->author_id, $comment, 'reply');
+        }
 
         return $this->backToComment($comment, '댓글을 등록했습니다.');
     }

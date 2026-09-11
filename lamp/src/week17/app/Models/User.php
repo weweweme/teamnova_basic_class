@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 // ============================================================
@@ -32,6 +33,15 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return ['password' => 'hashed'];
+    }
+
+    // ── 안 읽은 알림 ───────────────────────────────────────
+    //   상단바 🔔 뱃지에 쓴다.
+    //   ★ 화면에서 모델 클래스를 직접 부르지 않으려고 관계로 만들어 둔다.
+    //     화면은 auth()->user()->unreadNotifications()->count() 만 쓰면 된다.
+    public function unreadNotifications(): HasMany
+    {
+        return $this->hasMany(Notification::class, 'user_id')->where('is_read', false);
     }
 
     // ※ 기본 파일에 있던 HasFactory·Notifiable 은 뺐다.

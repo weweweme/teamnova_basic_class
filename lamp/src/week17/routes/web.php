@@ -40,7 +40,11 @@ Route::get('/hello', function () {
 //
 //   latest('id') = order by id desc. 최신 글이 위로.
 Route::get('/posts', function () {
-    $posts = Post::latest('id')->paginate(15);
+    // withCount('comments') = 글마다 댓글 개수를 세어 comments_count 로 붙여 준다.
+    //   ★ 목록 15개를 그리려고 댓글 수를 15번 따로 물어보면 쿼리가 16번 나간다(N+1).
+    //     withCount 는 서브쿼리 한 번으로 붙인다 — 지금 get_posts() 가 손으로 짜 둔 것과 같다.
+    // with('author') = 글쓴이도 미리 한 번에 읽어 둔다 (역시 N+1 방지)
+    $posts = Post::with('author')->withCount('comments')->latest('id')->paginate(15);
 
     // 화면에는 '자른 결과'만 넘긴다. 총 개수·현재 페이지·링크는 $posts 안에 함께 들어 있다.
     return view('posts.index', ['posts' => $posts]);

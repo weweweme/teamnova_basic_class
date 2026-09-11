@@ -1,27 +1,32 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8">
-  <title>글 목록</title>
-</head>
-<body>
-  {{-- $posts 는 배열이 아니라 '페이지 하나를 담은 객체'다.
-       그래서 반복도 되고, total()·currentPage()·links() 같은 것도 함께 갖고 있다. --}}
-  <h1>글 목록 — 전체 {{ $posts->total() }}개 중 {{ $posts->currentPage() }}/{{ $posts->lastPage() }} 페이지</h1>
+@extends('layouts.app')
 
-  <ul>
+@section('title', '글 목록')
+
+@section('content')
+  <h1>글 목록</h1>
+  <p class="muted">
+    전체 {{ $posts->total() }}개 중 {{ $posts->currentPage() }}/{{ $posts->lastPage() }} 페이지
+  </p>
+
+  {{-- ★ 클래스 이름과 구조를 기존 board/index.php 와 똑같이 맞춘다.
+       style.css 는 '.post-list li > .post-left / .post-right' 구조를 전제로 쓰여 있어서,
+       이름만 같고 구조가 다르면 스타일이 어긋난다. --}}
+  <ul class="post-list board-list">
     @foreach ($posts as $post)
       <li>
-        #{{ $post->id }} {{ $post->title }}
-        {{-- created_at 이 Carbon 객체라 이런 계산이 바로 된다 --}}
-        <small>({{ $post->created_at->diffForHumans() }})</small>
+        <span class="post-left">
+          <a href="/posts/{{ $post->id }}" title="{{ $post->title }}">{{ $post->title }}</a>
+          <span class="tag">{{ $post->sentiment }}</span>
+          <span class="post-comments">💬 {{ $post->comments_count }}</span>
+        </span>
+        <span class="post-right">
+          {{ $post->author->nickname }}
+          · <time datetime="{{ $post->created_at->toIso8601String() }}"
+                  title="{{ $post->created_at->format('Y-m-d H:i') }} 작성">{{ $post->created_at->diffForHumans() }}</time>
+        </span>
       </li>
     @endforeach
   </ul>
 
-  {{-- ★ 이 한 줄이 페이지 번호 HTML을 만든다.
-       지금 우리 코드에서 이전/다음·번호·현재 페이지 강조를 직접 그리던 부분이다.
-       기본 출력이 Tailwind용이라 CSS를 안 붙인 지금은 밋밋하게 보인다. --}}
   {{ $posts->links() }}
-</body>
-</html>
+@endsection

@@ -19,6 +19,14 @@ class Comment extends Model
 
     protected $fillable = ['post_id', 'author_id', 'parent_id', 'content'];
 
+    // 새 댓글에는 수정 시각을 넣지 않는다 (Post 와 같은 이유)
+    protected static function booted(): void
+    {
+        static::creating(function (self $comment) {
+            $comment->edited_at = null;
+        });
+    }
+
     // ── 관계 ────────────────────────────────────────────────
     //   ★ 관계를 적어 두면 JOIN을 우리가 쓰지 않는다.
     //     $comment->author->nickname 처럼 점으로 타고 들어가면

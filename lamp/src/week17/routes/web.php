@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Models\Post;
+use App\Http\Controllers\PostController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -31,48 +31,16 @@ Route::get('/hello', function () {
     ]);
 });
 
-// ── 연습 ④ 목록을 페이지로 자르기 ───────────────────────────
-//   ★ paginate(15) 한 줄이 세 가지를 한다.
-//     1) 총 몇 개인지 센다        → select count(*) ...
-//     2) 그 페이지 분량만 가져온다 → ... limit 15 offset 0
-//     3) 지금 몇 페이지인지 판단   → 주소의 ?page= 를 알아서 읽는다
+// ── 글 ────────────────────────────────────────────────────
+//   ★ 순서가 중요하다. /posts/create 를 /posts/{post} 보다 먼저 적어야 한다.
+//     라우트는 위에서부터 맞춰 보므로, 반대로 두면 'create' 가 글 번호로 해석돼 404가 난다.
 //
-//   지금 우리 코드(board/index.php)는 get_posts()로 190개를 전부 배열에 올린 뒤
-//   array_slice로 15개를 잘랐다. 여기서는 DB가 자른다.
-//
-//   latest('id') = order by id desc. 최신 글이 위로.
-Route::get('/posts', function () {
-    // withCount('comments') = 글마다 댓글 개수를 세어 comments_count 로 붙여 준다.
-    //   ★ 목록 15개를 그리려고 댓글 수를 15번 따로 물어보면 쿼리가 16번 나간다(N+1).
-    //     withCount 는 서브쿼리 한 번으로 붙인다 — 지금 get_posts() 가 손으로 짜 둔 것과 같다.
-    // with('author') = 글쓴이도 미리 한 번에 읽어 둔다 (역시 N+1 방지)
-    $posts = Post::with('author')->withCount('comments')->latest('id')->paginate(15);
-
-    // 화면에는 '자른 결과'만 넘긴다. 총 개수·현재 페이지·링크는 $posts 안에 함께 들어 있다.
-    return view('posts.index', ['posts' => $posts]);
-});
-
-// ── 연습 ⑤ 글 보기 + 댓글 페이징 ────────────────────────────
-//   ★ 매개변수 자리에 Post 타입을 적으면 '라우트 모델 바인딩'이 걸린다.
-//     /posts/91 로 들어오면 Post::find(91) 을 대신 해서 넣어 준다.
-//     · 못 찾으면 자동으로 404 — 우리가 쓰던 "없으면 홈으로" if 문이 사라진다
-//     · 소프트삭제된 글은 애초에 조회되지 않으므로 역시 404가 된다
-Route::get('/posts/{post}', function (Post $post) {
-    $comments = $post->comments()
-        // ★ 지운 댓글도 함께 가져온다.
-        //   우리 프로젝트는 지운 댓글을 지우지 않고 "삭제된 댓글입니다" 자리로 남긴다.
-        //   (답글이 달려 있으면 고아가 되기 때문) SoftDeletes 는 기본으로 빼버리므로
-        //   여기서는 일부러 되돌린다.
-        ->withTrashed()
-        // ★ 화면 순서 = 원댓글 바로 밑에 그 답글.
-        //   COALESCE(parent_id, id) = '내가 속한 묶음의 번호'. 그 안에서는 id 순.
-        ->orderByRaw('COALESCE(parent_id, id), id')
-        // ★ 답글까지 합쳐 20줄씩 자른다 (묶음 기준이 아니라 줄 기준).
-        //   네 번째 인자로 주소 파라미터 이름을 cpage 로 바꾼다 — 글 목록의 page 와 겹치지 않게.
-        ->paginate(20, ['*'], 'cpage');
-
-    return view('posts.show', ['post' => $post, 'comments' => $comments]);
-});
+//   middleware('auth') = 로그인 안 한 요청은 컨트롤러에 닿기 전에 로그인 화면으로 보낸다.
+//     지금 화면 첫 줄에서 require_login() 을 부르던 27곳이 이 한 마디로 대체된다.
+Route::get('/posts',         [PostController::class, 'index']);
+Route::get('/posts/create',  [PostController::class, 'create'])->middleware('auth');
+Route::post('/posts',        [PostController::class, 'store'])->middleware('auth');
+Route::get('/posts/{post}',  [PostController::class, 'show']);
 
 // ── 2단계 인증 ──────────────────────────────────────────────
 //   ★ 여기서부터는 함수가 아니라 '컨트롤러의 메서드'를 지정한다.

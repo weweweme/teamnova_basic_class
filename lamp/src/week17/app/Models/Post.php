@@ -83,6 +83,20 @@ class Post extends Model
     //   ★ 지금은 읽기만 하므로 안 쓰이지만, 글쓰기를 옮길 때(3단계) 쓴다.
     protected $fillable = ['author_id', 'media_id', 'title', 'content', 'sentiment'];
 
+    // ── 새 글에는 수정 시각을 넣지 않는다 ───────────────────
+    //   우리 프로젝트에서 edited_at 은 '고친 적이 있을 때만' 값이 든다 (화면의 '(수정됨)' 기준).
+    //   그런데 Eloquent 는 새로 만들 때도 이 칸을 채운다 → 모든 글에 (수정됨)이 붙는다.
+    //
+    //   ★ creating 단계에서 미리 null 로 잡아 두면 덮어쓰지 않는다.
+    //     updateTimestamps() 는 '이미 값이 바뀐 칸'은 건드리지 않기 때문이다.
+    //     (booted() = 모델이 준비될 때 한 번 실행되는 자리. 여기서 사건 처리기를 단다)
+    protected static function booted(): void
+    {
+        static::creating(function (self $post) {
+            $post->edited_at = null;
+        });
+    }
+
     // ── 관계 ────────────────────────────────────────────────
     //   ★ 관계를 적어 두면 JOIN을 우리가 쓰지 않는다.
     //     $post->author->nickname 처럼 점으로 타고 들어가면

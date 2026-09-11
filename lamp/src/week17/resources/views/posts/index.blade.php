@@ -4,6 +4,13 @@
 
 @section('content')
   <h1>글 목록</h1>
+
+  {{-- 로그인한 사람에게만 글쓰기 버튼을 보여준다.
+       ★ 버튼을 숨기는 건 '보기 좋게' 하는 것일 뿐 방어가 아니다.
+         실제 차단은 라우트의 auth 미들웨어가 한다. --}}
+  @auth
+    <p><a href="/posts/create">✏️ 글쓰기</a></p>
+  @endauth
   <p class="muted">
     전체 {{ $posts->total() }}개 중 {{ $posts->currentPage() }}/{{ $posts->lastPage() }} 페이지
   </p>

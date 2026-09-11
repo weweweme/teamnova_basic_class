@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -119,6 +120,21 @@ class Post extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class, 'post_id');
+    }
+
+    // ── 추천 (likes 표) ─────────────────────────────────────
+    //   ★ likes 는 user_id·post_id 두 칸뿐이고 id 도 없는 '이어주기 전용' 표다.
+    //     이런 표는 모델을 따로 만들지 않고 '다대다 관계'로 다룬다.
+    //       belongsToMany(상대 모델, 이어주는 표, 내 쪽 칸, 상대 쪽 칸)
+    //
+    //   이렇게 두면 이런 것들이 한 줄이 된다.
+    //     $post->likers()->toggle($userId)       추천/취소 (있으면 지우고 없으면 넣는다)
+    //     $post->likers()->where('user_id',$id)->exists()   내가 추천했나
+    //     withCount('likers')                    추천 수 (N+1 없이)
+    public function likers(): BelongsToMany
+    {
+        // likes 표에는 시각 칸이 없으므로 withTimestamps() 를 쓰지 않는다.
+        return $this->belongsToMany(User::class, 'likes', 'post_id', 'user_id');
     }
 
     // ── 앞으로 이 아래에 올 것들 ───────────────────────────

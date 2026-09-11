@@ -31,7 +31,7 @@ class PostController extends Controller
     // ── 글 보기 (GET /posts/{post}) ─────────────────────────
     //   ★ 매개변수에 Post 타입을 적으면 주소의 값으로 알아서 찾아 넣어 준다(라우트 모델 바인딩).
     //     못 찾거나 소프트삭제된 글이면 자동 404 — "없으면 홈으로" if 문이 사라진다.
-    public function show(Post $post)
+    public function show(Request $request, Post $post)
     {
         $comments = $post->comments()
             ->with('author')
@@ -39,7 +39,15 @@ class PostController extends Controller
             ->orderByRaw('COALESCE(parent_id, id), id')  // 원댓글 바로 밑에 그 답글
             ->paginate(20, ['*'], 'cpage');              // 답글까지 합쳐 20줄씩
 
-        return view('posts.show', ['post' => $post, 'comments' => $comments]);
+        // 추천 수를 붙인다 (likers_count). 이미 불러온 모델에 덧붙일 때는 loadCount().
+        $post->loadCount('likers');
+
+        // 내가 추천했는지 — 추천한 사람 전부를 불러오지 않고 '있는지'만 묻는다.
+        $liked = $request->user()
+            ? $post->likers()->where('user_id', $request->user()->id)->exists()
+            : false;
+
+        return view('posts.show', ['post' => $post, 'comments' => $comments, 'liked' => $liked]);
     }
 
     // ── 글쓰기 화면 (GET /posts/create) ─────────────────────

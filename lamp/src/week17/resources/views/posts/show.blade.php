@@ -16,6 +16,18 @@
     {{-- nl2br 은 줄바꿈을 <br> 로 바꾼다. e() 로 먼저 escape 한 뒤라야 안전하다 --}}
     <div class="post-content">{!! nl2br(e($post->content)) !!}</div>
 
+    {{-- 추천 — 상태를 바꾸는 동작이라 POST 폼 --}}
+    <p class="like-form-wrap">
+      @auth
+        <form class="like-form" method="post" action="/posts/{{ $post->id }}/like">
+          @csrf
+          <button type="submit">{{ $liked ? '👍 추천 취소' : '👍 추천' }} {{ $post->likers_count }}</button>
+        </form>
+      @else
+        <span class="muted">👍 추천 {{ $post->likers_count }}</span>
+      @endauth
+    </p>
+
     {{-- @can('update', $post) = PostPolicy::update() 가 true 일 때만 그린다.
          컨트롤러의 authorize() 와 같은 판단을 쓰므로 규칙이 한 곳에만 있다. --}}
     @can('update', $post)

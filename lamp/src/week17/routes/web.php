@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\TrashController;
 use Illuminate\Support\Facades\Route;
@@ -84,3 +85,6 @@ Route::patch('/posts/{post}/restore', [TrashController::class, 'restore'])
     ->middleware('auth')->withTrashed();
 Route::delete('/posts/{post}/force', [TrashController::class, 'forceDelete'])
     ->middleware('auth')->withTrashed();
+
+// ── 추천 ──────────────────────────────────────────────────
+Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->middleware('auth');

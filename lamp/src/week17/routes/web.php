@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\TrashController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -73,3 +74,13 @@ Route::post('/register', [RegisterController::class, 'store'])->middleware('thro
 Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->middleware('auth');
 Route::put('/comments/{comment}',     [CommentController::class, 'update'])->middleware('auth');
 Route::delete('/comments/{comment}',  [CommentController::class, 'destroy'])->middleware('auth');
+
+// ── 휴지통 ────────────────────────────────────────────────
+//   ★ withTrashed() 를 붙여야 한다.
+//     라우트 모델 바인딩은 기본적으로 '지워지지 않은 것'만 찾으므로,
+//     그냥 두면 휴지통 글을 되돌리려 할 때 404가 난다.
+Route::get('/trash', [TrashController::class, 'index'])->middleware('auth');
+Route::patch('/posts/{post}/restore', [TrashController::class, 'restore'])
+    ->middleware('auth')->withTrashed();
+Route::delete('/posts/{post}/force', [TrashController::class, 'forceDelete'])
+    ->middleware('auth')->withTrashed();

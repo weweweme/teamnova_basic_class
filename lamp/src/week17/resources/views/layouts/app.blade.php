@@ -45,6 +45,7 @@
            지금 is_logged_in() 으로 if 문을 쓰던 자리다. --}}
       @auth
         {{-- auth()->user() 로 로그인한 회원의 모델을 바로 꺼낸다 --}}
+        <a href="/trash">휴지통</a>
         <span class="nav-user">{{ auth()->user()->nickname }}님</span>
 
         {{-- 로그아웃은 상태를 바꾸는 동작이라 링크가 아니라 POST 폼 --}}

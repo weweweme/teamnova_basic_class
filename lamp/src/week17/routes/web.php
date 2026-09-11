@@ -42,6 +42,15 @@ Route::get('/posts/create',  [PostController::class, 'create'])->middleware('aut
 Route::post('/posts',        [PostController::class, 'store'])->middleware('auth');
 Route::get('/posts/{post}',  [PostController::class, 'show']);
 
+//   수정·삭제는 로그인 + 소유권 둘 다 필요하다.
+//     · 로그인 여부  → auth 미들웨어 (컨트롤러에 닿기 전)
+//     · 소유권       → PostPolicy (컨트롤러 안에서 authorize)
+//   ★ HTML 폼은 GET·POST 만 보낼 수 있다. PUT·DELETE 는 폼에 @method('PUT') 을 넣어
+//     '사실은 PUT 이다'라고 알려주는 방식으로 쓴다(메서드 위장).
+Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->middleware('auth');
+Route::put('/posts/{post}',      [PostController::class, 'update'])->middleware('auth');
+Route::delete('/posts/{post}',   [PostController::class, 'destroy'])->middleware('auth');
+
 // ── 2단계 인증 ──────────────────────────────────────────────
 //   ★ 여기서부터는 함수가 아니라 '컨트롤러의 메서드'를 지정한다.
 //     [클래스::class, '메서드이름'] 형태.

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Media;
 use App\Models\Post;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 // ============================================================
@@ -13,6 +14,9 @@ use Illuminate\Http\Request;
 // ============================================================
 class PostController extends Controller
 {
+    // authorize() 를 쓰기 위한 트레이트. Laravel 11부터 기본 Controller 에 들어 있지 않다.
+    use AuthorizesRequests;
+
     // ── 글 목록 (GET /posts) ────────────────────────────────
     public function index()
     {
@@ -67,5 +71,46 @@ class PostController extends Controller
         $post = Post::create($data);
 
         return redirect("/posts/{$post->id}")->with('status', '글이 등록되었습니다.');
+    }
+
+    // ── 글 수정 화면 (GET /posts/{post}/edit) ───────────────
+    public function edit(Post $post)
+    {
+        // ★ 소유권 확인. 통과 못 하면 403으로 끊긴다 — if 문과 리다이렉트를 우리가 쓰지 않는다.
+        //   판단 내용은 PostPolicy::update() 한 곳에 있다.
+        $this->authorize('update', $post);
+
+        return view('posts.edit', ['post' => $post, 'mediaList' => Media::orderBy('title')->get()]);
+    }
+
+    // ── 글 수정 저장 (PUT /posts/{post}) ────────────────────
+    public function update(Request $request, Post $post)
+    {
+        $this->authorize('update', $post);
+
+        $data = $request->validate([
+            'media_id'  => ['required', 'integer', 'exists:media,id'],
+            'title'     => ['required', 'string', 'max:100'],
+            'content'   => ['required', 'string', 'max:5000'],
+            'sentiment' => ['required', 'in:호평,보통,혹평'],
+        ]);
+
+        // ★ 여기서 edited_at 이 자동으로 채워진다 (const UPDATED_AT = 'edited_at').
+        //   그래서 화면의 '(수정됨)' 표시를 우리가 따로 관리하지 않아도 된다.
+        $post->update($data);
+
+        return redirect("/posts/{$post->id}")->with('status', '글을 수정했습니다.');
+    }
+
+    // ── 글 삭제 (DELETE /posts/{post}) ──────────────────────
+    public function destroy(Post $post)
+    {
+        $this->authorize('delete', $post);
+
+        // ★ SoftDeletes 라서 실제로는 DELETE 가 아니라 deleted_at 을 채우는 UPDATE 다.
+        //   글은 휴지통으로 가고, 달려 있던 댓글도 화면에서 함께 사라진다.
+        $post->delete();
+
+        return redirect('/posts')->with('status', '글을 삭제했습니다.');
     }
 }

@@ -6,6 +6,8 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\VoteController;
+use App\Http\Controllers\WorkController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TrashController;
 use Illuminate\Support\Facades\Route;
@@ -96,3 +98,9 @@ Route::get('/notifications', [NotificationController::class, 'index'])->middlewa
 
 // ── 신고 ──────────────────────────────────────────────────
 Route::post('/posts/{post}/report', [ReportController::class, 'store'])->middleware('auth');
+
+// ── 작품 ──────────────────────────────────────────────────
+//   ★ {media:slug} = id 가 아니라 slug 칸으로 찾는다. 주소가 /works/parasite 처럼 읽힌다.
+Route::get('/works', [WorkController::class, 'index']);
+Route::get('/works/{media:slug}', [WorkController::class, 'show']);
+Route::post('/works/{media:slug}/vote', [VoteController::class, 'store'])->middleware('auth');

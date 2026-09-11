@@ -54,6 +54,7 @@
         </form>
       @else
         <a href="/login">로그인</a>
+        <a href="/register">회원가입</a>
       @endauth
     </nav>
   </header>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Models\Post;
 use Illuminate\Support\Facades\Route;
 
@@ -83,3 +84,7 @@ Route::get('/posts/{post}', function (Post $post) {
 Route::get('/login',  [LoginController::class, 'create'])->name('login');
 Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:5,1');
 Route::post('/logout', [LoginController::class, 'destroy']);
+
+//   회원가입도 같은 방식. 자동 가입 스크립트를 막으려고 요청 제한을 함께 건다.
+Route::get('/register',  [RegisterController::class, 'create']);
+Route::post('/register', [RegisterController::class, 'store'])->middleware('throttle:5,1');

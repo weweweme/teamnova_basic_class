@@ -112,6 +112,9 @@ return [
     |
     */
 
-    'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+    // ★ 비밀번호를 한 번 확인하면 이 시간 동안 다시 묻지 않는다(sudo 창).
+    //   Laravel 기본은 3시간(10800초)인데, 우리 프로젝트는 15분(900초)으로 정해 두었다.
+    //   settings/reauth.php + SUDO_WINDOW = 900 이 하던 일이 이 한 줄이다.
+    'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 900),
 
 ];

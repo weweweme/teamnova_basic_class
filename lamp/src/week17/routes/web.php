@@ -6,6 +6,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\RankController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\VoteController;
@@ -115,3 +116,13 @@ Route::get('/search/works',  [SearchController::class, 'works']);
 
 // ── 랭킹 ──────────────────────────────────────────────────
 Route::get('/rank', [RankController::class, 'index']);
+
+// ── 설정 ──────────────────────────────────────────────────
+//   ★ auth.session 미들웨어 = '다른 기기 로그아웃'이 동작하기 위한 조건.
+//     세션에 로그인 당시의 비밀번호 해시를 함께 담아 두고, 그 값이 달라지면 그 세션을 끊는다.
+Route::middleware(['auth', 'auth.session'])->group(function () {
+    Route::get('/settings', [SettingsController::class, 'index']);
+    Route::patch('/settings/nickname', [SettingsController::class, 'nickname']);
+    Route::patch('/settings/password', [SettingsController::class, 'password']);
+    Route::post('/settings/logout-others', [SettingsController::class, 'logoutOtherDevices']);
+});

@@ -6,6 +6,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\VoteController;
 use App\Http\Controllers\WorkController;
 use App\Http\Controllers\ReportController;
@@ -104,3 +105,9 @@ Route::post('/posts/{post}/report', [ReportController::class, 'store'])->middlew
 Route::get('/works', [WorkController::class, 'index']);
 Route::get('/works/{media:slug}', [WorkController::class, 'show']);
 Route::post('/works/{media:slug}/vote', [VoteController::class, 'store'])->middleware('auth');
+
+// ── 검색 ──────────────────────────────────────────────────
+Route::get('/search',        [SearchController::class, 'index']);
+Route::get('/search/posts',  [SearchController::class, 'posts']);
+Route::get('/search/users',  [SearchController::class, 'users']);
+Route::get('/search/works',  [SearchController::class, 'works']);

@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 // ============================================================
@@ -81,9 +83,31 @@ class Post extends Model
     //   ★ 지금은 읽기만 하므로 안 쓰이지만, 글쓰기를 옮길 때(3단계) 쓴다.
     protected $fillable = ['author_id', 'media_id', 'title', 'content', 'sentiment'];
 
+    // ── 관계 ────────────────────────────────────────────────
+    //   ★ 관계를 적어 두면 JOIN을 우리가 쓰지 않는다.
+    //     $post->author->nickname 처럼 점으로 타고 들어가면
+    //     필요한 쿼리를 Eloquent 가 알아서 보낸다.
+    //
+    //   belongsTo = '나에게 남의 번호가 있다' (posts.author_id → users.id)
+    //   hasMany   = '남에게 내 번호가 있다'   (comments.post_id → 이 글의 id)
+    //
+    //   두 번째 인자는 외래키 칸 이름이다. 관례와 다른 이름(author_id)이라 직접 적는다.
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'author_id');
+    }
+
+    public function media(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'media_id');
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class, 'post_id');
+    }
+
     // ── 앞으로 이 아래에 올 것들 ───────────────────────────
-    //   · 관계   — comments() · author() · media()
-    //              $post->comments 로 그 글의 댓글을 가져온다. JOIN을 우리가 쓰지 않는다
     //   · 접근자 — 표에 없는 값을 속성처럼 만든다 (includes/level.php 의 등급 배지)
     //   · 스코프 — 자주 쓰는 조건에 이름을 붙인다 (sort_posts · filter_posts_by_work)
 }

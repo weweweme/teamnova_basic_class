@@ -45,3 +45,25 @@ Route::get('/posts', function () {
     // 화면에는 '자른 결과'만 넘긴다. 총 개수·현재 페이지·링크는 $posts 안에 함께 들어 있다.
     return view('posts.index', ['posts' => $posts]);
 });
+
+// ── 연습 ⑤ 글 보기 + 댓글 페이징 ────────────────────────────
+//   ★ 매개변수 자리에 Post 타입을 적으면 '라우트 모델 바인딩'이 걸린다.
+//     /posts/91 로 들어오면 Post::find(91) 을 대신 해서 넣어 준다.
+//     · 못 찾으면 자동으로 404 — 우리가 쓰던 "없으면 홈으로" if 문이 사라진다
+//     · 소프트삭제된 글은 애초에 조회되지 않으므로 역시 404가 된다
+Route::get('/posts/{post}', function (Post $post) {
+    $comments = $post->comments()
+        // ★ 지운 댓글도 함께 가져온다.
+        //   우리 프로젝트는 지운 댓글을 지우지 않고 "삭제된 댓글입니다" 자리로 남긴다.
+        //   (답글이 달려 있으면 고아가 되기 때문) SoftDeletes 는 기본으로 빼버리므로
+        //   여기서는 일부러 되돌린다.
+        ->withTrashed()
+        // ★ 화면 순서 = 원댓글 바로 밑에 그 답글.
+        //   COALESCE(parent_id, id) = '내가 속한 묶음의 번호'. 그 안에서는 id 순.
+        ->orderByRaw('COALESCE(parent_id, id), id')
+        // ★ 답글까지 합쳐 20줄씩 자른다 (묶음 기준이 아니라 줄 기준).
+        //   네 번째 인자로 주소 파라미터 이름을 cpage 로 바꾼다 — 글 목록의 page 와 겹치지 않게.
+        ->paginate(20, ['*'], 'cpage');
+
+    return view('posts.show', ['post' => $post, 'comments' => $comments]);
+});

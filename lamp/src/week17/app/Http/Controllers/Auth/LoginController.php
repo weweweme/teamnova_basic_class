@@ -1,0 +1,72 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+
+// ============================================================
+// LoginController — 로그인 화면 · 로그인 처리 · 로그아웃
+//   지금까지 auth/login.php(화면) · authenticate.php(처리) · logout.php(처리)
+//   세 파일로 나뉘어 있던 것이 한 클래스의 메서드 세 개가 된다.
+//
+//   ★ 컨트롤러는 '요청 하나를 처리하는 메서드들의 모음'이다.
+//     어떤 주소가 어느 메서드로 오는지는 routes/web.php 가 정한다.
+// ============================================================
+class LoginController extends Controller
+{
+    // ── 로그인 화면 보여주기 (GET /login) ───────────────────
+    public function create()
+    {
+        return view('auth.login');
+    }
+
+    // ── 로그인 처리 (POST /login) ───────────────────────────
+    public function store(Request $request)
+    {
+        // ① 입력값 검사
+        //   ★ 조건만 적으면 검사·오류 문구·폼 되돌리기를 프레임워크가 한다.
+        //     지금 우리 코드가 if 문으로 하던 일이다.
+        //     통과하면 검사된 값만 담긴 배열이 돌아온다.
+        $credentials = $request->validate([
+            'username' => ['required', 'string', 'max:20'],
+            'password' => ['required', 'string'],
+        ]);
+
+        // ② 아이디·비밀번호 확인
+        //   Auth::attempt() 가 하는 일
+        //     1) users 표에서 username 이 맞는 행을 찾고
+        //     2) password 를 해시 비교하고 (기존 bcrypt 해시를 그대로 검증한다)
+        //     3) 맞으면 세션에 '이 사람이 로그인했다'를 기록한다
+        //   ★ 우리 verify_login() + login() 이 하던 일이 이 한 줄이다.
+        if (! Auth::attempt($credentials)) {
+            // 실패하면 검증 오류처럼 되돌려보낸다 → 폼 위에 메시지가 뜨고 입력값이 남는다
+            throw ValidationException::withMessages([
+                'username' => '아이디 또는 비밀번호가 올바르지 않습니다.',
+            ]);
+        }
+
+        // ③ 세션 번호표 새로 발급
+        //   ★ 로그인 직후 반드시 해야 한다. 공격자가 미리 심어 둔 번호표를 그대로 쓰면
+        //     그 번호표로 남의 로그인 상태를 훔칠 수 있다(세션 고정 공격).
+        $request->session()->regenerate();
+
+        // intended() = 로그인 때문에 막혔던 원래 주소로 돌려보낸다. 없으면 두 번째 인자로.
+        return redirect()->intended('/posts')->with('status', '환영합니다!');
+    }
+
+    // ── 로그아웃 (POST /logout) ─────────────────────────────
+    //   ★ 상태를 바꾸는 동작이라 링크(GET)가 아니라 폼(POST)이다.
+    //     GET이면 남의 사이트에 <img src="/logout"> 만 박아도 로그아웃된다.
+    public function destroy(Request $request)
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();      // 세션에 든 내용 전부 버림
+        $request->session()->regenerateToken(); // CSRF 토큰도 새로 발급
+
+        return redirect('/posts')->with('status', '로그아웃했습니다.');
+    }
+}

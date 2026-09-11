@@ -40,12 +40,31 @@
 
     <nav>
       <a href="/posts">글 목록</a>
-      {{-- 로그인 상태에 따라 갈리는 메뉴(알림·내 프로필·로그아웃)는 2단계에서 --}}
-      <a href="/login">로그인</a>
+
+      {{-- @auth / @guest = 로그인 여부로 갈리는 블록.
+           지금 is_logged_in() 으로 if 문을 쓰던 자리다. --}}
+      @auth
+        {{-- auth()->user() 로 로그인한 회원의 모델을 바로 꺼낸다 --}}
+        <span class="nav-user">{{ auth()->user()->nickname }}님</span>
+
+        {{-- 로그아웃은 상태를 바꾸는 동작이라 링크가 아니라 POST 폼 --}}
+        <form class="logout-form" method="post" action="/logout">
+          @csrf
+          <button type="submit">로그아웃</button>
+        </form>
+      @else
+        <a href="/login">로그인</a>
+      @endauth
     </nav>
   </header>
 
   <main class="container">
+    {{-- 플래시 알림 — 리다이렉트하면서 with('status', …) 로 남긴 쪽지를 한 번만 보여준다.
+         우리 set_flash() 와 같은 것이고, 그리는 자리도 여기 한 곳뿐이다. --}}
+    @if (session('status'))
+      <p class="flash">{{ session('status') }}</p>
+    @endif
+
     @yield('content')
   </main>
 </body>

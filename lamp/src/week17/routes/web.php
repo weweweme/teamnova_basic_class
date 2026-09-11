@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
 use App\Models\Post;
 use Illuminate\Support\Facades\Route;
 
@@ -71,3 +72,14 @@ Route::get('/posts/{post}', function (Post $post) {
 
     return view('posts.show', ['post' => $post, 'comments' => $comments]);
 });
+
+// ── 2단계 인증 ──────────────────────────────────────────────
+//   ★ 여기서부터는 함수가 아니라 '컨트롤러의 메서드'를 지정한다.
+//     [클래스::class, '메서드이름'] 형태.
+//
+//   throttle:5,1 = 1분에 5번까지만 허용. 넘으면 429 로 막는다.
+//     ★ 우리 includes/login_guard.php (116줄) 가 하던 무차별 대입 방어가 이 한 마디다.
+//       (다만 기준이 다르다 — 우리는 아이디별, 내장 제한은 IP별이다)
+Route::get('/login',  [LoginController::class, 'create'])->name('login');
+Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:5,1');
+Route::post('/logout', [LoginController::class, 'destroy']);

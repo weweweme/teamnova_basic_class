@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
 use Illuminate\Support\Facades\Route;
 
@@ -65,3 +66,10 @@ Route::post('/logout', [LoginController::class, 'destroy']);
 //   회원가입도 같은 방식. 자동 가입 스크립트를 막으려고 요청 제한을 함께 건다.
 Route::get('/register',  [RegisterController::class, 'create']);
 Route::post('/register', [RegisterController::class, 'store'])->middleware('throttle:5,1');
+
+// ── 댓글 ──────────────────────────────────────────────────
+//   작성은 '어느 글에 다는지'가 주소에 드러나게 /posts/{post}/comments 로 둔다.
+//   수정·삭제는 댓글 번호만 있으면 되므로 /comments/{comment}.
+Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->middleware('auth');
+Route::put('/comments/{comment}',     [CommentController::class, 'update'])->middleware('auth');
+Route::delete('/comments/{comment}',  [CommentController::class, 'destroy'])->middleware('auth');

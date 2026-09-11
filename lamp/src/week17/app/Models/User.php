@@ -35,6 +35,12 @@ class User extends Authenticatable
         return ['password' => 'hashed'];
     }
 
+    // 이 사람이 쓴 글
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class, 'author_id');
+    }
+
     // ── 안 읽은 알림 ───────────────────────────────────────
     //   상단바 🔔 뱃지에 쓴다.
     //   ★ 화면에서 모델 클래스를 직접 부르지 않으려고 관계로 만들어 둔다.

@@ -6,6 +6,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\RankController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\VoteController;
 use App\Http\Controllers\WorkController;
@@ -111,3 +112,6 @@ Route::get('/search',        [SearchController::class, 'index']);
 Route::get('/search/posts',  [SearchController::class, 'posts']);
 Route::get('/search/users',  [SearchController::class, 'users']);
 Route::get('/search/works',  [SearchController::class, 'works']);
+
+// ── 랭킹 ──────────────────────────────────────────────────
+Route::get('/rank', [RankController::class, 'index']);

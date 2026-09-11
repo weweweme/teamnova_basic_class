@@ -41,6 +41,7 @@
     <nav>
       <a href="/posts">글 목록</a>
       <a href="/works">작품</a>
+      <a href="/rank">랭킹</a>
 
       {{-- @auth / @guest = 로그인 여부로 갈리는 블록.
            지금 is_logged_in() 으로 if 문을 쓰던 자리다. --}}

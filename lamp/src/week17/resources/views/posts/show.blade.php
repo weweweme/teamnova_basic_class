@@ -28,6 +28,21 @@
       @endauth
     </p>
 
+    {{-- 신고 — 내 글에는 보이지 않게 한다 --}}
+    @auth
+      @cannot('update', $post)
+        <form class="report-form" method="post" action="/posts/{{ $post->id }}/report">
+          @csrf
+          <select name="reason" required>
+            @foreach ($reportReasons as $reason)
+              <option value="{{ $reason }}">{{ $reason }}</option>
+            @endforeach
+          </select>
+          <button class="btn-report" type="submit">🚨 신고</button>
+        </form>
+      @endcannot
+    @endauth
+
     {{-- @can('update', $post) = PostPolicy::update() 가 true 일 때만 그린다.
          컨트롤러의 authorize() 와 같은 판단을 쓰므로 규칙이 한 곳에만 있다. --}}
     @can('update', $post)

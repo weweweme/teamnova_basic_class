@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Media;
 use App\Models\Post;
+use App\Models\Report;
+use App\Services\ViewCounter;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
@@ -31,13 +33,21 @@ class PostController extends Controller
     // ── 글 보기 (GET /posts/{post}) ─────────────────────────
     //   ★ 매개변수에 Post 타입을 적으면 주소의 값으로 알아서 찾아 넣어 준다(라우트 모델 바인딩).
     //     못 찾거나 소프트삭제된 글이면 자동 404 — "없으면 홈으로" if 문이 사라진다.
-    public function show(Request $request, Post $post)
+    public function show(Request $request, Post $post, ViewCounter $viewCounter)
     {
         $comments = $post->comments()
             ->with('author')
             ->withTrashed()                              // 지운 댓글도 '자리'로 남긴다
             ->orderByRaw('COALESCE(parent_id, id), id')  // 원댓글 바로 밑에 그 답글
             ->paginate(20, ['*'], 'cpage');              // 답글까지 합쳐 20줄씩
+
+        // ── 조회수 ─────────────────────────────────────────
+        //   ★ 판정과 집계는 우리 규칙이라 서비스 클래스로 옮겼다 (ViewCounter).
+        //     올랐으면 화면에도 반영한다 — $post 는 올리기 '전'에 읽어온 값이라
+        //     안 더하면 새로고침해야 반영된 것처럼 보인다.
+        if ($viewCounter->count($request, $post)) {
+            $post->views++;
+        }
 
         // 추천 수를 붙인다 (likers_count). 이미 불러온 모델에 덧붙일 때는 loadCount().
         $post->loadCount('likers');
@@ -47,7 +57,12 @@ class PostController extends Controller
             ? $post->likers()->where('user_id', $request->user()->id)->exists()
             : false;
 
-        return view('posts.show', ['post' => $post, 'comments' => $comments, 'liked' => $liked]);
+        return view('posts.show', [
+            'post'          => $post,
+            'comments'      => $comments,
+            'liked'         => $liked,
+            'reportReasons' => Report::REASONS,
+        ]);
     }
 
     // ── 글쓰기 화면 (GET /posts/create) ─────────────────────

@@ -22,8 +22,9 @@ class HomeController extends Controller
     public function index(Request $request, Tmdb $tmdb, Prefs $prefs)
     {
         // 우리 DB = 우리 정체성. 맨 위 줄은 '우리 커뮤니티에서 이야기 중'인 작품.
+        //   ★ 5개만 보여준다. 우리 작품 수가 많지 않아 다 늘어놓으면 줄이 아니라 목록처럼 보인다.
         $community = Media::withCount('posts')->having('posts_count', '>', 0)
-            ->orderByDesc('posts_count')->limit(12)->get();
+            ->orderByDesc('posts_count')->limit(5)->get();
 
         // 히어로 — 그중 맨 앞 작품. 배경은 가로 이미지(backdrop)를 쓴다.
         $hero = $community->first();

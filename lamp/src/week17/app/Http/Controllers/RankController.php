@@ -5,29 +5,41 @@ namespace App\Http\Controllers;
 use App\Models\Media;
 use App\Models\Post;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 // ============================================================
 // RankController — 랭킹 (명예의 전당)
 //   지금 rank/index.php + includes/ranking.php 에 해당한다.
+//
+//   ★ 화면은 탭 하나만 보여준다 → 고른 탭의 순위만 계산한다.
+//     셋을 다 계산해 두고 하나만 그리면 나머지 두 번은 버려지는 일이다.
 // ============================================================
 class RankController extends Controller
 {
-    private const LIMIT = 20;
+    private const LIMIT = 10;   // 각 랭킹 상위 10개
 
-    public function index()
+    private const TABS = ['works' => '🎬 인기 작품', 'users' => '👑 명예의 전당', 'posts' => '🔥 화제의 글'];
+
+    public function index(Request $request)
     {
+        $tab = (string) $request->query('tab', 'works');
+        if (! isset(self::TABS[$tab])) {
+            $tab = 'works';
+        }
+
         return view('rank.index', [
-            'users' => $this->users(),
-            'posts' => $this->posts(),
-            'works' => $this->works(),
+            'tab'  => $tab,
+            'tabs' => self::TABS,
+            'rows' => match ($tab) {
+                'users' => $this->users(),
+                'posts' => $this->posts(),
+                default => $this->works(),
+            },
         ]);
     }
 
     // ── 유저 랭킹 — 받은 추천 많은 순, 같으면 글 많은 순 ────
-    //   ★ 지금은 users ⋈ posts ⋈ likes 세 표를 JOIN 하고,
-    //     줄이 불어나는 걸 COUNT(DISTINCT …) 로 다시 눌러 준다.
-    //     withCount 는 표를 잇지 않고 '서브쿼리'로 세므로 그 문제가 처음부터 없다.
     private function users()
     {
         return User::select('users.*')
@@ -49,20 +61,25 @@ class RankController extends Controller
             ->get();
     }
 
-    // ── 글 랭킹 — 추천 많은 순 ─────────────────────────────
+    // ── 글 랭킹 — 게시판의 '인기' 정렬과 같은 기준 ─────────
     private function posts()
     {
-        return Post::with('author')->withCount(['likers', 'comments'])
-            ->orderByDesc('likers_count')
-            ->orderByDesc('views')
+        return Post::with(['media', 'author' => fn ($q) => $q->withCount('posts')])
+            ->withCount(['likers', 'comments'])
+            ->board('', '', 'hot')
             ->limit(self::LIMIT)
             ->get();
     }
 
     // ── 작품 랭킹 — 글 많은 순 ─────────────────────────────
+    //   추천 비율도 함께 보여준다 → 투표 수를 상관 서브쿼리로 붙인다.
     private function works()
     {
-        return Media::withCount('posts')
+        return Media::withCount([
+                'posts',
+                'voters as up_votes'   => fn ($q) => $q->where('choice', '추천'),
+                'voters as down_votes' => fn ($q) => $q->where('choice', '비추천'),
+            ])
             ->having('posts_count', '>', 0)
             ->orderByDesc('posts_count')
             ->limit(self::LIMIT)

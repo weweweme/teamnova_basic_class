@@ -28,11 +28,11 @@ class SettingsController extends Controller
     //     '끊었다'는 말이 사실이 된다. (DeviceTracker::revoke 가 둘 다 한다)
     public function revokeDevice(Request $request, DeviceTracker $devices)
     {
+        // ★ 비밀번호를 다시 묻지 않는다. 이 주소는 password.confirm 뒤에 있어서
+        //   '방금 본인 확인을 마친 상태'에서만 닿을 수 있다 (15분 유효).
         $data = $request->validate([
             'device_id' => ['required', 'string'],
-            // 비밀번호를 한 번 더 확인한다 — 남의 기기를 끊는 동작이므로
-            'password'  => ['required', 'current_password'],
-        ], ['password.current_password' => '비밀번호가 일치하지 않습니다.']);
+        ]);
 
         $ok = $devices->revoke($request->user()->id, $data['device_id']);
 

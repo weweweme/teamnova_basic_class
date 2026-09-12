@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 // ============================================================
 // ProfileController — 프로필 보기 · 아바타 올리기
@@ -14,14 +15,38 @@ class ProfileController extends Controller
 {
     // ── 프로필 (GET /users/{username}) ──────────────────────
     //   ★ {user:username} = id 가 아니라 username 칸으로 찾는다.
-    public function show(User $user)
+    public function show(Request $request, User $user)
     {
-        $posts = Post::with('media')->withCount(['comments', 'likers'])
-            ->where('author_id', $user->id)
-            ->latest('id')
-            ->paginate(15);
+        // 탭: 작성한 글 | 좋아요한 글
+        $tab = $request->query('tab') === 'liked' ? 'liked' : 'posts';
 
-        return view('profile.show', ['user' => $user, 'posts' => $posts]);
+        $list = $tab === 'liked'
+            ? $user->likedPosts()->with(['media', 'author' => fn ($q) => $q->withCount('posts')])
+            : $user->posts()->with('media');
+
+        $posts = $list->withCount(['comments', 'likers'])->latest('posts.id')->paginate(15)->withQueryString();
+
+        // 활동 통계 — 글 수 · 총 조회 · 받은 추천.
+        //   ★ 목록과 달리 '전체'를 세야 하므로 페이지네이터가 아니라 따로 묻는다.
+        $stats = $user->posts()
+            ->selectRaw('COUNT(*) AS posts_count, COALESCE(SUM(views), 0) AS views_sum')
+            ->first();
+
+        $likesReceived = DB::table('likes')
+            ->join('posts', 'posts.id', '=', 'likes.post_id')
+            ->where('posts.author_id', $user->id)
+            ->whereNull('posts.deleted_at')
+            ->count();
+
+        return view('profile.show', [
+            'user'          => $user,
+            'posts'         => $posts,
+            'tab'           => $tab,
+            'isMe'          => $request->user()?->is($user) ?? false,
+            'postCount'     => (int) $stats->posts_count,
+            'totalViews'    => (int) $stats->views_sum,
+            'likesReceived' => $likesReceived,
+        ]);
     }
 
     // ── 아바타 올리기 (POST /settings/avatar) ───────────────

@@ -1,49 +1,67 @@
 @extends('layouts.app')
-@section('title', $q === '' ? '검색' : "'{$q}' 검색")
+
+@section('title', $q === '' ? '통합검색' : "'{$q}' 검색")
+
+@section('container', 'narrow')
 
 @section('content')
   <h1>🔍 통합검색</h1>
-  @include('search._bar')
+
+  @include('partials.search-bar', ['action' => '/search'])
+
+  {{-- 최근 검색어 — 쿠키 동의(search)가 있을 때만 쌓인다 --}}
+  @if ($recent)
+    <div class="recent-searches">
+      <span class="muted">최근 검색어</span>
+      @foreach ($recent as $past)
+        <a href="/search?q={{ urlencode($past) }}">{{ $past }}</a>
+      @endforeach
+    </div>
+  @endif
 
   @if ($q === '')
-    <p class="muted">작품 제목, 글 제목·내용, 유저 이름으로 찾습니다.</p>
-
-    {{-- 최근 검색어 — 쿠키 동의(search)가 있을 때만 쌓인다 --}}
-    @if ($recent)
-      <p class="muted">최근 검색어:
-        @foreach ($recent as $word)
-          <a href="/search?q={{ urlencode($word) }}">{{ $word }}</a>@if (! $loop->last) · @endif
-        @endforeach
-      </p>
-    @endif
+    <p class="muted">작품 · 글 · 유저를 한 번에 검색합니다. (예: 기생충, 인생 영화, 영화광)</p>
   @else
-    <section>
-      <h2>📝 글 <a class="muted" href="/search/posts?q={{ urlencode($q) }}">더보기</a></h2>
-      @forelse ($posts as $post)
-        <p><a href="/posts/{{ $post->id }}">{{ $post->title }}</a>
-          <small class="muted">{{ $post->author->nickname }} · 💬 {{ $post->comments_count }}</small></p>
-      @empty
-        <p class="muted">찾은 글이 없습니다.</p>
-      @endforelse
+    <section class="search-section">
+      <div class="search-section-head">
+        <h2>🎬 작품</h2>
+        @if ($works)
+          <a class="search-more" href="/search/works?q={{ urlencode($q) }}">더보기 ›</a>
+        @endif
+      </div>
+      @if ($works)
+        @include('partials.search-works')
+      @else
+        <p class="muted search-empty">일치하는 작품이 없습니다.</p>
+      @endif
     </section>
 
-    <section>
-      <h2>👤 유저 <a class="muted" href="/search/users?q={{ urlencode($q) }}">더보기</a></h2>
-      @forelse ($users as $user)
-        <p>{{ $user->nickname }} <small class="muted">@ {{ $user->username }}</small></p>
-      @empty
-        <p class="muted">찾은 유저가 없습니다.</p>
-      @endforelse
+    <section class="search-section">
+      <div class="search-section-head">
+        <h2>📝 글 <span class="count">{{ $postTotal }}</span></h2>
+        @if ($postTotal > $posts->count())
+          <a class="search-more" href="/search/posts?q={{ urlencode($q) }}">더보기 ›</a>
+        @endif
+      </div>
+      @if ($postTotal > 0)
+        @include('partials.search-posts')
+      @else
+        <p class="muted search-empty">제목·내용에 '{{ $q }}'가 들어간 글이 없습니다.</p>
+      @endif
     </section>
 
-    <section>
-      <h2>🎬 작품 <a class="muted" href="/search/works?q={{ urlencode($q) }}">더보기</a></h2>
-      @forelse ($works as $work)
-        <p><a href="/works/{{ $work->slug }}">{{ $work->title }}</a>
-          <small class="muted">글 {{ $work->posts_count }}개</small></p>
-      @empty
-        <p class="muted">우리 게시판에 없는 작품입니다. <a href="/search/works?q={{ urlencode($q) }}">작품 검색에서 찾아보기</a></p>
-      @endforelse
+    <section class="search-section">
+      <div class="search-section-head">
+        <h2>👤 유저 <span class="count">{{ $userTotal }}</span></h2>
+        @if ($userTotal > $users->count())
+          <a class="search-more" href="/search/users?q={{ urlencode($q) }}">더보기 ›</a>
+        @endif
+      </div>
+      @if ($userTotal > 0)
+        @include('partials.search-users')
+      @else
+        <p class="muted search-empty">아이디·닉네임이 일치하는 회원이 없습니다.</p>
+      @endif
     </section>
   @endif
 @endsection

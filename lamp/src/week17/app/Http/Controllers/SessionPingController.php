@@ -22,6 +22,7 @@ class SessionPingController extends Controller
 
         // 화면의 카운트다운이 쓸 '남은 초'. 판정 자체는 서버가 이미 했다.
         return response()->json([
+            'ok'   => true,
             'left' => max(0, $limit - (time() - $last)),
         ]);
     }

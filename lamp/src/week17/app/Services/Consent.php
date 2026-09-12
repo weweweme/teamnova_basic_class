@@ -76,6 +76,27 @@ class Consent
         ]);
     }
 
+    // ── 결정 지우기 (동의 창을 다시 보게 한다) ──────────────
+    //   ★ 기록(consent_log)은 지우지 않는다. '동의했다가 철회함'과 '동의한 적 없음'은
+    //     다른 사실이라, 지난 줄을 지우면 그 구분이 사라진다.
+    public function forget(): void
+    {
+        Cookie::queue(Cookie::forget(self::COOKIE));
+    }
+
+    // ── 이 브라우저가 남긴 동의 기록 ────────────────────────
+    //   로그인했으면 내 기록, 아니면 이 접속지에서 남긴 기록을 보여준다.
+    public function history(Request $request, int $limit = 20)
+    {
+        $query = DB::table('consent_log')->orderByDesc('id')->limit($limit);
+
+        $request->user()
+            ? $query->where('user_id', $request->user()->id)
+            : $query->whereNull('user_id')->where('ip_prefix', $this->ipPrefix((string) $request->ip()));
+
+        return $query->get();
+    }
+
     private function raw(Request $request): ?array
     {
         $decoded = json_decode((string) $request->cookie(self::COOKIE), true);

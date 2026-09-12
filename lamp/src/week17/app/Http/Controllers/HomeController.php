@@ -55,7 +55,6 @@ class HomeController extends Controller
             'heroBackdrop' => $heroBackdrop,
             'hot'          => $hot,
             'recentViewed' => $recentViewed,
-            'trending'     => $tmdb->trending(12),
 
             'recent'    => Post::with(['author', 'media'])->withCount('comments')
                                ->latest('id')->limit(8)->get(),

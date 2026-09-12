@@ -1,28 +1,20 @@
 @extends('layouts.app')
-@section('title', "'{$q}' 작품 검색")
+
+@section('title', $q === '' ? '작품 검색' : "'{$q}' 작품 검색")
+
+@section('container', 'narrow')
 
 @section('content')
-  <h1>🔍 작품 검색</h1>
-  @include('search._bar', ['action' => '/search/works'])
+  <h1>🔍 통합검색</h1>
 
-  @if ($q !== '')
-    <h2>우리 게시판에 있는 작품</h2>
-    @forelse ($ours as $work)
-      <p><a href="/works/{{ $work->slug }}">{{ $work->title }}</a>
-        <small class="muted">글 {{ $work->posts_count }}개</small></p>
-    @empty
-      <p class="muted">없습니다.</p>
-    @endforelse
+  @include('partials.search-bar', ['action' => '/search/works'])
 
-    <h2>TMDB 검색 결과</h2>
-    <p class="muted">아직 우리 게시판에 글이 없는 작품입니다.</p>
-    @forelse ($fromTmdb as $m)
-      <p>
-        @if ($m['poster_url'])<img src="{{ $m['poster_url'] }}" alt="" width="40" loading="lazy">@endif
-        {{ $m['title'] }} <small class="muted">{{ $m['year'] }}</small>
-      </p>
-    @empty
-      <p class="muted">TMDB에서도 찾지 못했습니다.</p>
-    @endforelse
+  @if ($q === '')
+    <p class="muted">영화·드라마 제목으로 검색해 보세요. (예: 기생충, 인셉션)</p>
+  @elseif (! $works)
+    <p class="muted">'{{ $q }}'와 일치하는 작품이 없습니다.</p>
+  @else
+    <p class="muted">🎬 작품 {{ count($works) }}개</p>
+    @include('partials.search-works')
   @endif
 @endsection

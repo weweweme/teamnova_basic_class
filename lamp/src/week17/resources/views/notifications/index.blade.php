@@ -2,6 +2,8 @@
 
 @section('title', '알림')
 
+@section('container', 'narrow')
+
 @section('content')
   <h1>🔔 알림</h1>
 
@@ -17,17 +19,19 @@
           $page = $n->comment?->pageNumber() ?? 1;
           $url  = "/posts/{$n->post_id}" . ($page > 1 ? "?cpage={$page}" : '') . "#c{$n->comment_id}";
         @endphp
-        <li @class(['unread' => ! $n->is_read])>
+        <li @class(['notif-item', 'notif-unread' => ! $n->is_read])>
           <a href="{{ $url }}">
-            <b>{{ $n->actor->nickname }}</b>님이
-            @if ($n->type === 'reply')
-              내 댓글에 답글을 남겼어요
-            @else
-              내 글에 댓글을 남겼어요
-            @endif
-            — {{ $n->post->title }}
+            <span class="notif-text">
+              @if ($n->type === 'reply')
+                ↳ <strong>{{ $n->actor->nickname }}</strong>님이
+                <strong>{{ $n->post->title }}</strong> 글에서 내 댓글에 답글을 남겼어요
+              @else
+                💬 <strong>{{ $n->actor->nickname }}</strong>님이
+                <strong>{{ $n->post->title }}</strong> 글에 댓글을 남겼어요
+              @endif
+            </span>
+            <span class="notif-time">{{ $n->created_at->diffForHumans() }}</span>
           </a>
-          <small class="muted">{{ $n->created_at->diffForHumans() }}</small>
         </li>
       @endforeach
     </ul>

@@ -47,6 +47,15 @@
             </ol>
           </section>
         @endif
+        {{-- 오늘의 발견 — 비어서 시작하고, main.js 가 '이번 주 인기작' 응답에서
+             하나를 골라 채운다(hidden 이 벗겨진다). 새로고침마다 바뀐다. --}}
+        <section class="side-box" id="daily-pick-box" hidden>
+          <h3>🎲 오늘의 발견</h3>
+          <a class="side-pick" id="daily-pick" href="#">
+            <img alt="" loading="lazy">
+            <span class="side-pick-title"></span>
+          </a>
+        </section>
       </aside>
     </div>
   @endif
@@ -62,15 +71,17 @@
     ])->all(),
   ])
 
-  @include('partials.media-row', [
-    'title' => '이번 주 인기작',
-    'items' => collect($trending)->map(fn ($m) => [
-        'url'        => '/search/works?q=' . urlencode($m['title']),
-        'poster_url' => $m['poster_url'],
-        'title'      => $m['title'],
-        'meta'       => $m['year'],
-    ])->all(),
-  ])
+  {{-- TMDB 가로줄 — 서버는 회색 자리표시만 보내고, 화면이 뜬 뒤 main.js 가
+       /api/row 로 실제 포스터를 받아 채운다.
+       ★ 이게 '일단 화면부터 띄우고 나중에 채우기'의 핵심 — 홈 HTML 은 우리 DB 것만 담아 즉시 뜬다. --}}
+  @foreach (['trending' => '이번 주 인기작', 'movie' => '인기 영화', 'tv' => '인기 드라마'] as $kind => $label)
+    <section class="media-row media-row-sm lazy-row" data-kind="{{ $kind }}">
+      <h2>{{ $label }}</h2>
+      <div class="row-scroll">
+        @for ($i = 0; $i < 8; $i++)<span class="row-skeleton"></span>@endfor
+      </div>
+    </section>
+  @endforeach
 
   {{-- ── 게시판: 최근 올라온 글 ──────────────────────────── --}}
   <section class="home-board">

@@ -248,7 +248,7 @@ document.querySelectorAll('.row-scroll').forEach(function (scroll) {
 // ── 작품 둘러보기: 무한 스크롤 ───────────────────────────────
 //   [문제] 첫 페이지(20~40개)만 서버가 그려준다. 더 보려면 계속 불러와야 한다.
 //   [해결] 화면 맨 아래 '감지용 요소(sentinel)'가 보이면(스크롤 도달),
-//     JS가 api/browse.php에서 다음 페이지를 받아와(fetch) 그리드에 이어붙인다.
+//     JS가 api/browse 에서 다음 페이지를 받아와(fetch) 그리드에 이어붙인다.
 //   ★ IntersectionObserver = '이 요소가 화면에 보이나?'를 감시하는 브라우저 기능.
 //     스크롤 이벤트를 매번 계산하는 것보다 가볍고 정확하다. (무한스크롤 표준)
 
@@ -271,7 +271,7 @@ if (grid && sentinel) {
     function addCard(item) {
         const a = document.createElement('a');
         a.className = 'row-card';
-        a.href = '/board/?work=tmdb-' + item.tmdb_id;
+        a.href = '/works/tmdb-' + item.tmdb_id;
         a.innerHTML =
             '<img class="row-poster" src="' + item.poster_url + '" alt="" loading="lazy">' +
             '<span class="row-title"></span>' +
@@ -288,7 +288,7 @@ if (grid && sentinel) {
         loading = true;
         page += 1;
 
-        const url = '/api/browse.php?genre=' + encodeURIComponent(genre)
+        const url = '/api/browse?genre=' + encodeURIComponent(genre)
                   + '&media=' + encodeURIComponent(media) + '&page=' + page;
         try {
             const res  = await fetch(url);
@@ -346,13 +346,13 @@ if (trailerModal) {
 }
 
 // ── 홈: 무거운 TMDB 가로줄을 '화면이 뜬 뒤' 채운다 (초기 로딩을 빠르게) ──
-//   서버는 빈 스켈레톤(.lazy-row)만 보냈고, 여기서 api/row.php로 실제 포스터를 받아 채운다.
+//   서버는 빈 스켈레톤(.lazy-row)만 보냈고, 여기서 api/row 로 실제 포스터를 받아 채운다.
 //   ★ 이게 "일단 이동하고 동적으로 받아오기"의 핵심 — 홈 HTML은 우리 DB 것만 담아 즉시 뜬다.
 document.querySelectorAll('.lazy-row').forEach(function (row) {
     const kind   = row.dataset.kind;                 // trending | movie | tv
     const scroll = row.querySelector('.row-scroll');
 
-    fetch('/api/row.php?kind=' + encodeURIComponent(kind))
+    fetch('/api/row?kind=' + encodeURIComponent(kind))
         .then(function (res) { return res.json(); })
         .then(function (data) {
             if (!data.items || data.items.length === 0) {
@@ -376,7 +376,7 @@ document.querySelectorAll('.lazy-row').forEach(function (row) {
 function buildRowCard(m) {
     const a = document.createElement('a');
     a.className = 'row-card';
-    a.href = '/board/?work=tmdb-' + m.tmdb_id;
+    a.href = '/works/tmdb-' + m.tmdb_id;
     a.innerHTML =
         '<img class="row-poster" src="' + encodeURI(m.poster_url) + '" alt="" loading="lazy">' +
         '<span class="row-title"></span>';
@@ -465,7 +465,7 @@ function fillDailyPick(items) {
         return;
     }
     const m = items[Math.floor(Math.random() * items.length)];   // 새로고침마다 바뀜(발견의 재미)
-    link.href = '/board/?work=tmdb-' + m.tmdb_id;
+    link.href = '/works/tmdb-' + m.tmdb_id;
     link.querySelector('img').src = m.poster_url;
     link.querySelector('.side-pick-title').textContent = m.title;
     box.hidden = false;                              // 다 채워졌으니 이제 보여준다
@@ -546,7 +546,7 @@ if (idleTimer) {
 
         const meta = document.querySelector('meta[name="csrf-token"]');
 
-        fetch('/session/ping.php', {
+        fetch('/session/ping', {
             method: 'POST',
             credentials: 'same-origin',
             body: new URLSearchParams({ _token: meta ? meta.content : '' }),

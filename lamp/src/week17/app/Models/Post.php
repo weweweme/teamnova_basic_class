@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -83,6 +84,42 @@ class Post extends Model
     //   섞어 보내도 반영되지 않는다.
     //   ★ 지금은 읽기만 하므로 안 쓰이지만, 글쓰기를 옮길 때(3단계) 쓴다.
     protected $fillable = ['author_id', 'media_id', 'title', 'content', 'sentiment'];
+
+    // ── 게시판 화면이 쓰는 목록 ─────────────────────────────
+    //   정렬 탭과 감상 필터는 '전체 글(/posts)'과 '작품 게시판(/works/…)' 두 화면이
+    //   똑같이 쓴다. 받은 값이 올바른지 확인하는 데도 쓰이므로 모델에 한 벌만 둔다.
+    public const SORT_TABS  = ['new' => '최신', 'hot' => '인기', 'views' => '조회', 'comments' => '댓글'];
+    public const SENTIMENTS = ['호평', '보통', '혹평'];
+
+    // ── 게시판 조건 걸기 (스코프) ───────────────────────────
+    //   ★ scopeXxx 로 이름을 지으면 Post::board(...) 처럼 부를 수 있다.
+    //     '감상 필터 → 검색어 → 정렬' 세 조건은 두 화면이 똑같이 쓰는데,
+    //     컨트롤러마다 베껴 두면 한쪽만 고쳐지는 일이 생긴다. 여기 한 곳에 모은다.
+    public function scopeBoard(Builder $query, string $sentiment, string $q, string $sort): Builder
+    {
+        if (in_array($sentiment, self::SENTIMENTS, true)) {
+            $query->where('sentiment', $sentiment);
+        }
+
+        // 제목이나 본문에 검색어가 들어간 글만.
+        //   ★ 괄호로 묶지 않으면 앞의 조건과 OR 로 섞여 필터가 풀린다.
+        //     where(클로저) 가 그 괄호 역할을 한다.
+        if ($q !== '') {
+            $like = '%' . addcslashes($q, '%_' . chr(92)) . '%';
+            $query->where(function (Builder $inner) use ($like) {
+                $inner->where('title', 'like', $like)->orWhere('content', 'like', $like);
+            });
+        }
+
+        // ★ 줄 세우기를 DB에 맡긴다. 지금은 190개를 전부 배열로 올린 뒤 usort 로 세운다.
+        //   '인기'는 조회수와 댓글 수를 섞은 값이라 orderByRaw 로 그대로 옮겼다.
+        return match ($sort) {
+            'hot'      => $query->orderByRaw('(views + (SELECT COUNT(*) FROM comments c WHERE c.post_id = posts.id) * 10) DESC'),
+            'views'    => $query->orderByDesc('views'),
+            'comments' => $query->orderByDesc('comments_count'),
+            default    => $query->latest('id'),
+        };
+    }
 
     // ── 새 글에는 수정 시각을 넣지 않는다 ───────────────────
     //   우리 프로젝트에서 edited_at 은 '고친 적이 있을 때만' 값이 든다 (화면의 '(수정됨)' 기준).

@@ -17,7 +17,7 @@ class Prefs
     private const DAYS = 30;
 
     // 쿠키 이름 → 동의 항목
-    private const OWNED_BY = [
+    public const OWNED_BY = [
         'recent_posts'   => 'view',
         'recent_works'   => 'view',
         'recent_search'  => 'search',

@@ -1,45 +1,69 @@
 @extends('layouts.app')
+
 @section('title', '랭킹')
+
+@section('container', 'narrow')
 
 @section('content')
   <h1>🏆 랭킹</h1>
 
-  <section>
-    <h2>명예의 전당 — 유저</h2>
-    <p class="muted">받은 추천이 많은 순, 같으면 글이 많은 순</p>
-    <ol class="rank-list">
-      @foreach ($users as $user)
-        <li>
-          <b>{{ $user->nickname }}</b>
-          <small class="muted">글 {{ $user->posts_count }}개 · 받은 추천 {{ $user->likes_received_count }}</small>
-        </li>
-      @endforeach
-    </ol>
-  </section>
+  {{-- 탭: ?tab= 만 바꾼다 --}}
+  <div class="rank-tabs">
+    @foreach ($tabs as $key => $label)
+      <a class="{{ $tab === $key ? 'active' : '' }}" href="?tab={{ $key }}">{{ $label }}</a>
+    @endforeach
+  </div>
 
-  <section>
-    <h2>인기 글</h2>
-    <ol class="rank-list">
-      @foreach ($posts as $post)
-        <li>
-          <a href="/posts/{{ $post->id }}">{{ $post->title }}</a>
-          <small class="muted">
-            {{ $post->author->nickname }} · 👍 {{ $post->likers_count }} · 💬 {{ $post->comments_count }} · 조회 {{ $post->views }}
-          </small>
-        </li>
-      @endforeach
-    </ol>
-  </section>
+  @php $medals = [1 => '🥇', 2 => '🥈', 3 => '🥉']; @endphp
 
-  <section>
-    <h2>글이 많은 작품</h2>
+  @if ($rows->isEmpty())
+    <p class="muted">
+      @if ($tab === 'users') 아직 글을 쓴 유저가 없습니다.
+      @elseif ($tab === 'posts') 아직 글이 없습니다.
+      @else 아직 글이 달린 작품이 없습니다. @endif
+    </p>
+  @else
     <ol class="rank-list">
-      @foreach ($works as $work)
-        <li>
-          <a href="/works/{{ $work->slug }}">{{ $work->title }}</a>
-          <small class="muted">글 {{ $work->posts_count }}개</small>
+      @foreach ($rows as $i => $row)
+        @php $rank = $i + 1; @endphp
+        <li class="rank-item">
+          <span class="rank-num rank-{{ $rank }}">{{ $medals[$rank] ?? $rank }}</span>
+
+          @if ($tab === 'works')
+            @php $total = $row->up_votes + $row->down_votes; @endphp
+            <a class="rank-body" href="/works/{{ $row->slug }}">
+              <img class="rank-poster" src="{{ $row->poster_url }}" alt="" loading="lazy">
+              <span class="rank-info">
+                <strong>{{ $row->title }}</strong>
+                <span class="rank-meta">💬 글 {{ $row->posts_count }}개@if ($total > 0) · 👍 추천 {{ round($row->up_votes / $total * 100) }}%@endif</span>
+              </span>
+            </a>
+
+          @elseif ($tab === 'users')
+            <a class="rank-body" href="/users/{{ $row->username }}">
+              @if ($row->avatar)
+                <img class="rank-avatar" src="{{ $row->avatar }}" alt="">
+              @else
+                {{-- 사진이 없으면 닉네임 첫 글자로 대신한다 --}}
+                <span class="rank-avatar rank-avatar-empty">{{ mb_substr($row->nickname, 0, 1) }}</span>
+              @endif
+              <span class="rank-info">
+                <strong>{!! $row->levelBadge !!} {{ $row->nickname }}</strong>
+                <span class="rank-meta">👍 받은 추천 {{ $row->likes_received_count }} · ✍️ 글 {{ $row->posts_count }}</span>
+              </span>
+            </a>
+
+          @else
+            <a class="rank-body rank-body-post" href="/posts/{{ $row->id }}">
+              <span class="rank-info">
+                <strong>{{ $row->title }} <span class="tag">{{ $row->sentiment }}</span></strong>
+                <span class="rank-meta">{{ $row->media->title }} · {!! $row->author->levelBadge !!} {{ $row->author->nickname }}
+                  · 👁 {{ $row->views }} · 💬 {{ $row->comments_count }} · 👍 {{ $row->likers_count }}</span>
+              </span>
+            </a>
+          @endif
         </li>
       @endforeach
     </ol>
-  </section>
+  @endif
 @endsection

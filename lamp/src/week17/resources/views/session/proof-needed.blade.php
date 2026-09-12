@@ -1,6 +1,8 @@
 @extends('layouts.app')
 @section('title', '기기 확인 필요')
 
+@section('container', 'narrow')
+
 @section('content')
   <h1>기기 확인이 필요합니다</h1>
   @if ($reason === 'key_missing')

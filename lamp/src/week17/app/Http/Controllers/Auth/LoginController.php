@@ -71,7 +71,12 @@ class LoginController extends Controller
             : '환영합니다! 새로운 기기에서 로그인한 기록이 있습니다 — ' . $new->map->describe()->implode(', ');
 
         // intended() = 로그인 때문에 막혔던 원래 주소로 돌려보낸다. 없으면 두 번째 인자로.
-        return redirect()->intended('/posts')->with('status', $status);
+        //   ★ 그 주소는 auth 미들웨어가 막으면서 세션에 적어 둔 것이다.
+        //     (지금 remember_intended() 가 쿠키에 적고 take_intended() 가 꺼내던 일이다.
+        //      GET 이면 지금 주소를, POST 면 직전 화면을 적는다 — 빈 POST 로 되돌려 보내면
+        //      또 튕기기 때문이다. 우리가 손으로 갈라 두었던 조건과 같다.)
+        //   그냥 상단 메뉴의 '로그인'을 눌러 들어온 경우에는 적힌 주소가 없다 → 홈으로.
+        return redirect()->intended('/')->with('status', $status);
     }
 
     // ── 로그아웃 (POST /logout) ─────────────────────────────
@@ -84,6 +89,6 @@ class LoginController extends Controller
         $request->session()->invalidate();      // 세션에 든 내용 전부 버림
         $request->session()->regenerateToken(); // CSRF 토큰도 새로 발급
 
-        return redirect('/posts')->with('status', '로그아웃했습니다.');
+        return redirect('/')->with('status', '로그아웃했습니다.');
     }
 }

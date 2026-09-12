@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\MediaFeedController;
 use App\Http\Controllers\Auth\ConfirmPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -130,6 +131,11 @@ Route::middleware('auth')->group(function () {
 Route::get('/users/{user:username}', [ProfileController::class, 'show']);
 Route::post('/settings/avatar', [ProfileController::class, 'updateAvatar'])->middleware('auth');
 Route::post('/drafts', [DraftController::class, 'store'])->middleware('auth');
+
+// ── 화면이 뜬 뒤 JS 가 받아 가는 작품 목록 ────────────────
+//   지금 api/row.php · api/browse.php 에 해당한다.
+Route::get('/api/row',    [MediaFeedController::class, 'row']);
+Route::get('/api/browse', [MediaFeedController::class, 'browse']);
 
 // ── 쿠키 동의 ─────────────────────────────────────────────
 Route::get('/cookies', [ConsentController::class, 'edit']);

@@ -10,8 +10,8 @@ use App\Services\Tmdb;
 use Illuminate\Http\Request;
 
 // ============================================================
-// SearchController — 통합검색 · 글 검색 · 유저 검색 · 작품 검색
-//   지금 search/index.php · posts.php · users.php · works.php 에 해당한다.
+// SearchController — 통합검색 · 작품 검색 · 글 검색 · 유저 검색
+//   지금 search/index.php · works.php · posts.php · users.php 에 해당한다.
 // ============================================================
 class SearchController extends Controller
 {
@@ -29,11 +29,28 @@ class SearchController extends Controller
         }
 
         return view('search.index', [
-            'recent' => $prefs->recentSearches($request),
+            'q'         => $q,
+            'recent'    => $prefs->recentSearches($request),
+            'works'     => $q === '' ? [] : $this->workResults($tmdb, $q, self::PREVIEW_MAX),
+            'posts'     => $q === '' ? collect() : $this->postQuery($q)->limit(self::PREVIEW_MAX)->get(),
+            'users'     => $q === '' ? collect() : $this->userQuery($q)->limit(self::PREVIEW_MAX)->get(),
+            // '더보기'를 보여줄지 정하려면 전체 개수가 필요하다.
+            //   ★ 목록을 다 불러와 세지 않는다 — DB 에 개수만 묻는다.
+            'postTotal' => $q === '' ? 0 : $this->postQuery($q)->count(),
+            'userTotal' => $q === '' ? 0 : $this->userQuery($q)->count(),
+        ]);
+    }
+
+    // ── 작품 검색 전용 (GET /search/works) ──────────────────
+    //   ★ 우리 표에 있는 작품과 TMDB 결과를 한 목록으로 합친다.
+    //     주소는 둘 다 /works/tmdb-<번호> 로 같다 — 표에 없으면 TMDB 에서 받아 보여준다.
+    public function works(Request $request, Tmdb $tmdb)
+    {
+        $q = $this->query($request);
+
+        return view('search.works', [
             'q'     => $q,
-            'posts' => $q === '' ? collect() : $this->postQuery($q)->limit(self::PREVIEW_MAX)->get(),
-            'users' => $q === '' ? collect() : $this->userQuery($q)->limit(self::PREVIEW_MAX)->get(),
-            'works' => $q === '' ? collect() : $this->workQuery($q)->limit(self::PREVIEW_MAX)->get(),
+            'works' => $q === '' ? [] : $this->workResults($tmdb, $q, self::PER_PAGE),
         ]);
     }
 
@@ -44,7 +61,7 @@ class SearchController extends Controller
 
         return view('search.posts', [
             'q'     => $q,
-            // ★ 자르는 일은 DB가 한다. 글이 아무리 많아도 서버가 든 건 이 페이지 20개뿐이다.
+            // ★ 자르는 일은 DB 가 한다. 글이 아무리 많아도 서버가 든 건 이 페이지 20개뿐이다.
             //   withQueryString() 을 붙여야 페이지 링크에 ?q= 가 함께 실린다.
             'posts' => $q === ''
                 ? Post::whereRaw('1 = 0')->paginate(self::PER_PAGE)
@@ -65,28 +82,11 @@ class SearchController extends Controller
         ]);
     }
 
-    // ── 작품 검색 전용 (GET /search/works) ──────────────────
-    //   우리 DB에 있는 작품 + TMDB 검색 결과를 함께 보여준다.
-    public function works(Request $request, Tmdb $tmdb)
-    {
-        $q = $this->query($request);
-
-        $ours = $q === '' ? collect() : $this->workQuery($q)->get();
-
-        // 이미 우리 DB에 있는 작품은 TMDB 목록에서 뺀다 (같은 작품이 두 번 보이지 않게)
-        $haveSlugs = $ours->pluck('slug')->all();
-        $fromTmdb  = $q === ''
-            ? []
-            : array_values(array_filter($tmdb->searchMovies($q), fn ($m) => ! in_array($m['slug'], $haveSlugs, true)));
-
-        return view('search.works', ['q' => $q, 'ours' => $ours, 'fromTmdb' => $fromTmdb]);
-    }
-
     // ── 공통 ────────────────────────────────────────────────
 
     private function query(Request $request): string
     {
-        return trim((string) $request->query('q', ''));
+        return mb_substr(trim((string) $request->query('q', '')), 0, 50);
     }
 
     // ★ LIKE 의 특수문자(% _ \)를 그대로 넘기면 '아무거나'로 해석된다.
@@ -96,11 +96,32 @@ class SearchController extends Controller
         return '%' . addcslashes($q, '%_' . chr(92)) . '%';
     }
 
+    // 작품 결과 — 우리 표에 있는 것을 앞에, TMDB 에서 찾은 나머지를 뒤에
+    private function workResults(Tmdb $tmdb, string $q, int $limit): array
+    {
+        $ours = Media::where('title', 'like', $this->like($q))
+            ->withCount('posts')->orderByDesc('posts_count')->limit($limit)->get()
+            ->map(fn ($m) => [
+                'slug'       => $m->slug,
+                'title'      => $m->title,
+                'genre'      => $m->genre,
+                'year'       => $m->year,
+                'poster_url' => $m->poster_url,
+            ])->all();
+
+        // 같은 작품이 두 번 보이지 않게, 이미 담은 slug 는 뺀다
+        $have  = array_column($ours, 'slug');
+        $extra = array_filter($tmdb->searchMovies($q, $limit), fn ($m) => ! in_array($m['slug'], $have, true));
+
+        return array_slice(array_merge($ours, array_values($extra)), 0, $limit);
+    }
+
     private function postQuery(string $q)
     {
         $like = $this->like($q);
 
-        return Post::with('author')->withCount('comments')
+        return Post::with(['media', 'author' => fn ($w) => $w->withCount('posts')])
+            ->withCount(['comments', 'likers'])
             ->where(fn ($w) => $w->where('title', 'like', $like)->orWhere('content', 'like', $like))
             ->latest('id');
     }
@@ -109,12 +130,8 @@ class SearchController extends Controller
     {
         $like = $this->like($q);
 
-        return User::where(fn ($w) => $w->where('username', 'like', $like)->orWhere('nickname', 'like', $like))
+        return User::withCount(['posts', 'comments'])
+            ->where(fn ($w) => $w->where('username', 'like', $like)->orWhere('nickname', 'like', $like))
             ->orderBy('id');
-    }
-
-    private function workQuery(string $q)
-    {
-        return Media::withCount('posts')->where('title', 'like', $this->like($q))->orderByDesc('posts_count');
     }
 }

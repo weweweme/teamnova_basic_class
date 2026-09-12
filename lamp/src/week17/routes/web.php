@@ -132,6 +132,7 @@ Route::post('/settings/avatar', [ProfileController::class, 'updateAvatar'])->mid
 Route::post('/drafts', [DraftController::class, 'store'])->middleware('auth');
 
 // ── 쿠키 동의 ─────────────────────────────────────────────
+Route::get('/cookies', [ConsentController::class, 'edit']);
 Route::post('/consent', [ConsentController::class, 'store']);
 
 // ── 비밀번호 재확인 ───────────────────────────────────────

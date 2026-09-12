@@ -6,7 +6,9 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DeviceKeyController;
+use App\Http\Controllers\DraftController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SessionPingController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\RankController;
@@ -140,3 +142,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/session/challenge', [DeviceKeyController::class, 'challenge']);
     Route::post('/session/verify',    [DeviceKeyController::class, 'verify']);
 });
+
+// ── 프로필 · 초안 ─────────────────────────────────────────
+//   ★ {user:username} = id 가 아니라 username 칸으로 찾는다.
+Route::get('/users/{user:username}', [ProfileController::class, 'show']);
+Route::post('/settings/avatar', [ProfileController::class, 'updateAvatar'])->middleware('auth');
+Route::post('/drafts', [DraftController::class, 'store'])->middleware('auth');

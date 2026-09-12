@@ -6,6 +6,21 @@
   <p class="muted">{{ auth()->user()->username }} 님 · {{ auth()->user()->joined_at->format('Y-m-d') }} 가입</p>
 
   <section>
+    <h2>프로필 사진</h2>
+    @if (auth()->user()->avatar)
+      <p><img src="{{ auth()->user()->avatar }}" alt="" width="64" height="64"></p>
+    @endif
+    {{-- ★ 파일을 보내는 폼은 enctype 을 지정해야 한다. 없으면 파일 이름만 전송된다. --}}
+    <form method="post" action="/settings/avatar" enctype="multipart/form-data">
+      @csrf
+      <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" required>
+      <button type="submit">올리기</button>
+      @error('avatar')<span class="muted">{{ $message }}</span>@enderror
+    </form>
+    <p class="muted">JPG · PNG · WEBP · 2MB 이하</p>
+  </section>
+
+  <section>
     <h2>닉네임</h2>
     <form method="post" action="/settings/nickname">
       @csrf

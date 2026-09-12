@@ -70,7 +70,7 @@
         <a class="nav-bell" href="/notifications" title="알림">🔔@if ($unread > 0)<span class="nav-bell-badge">{{ $unread > 99 ? '99+' : $unread }}</span>@endif</a>
         <a href="/trash">휴지통</a>
         <a href="/settings">설정</a>
-        <span class="nav-user">{{ auth()->user()->nickname }}님</span>
+        <a class="nav-user" href="/users/{{ auth()->user()->username }}">{{ auth()->user()->nickname }}님</a>
 
         {{-- 로그아웃은 상태를 바꾸는 동작이라 링크가 아니라 POST 폼 --}}
         <form class="logout-form" method="post" action="/logout">

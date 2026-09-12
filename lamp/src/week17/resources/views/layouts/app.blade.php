@@ -93,5 +93,10 @@
 
     @yield('content')
   </main>
+
+  {{-- 아직 결정하지 않았으면 배너를 보여준다 --}}
+  @if (! app(\App\Services\Consent::class)->decided(request()))
+    @include('partials.consent-banner', ['consentItems' => \App\Services\Consent::LABELS])
+  @endif
 </body>
 </html>

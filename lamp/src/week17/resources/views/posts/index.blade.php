@@ -36,4 +36,13 @@
   </ul>
 
   {{ $posts->links() }}
+
+  {{-- 한 페이지 개수 — 고르면 기억한다 (쿠키 동의가 있을 때만) --}}
+  <p class="muted">
+    한 페이지에
+    @foreach ([15, 30, 50] as $n)
+      <a href="?per_page={{ $n }}">{{ $n === $perPage ? "[$n]" : $n }}</a>
+    @endforeach
+    개씩
+  </p>
 @endsection

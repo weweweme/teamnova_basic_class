@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Media;
 use App\Models\Post;
 use App\Models\Report;
+use App\Services\Prefs;
 use App\Services\ViewCounter;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
@@ -20,20 +21,28 @@ class PostController extends Controller
     use AuthorizesRequests;
 
     // ── 글 목록 (GET /posts) ────────────────────────────────
-    public function index()
+    public function index(Request $request, Prefs $prefs)
     {
         // with('author')     — 글쓴이를 미리 한 번에 읽어 둔다
         // withCount('comments') — 글마다 댓글 개수를 서브쿼리 한 번으로 붙인다
         //   ★ 둘 다 N+1(목록 15개에 쿼리 31번) 방지용이다. 지금 get_posts() 가 손으로 짜 둔 일이다.
-        $posts = Post::with('author')->withCount('comments')->latest('id')->paginate(15);
+        // ?per_page= 로 바꾸면 기억해 둔다 (동의한 경우에만 쿠키에 담긴다)
+        if ($request->filled('per_page')) {
+            $prefs->rememberPerPage($request, (int) $request->query('per_page'));
+        }
 
-        return view('posts.index', ['posts' => $posts]);
+        $perPage = $prefs->perPage($request);
+
+        $posts = Post::with('author')->withCount('comments')
+            ->latest('id')->paginate($perPage)->withQueryString();
+
+        return view('posts.index', ['posts' => $posts, 'perPage' => $perPage]);
     }
 
     // ── 글 보기 (GET /posts/{post}) ─────────────────────────
     //   ★ 매개변수에 Post 타입을 적으면 주소의 값으로 알아서 찾아 넣어 준다(라우트 모델 바인딩).
     //     못 찾거나 소프트삭제된 글이면 자동 404 — "없으면 홈으로" if 문이 사라진다.
-    public function show(Request $request, Post $post, ViewCounter $viewCounter)
+    public function show(Request $request, Post $post, ViewCounter $viewCounter, Prefs $prefs)
     {
         $comments = $post->comments()
             ->with('author')
@@ -56,6 +65,9 @@ class PostController extends Controller
         $liked = $request->user()
             ? $post->likers()->where('user_id', $request->user()->id)->exists()
             : false;
+
+        // 최근 본 글로 기억한다 (동의한 경우에만 쿠키에 담긴다)
+        $prefs->rememberRecentPost($request, $post->id);
 
         return view('posts.show', [
             'post'          => $post,

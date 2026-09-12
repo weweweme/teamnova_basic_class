@@ -7,6 +7,7 @@ use App\Http\Controllers\LikeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DeviceKeyController;
 use App\Http\Controllers\DraftController;
+use App\Http\Controllers\ConsentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SessionPingController;
@@ -148,3 +149,6 @@ Route::middleware('auth')->group(function () {
 Route::get('/users/{user:username}', [ProfileController::class, 'show']);
 Route::post('/settings/avatar', [ProfileController::class, 'updateAvatar'])->middleware('auth');
 Route::post('/drafts', [DraftController::class, 'store'])->middleware('auth');
+
+// ── 쿠키 동의 ─────────────────────────────────────────────
+Route::post('/consent', [ConsentController::class, 'store']);

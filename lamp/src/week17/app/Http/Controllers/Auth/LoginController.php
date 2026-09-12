@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\RememberPublicUrl;
 use App\Services\DeviceTracker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -84,11 +85,19 @@ class LoginController extends Controller
     //     GET이면 남의 사이트에 <img src="/logout"> 만 박아도 로그아웃된다.
     public function destroy(Request $request)
     {
+        // ★ 세션을 비우기 '전에' 돌아갈 자리를 꺼내 둔다. 비운 뒤에는 읽을 수 없다.
+        //   RememberPublicUrl 미들웨어가 '로그인 없이도 볼 수 있던 마지막 화면'을 적어 둔다.
+        //   · 공개 화면에서 눌렀으면 그 화면이 곧 마지막 값이라 제자리에 남는다
+        //   · 글쓰기·설정 같은 전용 화면에서 눌렀으면 거기 들어가기 직전의 화면으로 간다
+        //     (전용 화면 자리로 돌려보내면 곧바로 로그인 화면으로 튕겨서
+        //      로그아웃이 실패한 것처럼 보인다)
+        $back = $request->session()->get(RememberPublicUrl::KEY, '/');
+
         Auth::logout();
 
         $request->session()->invalidate();      // 세션에 든 내용 전부 버림
         $request->session()->regenerateToken(); // CSRF 토큰도 새로 발급
 
-        return redirect('/')->with('status', '로그아웃했습니다.');
+        return redirect($back)->with('status', '로그아웃했습니다.');
     }
 }

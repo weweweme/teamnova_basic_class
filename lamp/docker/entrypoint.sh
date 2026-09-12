@@ -241,6 +241,16 @@ fi
 mkdir -p "$APP_DIR/cache/tmdb"
 say "TMDB 캐시 폴더 준비 완료"
 
+# ── 7-1. PHP 설정 넣기 ──────────────────────────────────────
+#   이 컨테이너에는 php.ini 가 없어서 PHP 기본값으로 돈다.
+#   기본값은 OPcache 가 매 요청 파일 수정 시각을 전부 확인하는데,
+#   소스가 Windows 바인드 마운트 위에 있으면 그것만으로 1초 이상 느려진다.
+#   ★ 설정 파일은 Git(docker/php.ini)에 있고 여기서 복사한다 → 새 PC에도 그대로 적용된다.
+if [ -f /host-docker/php.ini ]; then
+    cp /host-docker/php.ini /usr/local/php/lib/php.ini
+    say "PHP 설정 적용 완료 (OPcache 재확인 주기 60초)"
+fi
+
 # ── 8. 종료 신호를 받으면 DB부터 안전하게 닫기 ──────────────
 #   `docker compose down` 은 이 스크립트에 '그만' 신호(SIGTERM)를 보낸다.
 #   그때 MariaDB를 정식으로 닫아야 쓰다 만 데이터가 깨지지 않는다.

@@ -17,6 +17,10 @@ use Illuminate\Http\Request;
 // ============================================================
 class PostController extends Controller
 {
+    // 정렬 탭 — 검증에도 쓰이므로 한 곳에 둔다
+    private const SORT_TABS  = ['new' => '최신', 'hot' => '인기', 'views' => '조회', 'comments' => '댓글'];
+    private const SENTIMENTS = ['호평', '보통', '혹평'];
+
     // authorize() 를 쓰기 위한 트레이트. Laravel 11부터 기본 Controller 에 들어 있지 않다.
     use AuthorizesRequests;
 
@@ -31,12 +35,43 @@ class PostController extends Controller
             $prefs->rememberPerPage($request, (int) $request->query('per_page'));
         }
 
-        $perPage = $prefs->perPage($request);
+        // 정렬·감상 필터도 고르면 기억한다
+        if ($request->filled('sort')) {
+            $prefs->rememberSort($request, (string) $request->query('sort'), array_keys(self::SORT_TABS));
+        }
+        if ($request->has('sentiment')) {
+            $prefs->rememberSentiment($request, (string) $request->query('sentiment'), self::SENTIMENTS);
+        }
 
-        $posts = Post::with('author')->withCount('comments')
-            ->latest('id')->paginate($perPage)->withQueryString();
+        $perPage   = $prefs->perPage($request);
+        $sort      = $request->query('sort', $prefs->sort($request, array_keys(self::SORT_TABS), 'new'));
+        $sentiment = $request->query('sentiment', $prefs->sentiment($request, self::SENTIMENTS));
 
-        return view('posts.index', ['posts' => $posts, 'perPage' => $perPage]);
+        $query = Post::with('author')->withCount(['comments', 'likers']);
+
+        if (in_array($sentiment, self::SENTIMENTS, true)) {
+            $query->where('sentiment', $sentiment);
+        }
+
+        // ★ 정렬을 DB에 맡긴다. 지금은 190개를 전부 배열로 올린 뒤 usort 로 줄을 세운다.
+        //   '인기'는 조회수와 댓글 수를 섞은 값이라 orderByRaw 로 그대로 옮겼다.
+        match ($sort) {
+            'hot'      => $query->orderByRaw('(views + (SELECT COUNT(*) FROM comments c WHERE c.post_id = posts.id) * 10) DESC'),
+            'views'    => $query->orderByDesc('views'),
+            'comments' => $query->orderByDesc('comments_count'),
+            default    => $query->latest('id'),
+        };
+
+        $posts = $query->paginate($perPage)->withQueryString();
+
+        return view('posts.index', [
+            'posts'     => $posts,
+            'perPage'   => $perPage,
+            'sort'      => $sort,
+            'sentiment' => $sentiment,
+            'sortTabs'  => self::SORT_TABS,
+            'sentiments' => self::SENTIMENTS,
+        ]);
     }
 
     // ── 글 보기 (GET /posts/{post}) ─────────────────────────

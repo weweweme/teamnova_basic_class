@@ -7,6 +7,15 @@
 
   @if ($q === '')
     <p class="muted">작품 제목, 글 제목·내용, 유저 이름으로 찾습니다.</p>
+
+    {{-- 최근 검색어 — 쿠키 동의(search)가 있을 때만 쌓인다 --}}
+    @if ($recent)
+      <p class="muted">최근 검색어:
+        @foreach ($recent as $word)
+          <a href="/search?q={{ urlencode($word) }}">{{ $word }}</a>@if (! $loop->last) · @endif
+        @endforeach
+      </p>
+    @endif
   @else
     <section>
       <h2>📝 글 <a class="muted" href="/search/posts?q={{ urlencode($q) }}">더보기</a></h2>

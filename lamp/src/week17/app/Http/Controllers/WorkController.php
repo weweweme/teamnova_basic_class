@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Media;
 use App\Models\Post;
+use App\Services\Prefs;
 use Illuminate\Http\Request;
 
 // ============================================================
@@ -23,8 +24,11 @@ class WorkController extends Controller
     // ── 작품 게시판 (GET /works/{slug}) ─────────────────────
     //   ★ {media:slug} 라고 적으면 id 가 아니라 slug 로 찾는다.
     //     주소가 /works/parasite 처럼 읽히게 된다.
-    public function show(Request $request, Media $media)
+    public function show(Request $request, Media $media, Prefs $prefs)
     {
+        // 최근 본 작품으로 기억한다 (쿠키 동의가 있을 때만 담긴다)
+        $prefs->rememberRecentWork($request, $media->slug);
+
         $posts = Post::with('author')->withCount('comments')
             ->where('media_id', $media->id)
             ->latest('id')

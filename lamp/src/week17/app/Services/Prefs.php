@@ -48,6 +48,59 @@ class Prefs
         }
     }
 
+    // ── 게시판 정렬 ─────────────────────────────────────────
+    //   ★ 쿠키 값을 그대로 믿지 않는다. 우리가 정한 목록에 있는 값만 쓴다.
+    public function sort(Request $request, array $allowed, string $default): string
+    {
+        $value = (string) $request->cookie('pref_sort');
+
+        return in_array($value, $allowed, true) ? $value : $default;
+    }
+
+    public function rememberSort(Request $request, string $value, array $allowed): void
+    {
+        if (in_array($value, $allowed, true)) {
+            $this->put($request, 'pref_sort', $value);
+        }
+    }
+
+    // ── 게시판 감상 필터 ────────────────────────────────────
+    public function sentiment(Request $request, array $allowed): string
+    {
+        $value = (string) $request->cookie('pref_sentiment');
+
+        return in_array($value, $allowed, true) ? $value : '';
+    }
+
+    public function rememberSentiment(Request $request, string $value, array $allowed): void
+    {
+        if ($value === '' || in_array($value, $allowed, true)) {
+            $this->put($request, 'pref_sentiment', $value);
+        }
+    }
+
+    // ── 최근 본 작품 ────────────────────────────────────────
+    //   ★ 글은 숫자라 ctype_digit 이면 끝인데, 작품 slug 는 글자다.
+    //     그래서 '모양을 정해 두고 그 모양만' 통과시킨다 (영문 소문자·숫자·하이픈).
+    public function rememberRecentWork(Request $request, string $slug): void
+    {
+        if (! preg_match('/^[a-z0-9-]{1,50}$/', $slug)) {
+            return;
+        }
+
+        $list = array_values(array_unique(array_merge([$slug], $this->recentWorkSlugs($request))));
+
+        $this->put($request, 'recent_works', implode(',', array_slice($list, 0, self::RECENT_MAX)));
+    }
+
+    public function recentWorkSlugs(Request $request): array
+    {
+        return collect(explode(',', (string) $request->cookie('recent_works')))
+            ->filter(fn ($v) => (bool) preg_match('/^[a-z0-9-]{1,50}$/', $v))
+            ->take(self::RECENT_MAX)
+            ->values()->all();
+    }
+
     // ── 최근 본 글 ──────────────────────────────────────────
     public function rememberRecentPost(Request $request, int $postId): void
     {

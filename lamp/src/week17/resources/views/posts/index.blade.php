@@ -18,6 +18,21 @@
   {{-- ★ 클래스 이름과 구조를 기존 board/index.php 와 똑같이 맞춘다.
        style.css 는 '.post-list li > .post-left / .post-right' 구조를 전제로 쓰여 있어서,
        이름만 같고 구조가 다르면 스타일이 어긋난다. --}}
+  {{-- 정렬 탭 — 고른 값은 쿠키 동의가 있을 때만 기억된다 --}}
+  <nav class="sort-tabs">
+    @foreach ($sortTabs as $key => $label)
+      <a href="?sort={{ $key }}&sentiment={{ $sentiment }}">{{ $key === $sort ? "[$label]" : $label }}</a>
+    @endforeach
+  </nav>
+
+  {{-- 감상 필터 --}}
+  <nav class="sentiment-tabs">
+    <a href="?sort={{ $sort }}&sentiment=">{{ $sentiment === '' ? '[전체]' : '전체' }}</a>
+    @foreach ($sentiments as $s)
+      <a href="?sort={{ $sort }}&sentiment={{ $s }}">{{ $s === $sentiment ? "[$s]" : $s }}</a>
+    @endforeach
+  </nav>
+
   <ul class="post-list board-list">
     @foreach ($posts as $post)
       <li>
@@ -41,7 +56,7 @@
   <p class="muted">
     한 페이지에
     @foreach ([15, 30, 50] as $n)
-      <a href="?per_page={{ $n }}">{{ $n === $perPage ? "[$n]" : $n }}</a>
+      <a href="?sort={{ $sort }}&sentiment={{ $sentiment }}&per_page={{ $n }}">{{ $n === $perPage ? "[$n]" : $n }}</a>
     @endforeach
     개씩
   </p>

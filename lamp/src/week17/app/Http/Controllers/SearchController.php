@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Media;
 use App\Models\Post;
 use App\Models\User;
+use App\Services\Prefs;
 use App\Services\Tmdb;
 use Illuminate\Http\Request;
 
@@ -18,11 +19,17 @@ class SearchController extends Controller
     private const PREVIEW_MAX = 5;    // 통합검색에서 종류별로 보여줄 개수
 
     // ── 통합검색 (GET /search?q=…) ──────────────────────────
-    public function index(Request $request, Tmdb $tmdb)
+    public function index(Request $request, Tmdb $tmdb, Prefs $prefs)
     {
         $q = $this->query($request);
 
+        // 검색어를 기억한다 (쿠키 동의가 있을 때만 담긴다)
+        if ($q !== '') {
+            $prefs->rememberSearch($request, $q);
+        }
+
         return view('search.index', [
+            'recent' => $prefs->recentSearches($request),
             'q'     => $q,
             'posts' => $q === '' ? collect() : $this->postQuery($q)->limit(self::PREVIEW_MAX)->get(),
             'users' => $q === '' ? collect() : $this->userQuery($q)->limit(self::PREVIEW_MAX)->get(),

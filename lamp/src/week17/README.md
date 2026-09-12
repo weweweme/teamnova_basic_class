@@ -57,6 +57,23 @@ docker exec -w /var/www/html/week17 manual_lamp /usr/local/php/bin/php /var/www/
 | `require_csrf()` | 27곳 | **0곳** (기본 미들웨어) |
 | `deleted_at IS NULL` | 21곳 | **0곳** (`SoftDeletes`) |
 
+### 레거시 코드 정리 (2026-09)
+
+옮긴 것이 확인된 레거시 파일은 **삭제했다.** 지우기 전 측정값은
+[레거시_비교자료.md](레거시_비교자료.md) 에 남겨 두었다 (발표 자료의 근거).
+
+남겨 둔 것은 **아직 안 옮긴 기능의 참고 코드**뿐이다.
+
+| 남긴 것 | 이유 |
+|---|---|
+| `assets/js/main.js` | 820줄, 아직 이식 전 |
+| `api/browse.php` · `api/row.php` | 스크롤 지연 로딩 (위 JS와 짝) |
+| `cookies.php` | 쿠키 설명 화면 |
+| `includes/posts.php` · `works.php` | `/posts` 파이프라인(작품 필터·검색) 이식할 때 참고 |
+| `sql/` | 스키마 원본. Laravel 마이그레이션을 쓰지 않으므로 **여기가 기준**이다 |
+
+> 지운 파일은 git 이력에 그대로 있다. 필요하면 `git log --diff-filter=D --name-only` 로 찾는다.
+
 ### 아직 안 옮긴 것
 
 - **`main.js` (820줄)** — 자동 로그아웃 카운트다운 · 임시저장 자동 호출 · 신고 창 · 가로 스크롤

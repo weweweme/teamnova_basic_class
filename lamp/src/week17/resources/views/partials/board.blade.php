@@ -69,18 +69,12 @@
         $shownAt  = $post->edited_at ?? $post->created_at;
         $timeHint = $post->created_at->format('Y-m-d H:i') . ' 작성'
                   . ($post->edited_at ? ' · ' . $post->edited_at->format('Y-m-d H:i') . ' 수정' : '');
-        // 검색 중이면 제목에서 찾은 글자를 형광펜으로 칠한다.
-        //   ★ 순서가 중요하다: e() 로 안전하게 만든 뒤에 <mark> 를 넣는다.
-        //     반대로 하면 <mark> 까지 글자로 변해 화면에 태그가 그대로 보인다.
-        $titleHtml = e($post->title);
-        if ($q !== '') {
-            $titleHtml = preg_replace('/' . preg_quote(e($q), '/') . '/iu', '<mark>$0</mark>', $titleHtml);
-        }
       @endphp
       <li>
         {{-- ── 왼쪽: 제목 · 감상 · 댓글 수 (글을 고르는 데 필요한 것들) ── --}}
         <span class="post-left">
-          <a href="/posts/{{ $post->id }}" title="{{ $post->title }}">{!! $titleHtml !!}</a>
+          {{-- 검색 중이면 제목에서 찾은 글자를 형광펜으로 칠한다 (검색 화면과 같은 조각) --}}
+          <a href="/posts/{{ $post->id }}" title="{{ $post->title }}">@highlight($post->title, $q)</a>
           <span class="tag">{{ $post->sentiment }}</span>
           @if ($post->comments_count > 0)
             <span class="post-comments">💬 {{ $post->comments_count }}</span>

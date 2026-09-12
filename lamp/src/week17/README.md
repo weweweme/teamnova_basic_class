@@ -9,13 +9,69 @@ week14는 GET/POST를, week15는 DB를, week16은 쿠키와 세션을 다뤘습�
 세 주차 모두 **"무엇을 어디에 담을까"** 였고, 그 답은 이제 `includes/` 모듈 안에 정리돼 있습니다.
 week17은 그 위에 **뼈대**를 세웁니다.
 
-> ⚠️ **어떤 프레임워크를 쓸지는 아직 정하지 않았습니다.** 먼저 충분히 논의한 뒤에 고릅니다.
+> ✅ **프레임워크는 Laravel 13으로 정했고, 이관이 진행 중입니다.** 결정 과정과 근거는 발표 자료에,
+> 이관 계획은 [리팩토링_설계.md](리팩토링_설계.md) 에 있습니다.
 > 지금 확정된 것은 제약뿐이고, **12절**에 적어 두었습니다.
 
 > 아래 1~11절은 week16에서 물려받은 현재 상태입니다.
 > **12절**이 이번 주차 계획입니다.
 
 ---
+
+---
+
+## ★ 현재 상태 — Laravel 13 이관 중 (2026-09)
+
+이 폴더는 **Laravel 13.31.0 프로젝트**다. 기존 PHP 코드는 참고용으로 아직 남아 있지만
+**서비스되지 않는다** (Apache 문서 루트가 `week17/public` 이다).
+
+### 실행
+
+```bash
+docker compose up -d          # lamp/ 에서
+# https://localhost:8443/  (http 는 https 로 넘어간다)
+```
+
+명령은 컨테이너 안에서 실행한다. PHP CLI는 PATH에 없어 전체 경로로 부른다.
+
+```bash
+docker exec -w /var/www/html/week17 manual_lamp /usr/local/php/bin/php artisan route:list
+docker exec -w /var/www/html/week17 manual_lamp /usr/local/php/bin/php /var/www/html/_tools/composer.phar install
+```
+
+### 원칙
+
+- **DB는 손대지 않는다.** 기존 표 15개를 그대로 쓰고 **마이그레이션은 돌리지 않는다.**
+  (글 190 · 댓글 378 · 회원 25 · 투표 139 유지)
+- 비밀번호 해시가 bcrypt cost 12 라 **기존 회원이 비밀번호 변경 없이 로그인된다.**
+- 세션은 우리 `sessions` 표를 쓰는 **커스텀 드라이버**(`app/Session/DbSessionHandler.php`)로 담는다.
+  번호표 원본이 아니라 sha256 지문(`id_hash`)만 저장한다.
+
+### 손으로 짜던 것이 얼마나 사라졌나 (2026-09 측정)
+
+| 항목 | 레거시 | Laravel |
+|---|---|---|
+| `e()` 직접 호출 | 211곳 | **2곳** (의도적으로 남긴 `nl2br(e(...))`) |
+| `require_once` | 195곳 | **0곳** |
+| `require_login()` | 28곳 | **0곳** (`auth` 미들웨어) |
+| `require_csrf()` | 27곳 | **0곳** (기본 미들웨어) |
+| `deleted_at IS NULL` | 21곳 | **0곳** (`SoftDeletes`) |
+
+### 아직 안 옮긴 것
+
+- **`main.js` (820줄)** — 자동 로그아웃 카운트다운 · 임시저장 자동 호출 · 신고 창 · 가로 스크롤
+- **`api/browse.php` · `api/row.php`** — 스크롤에 맞춘 지연 로딩 (위 JS와 짝)
+- **`/posts` 의 작품 필터·검색어** — 정렬·감상 필터·페이징까지만 옮겼다
+  (작품별 목록은 `/works/{slug}`, 검색은 `/search/posts` 에 따로 있다)
+- **`cookies.php`** — 쿠키 설명 화면 (동의 배너는 옮겼다)
+- **기기 도장 브라우저 실측** — 서버 쪽은 전부 검증했지만 WebCrypto는 실제 브라우저에서만 돈다.
+  `.env` 에 `AUTH_DEVICE_KEY_REQUIRED=true` 를 넣어야 켜진다 (기본 꺼짐).
+
+자세한 계획은 [리팩토링_설계.md](리팩토링_설계.md), 개념 정리는 [라라벨_기초.md](라라벨_기초.md) 에 있다.
+
+---
+
+## (이하 레거시 기준 문서 — 이관이 끝나면 정리한다)
 
 ## 1. 실행 방법
 

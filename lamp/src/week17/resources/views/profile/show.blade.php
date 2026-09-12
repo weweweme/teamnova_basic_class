@@ -8,7 +8,7 @@
     @endif
     {{ $user->nickname }}
   </h1>
-  <p class="muted">@ {{ $user->username }} · {{ $user->joined_at?->format('Y-m-d') }} 가입 · 글 {{ $posts->total() }}개</p>
+  <p class="muted">{{ $user->level }} · @ {{ $user->username }} · {{ $user->joined_at?->format('Y-m-d') }} 가입 · 글 {{ $posts->total() }}개</p>
 
   <ul class="post-list board-list">
     @foreach ($posts as $post)

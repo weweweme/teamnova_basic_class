@@ -857,8 +857,15 @@ week14/
 
 - OS: Ubuntu 22.04 (도커 컨테이너 안)
 - 웹서버: **Apache httpd** (`/usr/local/apache2`), 포트 80, 실행 중
-- PHP: **8.5.8** — `mod_php`로 Apache에 내장. **`php` CLI 명령어는 없음.**
-  → PHP는 반드시 브라우저(`http://localhost:<포트>/파일.php`)로 실행해서 확인한다.
+- PHP: **8.5.8 (ZTS)** — `mod_php`로 Apache에 내장.
+  - **CLI는 있다**: `/usr/local/php/bin/php` (PATH에는 없어서 전체 경로로 부른다).
+    예전 메모의 "php CLI 명령어는 없음"은 **틀림** (2026-09 확인).
+    ```bash
+    docker exec -w /var/www/html/week17 manual_lamp /usr/local/php/bin/php artisan <명령>
+    ```
+  - **Composer**: `/var/www/html/_tools/composer.phar` (컨테이너를 다시 만들어도 남도록 `src/` 아래에 둠).
+  - 없는 확장: **cURL · intl**. Laravel 설치·구동에는 지장 없다(스트림으로 대신 나간다).
+    `intl` 이 없어 `artisan db:show` 의 용량 표시 같은 일부 기능만 막힌다.
 - DB: **MariaDB 12.3.2** — **같은 컨테이너 안**에 설치됨(`/usr/local/mariadb`, 커스텀 빌드).
   - **CLI는 있음**: `/usr/local/mariadb/bin/{mariadb,mysql}` (예전 메모의 "mysql CLI 없음"은 틀림).
   - **자동 실행** — `docker/entrypoint.sh`가 컨테이너 시작 때마다 기동한다.
@@ -990,7 +997,7 @@ docker compose up -d
 docker compose logs -f    # [entrypoint] 로그로 진행 상황 확인
 ```
 - PHP 확인: 파일을 해당 주차 폴더에 두고 `http://localhost:<WEB_PORT>/파일명.php` 접속.
-  (`php` CLI가 없으므로 반드시 브라우저/HTTP로 확인한다)
+  (화면 동작은 브라우저/HTTP로 확인한다. 모델·쿼리는 `artisan tinker --execute=…` 로도 확인할 수 있다)
 - 정적 HTML/CSS/JS: 브라우저로 직접 파일 열기, 또는 위 주소 경유.
 - 소스는 `./src`가 컨테이너에 연결돼 있어 **저장하면 바로 반영**된다(재시작 불필요).
   단 `apache/httpd.conf`를 고쳤을 땐 `docker compose restart` 필요.

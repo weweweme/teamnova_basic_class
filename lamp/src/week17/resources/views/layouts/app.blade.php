@@ -47,7 +47,7 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="logo" href="/posts">🎬 리뷰 커뮤니티</a>
+    <a class="logo" href="/">🎬 리뷰 커뮤니티</a>
 
     {{-- 통합검색 — 5단계에서 실제 주소를 연결한다 --}}
     <form class="topbar-search" method="get" action="/search" role="search">
@@ -57,6 +57,7 @@
     </form>
 
     <nav>
+      <a href="/">홈</a>
       <a href="/posts">글 목록</a>
       <a href="/works">작품</a>
       <a href="/rank">랭킹</a>

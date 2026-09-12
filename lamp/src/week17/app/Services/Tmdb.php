@@ -20,6 +20,24 @@ class Tmdb
     //     Cache::remember 는 '없으면 만들어 넣고, 있으면 그대로 준다'를 한 줄로 한다.
     private const TTL_SECONDS = 1800;
 
+    // ── 인기작 (홈 화면의 포스터 줄) ────────────────────────
+    //   ★ 사람마다 다르지 않은 값이라 한 번 받아 두면 모두가 같이 쓴다.
+    //     그래서 캐시 키에 사용자 정보가 들어가지 않는다.
+    public function trending(int $limit = 12): array
+    {
+        return Cache::remember('tmdb:trending', self::TTL_SECONDS, function () use ($limit) {
+            $res = Http::withToken(config('services.tmdb.token'))
+                ->timeout(5)
+                ->get('https://api.themoviedb.org/3/trending/movie/week', ['language' => 'ko-KR']);
+
+            if ($res->failed()) {
+                return [];   // 외부 서비스가 죽어도 홈 화면은 떠야 한다
+            }
+
+            return $this->shape($res->json('results', []), $limit);
+        });
+    }
+
     public function searchMovies(string $query, int $limit = 10): array
     {
         $query = trim($query);
@@ -40,18 +58,24 @@ class Tmdb
                 return [];
             }
 
-            return collect($res->json('results', []))
-                ->take($limit)
-                ->map(fn ($m) => [
-                    'tmdb_id'    => $m['id'],
-                    'slug'       => 'tmdb-' . $m['id'],
-                    'title'      => $m['title'] ?? '(제목 없음)',
-                    'year'       => isset($m['release_date']) ? (int) substr($m['release_date'], 0, 4) : null,
-                    'poster_url' => isset($m['poster_path']) && $m['poster_path']
-                        ? 'https://image.tmdb.org/t/p/w185' . $m['poster_path']
-                        : null,
-                ])
-                ->all();
+            return $this->shape($res->json('results', []), $limit);
         });
+    }
+
+    // TMDB 응답을 우리가 쓰는 모양으로 바꾼다 (검색·인기작이 함께 쓴다)
+    private function shape(array $results, int $limit): array
+    {
+        return collect($results)
+            ->take($limit)
+            ->map(fn ($m) => [
+                'tmdb_id'    => $m['id'],
+                'slug'       => 'tmdb-' . $m['id'],
+                'title'      => $m['title'] ?? '(제목 없음)',
+                'year'       => isset($m['release_date']) ? (int) substr($m['release_date'], 0, 4) : null,
+                'poster_url' => isset($m['poster_path']) && $m['poster_path']
+                    ? 'https://image.tmdb.org/t/p/w185' . $m['poster_path']
+                    : null,
+            ])
+            ->all();
     }
 }

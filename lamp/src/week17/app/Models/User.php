@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -33,6 +34,24 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return ['password' => 'hashed'];
+    }
+
+    // ── 등급 배지 ───────────────────────────────────────────
+    //   ★ 표에 없는 값을 속성처럼 만든다(접근자). $user->level 로 읽는다.
+    //     지금 includes/level.php 의 user_level() 이 하던 일이다.
+    //     화면마다 계산식을 복붙하지 않아도 되고, 기준이 한 곳에만 있다.
+    protected function level(): Attribute
+    {
+        return Attribute::get(function () {
+            $count = $this->posts_count ?? $this->posts()->count();
+
+            return match (true) {
+                $count >= 50 => '🏆 고인물',
+                $count >= 20 => '🥇 단골',
+                $count >= 5  => '🥈 회원',
+                default      => '🌱 새싹',
+            };
+        });
     }
 
     // 이 사람이 쓴 글

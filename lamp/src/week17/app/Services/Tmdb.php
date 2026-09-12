@@ -20,6 +20,21 @@ class Tmdb
     //     Cache::remember 는 '없으면 만들어 넣고, 있으면 그대로 준다'를 한 줄로 한다.
     private const TTL_SECONDS = 1800;
 
+    // ── 작품 하나의 배경 이미지 (홈 히어로용) ───────────────
+    //   포스터(세로)와 달리 backdrop 은 가로 이미지라 큰 배너에 쓴다.
+    public function backdropFor(int $tmdbId): ?string
+    {
+        return Cache::remember("tmdb:backdrop:{$tmdbId}", self::TTL_SECONDS, function () use ($tmdbId) {
+            $res = Http::withToken(config('services.tmdb.token'))
+                ->timeout(5)
+                ->get("https://api.themoviedb.org/3/movie/{$tmdbId}", ['language' => 'ko-KR']);
+
+            $path = $res->successful() ? $res->json('backdrop_path') : null;
+
+            return $path ? 'https://image.tmdb.org/t/p/w1280' . $path : null;
+        });
+    }
+
     // ── 인기작 (홈 화면의 포스터 줄) ────────────────────────
     //   ★ 사람마다 다르지 않은 값이라 한 번 받아 두면 모두가 같이 쓴다.
     //     그래서 캐시 키에 사용자 정보가 들어가지 않는다.

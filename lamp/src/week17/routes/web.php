@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\DeviceKeyController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\SessionPingController;
 use App\Http\Controllers\SettingsController;
@@ -131,3 +132,11 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
 
 // ── 세션 유지 신호 ────────────────────────────────────────
 Route::post('/session/ping', SessionPingController::class)->middleware('auth');
+
+// ── 기기 도장 ─────────────────────────────────────────────
+//   브라우저 JS가 부르는 주소들. 모두 JSON 으로 답한다.
+Route::middleware('auth')->group(function () {
+    Route::post('/session/key',       [DeviceKeyController::class, 'enroll']);
+    Route::post('/session/challenge', [DeviceKeyController::class, 'challenge']);
+    Route::post('/session/verify',    [DeviceKeyController::class, 'verify']);
+});

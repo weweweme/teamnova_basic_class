@@ -21,6 +21,24 @@
   <link rel="stylesheet"
         href="{{ asset('assets/css/style.css') }}?v={{ filemtime(public_path('assets/css/style.css')) }}">
 
+  {{-- JS가 POST 할 때 쓸 CSRF 토큰. 폼이 아니라 fetch 로 보낼 때 필요하다 --}}
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+
+  @auth
+    @if (config('auth.device_key_required'))
+      {{-- 기기 도장 — 남은 확인 시간을 알려 주면 JS가 만료 직전에 다시 찍는다.
+           ★ 판정은 서버가 한다. 이 값은 '언제 다시 찍을지' 정하는 데만 쓴다. --}}
+      @if (session('key_enroll_ok') && ! app(\App\Services\DeviceKey::class)->publicKeyFor(auth()->id(), app(\App\Services\DeviceTracker::class)->deviceId(request())))
+        {{-- 이 기기에 아직 도장이 없고 등록 창이 열려 있다 → JS가 등록한다 --}}
+        <meta name="key-enroll" content="1">
+      @endif
+      <meta name="key-proof-left"
+            content="{{ max(0, config('auth.device_key_proof_ttl') - (time() - (int) session('key_proof_at', 0))) }}">
+      <meta name="key-proof-margin" content="{{ (int) min(20, config('auth.device_key_proof_ttl') / 3) }}">
+      <script src="{{ asset('assets/js/device-key.js') }}" defer></script>
+    @endif
+  @endauth
+
   {{--
     ⚠ main.js 는 아직 붙이지 않는다.
       그 안의 기능(자동 로그아웃 카운트다운·임시저장·신고 창)이 아직 Laravel 쪽에 없어서,

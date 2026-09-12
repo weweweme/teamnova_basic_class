@@ -114,7 +114,10 @@
     document.querySelector('meta[name="csrf-token"]')?.content || '';
 
   async function fetchChallenge() {
-    const res = await fetch('/session/challenge.php', { credentials: 'same-origin' });
+    // ★ Laravel 라우트로 옮기면서 GET → POST 로 바꿨다.
+    //   숫자를 발급하면 세션이 바뀌므로(한 번 쓰면 버리는 값) POST 가 맞다.
+    const body = new URLSearchParams({ _token: csrfToken() });
+    const res  = await fetch('/session/challenge', { method: 'POST', body, credentials: 'same-origin' });
     if (!res.ok) throw new Error('challenge ' + res.status);
     return (await res.json()).challenge;
   }
@@ -135,7 +138,7 @@
     const pair      = (await loadKeyPair()) || (await createKeyPair());
     const challenge = await fetchChallenge();
 
-    return post('/session/enroll.php', {
+    return post('/session/key', {
       public_key: await exportPublicKey(pair),
       signature:  await sign(pair, challenge),
     });
@@ -147,7 +150,7 @@
     if (!pair) throw new Error('no key');
 
     const challenge = await fetchChallenge();
-    return post('/session/refresh.php', { signature: await sign(pair, challenge) });
+    return post('/session/verify', { signature: await sign(pair, challenge) });
   }
 
   // ── 만료 전에 미리 찍어두기 ────────────────────────────────
@@ -156,6 +159,14 @@
   //     남은 시간을 서버가 알려주므로, 1분 전에 조용히 찍어두면 화면이 끊기지 않는다.
   //   ★ DBSC도 같은 방식이다 — 브라우저가 쿠키 만료를 보고 알아서 갱신한다.
   function scheduleRefresh() {
+    // 아직 이 기기에 도장이 없으면 먼저 등록한다.
+    //   ★ 등록은 '비밀번호를 막 확인한 직후'에만 서버가 받아 준다.
+    //     서버가 이 표시를 붙였다는 것 자체가 그 창이 열려 있다는 뜻이다.
+    if (document.querySelector('meta[name="key-enroll"]')) {
+      enroll().then(() => location.reload()).catch(() => {});
+      return;
+    }
+
     const meta = document.querySelector('meta[name="key-proof-left"]');
     if (!meta) return;                       // 로그인 안 했거나 도장이 필요 없는 화면
 
@@ -169,8 +180,10 @@
 
     setTimeout(() => {
       refresh().catch(() => {
-        // 실패하면 확인 화면으로 보낸다. 거기서 다시 등록하거나 로그아웃된다.
-        location.href = '/session/verify.php?back=' + encodeURIComponent(location.pathname + location.search);
+        // 실패하면 지금 화면을 다시 연다.
+        //   ★ 확인이 만료된 상태이므로 서버(RequireDeviceKeyProof)가
+        //     '기기 확인이 필요합니다' 안내 화면으로 답한다. 판정은 서버가 한다.
+        location.reload();
       });
     }, delay);
   }

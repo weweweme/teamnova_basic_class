@@ -54,6 +54,10 @@ class LoginController extends Controller
         //     그 번호표로 남의 로그인 상태를 훔칠 수 있다(세션 고정 공격).
         $request->session()->regenerate();
 
+        // ★ 비밀번호를 방금 확인했으므로 '도장 등록 창'을 연다 (3분).
+        //   아무 때나 등록을 받으면 훔친 세션으로 자기 도장을 심을 수 있다.
+        app(\App\Services\DeviceKey::class)->openEnrollWindow($request);
+
         // ④ 이 기기를 내 기기 목록에 올린다 (처음이면 새로 추가, 이미 있으면 시각만 갱신)
         $devices->remember($request, $request->user()->id);
 

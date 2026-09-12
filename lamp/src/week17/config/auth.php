@@ -130,4 +130,19 @@ return [
 
     'idle_timeout' => env('AUTH_IDLE_TIMEOUT', 1200),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Device Key
+    |--------------------------------------------------------------------------
+    |
+    | 기기 '도장'(공개키 서명)을 필수로 할 것인가.
+    | 켜면 브라우저 JS가 있어야 화면을 열 수 있다. JS를 붙이기 전에는 꺼 둔다.
+    |
+    */
+
+    'device_key_required' => env('AUTH_DEVICE_KEY_REQUIRED', false),
+
+    // 도장 확인이 유효한 시간(초).
+    'device_key_proof_ttl' => env('AUTH_DEVICE_KEY_PROOF_TTL', 60),
+
 ];

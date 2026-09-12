@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         //   ★ 라우트마다 붙이면 새 라우트에서 빠뜨린다 → web 그룹 전체에 건다.
         $middleware->web(append: [
             \App\Http\Middleware\EnsureNotIdle::class,
+            \App\Http\Middleware\RequireDeviceKeyProof::class,
         ]);
 
         //

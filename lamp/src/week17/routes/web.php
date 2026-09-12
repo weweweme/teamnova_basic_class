@@ -6,6 +6,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\SessionPingController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\RankController;
 use App\Http\Controllers\SearchController;
@@ -126,3 +127,6 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::patch('/settings/password', [SettingsController::class, 'password']);
     Route::post('/settings/logout-others', [SettingsController::class, 'logoutOtherDevices']);
 });
+
+// ── 세션 유지 신호 ────────────────────────────────────────
+Route::post('/session/ping', SessionPingController::class)->middleware('auth');

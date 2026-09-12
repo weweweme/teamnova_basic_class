@@ -2,6 +2,7 @@
 
 namespace App\Session;
 
+use App\Services\DeviceTracker;
 use Illuminate\Support\Facades\DB;
 use SessionHandlerInterface;
 use SessionUpdateTimestampHandlerInterface;
@@ -65,12 +66,15 @@ class DbSessionHandler implements SessionHandlerInterface, SessionUpdateTimestam
         DB::table($this->table)->upsert([[
             'id_hash'     => self::fingerprint($id),
             'user_id'     => auth()->id(),
+            // ★ 어느 기기의 세션인지 함께 남긴다.
+            //   기기 하나를 끊을 때 '그 기기의 세션만' 골라 지우려면 이 값이 있어야 한다.
+            'device_id'   => app(DeviceTracker::class)->deviceId(request()),
             'payload'     => $data,
             'ip_address'  => request()->ip(),
             'user_agent'  => substr((string) request()->userAgent(), 0, 255),
             'last_active' => $now,
             'expires_at'  => $now->copy()->addSeconds(self::TTL),
-        ]], ['id_hash'], ['user_id', 'payload', 'ip_address', 'user_agent', 'last_active', 'expires_at']);
+        ]], ['id_hash'], ['user_id', 'device_id', 'payload', 'ip_address', 'user_agent', 'last_active', 'expires_at']);
 
         return true;
     }

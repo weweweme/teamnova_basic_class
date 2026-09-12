@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Device;
+use App\Services\DeviceTracker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
@@ -12,9 +14,29 @@ use Illuminate\Validation\Rules\Password;
 // ============================================================
 class SettingsController extends Controller
 {
-    public function index()
+    public function index(Request $request, DeviceTracker $devices)
     {
-        return view('settings.index');
+        return view('settings.index', [
+            'devices'      => Device::where('user_id', $request->user()->id)
+                                    ->orderByDesc('last_login_at')->get(),
+            'thisDeviceId' => $devices->deviceId($request),
+        ]);
+    }
+
+    // ── 기기 하나 끊기 ──────────────────────────────────────
+    //   ★ 목록에서 지우는 것만으로는 부족하다. 그 기기의 세션까지 함께 끊어야
+    //     '끊었다'는 말이 사실이 된다. (DeviceTracker::revoke 가 둘 다 한다)
+    public function revokeDevice(Request $request, DeviceTracker $devices)
+    {
+        $data = $request->validate([
+            'device_id' => ['required', 'string'],
+            // 비밀번호를 한 번 더 확인한다 — 남의 기기를 끊는 동작이므로
+            'password'  => ['required', 'current_password'],
+        ], ['password.current_password' => '비밀번호가 일치하지 않습니다.']);
+
+        $ok = $devices->revoke($request->user()->id, $data['device_id']);
+
+        return back()->with('status', $ok ? '기기를 해제했습니다.' : '해제할 수 없는 기기입니다.');
     }
 
     // ── 닉네임 변경 ─────────────────────────────────────────

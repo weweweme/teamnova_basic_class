@@ -126,6 +126,7 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::patch('/settings/nickname', [SettingsController::class, 'nickname']);
     Route::patch('/settings/password', [SettingsController::class, 'password']);
     Route::post('/settings/logout-others', [SettingsController::class, 'logoutOtherDevices']);
+    Route::delete('/settings/devices', [SettingsController::class, 'revokeDevice']);
 });
 
 // ── 세션 유지 신호 ────────────────────────────────────────

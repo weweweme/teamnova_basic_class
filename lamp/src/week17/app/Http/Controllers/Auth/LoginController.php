@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\DeviceTracker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -24,7 +25,7 @@ class LoginController extends Controller
     }
 
     // ── 로그인 처리 (POST /login) ───────────────────────────
-    public function store(Request $request)
+    public function store(Request $request, DeviceTracker $devices)
     {
         // ① 입력값 검사
         //   ★ 조건만 적으면 검사·오류 문구·폼 되돌리기를 프레임워크가 한다.
@@ -53,8 +54,20 @@ class LoginController extends Controller
         //     그 번호표로 남의 로그인 상태를 훔칠 수 있다(세션 고정 공격).
         $request->session()->regenerate();
 
+        // ④ 이 기기를 내 기기 목록에 올린다 (처음이면 새로 추가, 이미 있으면 시각만 갱신)
+        $devices->remember($request, $request->user()->id);
+
+        // ⑤ 아직 안 알린 '새 기기'가 있으면 이번 한 번만 알린다
+        //   ★ 대상은 '나보다 나중에 나타난 기기'뿐이다. 지금 기기를 뺀 전부로 잡으면
+        //     새 기기에서 로그인했을 때 예전 기기들이 전부 '새 기기'로 보고된다.
+        $new = $devices->takeNewDevices($request, $request->user()->id);
+
+        $status = $new->isEmpty()
+            ? '환영합니다!'
+            : '환영합니다! 새로운 기기에서 로그인한 기록이 있습니다 — ' . $new->map->describe()->implode(', ');
+
         // intended() = 로그인 때문에 막혔던 원래 주소로 돌려보낸다. 없으면 두 번째 인자로.
-        return redirect()->intended('/posts')->with('status', '환영합니다!');
+        return redirect()->intended('/posts')->with('status', $status);
     }
 
     // ── 로그아웃 (POST /logout) ─────────────────────────────

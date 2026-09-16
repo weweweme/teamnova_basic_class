@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\RememberPublicUrl;
+use App\Notifications\NewDeviceLogin;
 use App\Services\DeviceTracker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -70,6 +71,13 @@ class LoginController extends Controller
         $status = $new->isEmpty()
             ? '환영합니다!'
             : '환영합니다! 새로운 기기에서 로그인한 기록이 있습니다 — ' . $new->map->describe()->implode(', ');
+
+        // ★ 화면 안내는 이 순간에만 보인다. 메일은 남는다 —
+        //   본인이 하지 않은 로그인이라면 나중에라도 알아챌 수 있어야 한다.
+        //   보안 알림이라 '활동 알림' 설정과 무관하게 보낸다.
+        if ($new->isNotEmpty() && $request->user()->email) {
+            $request->user()->notify(new NewDeviceLogin($new->map->describe()->all()));
+        }
 
         // intended() = 로그인 때문에 막혔던 원래 주소로 돌려보낸다. 없으면 두 번째 인자로.
         //   ★ 그 주소는 auth 미들웨어가 막으면서 세션에 적어 둔 것이다.

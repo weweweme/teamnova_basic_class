@@ -120,6 +120,7 @@ Route::middleware(['auth', 'auth.session', 'password.confirm'])->group(function 
     Route::get('/settings', [SettingsController::class, 'index']);
     Route::patch('/settings/nickname', [SettingsController::class, 'nickname']);
     Route::patch('/settings/password', [SettingsController::class, 'password']);
+    Route::patch('/settings/notifications', [SettingsController::class, 'notifications']);
     Route::post('/settings/logout-others', [SettingsController::class, 'logoutOtherDevices']);
     Route::delete('/settings/devices', [SettingsController::class, 'revokeDevice']);
 });

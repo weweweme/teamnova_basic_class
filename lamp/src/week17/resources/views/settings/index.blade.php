@@ -68,6 +68,34 @@
     </form>
   </section>
 
+  {{-- ── 메일 알림 ─────────────────────────────────────────── --}}
+  <section class="settings-section">
+    <h2>메일 알림</h2>
+    <p class="muted">
+      활동 알림은 <strong>켠 경우에만</strong> 보냅니다.
+      새 기기 로그인과 비밀번호 변경 같은 <strong>보안 알림은 끌 수 없습니다.</strong>
+      본인이 하지 않은 일을 알리는 것이라, 끄면 알림의 목적이 사라집니다.
+    </p>
+
+    <form class="settings-form settings-form-col" method="post" action="/settings/notifications">
+      @csrf
+      @method('PATCH')
+
+      <label>이메일
+        <input type="email" name="email" maxlength="100"
+               value="{{ old('email', auth()->user()->email) }}" placeholder="비워 두면 메일을 받지 않습니다">
+      </label>
+      @error('email')<span class="muted">{{ $message }}</span>@enderror
+
+      <label class="cookie-item">
+        <input type="checkbox" name="notify_activity" value="1" @checked(auth()->user()->notify_activity)>
+        <span>내 글에 댓글이 달리면 메일로 알려 주세요</span>
+      </label>
+
+      <button type="submit">저장</button>
+    </form>
+  </section>
+
   {{-- ── 로그인한 기기 ───────────────────────────────────── --}}
   <section class="settings-section">
     <h2>로그인한 기기</h2>

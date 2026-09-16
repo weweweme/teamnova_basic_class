@@ -19,7 +19,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 //   ★ Authenticatable 을 상속한다 — '로그인할 수 있는 대상'이라는 뜻이다.
 //     실제 로그인 처리는 2단계에서 붙인다.
 // ============================================================
-#[Fillable(['username', 'email', 'nickname', 'password', 'avatar'])]
+#[Fillable(['username', 'email', 'notify_activity', 'nickname', 'password', 'avatar'])]
 #[Hidden(['password'])]
 class User extends Authenticatable
 {
@@ -40,7 +40,7 @@ class User extends Authenticatable
     //     그래서 비밀번호를 바꾸지 않아도 그대로 로그인된다.
     protected function casts(): array
     {
-        return ['password' => 'hashed'];
+        return ['password' => 'hashed', 'notify_activity' => 'boolean'];
     }
 
     // ── 등급 배지 ───────────────────────────────────────────

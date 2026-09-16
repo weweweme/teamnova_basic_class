@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Device;
 use App\Services\DeviceTracker;
+use App\Notifications\PasswordChanged;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
@@ -71,7 +72,29 @@ class SettingsController extends Controller
         //   이 기기만 남기고 나머지 세션을 무효화한다 — Laravel 내장이다.
         Auth::logoutOtherDevices($data['new']);
 
+        // 보안 알림 — 내가 바꾼 것이 아니라면 이 메일이 알아챌 통로가 된다
+        if ($request->user()->email) {
+            $request->user()->notify(new PasswordChanged());
+        }
+
         return back()->with('status', '비밀번호를 변경했습니다. 다른 기기의 로그인은 해제되었습니다.');
+    }
+
+    // ── 메일 알림 받기 (PATCH /settings/notifications) ───────
+    //   ★ 활동 알림만 끄고 켤 수 있다. 보안 알림은 설정에 없다.
+    public function notifications(Request $request)
+    {
+        $data = $request->validate([
+            'email'           => ['nullable', 'email', 'max:100', 'unique:users,email,' . $request->user()->id],
+            'notify_activity' => ['nullable', 'boolean'],
+        ]);
+
+        $request->user()->update([
+            'email'           => $data['email'] ?: null,
+            'notify_activity' => (bool) ($data['notify_activity'] ?? false),
+        ]);
+
+        return back()->with('status', '알림 설정을 저장했습니다.');
     }
 
     // ── 다른 기기 로그아웃 (비밀번호 변경 없이) ─────────────

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\CommentPosted;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -65,5 +66,15 @@ class Notification extends Model
             'post_id'    => $comment->post_id,
             'comment_id' => $comment->id,
         ]);
+
+        // ── 메일도 한 통 보낸다 ─────────────────────────────
+        //   ★ 화면 알림은 위 한 줄로 끝났고, 여기서는 '누구에게 무엇을 보낼지'만 적는다.
+        //     보내는 일(연결·재시도·형식)은 프레임워크가 한다.
+        //   ★ 이메일을 안 적은 회원이 있다 (칸을 나중에 더했다). 그런 경우는 건너뛴다.
+        $recipient = User::find($recipientId);
+
+        if ($recipient?->email) {
+            $recipient->notify(new CommentPosted($comment, $type));
+        }
     }
 }

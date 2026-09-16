@@ -34,6 +34,14 @@ class Prefs
     // ── 한 페이지에 보여줄 글 수 ────────────────────────────
     public function perPage(Request $request, int $default = 15): int
     {
+        // ★ 주소에 방금 고른 값이 있으면 그것을 먼저 쓴다.
+        //   쿠키만 보면 '30'을 누른 그 화면은 아직 15개로 그려진다 —
+        //   쿠키는 응답에 실려 나가고, 이번 요청이 들고 온 쿠키는 아직 예전 값이기 때문이다.
+        $picked = (int) $request->query('per_page', 0);
+        if (in_array($picked, self::PER_PAGE_SET, true)) {
+            return $picked;
+        }
+
         $value = (int) $request->cookie('per_page');
 
         // ★ '숫자니까 안전'이 아니라 '우리가 정한 값인가'로 검사한다.

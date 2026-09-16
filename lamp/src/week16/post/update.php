@@ -5,23 +5,24 @@
 //   그 글 보기 화면으로 리다이렉트한다.
 //   ★ 새 글 쓰기(create.php)와 거의 같지만, '어느 글인지(id)'가 함께 온다는 점이 다르다.
 // ============================================================
-require_once __DIR__ . '/../includes/util.php';
-require_once __DIR__ . '/../includes/auth.php';
-require_once __DIR__ . '/../includes/posts.php';
 
-// ★ 로그인 필수 — 화면에서 버튼을 숨겨도 요청은 조작할 수 있으므로
-//   '처리하는 쪽'에서 반드시 다시 확인한다. (안 했으면 로그인 페이지로 보내고 중단)
+// ① 이 파일이 쓸 함수를 직접 불러온다 — 파일마다 목록이 조금씩 다르다
+require_once __DIR__ . '/../includes/util.php';    // redirect() · post_str() · e()
+require_once __DIR__ . '/../includes/auth.php';    // require_login() · is_owner()
+require_once __DIR__ . '/../includes/posts.php';   // get_post() · update_post()
+
+// ② 로그인 확인 — 화면에서 버튼을 숨겨도 요청은 직접 보낼 수 있다
 require_login();
 
-// ── 0) POST로 온 게 맞나? ────────────────────────────────────
+// ③ POST 요청인지 확인 — 주소창으로 열어서 실행되는 것을 막는다
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('/');
 }
 
-// ── 0-1) 우리 화면에서 온 요청이 맞나? (CSRF) ────────────────
-//   남의 사이트가 우리 폼을 흉내 내 쏜 POST를 걸러낸다.
-//   ★ POST를 처리하는 파일은 예외 없이 이 줄을 갖는다 — 한 곳이라도 빠지면 그 파일이 통로가 된다.
+// ④ CSRF 토큰 확인 — 다른 사이트가 흉내 내 보낸 POST 를 걸러낸다
 require_csrf();
+
+// ⑤ 여기서부터 글 수정 처리가 시작된다
 
 // ── 1) 값 받기 ───────────────────────────────────────────────
 $id        = post_int('id', 0);

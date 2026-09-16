@@ -54,6 +54,12 @@ class PostController extends Controller
                      ->paginate($perPage)
                      ->withQueryString();
 
+        // 없는 페이지 번호로 들어오면 마지막 페이지로 돌려보낸다.
+        //   ★ Laravel 은 그냥 빈 목록을 보여준다. 우리 화면은 '범위를 넘으면 마지막 페이지'가 규칙이라 맞춘다.
+        if ($posts->currentPage() > $posts->lastPage()) {
+            return redirect($request->fullUrlWithQuery(['page' => $posts->lastPage()]));
+        }
+
         return view('posts.index', [
             'posts'     => $posts,
             'perPage'   => $perPage,
@@ -81,6 +87,11 @@ class PostController extends Controller
             // #comments = 페이지를 넘기면 댓글 자리로 바로 내려간다.
             ->appends($request->except(['reply', 'edit', 'cpage']))
             ->fragment('comments');
+
+        // 댓글도 같은 규칙 — 없는 페이지면 마지막 페이지로
+        if ($comments->currentPage() > $comments->lastPage()) {
+            return redirect($request->fullUrlWithQuery(['cpage' => $comments->lastPage()]) . '#comments');
+        }
 
         // ── 조회수 ─────────────────────────────────────────
         //   ★ 판정과 집계는 우리 규칙이라 서비스 클래스로 옮겼다 (ViewCounter).

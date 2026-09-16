@@ -82,6 +82,11 @@ class WorkController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
+        // 없는 페이지 번호로 들어오면 마지막 페이지로 (글 목록과 같은 규칙)
+        if ($posts->currentPage() > $posts->lastPage()) {
+            return redirect($request->fullUrlWithQuery(['page' => $posts->lastPage()]));
+        }
+
         // 감독·출연·예고편·분량은 우리 표에 없고 TMDB 에만 있다.
         //   ★ slug 가 tmdb-123 꼴일 때만 물어본다. 결과는 30분 캐시된다.
         $detail = str_starts_with($media->slug, 'tmdb-')

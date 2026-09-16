@@ -158,23 +158,91 @@
   const body   = document.querySelector('.write-form textarea[name="content"]');
   if (!picker || !body) return;
 
+  const SERVER_LIMIT = 16 * 1024 * 1024;   // 서버가 받는 한도 (줄인 뒤 기준)
+  const RESIZE_OVER  = 400 * 1024;         // 이보다 크면 줄여서 보낸다
+  const MAX_EDGE     = 1600;               // 긴 변 기준 최대 픽셀
+
+  const mb = (n) => Math.round(n / 1024 / 1024 * 10) / 10;
+
+  // 캔버스에 다시 그려서 크기를 줄인다. WebP 로 내보내면 같은 화질에 용량이 훨씬 작다.
+  async function shrink(file) {
+    // createImageBitmap — 큰 사진을 열 때 메모리를 덜 쓴다. 없으면 <img> 로 되돌아간다.
+    const src = typeof createImageBitmap === 'function'
+      ? await createImageBitmap(file)
+      : await new Promise(function (resolve, reject) {
+          const img = new Image();
+          img.onload  = function () { resolve(img); };
+          img.onerror = reject;
+          img.src = URL.createObjectURL(file);
+        });
+
+    const scale  = Math.min(1, MAX_EDGE / Math.max(src.width, src.height));
+    const canvas = document.createElement('canvas');
+    canvas.width  = Math.round(src.width  * scale);
+    canvas.height = Math.round(src.height * scale);
+    canvas.getContext('2d').drawImage(src, 0, 0, canvas.width, canvas.height);
+    if (src.close) { src.close(); }
+
+    return new Promise(function (resolve, reject) {
+      canvas.toBlob(function (blob) {
+        blob ? resolve(new File([blob], 'photo.webp', { type: 'image/webp' })) : reject(new Error('변환 실패'));
+      }, 'image/webp', 0.85);
+    });
+  }
+
   picker.addEventListener('change', async function () {
     const file = picker.files[0];
     if (!file) return;
 
-    status.textContent = '올리는 중…';
+    if (!file.type.startsWith('image/')) {
+      status.textContent = '이미지 파일만 올릴 수 있습니다';
+      picker.value = '';
+      return;
+    }
+
+    // ★ 크기로 미리 막지 않는다. 어떤 사진을 골라도 일단 받고, 줄여서 보낸다.
+    //   요즘 사진은 한 장에 8MB가 넘고 가로가 4000px 를 넘는데 화면에 보이는 폭은 700px 남짓이다.
+    //   긴 변 1600px WebP 로 줄이면 대개 0.3MB 안팎이 된다.
+    //   (아바타 업로드가 쓰는 방법과 같다 — 서버의 검사는 그대로 살아 있다)
+    let upload = file;
+
+    if (file.size > RESIZE_OVER || file.type !== 'image/webp') {
+      status.textContent = '사진을 줄이는 중… (' + mb(file.size) + 'MB)';
+      try {
+        upload = await shrink(file);
+      } catch (e) {
+        upload = file;                 // 줄이기에 실패하면 원본을 그대로 보낸다
+      }
+    }
+
+    // 줄인 뒤에도 서버 한도를 넘으면 그때 알린다 (아주 큰 원본에서 줄이기가 실패한 경우)
+    if (upload.size > SERVER_LIMIT) {
+      status.textContent = '사진이 너무 큽니다 (' + mb(upload.size) + 'MB). 조금 줄여서 올려 주세요';
+      picker.value = '';
+      return;
+    }
+
+    status.textContent = '올리는 중… (' + mb(upload.size) + 'MB)';
 
     const form = new FormData();
-    form.append('image', file);
+    form.append('image', upload);
     form.append('_token', document.querySelector('meta[name="csrf-token"]').content);
 
     try {
-      const res  = await fetch('/posts/images', { method: 'POST', body: form, credentials: 'same-origin' });
+      // ★ Accept 를 붙여야 검사에 걸렸을 때 서버가 JSON 으로 답한다.
+      //   안 붙이면 '폼으로 되돌리기'로 처리되어 HTML 이 오고, 여기서 읽을 수 없다.
+      const res  = await fetch('/posts/images', {
+        method: 'POST',
+        body: form,
+        credentials: 'same-origin',
+        headers: { 'Accept': 'application/json' },
+      });
       const json = await res.json();
 
       if (!res.ok) {
         // 검사에 걸리면 서버가 이유를 알려준다 (형식·크기)
-        status.textContent = json.message || '사진을 올리지 못했습니다';
+        const why = json.errors && json.errors.image ? json.errors.image[0] : json.message;
+        status.textContent = why || '사진을 올리지 못했습니다';
         return;
       }
 

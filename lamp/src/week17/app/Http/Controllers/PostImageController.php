@@ -17,11 +17,11 @@ class PostImageController extends Controller
         $request->validate([
             // ★ 'image' 는 확장자가 아니라 실제 파일 형식을 본다.
             //   .jpg 로 이름만 바꾼 PHP 파일은 여기서 걸린다.
-            'image' => ['required', 'image', 'mimes:jpeg,png,webp,gif', 'max:4096'],
+            'image' => ['required', 'image', 'mimes:jpeg,png,webp,gif', 'max:16384'],
         ], [
             'image.image' => '이미지 파일만 올릴 수 있습니다.',
             'image.mimes' => 'JPG · PNG · WEBP · GIF 만 올릴 수 있습니다.',
-            'image.max'   => '4MB 이하만 올릴 수 있습니다.',
+            'image.max'   => '16MB 이하만 올릴 수 있습니다.',
         ]);
 
         $file = $request->file('image');

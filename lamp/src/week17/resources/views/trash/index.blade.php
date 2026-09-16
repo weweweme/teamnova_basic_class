@@ -47,6 +47,6 @@
       @endforeach
     </ul>
 
-    {{ $posts->links() }}
+    {{ $posts->onEachSide(1)->links() }}
   @endif
 @endsection

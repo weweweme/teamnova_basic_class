@@ -33,6 +33,7 @@
 
   <p class="muted">
     테스트 계정: <code>영화광 / 1234</code> · <code>해석러 / 1234</code> · <code>심야극장 / 1234</code><br>
+    비밀번호를 잊으셨나요? <a href="/forgot-password">비밀번호 찾기</a><br>
     계정이 없나요? <a href="/register">회원가입</a>
   </p>
 @endsection

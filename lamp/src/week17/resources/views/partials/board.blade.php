@@ -52,9 +52,9 @@
     @endforeach
   </span>
 
-  @auth
-    <a class="btn-write" href="{{ $writeUrl }}">✏️ 글쓰기</a>
-  @endauth
+  {{-- ★ 로그인 여부로 숨기지 않는다. 기존 화면과 같게 항상 보여준다.
+       누르면 auth 미들웨어가 로그인 화면으로 보내고, 로그인하면 여기로 돌아온다. --}}
+  <a class="btn-write" href="{{ $writeUrl }}">✏️ 글쓰기</a>
 </div>
 
 @if ($posts->isEmpty())
@@ -91,5 +91,5 @@
     @endforeach
   </ul>
 
-  {{ $posts->links() }}
+  {{ $posts->onEachSide(1)->links() }}
 @endif

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\MediaFeedController;
 use App\Http\Controllers\Auth\ConfirmPasswordController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
@@ -58,6 +59,14 @@ Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:5
 Route::post('/logout', [LoginController::class, 'destroy']);
 
 //   회원가입도 같은 방식. 자동 가입 스크립트를 막으려고 요청 제한을 함께 건다.
+// ── 비밀번호 찾기 ─────────────────────────────────────────
+//   ★ 레거시에 없던 기능. 토큰 발급·메일 발송·만료 확인은 프레임워크가 한다.
+//     라우트 이름 'password.reset' 은 메일 본문의 링크를 만들 때 쓰이므로 이름을 맞춰야 한다.
+Route::get('/forgot-password',  [PasswordResetController::class, 'request'])->name('password.request');
+Route::post('/forgot-password', [PasswordResetController::class, 'send'])->middleware('throttle:5,1');
+Route::get('/reset-password/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
+Route::post('/reset-password',        [PasswordResetController::class, 'update'])->middleware('throttle:5,1');
+
 Route::get('/register',  [RegisterController::class, 'create']);
 Route::post('/register', [RegisterController::class, 'store'])->middleware('throttle:5,1');
 

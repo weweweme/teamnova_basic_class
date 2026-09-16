@@ -23,8 +23,9 @@
         <span class="muted comment-edited">(수정됨)</span>
       @endif
     </p>
-    {{-- nl2br(e(...)) : e() 로 먼저 안전 처리 → nl2br 로 줄바꿈(\n)을 <br> 로. (순서 중요) --}}
-    <div class="post-content">{!! nl2br(e($post->content)) !!}</div>
+    {{-- 본문을 마크다운으로 그린다 — 문단 사이에 넣은 사진이 여기서 이미지가 된다.
+         안전 처리(사용자가 쓴 태그를 실행하지 않기)는 PostBody 안에서 한다. --}}
+    <div class="post-content">{!! \App\Support\PostBody::render($post->content) !!}</div>
   </article>
 
   {{-- 글에 대한 '행동'들 — 상태를 바꾸는 것은 링크가 아니라 POST 폼 --}}

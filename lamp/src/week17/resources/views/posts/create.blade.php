@@ -52,6 +52,15 @@
     </label>
     @error('content')<span class="muted">{{ $message }}</span>@enderror
 
+    {{-- 본문 사이에 사진 넣기 — 파일을 고르면 올라가고, 커서 자리에 표기가 끼워진다 --}}
+    <div class="write-image">
+      <label class="btn-upload">
+        🖼 사진 넣기
+        <input type="file" id="body-image" accept="image/*" hidden>
+      </label>
+      <span id="body-image-status" class="muted">본문에서 사진을 넣을 자리를 클릭한 뒤 눌러 주세요</span>
+    </div>
+
     {{-- radio = 여러 개 중 하나만 선택. 같은 name 이면 한 묶음.
          ★ 동그라미는 숨기고 라벨을 버튼처럼 보이게 한다 (CSS 의 label:has(input:checked)). --}}
     <fieldset class="sentiment-field">
@@ -134,6 +143,54 @@
   form.addEventListener('submit', function () { dirty = false; });
   window.addEventListener('beforeunload', function (event) {
     if (dirty) { event.preventDefault(); }
+  });
+})();
+</script>
+@endpush
+
+@push('scripts')
+{{-- 본문 사이에 사진 넣기 — 파일을 고르면 올리고, 커서가 있던 자리에 표기를 끼운다.
+     ★ 올리는 일과 검사는 서버가 한다. 여기서 하는 것은 '어디에 끼울지'뿐이다. --}}
+<script>
+(function () {
+  const picker = document.getElementById('body-image');
+  const status = document.getElementById('body-image-status');
+  const body   = document.querySelector('.write-form textarea[name="content"]');
+  if (!picker || !body) return;
+
+  picker.addEventListener('change', async function () {
+    const file = picker.files[0];
+    if (!file) return;
+
+    status.textContent = '올리는 중…';
+
+    const form = new FormData();
+    form.append('image', file);
+    form.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+
+    try {
+      const res  = await fetch('/posts/images', { method: 'POST', body: form, credentials: 'same-origin' });
+      const json = await res.json();
+
+      if (!res.ok) {
+        // 검사에 걸리면 서버가 이유를 알려준다 (형식·크기)
+        status.textContent = json.message || '사진을 올리지 못했습니다';
+        return;
+      }
+
+      // 커서가 있던 자리에 끼워 넣는다. 앞뒤로 빈 줄을 둬야 문단으로 떨어진다.
+      const mark  = '\n\n![](' + json.url + ')\n\n';
+      const at    = body.selectionStart;
+      body.value  = body.value.slice(0, at) + mark + body.value.slice(body.selectionEnd);
+      body.selectionStart = body.selectionEnd = at + mark.length;
+      body.focus();
+
+      status.textContent = '넣었습니다. 글을 등록하면 본문에 사진이 보입니다';
+    } catch (e) {
+      status.textContent = '사진을 올리지 못했습니다';
+    } finally {
+      picker.value = '';
+    }
   });
 })();
 </script>

@@ -13,6 +13,7 @@ use App\Http\Controllers\DraftController;
 use App\Http\Controllers\ConsentController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\PostImageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SessionPingController;
 use App\Http\Controllers\SettingsController;
@@ -37,6 +38,9 @@ Route::get('/posts',         [PostController::class, 'index']);
 Route::get('/posts/create',  [PostController::class, 'create'])->middleware('auth');
 Route::post('/posts',        [PostController::class, 'store'])->middleware('auth');
 Route::get('/posts/{post}',  [PostController::class, 'show']);
+
+//   본문에 넣을 사진 올리기 — 글쓰기 화면의 JS 가 부른다 (주소를 JSON 으로 돌려준다)
+Route::post('/posts/images', [PostImageController::class, 'store'])->middleware(['auth', 'throttle:20,1']);
 
 //   수정·삭제는 로그인 + 소유권 둘 다 필요하다.
 //     · 로그인 여부  → auth 미들웨어 (컨트롤러에 닿기 전)

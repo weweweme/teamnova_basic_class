@@ -52,7 +52,7 @@ class GoogleOAuth
     }
 
     // ── ① 보낼 주소 만들기 ──────────────────────────────────
-    public function redirectUrl(Request $request, string $purpose = 'login'): string
+    public function redirectUrl(Request $request, string $purpose = 'login', ?string $email = null): string
     {
         $state = bin2hex(random_bytes(16));
         $request->session()->put(self::STATE_KEY, $state);
@@ -65,9 +65,14 @@ class GoogleOAuth
             // 필요한 것만 받는다 — 이름과 이메일. 연락처·캘린더 같은 건 요구하지 않는다.
             'scope'         => 'openid email profile',
             'state'         => $state,
-            // 본인 확인일 때는 계정을 고르게 하지 않는다 — 지금 로그인한 그 계정이 맞는지 보는 것이라
-            // 다른 계정을 고를 여지를 주면 안 된다.
-            'prompt'        => $purpose === 'confirm' ? 'none' : 'select_account',
+            // 확인일 때는 어느 계정으로 확인해야 하는지 구글에 알려 준다.
+            //   (다른 계정으로 로그인해도 돌아온 뒤 대조에서 걸리지만, 미리 알려 주는 편이 친절하다)
+            ...($email ? ['login_hint' => $email] : []),
+            // ★ 본인 확인일 때는 'login' — 구글에게 "비밀번호를 다시 받아라"고 요구한다.
+            //   'none' 을 쓰면 구글에 로그인된 상태에서 아무것도 묻지 않고 그냥 통과한다.
+            //   그러면 이 화면이 막으려는 상황(자리를 비운 사이 남이 들어옴)에서
+            //   그 사람도 똑같이 통과한다 — 확인하는 시늉만 하는 것이 된다.
+            'prompt'        => $purpose === 'confirm' ? 'login' : 'select_account',
         ]);
     }
 

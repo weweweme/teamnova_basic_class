@@ -62,7 +62,7 @@ class GoogleLoginController extends Controller
             return redirect('/confirm-password')->with('error', '구글로 확인할 수 없는 계정입니다.');
         }
 
-        return redirect()->away($google->redirectUrl($request, 'confirm'));
+        return redirect()->away($google->redirectUrl($request, 'confirm', $request->user()->email));
     }
 
     // ── 구글에서 돌아왔을 때 (GET /auth/google/callback) ────

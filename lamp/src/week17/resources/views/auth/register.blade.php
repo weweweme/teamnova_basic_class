@@ -56,8 +56,7 @@
     </a>
 
     <p class="muted auth-google-note">
-      구글로 가입하시면 <a href="/terms">이용약관</a>과
-      <a href="/privacy">개인정보처리방침</a>에 동의하신 것으로 봅니다.
+      구글 계정 확인 뒤, 약관에 동의하는 화면이 한 번 더 나옵니다.
     </p>
   @endif
 

@@ -179,6 +179,11 @@ Route::post('/consent', [ConsentController::class, 'store']);
 Route::get('/auth/google', [GoogleLoginController::class, 'redirect'])->middleware('throttle:10,1');
 Route::get('/auth/google/callback', [GoogleLoginController::class, 'callback'])->middleware('throttle:10,1');
 
+//   ★ 가입 마무리 — 구글은 다녀왔지만 계정은 아직 없는 상태에서 동의를 받는다.
+//     아이디로 가입하는 사람에게 체크를 받으면서 구글로 오는 사람만 그냥 만들 수는 없다.
+Route::get('/auth/google/complete',  [GoogleLoginController::class, 'complete'])->name('google.complete');
+Route::post('/auth/google/complete', [GoogleLoginController::class, 'store'])->middleware('throttle:10,1');
+
 //   ★ 본인 확인용 — 로그인한 사람만. 비밀번호를 모르는 구글 회원이 설정에 들어갈 통로다.
 Route::get('/auth/google/confirm', [GoogleLoginController::class, 'confirm'])
     ->middleware(['auth', 'throttle:10,1'])->name('google.confirm');

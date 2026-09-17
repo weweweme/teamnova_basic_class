@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\AccountController;
 use App\Models\User;
+use App\Services\Consent;
 use App\Notifications\NewDeviceLogin;
 use App\Services\DeviceKey;
 use App\Services\DeviceTracker;
@@ -36,6 +38,10 @@ use Throwable;
 // ============================================================
 class GoogleLoginController extends Controller
 {
+    // 구글에서 받아 온 정보를 '가입 마무리' 화면까지 잠깐 들고 있는 자리.
+    //   ★ 세션에 둔다 — 서버에만 있고 사용자가 고칠 수 없다.
+    private const PENDING_KEY = 'google_pending_signup';
+
     // ── 구글로 보내기 (GET /auth/google) ────────────────────
     public function redirect(Request $request, GoogleOAuth $google)
     {
@@ -92,7 +98,23 @@ class GoogleLoginController extends Controller
             return redirect('/login')->with('error', '구글 계정의 이메일이 확인되지 않았습니다.');
         }
 
-        $user = $this->findOrCreate($profile);
+        // ★ 처음 오는 사람이면 여기서 계정을 만들지 않는다.
+        //   구글에서 받은 동의는 '구글이 우리에게 정보를 넘겨도 되는가'에 대한 것이고,
+        //   우리가 그 정보를 무슨 목적으로 쓰는가는 우리가 따로 받아야 하는 동의다.
+        //   아이디로 가입하는 사람에게는 체크를 받으면서 구글로 오는 사람은 그냥 만들면,
+        //   같은 서비스가 사람에 따라 다른 기준을 쓰게 된다.
+        $user = User::withTrashed()->where('google_id', $profile['id'])->first();
+
+        if (! $user) {
+            // 받아 온 정보를 잠깐 세션에 두고 동의 화면으로 보낸다.
+            //   ★ 주소에 실어 보내지 않는다 — 주소는 사용자가 고칠 수 있다.
+            $request->session()->put(self::PENDING_KEY, $profile);
+
+            return redirect()->route('google.complete');
+        }
+
+        // 유예 기간 안에 돌아온 탈퇴 계정이면 되돌린다.
+        AccountController::restoreIfWithinGrace($user);
 
         // ★ remember: true 를 쓰면 안 된다 — 이 프로젝트는 users 에 remember_token 칸이 없다.
         //   자동 로그인을 의도적으로 빼면서 칸까지 지웠기 때문이다(User 모델 맨 아래 참고).
@@ -113,19 +135,64 @@ class GoogleLoginController extends Controller
         return redirect()->intended('/')->with('status', $user->nickname . '님, 환영합니다!');
     }
 
-    // ── 사람 찾기 · 없으면 만들기 ───────────────────────────
-    private function findOrCreate(array $profile): User
+    // ── 가입 마무리 화면 (GET /auth/google/complete) ────────
+    //   ★ 구글을 다녀왔지만 아직 계정은 없는 상태다. 여기서 동의를 받는다.
+    public function complete(Request $request)
     {
-        // ① 전에 구글로 들어온 적이 있다
-        //   ★ withTrashed() — 탈퇴한 계정도 찾는다. 유예 기간 안이면 되돌린다.
-        //     이게 없으면 탈퇴한 사람이 구글로 들어왔을 때 계정이 또 만들어진다.
-        if ($user = User::withTrashed()->where('google_id', $profile['id'])->first()) {
-            \App\Http\Controllers\AccountController::restoreIfWithinGrace($user);
+        $profile = $request->session()->get(self::PENDING_KEY);
 
-            return $user;
+        if (! $profile) {
+            return redirect('/login')->with('error', '가입 절차가 만료되었습니다. 다시 시도해 주세요.');
         }
 
-        // ② 새로 만든다
+        return view('auth.google-complete', [
+            'profile'  => $profile,
+            'username' => $this->makeUsername($profile['email']),
+            'nickname' => $this->makeNickname($profile),
+        ]);
+    }
+
+    // ── 동의하고 가입 (POST /auth/google/complete) ──────────
+    public function store(Request $request, Consent $consent, DeviceTracker $devices)
+    {
+        $profile = $request->session()->get(self::PENDING_KEY);
+
+        if (! $profile) {
+            return redirect('/login')->with('error', '가입 절차가 만료되었습니다. 다시 시도해 주세요.');
+        }
+
+        // 동의하지 않으면 계정을 만들지 않는다.
+        //   ★ 검사가 먼저다. 세션을 먼저 비우면, 체크를 깜빡했을 때 되돌아온 화면에서
+        //     '절차가 만료되었습니다'가 떠서 구글 로그인부터 다시 해야 한다.
+        //     실수 한 번에 처음부터 다시 시키는 것은 안내가 아니라 벌이다.
+        $request->validate(
+            ['agree' => ['accepted']],
+            ['agree.accepted' => '이용약관과 개인정보처리방침에 동의해 주세요.']
+        );
+
+        // 여기까지 왔으면 만든다. 이제 비운다 — 뒤로가기로 두 번 가입되지 않게.
+        $request->session()->forget(self::PENDING_KEY);
+
+        $user = $this->create($profile);
+
+        // ★ 아이디로 가입할 때와 같은 표에 같은 모양으로 남긴다. source 만 다르다.
+        //   이것이 없으면 '구글로 가입한 사람에게는 동의를 받았나'에 답할 수 없다.
+        $consent->recordTerms($request, $user->id, 'google');
+
+        Auth::login($user);
+        $request->session()->regenerate();
+        app(DeviceKey::class)->openEnrollWindow($request);
+        $devices->remember($request, $user->id);
+        $devices->takeNewDevices($request, $user->id);   // 방금 만든 계정이라 알릴 '새 기기'가 없다
+
+        return redirect()->intended('/')->with('status', $user->nickname . '님, 환영합니다!');
+    }
+
+    // ── 계정 만들기 ────────────────────────────────────────
+    //   ★ 동의를 받은 뒤에만 불린다.
+    private function create(array $profile): User
+    {
+        //
         //   ★ 비밀번호는 아무도 모르는 난수를 넣는다. 빈 값으로 두면 빈 비밀번호로
         //     로그인이 될 여지가 생긴다. 이 사람은 구글로만 들어온다.
         //

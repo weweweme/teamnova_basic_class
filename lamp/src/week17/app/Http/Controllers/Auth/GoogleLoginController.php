@@ -9,29 +9,32 @@ use App\Services\Consent;
 use App\Notifications\NewDeviceLogin;
 use App\Services\DeviceKey;
 use App\Services\DeviceTracker;
-use App\Services\GoogleOAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Str;
 use Throwable;
 
 // ============================================================
-// GoogleLoginController — 구글 계정으로 로그인 · 가입
+// GoogleLoginController — 구글 계정으로 로그인 · 가입 · 본인 확인
+//
+//   ★ laravel/socialite 를 쓴다. 라라벨 공식 패키지다(본체에는 없고 따로 설치한다).
+//     OAuth 절차 — 보낼 주소 만들기, state 발급·대조, 코드를 토큰으로 바꾸기,
+//     사용자 정보 받아오기 — 를 전부 이 패키지가 한다.
+//     우리가 적는 것은 '돌아온 사람을 우리 표와 어떻게 잇는가'뿐이다.
 //
 //   ★ 우리 회원가입은 아이디와 비밀번호를 받는다. 구글로 들어온 사람에게는 둘 다 없다.
-//     그래서 처음 들어오면 계정을 대신 만들어 준다(자동 가입).
+//     그래서 처음 오면 계정을 대신 만들어 준다(자동 가입).
 //     아이디는 이메일 앞부분에서 만들고, 겹치면 뒤에 숫자를 붙인다.
 //     화면에 보이는 이름(닉네임)은 설정에서 바꿀 수 있으므로 여기서 정해도 괜찮다.
 //
 //   ★ 구글 계정과 기존 계정은 별개로 둔다 —
 //     이메일이 같다고 자동으로 이어 붙이지 않는다. 안전한지와는 별개로,
 //     구글 버튼을 눌렀는데 아이디로 만든 계정에 로그인되는 것은 예상 밖의 일이다.
-//     '연결하기'를 따로 만들 수도 있지만, 그러면 연결 해제 시 잠기지 않게 막는 일까지
-//     딸려 온다. 이 규모에서 치를 비용이 아니라고 보아 넣지 않았다.
 //
-//   ★ 그래서 찾는 순서는 둘뿐이다 —
+//   ★ 찾는 순서는 둘뿐이다 —
 //     ① google_id 가 같은 사람 — 전에 구글로 들어온 적이 있다
-//     ② 없으면 새로 만든다
+//     ② 없으면 동의를 받고 새로 만든다
 //
 //   ★ 로그인에 필요한 값은 google_id 하나다. 이메일은 메일 알림 기능의 값이라
 //     여기서 채우지 못해도 로그인은 그대로 된다.
@@ -42,40 +45,69 @@ class GoogleLoginController extends Controller
     //   ★ 세션에 둔다 — 서버에만 있고 사용자가 고칠 수 없다.
     private const PENDING_KEY = 'google_pending_signup';
 
+    // 같은 콜백 주소를 두 가지 일에 쓴다 — '로그인'과 '본인 확인'.
+    private const PURPOSE_KEY = 'google_oauth_purpose';
+
     // ── 구글로 보내기 (GET /auth/google) ────────────────────
-    public function redirect(Request $request, GoogleOAuth $google)
+    public function redirect(Request $request)
     {
-        if (! $google->configured()) {
+        if (! config('services.google.client_id')) {
             return redirect('/login')->with('error', '구글 로그인이 준비되지 않았습니다.');
         }
 
-        return redirect()->away($google->redirectUrl($request));
+        // ★ 이 한 줄이 보낼 주소를 만들고 state 를 세션에 넣는다.
+        //   state = 돌아온 사람이 '우리가 보낸 그 사람'인지 확인하는 난수.
+        //   없으면 공격자가 자기 코드로 남을 자기 계정에 로그인시킬 수 있다(CSRF).
+        //   prompt=select_account — 여러 계정을 쓰는 사람에게 고를 기회를 준다.
+        return Socialite::driver('google')->with(['prompt' => 'select_account'])->redirect();
     }
 
     // ── 본인 확인용으로 구글에 다녀오기 (GET /auth/google/confirm) ──
     //   ★ 구글로 가입한 사람은 비밀번호를 모른다(난수로 채워 둔다).
     //     그래서 '지금 본인이 맞나'를 비밀번호로 물을 수 없다.
     //     로그인할 때 쓴 그 수단으로 다시 확인받는다 — GitHub 이 쓰는 방식과 같다.
-    public function confirm(Request $request, GoogleOAuth $google)
+    public function confirm(Request $request)
     {
-        if (! $google->configured() || ! $request->user()->google_id) {
+        if (! config('services.google.client_id') || ! $request->user()->google_id) {
             return redirect('/confirm-password')->with('error', '구글로 확인할 수 없는 계정입니다.');
         }
 
-        return redirect()->away($google->redirectUrl($request, 'confirm', $request->user()->email));
+        // ★ 무엇 때문에 구글에 다녀오는지 세션에 적어 둔다. 콜백 주소는 하나이기 때문이다.
+        //   주소에 적지 않는 이유 — 주소는 사용자가 고칠 수 있다.
+        $request->session()->put(self::PURPOSE_KEY, 'confirm');
+
+        // ★ prompt=login — 구글에게 "비밀번호를 다시 받아라"고 요구한다.
+        //   이것을 빼면(또는 none 을 쓰면) 구글에 로그인된 상태에서 아무것도 묻지 않고 통과한다.
+        //   그러면 이 확인이 막으려는 상황(자리를 비운 사이 남이 들어옴)에서 그 사람도 통과한다.
+        return Socialite::driver('google')
+            ->with(['prompt' => 'login', 'login_hint' => (string) $request->user()->email])
+            ->redirect();
     }
 
     // ── 구글에서 돌아왔을 때 (GET /auth/google/callback) ────
-    public function callback(Request $request, GoogleOAuth $google, DeviceTracker $devices)
+    public function callback(Request $request, DeviceTracker $devices)
     {
-        $purpose = $google->pullPurpose($request);
+        $purpose = $request->session()->pull(self::PURPOSE_KEY, 'login');
         $back    = $purpose === 'confirm' ? '/confirm-password' : '/login';
 
         try {
-            $profile = $google->userFromCallback($request);
+            // ★ 이 한 줄이 네 가지를 한다 —
+            //   state 대조 · 1회용 코드를 토큰으로 교환 · 구글에 사용자 정보 요청 · 결과를 객체로 정리.
+            //   코드 교환은 브라우저를 거치지 않고 서버끼리 한다. 값이 주소창에 남지 않는다.
+            $google = Socialite::driver('google')->user();
         } catch (Throwable $e) {
-            return redirect($back)->with('error', $e->getMessage());
+            // state 가 어긋났거나(뒤로가기·새로고침), 사용자가 구글에서 취소했거나, 통신이 실패한 경우
+            return redirect($back)->with('error', '구글 로그인을 마치지 못했습니다. 다시 시도해 주세요.');
         }
+
+        $profile = [
+            // sub = 구글이 계정마다 붙인 번호. 이메일을 바꿔도 이 값은 그대로다.
+            'id'       => (string) $google->getId(),
+            'email'    => $google->getEmail(),
+            // 구글이 '이 주소는 확인된 주소'라고 알려 준다 → 우리 인증 절차를 건너뛸 근거가 된다.
+            'verified' => (bool) ($google->user['email_verified'] ?? false),
+            'name'     => $google->getName(),
+        ];
 
         // ── 본인 확인이었다면 여기서 끝난다 ─────────────────
         //   ★ 돌아온 구글 계정이 '지금 로그인한 그 사람'인지 본다.

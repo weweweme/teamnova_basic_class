@@ -34,19 +34,28 @@
 
 @if ($paginator->hasPages())
   <nav class="pagination">
-    {{-- 처음 — 1쪽에 있으면 갈 곳이 없다 --}}
-    @if ($current <= 1)
-      <span class="page-nav disabled">« 처음</span>
-    @else
-      <a class="page-nav" href="{{ $paginator->url(1) }}">« 처음</a>
-    @endif
+    {{-- ★ 좌우 버튼을 각각 한 덩어리(.page-side)로 묶는다.
+         버튼 4개를 낱개로 늘어놓으면 폭이 모자랄 때 '마지막' 하나만 아래로 떨어져
+         어긋나 보인다. 덩어리로 묶으면 줄이 바뀌어도 둘이 함께 움직인다. --}}
+    <div class="page-side">
+      {{-- 처음 — 1쪽에 있으면 갈 곳이 없다 --}}
+      @if ($current <= 1)
+        <span class="page-nav disabled">« 처음</span>
+      @else
+        <a class="page-nav" href="{{ $paginator->url(1) }}">« 처음</a>
+      @endif
 
-    {{-- 이전 묶음 — 첫 묶음(1~10)에 있으면 갈 곳이 없다 --}}
-    @if ($prevBlock < 1)
-      <span class="page-nav disabled">← 이전 {{ $blockSize }}</span>
-    @else
-      <a class="page-nav" href="{{ $paginator->url($prevBlock) }}">← 이전 {{ $blockSize }}</a>
-    @endif
+      {{-- 이전 묶음 — 첫 묶음(1~10)에 있으면 갈 곳이 없다.
+           ★ 이름에 '10'을 적지 않는다. 번호 칸에 1~10 이 그대로 보이므로
+             '이전/다음'이 그 묶음 단위라는 게 눈으로 읽히고, 글자를 늘리면 한 줄을 넘긴다.
+             대신 title 로 몇 쪽으로 가는지 알려 준다(마우스를 올리면 뜬다). --}}
+      @if ($prevBlock < 1)
+        <span class="page-nav disabled">‹ 이전</span>
+      @else
+        <a class="page-nav" href="{{ $paginator->url($prevBlock) }}"
+           title="{{ $prevBlock }}쪽으로">‹ 이전</a>
+      @endif
+    </div>
 
     <div class="page-numbers">
       @for ($page = $blockStart; $page <= $blockEnd; $page++)
@@ -55,18 +64,21 @@
       @endfor
     </div>
 
-    {{-- 다음 묶음 — 마지막 묶음이면 갈 곳이 없다 --}}
-    @if ($nextBlock > $last)
-      <span class="page-nav disabled">다음 {{ $blockSize }} →</span>
-    @else
-      <a class="page-nav" href="{{ $paginator->url($nextBlock) }}">다음 {{ $blockSize }} →</a>
-    @endif
+    <div class="page-side">
+      {{-- 다음 묶음 — 마지막 묶음이면 갈 곳이 없다 --}}
+      @if ($nextBlock > $last)
+        <span class="page-nav disabled">다음 ›</span>
+      @else
+        <a class="page-nav" href="{{ $paginator->url($nextBlock) }}"
+           title="{{ $nextBlock }}쪽으로">다음 ›</a>
+      @endif
 
-    {{-- 마지막 --}}
-    @if ($current >= $last)
-      <span class="page-nav disabled">마지막 »</span>
-    @else
-      <a class="page-nav" href="{{ $paginator->url($last) }}">마지막 »</a>
-    @endif
+      {{-- 마지막 --}}
+      @if ($current >= $last)
+        <span class="page-nav disabled">마지막 »</span>
+      @else
+        <a class="page-nav" href="{{ $paginator->url($last) }}">마지막 »</a>
+      @endif
+    </div>
   </nav>
 @endif

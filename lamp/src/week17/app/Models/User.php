@@ -24,7 +24,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 //     실제 로그인 처리는 2단계에서 붙인다.
 // ============================================================
 #[Fillable(['username', 'email', 'email_verified_at', 'google_id', 'notify_activity', 'nickname', 'password', 'avatar'])]
-#[Hidden(['password'])]
+#[Hidden(['password', 'recovery_answer'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
     // ★ '이 모델은 알림을 받을 수 있다'는 표시.

@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\ConfirmPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\GoogleLoginController;
 use App\Http\Controllers\Auth\EmailVerificationController;
+use App\Http\Controllers\Auth\RecoveryQuestionController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CommentController;
@@ -75,6 +76,14 @@ Route::post('/forgot-password', [PasswordResetController::class, 'send'])->middl
 Route::get('/reset-password/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
 Route::post('/reset-password',        [PasswordResetController::class, 'update'])->middleware('throttle:5,1');
 
+//   ★ 질문으로 찾기 — 이메일을 넣지 않은 회원을 위한 두 번째 통로.
+//     메일보다 약한 방식이라 시도 횟수를 더 좁게 잡는다.
+//     답을 하나씩 넣어 보거나 아이디를 훑는 데 쓰이지 못하게 하는 장치다.
+Route::get('/forgot-password/question',  [RecoveryQuestionController::class, 'ask']);
+Route::post('/forgot-password/question', [RecoveryQuestionController::class, 'show'])->middleware('throttle:5,1');
+Route::post('/forgot-password/question/verify', [RecoveryQuestionController::class, 'update'])
+    ->middleware('throttle:5,60');
+
 Route::get('/register',  [RegisterController::class, 'create']);
 Route::post('/register', [RegisterController::class, 'store'])->middleware('throttle:5,1');
 
@@ -135,6 +144,7 @@ Route::middleware(['auth', 'auth.session', 'password.confirm'])->group(function 
     Route::patch('/settings/password', [SettingsController::class, 'password']);
     Route::patch('/settings/email', [SettingsController::class, 'email'])->middleware('throttle:5,1');
     Route::patch('/settings/notifications', [SettingsController::class, 'notifications']);
+    Route::patch('/settings/recovery', [SettingsController::class, 'recovery']);
     Route::get('/settings/leave',    [AccountController::class, 'edit']);
     Route::delete('/settings/leave', [AccountController::class, 'destroy']);
     Route::post('/settings/logout-others', [SettingsController::class, 'logoutOtherDevices']);

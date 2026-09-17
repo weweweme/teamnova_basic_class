@@ -993,6 +993,9 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 .restore-keep { border-color: rgba(43,108,255,.5) !important; }
 .restore-erase strong { color: #e8837c; }
 
+/* 비밀번호 찾기 질문 */
+.recovery-question { font-size: 17px; font-weight: 600; color: #eaeaea; margin: 8px 0 0; }
+
 /* 탈퇴 안내 — 버튼은 이미 있는 .btn-danger 를 그대로 쓴다 */
 .leave-info dd { margin-bottom: 14px; }
 

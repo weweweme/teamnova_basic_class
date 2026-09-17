@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Device;
 use App\Services\DeviceTracker;
 use App\Notifications\PasswordChanged;
+use App\Http\Controllers\Auth\RecoveryQuestionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
 // ============================================================
@@ -134,6 +136,41 @@ class SettingsController extends Controller
         $user->sendEmailVerificationNotification();
 
         return redirect('/settings#mail')->with('status', $email . ' 로 인증 메일을 보냈습니다. 메일 속 링크를 눌러 주세요.');
+    }
+
+    // ── 비밀번호 찾기 질문 (PATCH /settings/recovery) ────────
+    //   ★ 이메일을 넣지 않은 회원이 비밀번호를 되찾을 수 있는 유일한 통로다.
+    //   ★ 답은 비밀번호와 같이 취급한다 — 해시로만 저장하고, 화면에 다시 보여주지 않는다.
+    public function recovery(Request $request)
+    {
+        $user = $request->user();
+
+        $data = $request->validate([
+            'question' => ['nullable', 'string', 'max:200'],
+            // 답이 너무 짧으면 찍어서 맞힐 수 있다. 4자 이상을 요구한다.
+            'answer'   => ['nullable', 'string', 'min:4', 'max:100'],
+        ], [
+            'answer.min' => '답은 4자 이상으로 정해 주세요.',
+        ]);
+
+        // 둘 다 비우면 질문 찾기를 끈다
+        if (! $data['question'] && ! $data['answer']) {
+            $user->forceFill(['recovery_question' => null, 'recovery_answer' => null])->save();
+
+            return redirect('/settings#recovery')->with('status', '비밀번호 찾기 질문을 지웠습니다.');
+        }
+
+        if (! $data['question'] || ! $data['answer']) {
+            return back()->withErrors(['question' => '질문과 답을 모두 적어 주세요.']);
+        }
+
+        $user->forceFill([
+            'recovery_question' => $data['question'],
+            // 맞출 때와 같은 방식으로 다듬은 뒤 해시한다 — 그래야 나중에 맞출 수 있다.
+            'recovery_answer'   => Hash::make(RecoveryQuestionController::normalize($data['answer'])),
+        ])->save();
+
+        return redirect('/settings#recovery')->with('status', '비밀번호 찾기 질문을 저장했습니다.');
     }
 
     // ── 활동 알림 켜고 끄기 (PATCH /settings/notifications) ───

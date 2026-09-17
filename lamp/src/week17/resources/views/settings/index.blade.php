@@ -135,6 +135,53 @@
     </p>
   </section>
 
+  {{-- ── 비밀번호 찾기 질문 ──────────────────────────────── --}}
+  <section class="settings-section" id="recovery">
+    <h2>비밀번호 찾기 질문</h2>
+    <p class="muted">
+      비밀번호를 잊었을 때 이 질문에 답하면 새로 정할 수 있습니다.
+      <strong>이메일을 등록하지 않으셨다면 이것이 유일한 방법입니다.</strong>
+    </p>
+    <p class="muted">
+      ⚠ 남이 알아낼 수 있는 답은 피해 주세요. 이 질문은 비밀번호를 대신할 수 있습니다.
+      이메일을 등록하셨다면 <strong>메일로 찾는 쪽이 더 안전합니다.</strong>
+    </p>
+
+    @php
+      $hasQuestion = (bool) auth()->user()->recovery_question;
+    @endphp
+
+    @if ($hasQuestion)
+      <p class="verify-state is-verified">✓ 질문이 정해져 있습니다</p>
+    @endif
+
+    <form class="settings-form settings-form-col" method="post" action="/settings/recovery">
+      @csrf
+      @method('PATCH')
+
+      <label>질문
+        <input type="text" name="question" maxlength="200"
+               value="{{ old('question', auth()->user()->recovery_question) }}"
+               placeholder="예: 처음 키운 반려동물의 이름은?">
+      </label>
+      @error('question')<span class="muted">{{ $message }}</span>@enderror
+
+      <label>답
+        {{-- ★ 지금 답을 다시 보여주지 않는다. 해시로만 갖고 있어서 꺼낼 수 없고,
+             꺼낼 수 있다 해도 화면에 띄우면 안 되는 값이다. --}}
+        <input type="text" name="answer" maxlength="100" autocomplete="off"
+               placeholder="{{ $hasQuestion ? '바꾸려면 새 답을 적어 주세요' : '4자 이상' }}">
+      </label>
+      @error('answer')<span class="muted">{{ $message }}</span>@enderror
+
+      <button type="submit">저장</button>
+    </form>
+
+    @if ($hasQuestion)
+      <p class="muted">질문과 답을 모두 비우고 저장하면 이 방법을 끕니다.</p>
+    @endif
+  </section>
+
   {{-- ── 로그인한 기기 ───────────────────────────────────── --}}
   <section class="settings-section">
     <h2>로그인한 기기</h2>

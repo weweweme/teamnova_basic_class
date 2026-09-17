@@ -110,10 +110,14 @@ const FLASH_STAY_MS        = 3000;   // 보통 알림: 3초
 const FLASH_STAY_ACTION_MS = 8000;   // '되돌리기' 버튼이 있으면 더 오래 (누를 시간을 줘야 하니까)
 const FLASH_FADE_MS        = 400;    // 흐려지는 데 걸리는 시간 (CSS transition 과 맞춤)
 
-const flash = document.querySelector('.flash');
+// ★ 알림 하나를 받아 '자동으로 사라지기'와 '× 로 닫기'를 붙인다.
+//   화면이 뜰 때 한 번 부르고, 화면 일부만 다시 그리는 곳에서도 새 알림에 대고 다시 부른다.
+//   (예전에는 뜰 때 있던 알림 하나에만 붙였다. 그러면 나중에 갈아 끼운 알림은
+//    × 를 눌러도 닫히지 않고 저절로 사라지지도 않는다 — 붙은 것이 없으니까.)
+function setupFlash(flash) {
+    // 알림이 없는 페이지가 대부분이니 '있는지 먼저 확인'(Tester-Doer).
+    if (!flash) { return; }
 
-// 알림이 없는 페이지가 대부분이니 '있는지 먼저 확인'(Tester-Doer).
-if (flash) {
     // ── 걷어내기 ───────────────────────────────────────────
     //   '몇 초 뒤 자동으로'와 '× 를 눌러 바로'가 똑같이 동작해야 하므로 함수로 묶는다.
     function dismissFlash() {
@@ -145,6 +149,12 @@ if (flash) {
         });
     }
 }
+
+// 화면이 뜰 때 있는 알림에 붙인다.
+setupFlash(document.querySelector('.flash'));
+
+// 부분 갱신을 하는 화면이 새 알림에 대고 다시 부를 수 있게 내어 둔다.
+window.setupFlash = setupFlash;
 
 
 // ── 글자 수 카운터 ───────────────────────────────────────────

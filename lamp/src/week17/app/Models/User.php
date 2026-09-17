@@ -9,6 +9,8 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Notifications\QueuedResetPassword;
+use App\Notifications\QueuedVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -49,6 +51,20 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function casts(): array
     {
         return ['password' => 'hashed', 'notify_activity' => 'boolean', 'email_verified_at' => 'datetime'];
+    }
+
+    // ── 메일은 모두 큐를 거친다 ─────────────────────────────
+    //   ★ 부모의 구현은 프레임워크의 VerifyEmail / ResetPassword 를 그대로 보낸다.
+    //     그 둘은 ShouldQueue 가 아니라서 그 자리에서 발송된다 = 사용자가 3.8초를 기다린다.
+    //     보낼 내용은 같고 '언제 보내는가'만 다르므로, 큐에 태운 껍데기로 바꿔 준다.
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new QueuedVerifyEmail());
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new QueuedResetPassword($token));
     }
 
     // ── 등급 배지 ───────────────────────────────────────────

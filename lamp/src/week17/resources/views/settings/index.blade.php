@@ -234,6 +234,9 @@
     const newFlash = doc.querySelector('.flash');
     if (newFlash) {
       oldFlash ? oldFlash.replaceWith(newFlash) : section.parentNode.insertBefore(newFlash, section.parentNode.firstChild);
+      // ★ 갈아 끼운 알림은 아무 동작도 붙어 있지 않다 — × 도 자동 닫힘도.
+      //   main.js 가 내어 둔 함수로 새 알림에 같은 동작을 붙인다.
+      if (window.setupFlash) { window.setupFlash(newFlash); }
     } else if (oldFlash) {
       oldFlash.remove();
     }

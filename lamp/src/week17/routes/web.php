@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\MediaFeedController;
 use App\Http\Controllers\Auth\ConfirmPasswordController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\GoogleLoginController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -162,6 +163,13 @@ Route::get('/api/browse', [MediaFeedController::class, 'browse']);
 // ── 쿠키 동의 ─────────────────────────────────────────────
 Route::get('/cookies', [ConsentController::class, 'edit']);
 Route::post('/consent', [ConsentController::class, 'store']);
+
+// ── 구글 로그인 ───────────────────────────────────────────
+//   ★ 두 주소가 한 쌍이다. 앞은 구글로 보내고, 뒤는 구글이 되돌려보내는 자리다.
+//     뒤쪽 주소는 Google Cloud Console 에 등록한 값과 글자 하나까지 같아야 한다.
+//   ★ throttle — 남이 콜백 주소를 마구 두드리는 것을 막는다.
+Route::get('/auth/google', [GoogleLoginController::class, 'redirect'])->middleware('throttle:10,1');
+Route::get('/auth/google/callback', [GoogleLoginController::class, 'callback'])->middleware('throttle:10,1');
 
 // ── 이메일 주소 확인 ──────────────────────────────────────
 //   ★ 라우트 이름 'verification.verify' 는 바꿀 수 없다.

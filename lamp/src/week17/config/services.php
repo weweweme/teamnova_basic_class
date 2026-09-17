@@ -9,6 +9,13 @@ return [
         'token' => env('TMDB_TOKEN'),
     ],
 
+    // 구글 로그인 — 값은 .env 에서 읽는다 (이 파일은 git 에 올라간다).
+    'google' => [
+        'client_id'     => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect'      => env('GOOGLE_REDIRECT_URI'),
+    ],
+
 
     /*
     |--------------------------------------------------------------------------

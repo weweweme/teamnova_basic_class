@@ -942,6 +942,19 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 /* 이메일 확인 상태 */
 .settings-subform { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.08); }
 .settings-form-col button:disabled { opacity: .45; cursor: not-allowed; }
+/* 구글 로그인 버튼 — 구글 브랜드 규칙에 맞춰 흰 바탕에 로고를 그대로 쓴다 */
+.auth-divider { display: flex; align-items: center; gap: 12px; margin: 18px 0 14px; }
+.auth-divider::before, .auth-divider::after {
+  content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.12); }
+.auth-divider span { font-size: 13px; color: #8b93a1; }
+.btn-google {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: .7rem 1rem; border-radius: 8px; box-sizing: border-box;
+  background: #fff; color: #1f1f1f; font-weight: 600; font-size: 15px;
+  text-decoration: none; border: 1px solid #dadce0; }
+.btn-google:hover { background: #f5f6f7; text-decoration: none; }
+.auth-google-note { margin-top: 10px; font-size: 13px; }
+
 .verify-state { margin: 0; font-size: 13px; }
 .verify-state.is-verified { color: #6ee7a8; }
 .verify-state.is-pending  { color: #f0b84c; }

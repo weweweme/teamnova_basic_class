@@ -22,7 +22,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 //   ★ Authenticatable 을 상속한다 — '로그인할 수 있는 대상'이라는 뜻이다.
 //     실제 로그인 처리는 2단계에서 붙인다.
 // ============================================================
-#[Fillable(['username', 'email', 'notify_activity', 'nickname', 'password', 'avatar'])]
+#[Fillable(['username', 'email', 'email_verified_at', 'google_id', 'notify_activity', 'nickname', 'password', 'avatar'])]
 #[Hidden(['password'])]
 class User extends Authenticatable implements MustVerifyEmail
 {

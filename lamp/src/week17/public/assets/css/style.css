@@ -790,11 +790,16 @@ mark { background: #7a6000; color: #fff3a3; }
      체크박스는 '네모 옆에 글자'가 자연스러우므로 여기서만 가로(row)로 되돌린다.
    ★ .auth-form input 의 width:100% · padding 도 되돌린다 — 안 그러면 체크박스가
      칸 전체로 늘어나 거대한 네모가 된다. */
-.auth-form .auth-remember { flex-direction: row; align-items: center; gap: 8px;
+.auth-form .auth-remember,
+.auth-form .auth-check { flex-direction: row; align-items: center; gap: 8px;
   font-weight: 500; font-size: 14px; color: #bbb; cursor: pointer; }
-.auth-form .auth-remember input { width: auto; padding: 0; margin: 0;
+.auth-form .auth-remember input,
+.auth-form .auth-check input { width: auto; padding: 0; margin: 0;
   accent-color: #2b6cff; cursor: pointer; }   /* accent-color = 체크 표시 색을 테마에 맞춤 */
 .auth-form .auth-remember .muted { font-size: 12px; }
+/* 약관 동의 줄 — 줄바꿈되어도 네모와 글이 윗줄에서 맞도록 */
+.auth-form .auth-check { align-items: flex-start; margin-top: 14px; line-height: 1.6; }
+.auth-form .auth-check input { margin-top: 3px; flex: none; }
 code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
 
 /* 글쓰기 폼 — 카드로 감싸 로그인 폼과 통일감 */
@@ -932,12 +937,19 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 .settings-form-col button { align-self: flex-start; }
 
 /* 체크 한 줄 — 위의 `.settings-form-col label` 이 세로 배치라, 체크 줄은 가로로 되돌린다 */
+/* 설정의 켜고 끄는 줄 — 글이 왼쪽, 체크가 오른쪽.
+   ★ 위의 `.settings-form-col label` 이 세로 배치라 그대로 두면 체크가 글 위로 올라간다. */
 .settings-form-col .settings-check {
-  flex-direction: row; align-items: center; gap: .5rem;
-  font-weight: 400; cursor: pointer; align-self: flex-start;
+  flex-direction: row; align-items: center; justify-content: space-between; gap: 12px;
+  font-weight: 400; cursor: pointer; align-self: stretch;
+  padding: 10px 12px; border: 1px solid rgba(255,255,255,.10); border-radius: 8px;
 }
-.settings-form-col .settings-check input { flex: none; }
+.settings-form-col .settings-check:hover { background: rgba(255,255,255,.04); }
+.settings-form-col .settings-check input {
+  flex: none; width: 18px; height: 18px; margin: 0; accent-color: #2b6cff; cursor: pointer;
+}
 .settings-form-col .settings-check:has(input:disabled) { opacity: .5; cursor: not-allowed; }
+.settings-form-col .settings-check:has(input:disabled):hover { background: none; }
 
 /* 이메일 확인 상태 */
 .settings-subform { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.08); }

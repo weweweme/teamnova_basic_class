@@ -114,10 +114,11 @@
       @csrf
       @method('PATCH')
 
+      {{-- 설정 줄은 '무엇을 켜는지'를 먼저 읽고 오른쪽 스위치를 누르는 순서가 자연스럽다 --}}
       <label class="settings-check">
+        <span>내 글에 댓글이 달리면 메일로 알려 주세요</span>
         <input type="checkbox" name="notify_activity" value="1"
                @checked(old('notify_activity', $me->notify_activity)) @disabled(! $verified)>
-        <span>내 글에 댓글이 달리면 메일로 알려 주세요</span>
       </label>
       @error('notify_activity')<span class="muted">{{ $message }}</span>@enderror
 

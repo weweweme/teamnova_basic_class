@@ -31,7 +31,7 @@
 
     {{-- ★ 약관 동의 — 체크만 받고 끝내지 않는다. 누가 언제 무엇에 동의했는지 기록한다.
          쿠키 동의와 같은 표(consent_log)에 남는다. --}}
-    <label class="settings-check">
+    <label class="auth-check">
       <input type="checkbox" name="agree" value="1" @checked(old('agree'))>
       <span><a href="/terms" target="_blank">이용약관</a>과
             <a href="/privacy" target="_blank">개인정보처리방침</a>에 동의합니다</span>

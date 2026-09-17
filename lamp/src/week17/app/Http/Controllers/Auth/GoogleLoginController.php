@@ -64,7 +64,10 @@ class GoogleLoginController extends Controller
 
         $user = $this->findOrCreate($profile);
 
-        Auth::login($user, remember: true);
+        // ★ remember: true 를 쓰면 안 된다 — 이 프로젝트는 users 에 remember_token 칸이 없다.
+        //   자동 로그인을 의도적으로 빼면서 칸까지 지웠기 때문이다(User 모델 맨 아래 참고).
+        //   아이디·비밀번호 로그인도 Auth::attempt() 만 쓰고 자동 로그인은 쓰지 않는다.
+        Auth::login($user);
 
         // 아이디·비밀번호 로그인과 같은 뒷정리를 한다 — 여기만 빠뜨리면 기기 목록이 어긋난다.
         $request->session()->regenerate();

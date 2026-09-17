@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Comment;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Notifications\Notification;
 
 // ============================================================
@@ -49,6 +50,9 @@ class CommentPosted extends Notification
             ->line($headline)
             ->line('― ' . \Illuminate\Support\Str::limit($this->comment->content, 80))
             ->action('댓글 보러 가기', $url)
+            // ★ 알림 그만 받기 — 로그인 없이 눌러야 해서 서명된 주소를 쓴다.
+            //   주소를 고치면 서명이 깨져 403 이 된다. 만료는 두지 않는다 (언제 열어 볼지 모르므로).
+            ->line('이 알림을 그만 받으시려면 [여기](' . URL::signedRoute('notify.unsubscribe', ['user' => $notifiable->id]) . ')를 눌러 주세요.')
             ->salutation('리뷰 커뮤니티 드림');
     }
 }

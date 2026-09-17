@@ -17,6 +17,7 @@ use App\Http\Controllers\PostImageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SessionPingController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\RankController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\VoteController;
@@ -96,6 +97,11 @@ Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->middleware
 
 // ── 알림 ──────────────────────────────────────────────────
 Route::get('/notifications', [NotificationController::class, 'index'])->middleware('auth');
+
+//   메일 속 '알림 그만 받기' — 로그인 없이 눌러야 하므로 서명된 주소를 쓴다.
+//   ★ signed 미들웨어가 서명을 확인한다. 주소를 고치면 403 으로 막힌다.
+Route::get('/notifications/unsubscribe/{user}', UnsubscribeController::class)
+    ->name('notify.unsubscribe')->middleware('signed');
 
 // ── 신고 ──────────────────────────────────────────────────
 Route::post('/posts/{post}/report', [ReportController::class, 'store'])->middleware('auth');

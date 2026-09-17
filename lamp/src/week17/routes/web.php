@@ -163,6 +163,11 @@ Route::post('/drafts', [DraftController::class, 'store'])->middleware('auth');
 Route::get('/api/row',    [MediaFeedController::class, 'row']);
 Route::get('/api/browse', [MediaFeedController::class, 'browse']);
 
+// ── 탈퇴 대기 중인 계정으로 로그인했을 때 ─────────────────
+//   ★ 로그인은 아직 안 된 상태다. 복구할지 지울지 고른 뒤에야 들여보낸다.
+Route::get('/account/restore',  [AccountController::class, 'restoreForm']);
+Route::post('/account/restore', [AccountController::class, 'restoreSubmit'])->middleware('throttle:10,1');
+
 // ── 약관 · 개인정보처리방침 ───────────────────────────────
 //   ★ 로그인 없이 볼 수 있어야 한다. 가입 전에 읽고 판단하는 문서다.
 Route::view('/terms', 'legal.terms');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\Accounts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -27,8 +28,8 @@ use Illuminate\Validation\ValidationException;
 // ============================================================
 class AccountController extends Controller
 {
-    // 유예 기간 — 이 안에 다시 로그인하면 되돌아온다
-    public const GRACE_DAYS = 30;
+    // 탈퇴 대기 중인 계정으로 로그인했을 때, 선택 화면까지 들고 가는 자리
+    public const PENDING_KEY = 'account_pending_restore';
 
     // ── 탈퇴 화면 (GET /settings/leave) ─────────────────────
     public function edit(Request $request)
@@ -36,12 +37,12 @@ class AccountController extends Controller
         return view('settings.leave', [
             'me'    => $request->user(),
             'posts' => $request->user()->posts()->count(),
-            'days'  => self::GRACE_DAYS,
+            'days'  => Accounts::GRACE_DAYS,
         ]);
     }
 
     // ── 탈퇴 처리 (DELETE /settings/leave) ──────────────────
-    public function destroy(Request $request)
+    public function destroy(Request $request, Accounts $accounts)
     {
         $user = $request->user();
 
@@ -49,51 +50,108 @@ class AccountController extends Controller
         //   되돌리기 어려운 동작 앞에서 손을 한 번 멈추게 하는 장치다(GitHub 이 저장소를
         //   지울 때 쓰는 방식). 본인 확인은 이미 password.confirm 이 했다 —
         //   이건 '남이 하는 것'이 아니라 '내가 실수로 하는 것'을 막는다.
-        $request->validate([
+        $data = $request->validate([
             'username' => ['required', 'string'],
+            // 'grace'  = 30일 뒤에 지운다 (되돌릴 수 있다)
+            // 'now'    = 지금 바로 지운다 (되돌릴 수 없다)
+            'mode'     => ['required', 'in:grace,now'],
         ]);
 
-        if ($request->input('username') !== $user->username) {
+        if ($data['username'] !== $user->username) {
             throw ValidationException::withMessages([
                 'username' => '아이디가 일치하지 않습니다.',
             ]);
         }
 
-        DB::transaction(function () use ($user, $request) {
+        $now = $data['mode'] === 'now';
+
+        DB::transaction(function () use ($user, $request, $accounts, $now) {
             // ① 탈퇴 표시 — 줄은 남고 화면에서만 사라진다
             $user->delete();
 
-            // ② 로그인 중인 모든 기기를 끊는다.
-            //   ★ 이걸 빼면 탈퇴했는데 다른 창에서는 계속 로그인 상태다.
-            //     sessions 는 users 를 CASCADE 로 참조하지만 줄을 지우지 않았으므로
-            //     자동으로 사라지지 않는다 — 직접 지운다.
-            DB::table('sessions')->where('user_id', $user->id)->delete();
+            if ($now) {
+                // ★ 바로 지우기를 고른 경우. 유예 기간을 기다리지 않는다.
+                //   무엇을 지우는지는 Accounts 한 곳에만 적혀 있다 —
+                //   예약 작업이 30일 뒤에 하는 일과 정확히 같은 일을 지금 한다.
+                $accounts->erase($user);
+            } else {
+                // ② 로그인 중인 모든 기기를 끊는다.
+                //   ★ 이걸 빼면 탈퇴했는데 다른 창에서는 계속 로그인 상태다.
+                //     sessions 는 users 를 CASCADE 로 참조하지만 줄을 지우지 않았으므로
+                //     자동으로 사라지지 않는다 — 직접 지운다.
+                DB::table('sessions')->where('user_id', $user->id)->delete();
 
-            // ③ 기기 목록과 초안도 지금 정리한다. 되돌릴 때 필요한 값이 아니다.
-            DB::table('user_devices')->where('user_id', $user->id)->delete();
-            DB::table('drafts')->where('user_id', $user->id)->delete();
+                // ③ 기기 목록과 초안도 지금 정리한다. 되돌릴 때 필요한 값이 아니다.
+                DB::table('user_devices')->where('user_id', $user->id)->delete();
+                DB::table('drafts')->where('user_id', $user->id)->delete();
+            }
 
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
         });
 
-        return redirect('/')->with('status',
-            '탈퇴했습니다. ' . self::GRACE_DAYS . '일 안에 다시 로그인하시면 계정이 되돌아옵니다.');
+        return redirect('/')->with('status', $now
+            ? '계정을 삭제했습니다. 쓰신 글은 남고 작성자만 가려집니다.'
+            : '탈퇴했습니다. ' . Accounts::GRACE_DAYS . '일 안에 다시 로그인하시면 계정이 되돌아옵니다.');
     }
 
-    // ── 되돌리기 ────────────────────────────────────────────
-    //   ★ 로그인에 성공한 순간 부른다. 유예 기간 안이면 탈퇴를 취소한다.
-    //     '다시 로그인하면 돌아온다'는 넷플릭스 등이 쓰는 방식이고,
-    //     사용자에게 따로 설명할 것이 없다는 점이 장점이다.
-    public static function restoreIfWithinGrace(User $user): bool
+    // ── 탈퇴 대기 중인 계정으로 로그인했을 때 (GET /account/restore) ──
+    //   ★ 조용히 되돌리지 않는다.
+    //     저장된 비밀번호로 습관처럼 로그인하거나 구글 버튼을 무심코 누르면
+    //     본인은 지운 줄 아는 계정이 말없이 살아난다. 사용자가 요청한 삭제가
+    //     본인도 모르게 취소되는 것이라, 한 번 묻고 고르게 한다.
+    public function restoreForm(Request $request, Accounts $accounts)
     {
-        if (! $user->trashed() || $user->anonymized_at) {
-            return false;
+        $user = $this->pendingUser($request);
+
+        if (! $user) {
+            return redirect('/login');
         }
 
-        $user->restore();
+        return view('account.restore', [
+            'user' => $user,
+            'left' => $accounts->daysLeft($user),
+        ]);
+    }
 
-        return true;
+    // ── 고른 대로 처리 (POST /account/restore) ──────────────
+    public function restoreSubmit(Request $request, Accounts $accounts)
+    {
+        $user = $this->pendingUser($request);
+
+        if (! $user) {
+            return redirect('/login');
+        }
+
+        $data = $request->validate(['choice' => ['required', 'in:restore,erase']]);
+
+        $request->session()->forget(self::PENDING_KEY);
+
+        if ($data['choice'] === 'erase') {
+            $accounts->erase($user);
+
+            return redirect('/')->with('status', '계정을 삭제했습니다. 쓰신 글은 남고 작성자만 가려집니다.');
+        }
+
+        $accounts->restore($user);
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect('/')->with('status', $user->nickname . '님, 계정이 복구되었습니다.');
+    }
+
+    // 로그인에 성공했지만 탈퇴 대기 중이라 아직 들여보내지 않은 사람
+    private function pendingUser(Request $request): ?User
+    {
+        $id = $request->session()->get(self::PENDING_KEY);
+
+        if (! $id) {
+            return null;
+        }
+
+        $user = User::withTrashed()->find($id);
+
+        return $user && $user->trashed() && ! $user->anonymized_at ? $user : null;
     }
 }

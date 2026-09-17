@@ -113,8 +113,13 @@ class GoogleLoginController extends Controller
             return redirect()->route('google.complete');
         }
 
-        // 유예 기간 안에 돌아온 탈퇴 계정이면 되돌린다.
-        AccountController::restoreIfWithinGrace($user);
+        // ★ 탈퇴 대기 중이면 바로 들여보내지 않는다. 복구할지 지울지 본인이 고른다.
+        //   구글 버튼을 무심코 눌러 계정이 말없이 살아나는 일을 막는다.
+        if ($user->trashed() && ! $user->anonymized_at) {
+            $request->session()->put(AccountController::PENDING_KEY, $user->id);
+
+            return redirect('/account/restore');
+        }
 
         // ★ remember: true 를 쓰면 안 된다 — 이 프로젝트는 users 에 remember_token 칸이 없다.
         //   자동 로그인을 의도적으로 빼면서 칸까지 지웠기 때문이다(User 모델 맨 아래 참고).

@@ -48,6 +48,28 @@
       </label>
       @error('username')<span class="muted">{{ $message }}</span>@enderror
 
+      {{-- 언제 지울지 고르게 한다. 기본은 유예 — 되돌릴 수 있는 쪽이 안전한 기본값이다. --}}
+      <fieldset class="leave-mode">
+        <legend>언제 지울까요?</legend>
+
+        <label class="settings-check">
+          <span>
+            <strong>{{ $days }}일 뒤에 지우기</strong><br>
+            <span class="muted">그 안에 다시 로그인하시면 되돌릴 수 있습니다.</span>
+          </span>
+          <input type="radio" name="mode" value="grace" checked>
+        </label>
+
+        <label class="settings-check">
+          <span>
+            <strong>지금 바로 지우기</strong><br>
+            <span class="muted">되돌릴 수 없습니다. 같은 아이디로 다시 가입할 수 있게 됩니다.</span>
+          </span>
+          <input type="radio" name="mode" value="now">
+        </label>
+      </fieldset>
+      @error('mode')<span class="muted">{{ $message }}</span>@enderror
+
       <button type="submit" class="btn-danger">탈퇴하기</button>
     </form>
 

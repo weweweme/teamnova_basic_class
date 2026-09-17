@@ -49,12 +49,15 @@ class LoginController extends Controller
         //   ★ 우리 verify_login() + login() 이 하던 일이 이 한 줄이다.
         // ★ 탈퇴한 계정은 Auth::attempt() 로 찾히지 않는다 —
         //   SoftDeletes 가 조회에 'deleted_at is null' 을 붙이기 때문이다.
-        //   그래서 '유예 기간 안에 다시 로그인하면 되돌아온다'를 여기서 직접 처리한다.
-        //   비밀번호가 맞을 때만 되돌린다 — 아이디만 알면 남의 탈퇴를 취소할 수 있으면 안 된다.
+        //   비밀번호가 맞으면 '탈퇴 대기 중'이라고 알려 주는 화면으로 보낸다.
+        //   ★ 여기서 바로 되돌리지 않는다 — 본인은 지운 줄 아는 계정이 말없이 살아나면 안 된다.
+        //   ★ 비밀번호가 맞을 때만 보낸다. 아이디만 알면 남의 탈퇴 상태를 엿볼 수 있으면 안 된다.
         $leaving = User::onlyTrashed()->where('username', $credentials['username'])->first();
 
-        if ($leaving && Hash::check($credentials['password'], $leaving->password)) {
-            AccountController::restoreIfWithinGrace($leaving);
+        if ($leaving && ! $leaving->anonymized_at && Hash::check($credentials['password'], $leaving->password)) {
+            $request->session()->put(AccountController::PENDING_KEY, $leaving->id);
+
+            return redirect('/account/restore');
         }
 
         if (! Auth::attempt($credentials)) {

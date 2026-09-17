@@ -977,6 +977,22 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
   border: 1px solid rgba(255,255,255,.12); padding: 8px 10px; text-align: left; vertical-align: top; }
 .legal-table th { background: rgba(255,255,255,.04); white-space: nowrap; }
 
+/* 탈퇴 — 언제 지울지 고르는 칸 */
+.leave-mode { border: none; margin: 4px 0 0; padding: 0; }
+.leave-mode legend { font-size: 14px; font-weight: 600; color: #ddd; padding: 0 0 8px; }
+.leave-mode .settings-check { margin-bottom: 8px; }
+.leave-mode .settings-check input { width: 18px; height: 18px; }
+
+/* 복구 / 삭제 고르기 */
+.restore-choice { display: flex; flex-direction: column; gap: 12px; }
+.restore-choice button {
+  display: flex; flex-direction: column; gap: 6px; text-align: left;
+  width: 100%; padding: 14px 16px; cursor: pointer; line-height: 1.6;
+}
+.restore-choice .muted { font-size: 13px; font-weight: 400; }
+.restore-keep { border-color: rgba(43,108,255,.5) !important; }
+.restore-erase strong { color: #e8837c; }
+
 /* 탈퇴 안내 — 버튼은 이미 있는 .btn-danger 를 그대로 쓴다 */
 .leave-info dd { margin-bottom: 14px; }
 

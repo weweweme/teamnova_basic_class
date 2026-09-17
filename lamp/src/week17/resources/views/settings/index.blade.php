@@ -69,7 +69,8 @@
   </section>
 
   {{-- ── 메일 알림 ─────────────────────────────────────────── --}}
-  <section class="settings-section">
+  {{-- ★ id 를 붙여 두면 저장 뒤 이 자리로 돌아올 수 있다 (/settings#mail) --}}
+  <section class="settings-section" id="mail">
     <h2>메일 알림</h2>
     @php
       $me       = auth()->user();
@@ -97,18 +98,15 @@
           @if ($verified)
             ✓ 인증된 주소입니다 ({{ $me->email_verified_at->format('Y-m-d') }} 인증)
           @else
-            ● 아직 인증하지 않은 주소입니다. 받은 메일의 링크를 눌러 주세요.
+            ● 아직 인증하지 않은 주소입니다. 아래 버튼을 누르면 인증 메일이 갑니다.
           @endif
         </p>
       @endif
 
-      {{-- 버튼 이름이 지금 할 일을 말한다 --}}
-      <button type="submit">
-        @if (! $me->email)      인증 메일 보내기
-        @elseif (! $verified)   인증 메일 다시 보내기
-        @else                   주소 바꾸기
-        @endif
-      </button>
+      {{-- 버튼 이름이 지금 할 일을 말한다.
+           ★ '다시 보내기'라고 쓰지 않는다 — 전에 보낸 적이 있는지 우리는 알지 못한다.
+             가입할 때 적어 둔 주소는 인증 메일이 나간 적이 없다. --}}
+      <button type="submit">{{ $verified ? '주소 바꾸기' : '인증 메일 보내기' }}</button>
     </form>
 
     {{-- ② 활동 알림 — 인증을 마쳐야 켤 수 있다 --}}
@@ -210,3 +208,74 @@
     </dl>
   </section>
 @endsection
+
+{{-- ── 메일 알림 칸만 다시 그리기 ───────────────────────────
+     ★ 폼은 그대로 두고 그 위에 얹는다(점진적 향상).
+       · JS 가 동작하면  — 폼 전송을 가로채 이 칸만 갈아 끼운다
+       · JS 가 없으면    — 폼이 원래대로 전송되어 화면 전체가 새로 그려진다
+       어느 쪽이든 서버가 하는 일과 화면의 결과는 같다. 화면을 만드는 곳도
+       settings/index.blade.php 한 곳뿐이라, 같은 마크업을 두 벌 쓰지 않는다. --}}
+@push('scripts')
+<script>
+(function () {
+  const section = document.getElementById('mail');
+  if (!section || !window.fetch || !window.DOMParser) return;   // 못 하면 그냥 폼으로 둔다
+
+  // 서버가 보낸 새 화면에서 필요한 조각만 꺼내 바꿔 끼운다
+  function apply(html) {
+    const doc  = new DOMParser().parseFromString(html, 'text/html');
+    const next = doc.getElementById('mail');
+    if (!next) return false;                                     // 설정 화면이 아니면 포기
+
+    section.innerHTML = next.innerHTML;
+
+    // 안내 쪽지도 옮겨 온다 (없으면 있던 것을 치운다)
+    const oldFlash = document.querySelector('.flash');
+    const newFlash = doc.querySelector('.flash');
+    if (newFlash) {
+      oldFlash ? oldFlash.replaceWith(newFlash) : section.parentNode.insertBefore(newFlash, section.parentNode.firstChild);
+    } else if (oldFlash) {
+      oldFlash.remove();
+    }
+
+    bind();                                                      // 갈아 낀 폼에 다시 붙인다
+    return true;
+  }
+
+  function bind() {
+    section.querySelectorAll('form').forEach(function (form) {
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const button = form.querySelector('button[type=submit]');
+        const label  = button ? button.textContent : '';
+        if (button) { button.disabled = true; button.textContent = '보내는 중…'; }
+
+        try {
+          // fetch 는 리다이렉트를 따라간다 → 돌아오는 것은 저장이 끝난 설정 화면이다.
+          // ★ Accept: text/html 을 붙이고, X-Requested-With 는 붙이지 않는다.
+          //   Laravel 은 'X-Requested-With: XMLHttpRequest' 와 'Accept: */*' 가 함께 있을 때
+          //   JSON 을 원하는 요청으로 보고, 입력 오류를 422 JSON 으로 돌려준다(실측 확인).
+          //   우리가 원하는 것은 평소와 같은 화면이다 — 오류 문구까지 그려진 HTML.
+          const res  = await fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: { 'Accept': 'text/html' },
+            credentials: 'same-origin',
+          });
+          const html = await res.text();
+
+          if (!apply(html)) { form.submit(); }                   // 예상 밖 응답이면 원래 방식으로
+        } catch (err) {
+          form.submit();                                         // 실패하면 원래 방식으로
+        } finally {
+          if (button && button.isConnected) { button.disabled = false; button.textContent = label; }
+        }
+      });
+    });
+  }
+
+  bind();
+})();
+</script>
+@endpush

@@ -88,8 +88,14 @@ class SettingsController extends Controller
     {
         $user = $request->user();
 
+        // ★ unique = 한 주소는 한 계정만 쓸 수 있다.
+        //   users.email 에 걸린 unique 제약과 같은 뜻을 입력 검사 단계에서도 본다.
+        //   뒤의 id 는 '나 자신은 빼고 본다'는 뜻이다 — 내 주소를 그대로 다시 저장할 수 있어야 한다.
         $data = $request->validate([
             'email' => ['nullable', 'email', 'max:100', 'unique:users,email,' . $user->id],
+        ], [
+            'email.unique' => '이미 다른 계정이 쓰고 있는 주소입니다.',
+            'email.email'  => '이메일 주소 형식이 아닙니다.',
         ]);
 
         $email = $data['email'] ?: null;
@@ -102,7 +108,7 @@ class SettingsController extends Controller
                 'notify_activity'   => false,
             ])->save();
 
-            return back()->with('status', '이메일 주소를 지웠습니다. 활동 알림도 함께 껐습니다.');
+            return redirect('/settings#mail')->with('status', '이메일 주소를 지웠습니다. 활동 알림도 함께 껐습니다.');
         }
 
         // ② 다른 주소로 바꿨다 — 인증을 처음부터 다시 받는다
@@ -116,18 +122,18 @@ class SettingsController extends Controller
 
             $user->sendEmailVerificationNotification();
 
-            return back()->with('status', $email . ' 로 인증 메일을 보냈습니다. 메일 속 링크를 눌러 주세요.');
+            return redirect('/settings#mail')->with('status', $email . ' 로 인증 메일을 보냈습니다. 메일 속 링크를 눌러 주세요.');
         }
 
         // ③ 같은 주소인데 이미 인증했다 — 할 일이 없다
         if ($user->hasVerifiedEmail()) {
-            return back()->with('status', '이미 인증된 주소입니다.');
+            return redirect('/settings#mail')->with('status', '이미 인증된 주소입니다.');
         }
 
         // ④ 같은 주소인데 아직 인증 전이다 — 메일을 다시 보낸다
         $user->sendEmailVerificationNotification();
 
-        return back()->with('status', $email . ' 로 인증 메일을 다시 보냈습니다.');
+        return redirect('/settings#mail')->with('status', $email . ' 로 인증 메일을 보냈습니다. 메일 속 링크를 눌러 주세요.');
     }
 
     // ── 활동 알림 켜고 끄기 (PATCH /settings/notifications) ───
@@ -151,7 +157,7 @@ class SettingsController extends Controller
 
         $user->update(['notify_activity' => $wants]);
 
-        return back()->with('status', $wants ? '이제 댓글 알림 메일을 보내 드립니다.' : '활동 알림을 껐습니다.');
+        return redirect('/settings#mail')->with('status', $wants ? '이제 댓글 알림 메일을 보내 드립니다.' : '활동 알림을 껐습니다.');
     }
 
     // ── 다른 기기 로그아웃 (비밀번호 변경 없이) ─────────────

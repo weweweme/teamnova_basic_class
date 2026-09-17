@@ -29,6 +29,6 @@ class EmailVerificationController extends Controller
         // 이미 확인한 주소면 아무 일도 하지 않는다 (같은 링크를 두 번 눌러도 안전하다).
         $request->fulfill();
 
-        return redirect('/settings')->with('status', '이메일 인증이 끝났습니다. 이제 댓글 알림 메일을 켤 수 있습니다.');
+        return redirect('/settings#mail')->with('status', '이메일 인증이 끝났습니다. 이제 댓글 알림 메일을 켤 수 있습니다.');
     }
 }

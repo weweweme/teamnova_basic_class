@@ -163,6 +163,11 @@ Route::post('/drafts', [DraftController::class, 'store'])->middleware('auth');
 Route::get('/api/row',    [MediaFeedController::class, 'row']);
 Route::get('/api/browse', [MediaFeedController::class, 'browse']);
 
+// ── 약관 · 개인정보처리방침 ───────────────────────────────
+//   ★ 로그인 없이 볼 수 있어야 한다. 가입 전에 읽고 판단하는 문서다.
+Route::view('/terms', 'legal.terms');
+Route::view('/privacy', 'legal.privacy');
+
 // ── 쿠키 동의 ─────────────────────────────────────────────
 Route::get('/cookies', [ConsentController::class, 'edit']);
 Route::post('/consent', [ConsentController::class, 'store']);

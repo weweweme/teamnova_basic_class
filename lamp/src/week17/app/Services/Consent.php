@@ -7,8 +7,11 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
 
 // ============================================================
-// Consent — 쿠키 동의
+// Consent — 동의 기록 (쿠키 동의 · 약관 동의)
 //   지금 includes/consent.php 를 옮긴 것이다.
+//
+//   ★ 두 가지 동의가 한 표(consent_log)에 쌓인다. 성격이 같기 때문이다 —
+//     "누가 언제 무엇에 동의했는가". source 칸으로 어디서 온 동의인지 구분한다.
 //
 //   ★ 이 클래스는 '무엇에 동의했나'만 안다. 쿠키 이름은 하나도 모른다.
 //     어느 쿠키가 어느 항목에 속하는지는 쿠키를 만드는 쪽(Prefs)이 안다.
@@ -32,6 +35,9 @@ class Consent
 
     // 정책이 바뀌면 올린다. 값이 다르면 다시 물어본다.
     private const POLICY_VERSION = 1;
+
+    // 약관·개인정보처리방침의 판. 내용을 고치면 올린다.
+    public const TERMS_VERSION = 1;
 
     public function decided(Request $request): bool
     {
@@ -70,6 +76,26 @@ class Consent
             'source'         => $source,
             'policy_version' => self::POLICY_VERSION,
             'items'          => implode(',', $items),
+            'user_agent'     => substr((string) $request->userAgent(), 0, 255),
+            'ip_prefix'      => $this->ipPrefix((string) $request->ip()),
+            'created_at'     => now(),
+        ]);
+    }
+
+    // ── 약관 동의 기록 ──────────────────────────────────────
+    //   ★ 체크박스만 두고 기록하지 않으면 "동의를 받았다"고 말할 근거가 없다.
+    //     쿠키 동의와 같은 표에 남긴다 — 나중에 '무엇에 언제 동의했나'를 한자리에서 보여줄 수 있다.
+    //   ★ 가입 시점에는 아직 로그인 전이라 $request->user() 가 비어 있다.
+    //     그래서 방금 만든 회원의 번호를 인자로 받는다.
+    public function recordTerms(Request $request, int $userId, string $source): void
+    {
+        DB::table('consent_log')->insert([
+            'consent_id'     => bin2hex(random_bytes(16)),
+            'user_id'        => $userId,
+            'action'         => 'accept',
+            'source'         => $source,
+            'policy_version' => self::TERMS_VERSION,
+            'items'          => 'terms,privacy',
             'user_agent'     => substr((string) $request->userAgent(), 0, 255),
             'ip_prefix'      => $this->ipPrefix((string) $request->ip()),
             'created_at'     => now(),

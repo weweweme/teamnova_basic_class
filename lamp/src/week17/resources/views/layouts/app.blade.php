@@ -107,7 +107,7 @@
 
   <footer class="foot">
     <small>🎬 리뷰 커뮤니티 · 영화·드라마 리뷰 커뮤니티 · TMDB 제공</small>
-    <small><a href="/cookies">🍪 쿠키 설정</a></small>
+    <small><a href="/terms">이용약관</a> · <a href="/privacy">개인정보처리방침</a> · <a href="/cookies">🍪 쿠키 설정</a></small>
   </footer>
 
   {{-- 삭제 확인 팝업 — 모든 페이지에 하나만 두고 재사용한다.

@@ -955,9 +955,17 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 .btn-google:hover { background: #f5f6f7; text-decoration: none; }
 .auth-google-note { margin-top: 10px; font-size: 13px; }
 
-/* 되돌릴 수 없는 동작 버튼 */
-.btn-danger { background: #b3261e !important; }
-.btn-danger:hover { background: #8c1d18 !important; }
+/* 약관 문서 */
+.legal h3 { font-size: 15px; margin: 16px 0 6px; color: #ddd; }
+.legal ul { margin: 8px 0; padding-left: 20px; line-height: 1.8; }
+.legal li { margin-bottom: 6px; }
+.legal p { line-height: 1.8; }
+.legal-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 14px; }
+.legal-table th, .legal-table td {
+  border: 1px solid rgba(255,255,255,.12); padding: 8px 10px; text-align: left; vertical-align: top; }
+.legal-table th { background: rgba(255,255,255,.04); white-space: nowrap; }
+
+/* 탈퇴 안내 — 버튼은 이미 있는 .btn-danger 를 그대로 쓴다 */
 .leave-info dd { margin-bottom: 14px; }
 
 .verify-state { margin: 0; font-size: 13px; }

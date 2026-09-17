@@ -203,7 +203,7 @@
     <h2>회원 탈퇴</h2>
     <p class="muted">
       쓰신 글과 댓글은 남고 작성자만 가려집니다.
-      {{ \App\Http\Controllers\AccountController::GRACE_DAYS }}일 안에 다시 로그인하시면 되돌릴 수 있습니다.
+      {{ \App\Services\Accounts::GRACE_DAYS }}일 안에 다시 로그인하시면 되돌릴 수 있습니다.
     </p>
     <a class="btn-settings" href="/settings/leave">탈퇴 안내 보기</a>
   </section>

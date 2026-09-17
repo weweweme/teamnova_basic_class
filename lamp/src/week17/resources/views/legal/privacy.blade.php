@@ -58,11 +58,11 @@
             기기 목록과 작성 중이던 초안은 이때 지웁니다.</td>
       </tr>
       <tr>
-        <td>탈퇴 후 {{ \App\Http\Controllers\AccountController::GRACE_DAYS }}일 이내</td>
+        <td>탈퇴 후 {{ \App\Services\Accounts::GRACE_DAYS }}일 이내</td>
         <td>다시 로그인하시면 계정이 그대로 돌아옵니다.</td>
       </tr>
       <tr>
-        <td>탈퇴 후 {{ \App\Http\Controllers\AccountController::GRACE_DAYS }}일이 지나면</td>
+        <td>탈퇴 후 {{ \App\Services\Accounts::GRACE_DAYS }}일이 지나면</td>
         <td><strong>아이디, 이메일 주소, 구글 계정 연결, 프로필 사진을 지웁니다.</strong>
             받은 알림 기록도 지웁니다. 되돌릴 수 없습니다.</td>
       </tr>

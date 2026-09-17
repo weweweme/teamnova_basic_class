@@ -91,6 +91,10 @@ class Post extends Model
     public const SORT_TABS  = ['new' => '최신', 'hot' => '인기', 'views' => '조회', 'comments' => '댓글'];
     public const SENTIMENTS = ['호평', '보통', '혹평'];
 
+    // 한 글에 넣을 수 있는 사진 장수.
+    //   ★ 화면(글쓰기 버튼)과 서버 검사가 같은 값을 봐야 어긋나지 않는다.
+    public const MAX_IMAGES = 10;
+
     // ── 게시판 조건 걸기 (스코프) ───────────────────────────
     //   ★ scopeXxx 로 이름을 지으면 Post::board(...) 처럼 부를 수 있다.
     //     '감상 필터 → 검색어 → 정렬' 세 조건은 두 화면이 똑같이 쓰는데,

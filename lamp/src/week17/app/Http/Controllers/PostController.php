@@ -21,6 +21,20 @@ class PostController extends Controller
     // authorize() 를 쓰기 위한 트레이트. Laravel 11부터 기본 Controller 에 들어 있지 않다.
     use AuthorizesRequests;
 
+    // ── 본문에 든 사진 장수 제한 ────────────────────────────
+    //   ★ 화면에서도 막지만, 화면 검사는 F12 로 지울 수 있다. 판정은 서버가 다시 한다.
+    //     본문에 ![](주소) 가 몇 번 나오는지 세는 것이 곧 장수다.
+    private static function imageCountRule(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail) {
+            $count = preg_match_all('/!\[[^\]]*\]\([^)]+\)/', (string) $value);
+
+            if ($count > Post::MAX_IMAGES) {
+                $fail('사진은 한 글에 ' . Post::MAX_IMAGES . '장까지 넣을 수 있습니다. (지금 ' . $count . '장)');
+            }
+        };
+    }
+
     // ── 글 목록 (GET /posts) ────────────────────────────────
     public function index(Request $request, Prefs $prefs)
     {
@@ -149,7 +163,7 @@ class PostController extends Controller
             'work'      => ['required_without:media_id', 'string', 'max:100'],
             'media_id'  => ['required_without:work', 'integer', 'exists:media,id'],
             'title'     => ['required', 'string', 'max:100'],
-            'content'   => ['required', 'string', 'max:5000'],
+            'content'   => ['required', 'string', 'max:5000', self::imageCountRule()],
             'sentiment' => ['required', 'in:호평,보통,혹평'],
         ]);
 
@@ -197,7 +211,7 @@ class PostController extends Controller
         $data = $request->validate([
             'media_id'  => ['required', 'integer', 'exists:media,id'],
             'title'     => ['required', 'string', 'max:100'],
-            'content'   => ['required', 'string', 'max:5000'],
+            'content'   => ['required', 'string', 'max:5000', self::imageCountRule()],
             'sentiment' => ['required', 'in:호평,보통,혹평'],
         ]);
 

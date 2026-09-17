@@ -54,11 +54,11 @@
 
     {{-- 본문 사이에 사진 넣기 — 파일을 고르면 올라가고, 커서 자리에 표기가 끼워진다 --}}
     <div class="write-image">
-      <label class="btn-upload">
+      <label class="btn-photo">
         🖼 사진 넣기
         <input type="file" id="body-image" accept="image/*" hidden>
       </label>
-      <span id="body-image-status" class="muted">본문에서 사진을 넣을 자리를 클릭한 뒤 눌러 주세요</span>
+      <span id="body-image-status" class="muted">본문에서 사진을 넣을 자리를 클릭한 뒤 눌러 주세요 (한 글에 {{ \App\Models\Post::MAX_IMAGES }}장까지)</span>
     </div>
 
     {{-- radio = 여러 개 중 하나만 선택. 같은 name 이면 한 묶음.
@@ -158,6 +158,7 @@
   const body   = document.querySelector('.write-form textarea[name="content"]');
   if (!picker || !body) return;
 
+  const MAX_IMAGES   = {{ \App\Models\Post::MAX_IMAGES }};   // 한 글에 넣을 수 있는 장수
   const SERVER_LIMIT = 16 * 1024 * 1024;   // 서버가 받는 한도 (줄인 뒤 기준)
   const RESIZE_OVER  = 400 * 1024;         // 이보다 크면 줄여서 보낸다
   const MAX_EDGE     = 1600;               // 긴 변 기준 최대 픽셀
@@ -193,6 +194,14 @@
   picker.addEventListener('change', async function () {
     const file = picker.files[0];
     if (!file) return;
+
+    // 한 글에 넣을 수 있는 장수 제한 — 본문에 이미 들어 있는 표기를 센다
+    const already = (body.value.match(/!\[[^\]]*\]\([^)]+\)/g) || []).length;
+    if (already >= MAX_IMAGES) {
+      status.textContent = '한 글에 사진은 ' + MAX_IMAGES + '장까지 넣을 수 있습니다';
+      picker.value = '';
+      return;
+    }
 
     if (!file.type.startsWith('image/')) {
       status.textContent = '이미지 파일만 올릴 수 있습니다';
@@ -253,7 +262,7 @@
       body.selectionStart = body.selectionEnd = at + mark.length;
       body.focus();
 
-      status.textContent = '넣었습니다. 글을 등록하면 본문에 사진이 보입니다';
+      status.textContent = '넣었습니다 (' + (already + 1) + '/' + MAX_IMAGES + '장). 글을 등록하면 본문에 사진이 보입니다';
     } catch (e) {
       status.textContent = '사진을 올리지 못했습니다';
     } finally {

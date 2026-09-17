@@ -1162,3 +1162,8 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 .post-content ul, .post-content ol { margin: 10px 0; padding-left: 22px; list-style: revert; }
 .post-content code { background: #222; padding: 2px 5px; border-radius: 4px; font-size: 13px; }
 .write-image { display: flex; align-items: center; gap: 10px; margin: 4px 0 8px; flex-wrap: wrap; }
+.btn-photo { display: inline-block; padding: .45rem .9rem; border-radius: 6px; cursor: pointer;
+  background: transparent; color: #c9ced6; border: 1px solid rgba(255,255,255,.18);
+  font-size: 14px; font-weight: 600; }
+.btn-photo:hover { background: rgba(255,255,255,.06); color: #eaeaea; }
+.write-image .muted { font-size: 13px; }

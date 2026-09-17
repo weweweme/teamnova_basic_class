@@ -46,13 +46,43 @@ class GoogleLoginController extends Controller
         return redirect()->away($google->redirectUrl($request));
     }
 
+    // ── 본인 확인용으로 구글에 다녀오기 (GET /auth/google/confirm) ──
+    //   ★ 구글로 가입한 사람은 비밀번호를 모른다(난수로 채워 둔다).
+    //     그래서 '지금 본인이 맞나'를 비밀번호로 물을 수 없다.
+    //     로그인할 때 쓴 그 수단으로 다시 확인받는다 — GitHub 이 쓰는 방식과 같다.
+    public function confirm(Request $request, GoogleOAuth $google)
+    {
+        if (! $google->configured() || ! $request->user()->google_id) {
+            return redirect('/confirm-password')->with('error', '구글로 확인할 수 없는 계정입니다.');
+        }
+
+        return redirect()->away($google->redirectUrl($request, 'confirm'));
+    }
+
     // ── 구글에서 돌아왔을 때 (GET /auth/google/callback) ────
     public function callback(Request $request, GoogleOAuth $google, DeviceTracker $devices)
     {
+        $purpose = $google->pullPurpose($request);
+        $back    = $purpose === 'confirm' ? '/confirm-password' : '/login';
+
         try {
             $profile = $google->userFromCallback($request);
         } catch (Throwable $e) {
-            return redirect('/login')->with('error', $e->getMessage());
+            return redirect($back)->with('error', $e->getMessage());
+        }
+
+        // ── 본인 확인이었다면 여기서 끝난다 ─────────────────
+        //   ★ 돌아온 구글 계정이 '지금 로그인한 그 사람'인지 본다.
+        //     이것을 빼면 아무 구글 계정이나 남의 설정을 여는 열쇠가 된다.
+        if ($purpose === 'confirm') {
+            if (! $request->user() || $request->user()->google_id !== $profile['id']) {
+                return redirect('/confirm-password')->with('error', '로그인한 계정과 다른 구글 계정입니다.');
+            }
+
+            // 비밀번호를 맞힌 것과 같게 기록한다 — password.confirm 미들웨어가 이 값을 본다.
+            $request->session()->put('auth.password_confirmed_at', time());
+
+            return redirect()->intended('/settings');
         }
 
         // 구글이 '확인되지 않은 주소'라고 하면 받지 않는다.
@@ -87,7 +117,11 @@ class GoogleLoginController extends Controller
     private function findOrCreate(array $profile): User
     {
         // ① 전에 구글로 들어온 적이 있다
-        if ($user = User::where('google_id', $profile['id'])->first()) {
+        //   ★ withTrashed() — 탈퇴한 계정도 찾는다. 유예 기간 안이면 되돌린다.
+        //     이게 없으면 탈퇴한 사람이 구글로 들어왔을 때 계정이 또 만들어진다.
+        if ($user = User::withTrashed()->where('google_id', $profile['id'])->first()) {
+            \App\Http\Controllers\AccountController::restoreIfWithinGrace($user);
+
             return $user;
         }
 
@@ -100,7 +134,8 @@ class GoogleLoginController extends Controller
         //     그 주소를 이미 다른 계정이 쓰고 있다고 해서 로그인이 막혀서는 안 된다.
         //     비워 두면 이 사람은 그냥 '메일 주소를 아직 안 적은 회원'이 된다.
         //     나중에 설정에서 직접 정하면 되고, 그 흐름은 아이디로 가입한 사람과 똑같다.
-        $emailIsFree = ! User::where('email', $profile['email'])->exists();
+        // withTrashed() — 탈퇴한 계정이 쥐고 있는 주소도 '쓰는 중'으로 본다(유예 기간이라 되돌아올 수 있다)
+        $emailIsFree = ! User::withTrashed()->where('email', $profile['email'])->exists();
 
         return User::create([
             'username' => $this->makeUsername($profile['email']),
@@ -128,7 +163,7 @@ class GoogleLoginController extends Controller
         $name = $base;
 
         // 겹치면 user, user2, user3 … 로 늘려 간다 (users.username 은 unique 다)
-        for ($n = 2; User::where('username', $name)->exists(); $n++) {
+        for ($n = 2; User::withTrashed()->where('username', $name)->exists(); $n++) {
             $name = Str::limit($base, 20 - strlen((string) $n), '') . $n;
         }
 

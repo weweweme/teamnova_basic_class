@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Notifications\QueuedResetPassword;
 use App\Notifications\QueuedVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -37,6 +38,12 @@ class User extends Authenticatable implements MustVerifyEmail
     //   우리가 쓸 일은 '확인됐는지 묻기'와 '확인 메일 보내기' 두 가지뿐이다.
     use Notifiable;
 
+    // ★ SoftDeletes — 지우라고 하면 줄을 없애는 대신 deleted_at 에 시각을 찍는다.
+    //   그때부터 평소 조회에 'deleted_at is null' 이 자동으로 붙어 탈퇴한 회원은 보이지 않는다.
+    //   글의 작성자처럼 '탈퇴했어도 가리켜야 하는' 곳에서는 withTrashed() 로 다시 꺼낸다.
+    //   글·댓글에 이미 쓰고 있는 것과 같은 장치다(휴지통).
+    use SoftDeletes;
+
     // ── 시각 컬럼이 하나뿐 ──────────────────────────────────
     //   Laravel 기본은 created_at + updated_at 두 개인데 우리는 joined_at 하나다.
     //     CREATED_AT = 'joined_at' → 가입 시각은 이 칸에 넣는다
@@ -50,7 +57,13 @@ class User extends Authenticatable implements MustVerifyEmail
     //     그래서 비밀번호를 바꾸지 않아도 그대로 로그인된다.
     protected function casts(): array
     {
-        return ['password' => 'hashed', 'notify_activity' => 'boolean', 'email_verified_at' => 'datetime'];
+        return [
+            'password'          => 'hashed',
+            'notify_activity'   => 'boolean',
+            'email_verified_at' => 'datetime',
+            'deleted_at'        => 'datetime',
+            'anonymized_at'     => 'datetime',
+        ];
     }
 
     // ── 메일은 모두 큐를 거친다 ─────────────────────────────
@@ -65,6 +78,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendPasswordResetNotification($token): void
     {
         $this->notify(new QueuedResetPassword($token));
+    }
+
+    // ── 탈퇴한 회원의 이름 ──────────────────────────────────
+    //   ★ 화면 19곳에서 $post->author->nickname 을 쓴다. 그 자리들을 하나씩 고치는 대신
+    //     이름을 내주는 지점 한 곳에서 바꾼다. 빠뜨릴 자리가 생기지 않는다.
+    //     표에 든 값은 그대로다 — 유예 기간 안에 돌아오면 원래 이름이 다시 보인다.
+    protected function nickname(): Attribute
+    {
+        return Attribute::get(fn ($value) => $this->trashed() ? '탈퇴한 사용자' : $value);
     }
 
     // ── 등급 배지 ───────────────────────────────────────────

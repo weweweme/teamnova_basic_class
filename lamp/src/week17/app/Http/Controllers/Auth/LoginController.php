@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use App\Http\Middleware\RememberPublicUrl;
 use App\Notifications\NewDeviceLogin;
 use App\Services\DeviceTracker;
@@ -44,6 +47,16 @@ class LoginController extends Controller
         //     2) password 를 해시 비교하고 (기존 bcrypt 해시를 그대로 검증한다)
         //     3) 맞으면 세션에 '이 사람이 로그인했다'를 기록한다
         //   ★ 우리 verify_login() + login() 이 하던 일이 이 한 줄이다.
+        // ★ 탈퇴한 계정은 Auth::attempt() 로 찾히지 않는다 —
+        //   SoftDeletes 가 조회에 'deleted_at is null' 을 붙이기 때문이다.
+        //   그래서 '유예 기간 안에 다시 로그인하면 되돌아온다'를 여기서 직접 처리한다.
+        //   비밀번호가 맞을 때만 되돌린다 — 아이디만 알면 남의 탈퇴를 취소할 수 있으면 안 된다.
+        $leaving = User::onlyTrashed()->where('username', $credentials['username'])->first();
+
+        if ($leaving && Hash::check($credentials['password'], $leaving->password)) {
+            AccountController::restoreIfWithinGrace($leaving);
+        }
+
         if (! Auth::attempt($credentials)) {
             // 실패하면 검증 오류처럼 되돌려보낸다 → 폼 위에 메시지가 뜨고 입력값이 남는다
             throw ValidationException::withMessages([

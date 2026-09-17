@@ -71,7 +71,11 @@ class Comment extends Model
     //   다른 이름을 쓸 때는 이렇게 직접 적어 준다.
     public function author(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'author_id');
+        // ★ withTrashed() — 탈퇴한 회원도 가져온다.
+        //   이게 없으면 탈퇴한 사람의 글에서 작성자가 null 이 되어 화면이 깨진다.
+        //   우리는 글을 남기기로 했으므로, 글은 작성자를 계속 가리켜야 한다.
+        //   이름은 User 쪽에서 '탈퇴한 사용자'로 바꿔 내준다.
+        return $this->belongsTo(User::class, 'author_id')->withTrashed();
     }
 
     public function post(): BelongsTo

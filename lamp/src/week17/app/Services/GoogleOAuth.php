@@ -33,7 +33,18 @@ class GoogleOAuth
     private const TOKEN_URL    = 'https://oauth2.googleapis.com/token';
     private const USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo';
 
-    private const STATE_KEY = 'google_oauth_state';
+    private const STATE_KEY   = 'google_oauth_state';
+
+    // ★ 같은 콜백 주소를 두 가지 일에 쓴다 — '로그인'과 '본인 확인'.
+    //   무엇 때문에 구글에 다녀왔는지 세션에 적어 두고, 돌아와서 그 값으로 갈라진다.
+    //   주소에 적지 않는 이유: 주소는 사용자가 고칠 수 있다.
+    private const PURPOSE_KEY = 'google_oauth_purpose';
+
+    // 무엇 때문에 다녀왔는지 — 'login' 또는 'confirm'. 한 번 읽으면 지운다.
+    public function pullPurpose(Request $request): string
+    {
+        return (string) ($request->session()->pull(self::PURPOSE_KEY) ?: 'login');
+    }
 
     public function configured(): bool
     {
@@ -41,10 +52,11 @@ class GoogleOAuth
     }
 
     // ── ① 보낼 주소 만들기 ──────────────────────────────────
-    public function redirectUrl(Request $request): string
+    public function redirectUrl(Request $request, string $purpose = 'login'): string
     {
         $state = bin2hex(random_bytes(16));
         $request->session()->put(self::STATE_KEY, $state);
+        $request->session()->put(self::PURPOSE_KEY, $purpose);
 
         return self::AUTH_URL . '?' . http_build_query([
             'client_id'     => config('services.google.client_id'),
@@ -53,7 +65,9 @@ class GoogleOAuth
             // 필요한 것만 받는다 — 이름과 이메일. 연락처·캘린더 같은 건 요구하지 않는다.
             'scope'         => 'openid email profile',
             'state'         => $state,
-            'prompt'        => 'select_account',
+            // 본인 확인일 때는 계정을 고르게 하지 않는다 — 지금 로그인한 그 계정이 맞는지 보는 것이라
+            // 다른 계정을 고를 여지를 주면 안 된다.
+            'prompt'        => $purpose === 'confirm' ? 'none' : 'select_account',
         ]);
     }
 

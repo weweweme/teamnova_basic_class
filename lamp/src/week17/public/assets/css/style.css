@@ -955,6 +955,11 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
 .btn-google:hover { background: #f5f6f7; text-decoration: none; }
 .auth-google-note { margin-top: 10px; font-size: 13px; }
 
+/* 되돌릴 수 없는 동작 버튼 */
+.btn-danger { background: #b3261e !important; }
+.btn-danger:hover { background: #8c1d18 !important; }
+.leave-info dd { margin-bottom: 14px; }
+
 .verify-state { margin: 0; font-size: 13px; }
 .verify-state.is-verified { color: #6ee7a8; }
 .verify-state.is-pending  { color: #f0b84c; }

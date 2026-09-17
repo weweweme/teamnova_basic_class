@@ -12,6 +12,7 @@ use App\Http\Controllers\LikeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DeviceKeyController;
 use App\Http\Controllers\DraftController;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\ConsentController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostController;
@@ -134,6 +135,8 @@ Route::middleware(['auth', 'auth.session', 'password.confirm'])->group(function 
     Route::patch('/settings/password', [SettingsController::class, 'password']);
     Route::patch('/settings/email', [SettingsController::class, 'email'])->middleware('throttle:5,1');
     Route::patch('/settings/notifications', [SettingsController::class, 'notifications']);
+    Route::get('/settings/leave',    [AccountController::class, 'edit']);
+    Route::delete('/settings/leave', [AccountController::class, 'destroy']);
     Route::post('/settings/logout-others', [SettingsController::class, 'logoutOtherDevices']);
     Route::delete('/settings/devices', [SettingsController::class, 'revokeDevice']);
 });
@@ -170,6 +173,10 @@ Route::post('/consent', [ConsentController::class, 'store']);
 //   ★ throttle — 남이 콜백 주소를 마구 두드리는 것을 막는다.
 Route::get('/auth/google', [GoogleLoginController::class, 'redirect'])->middleware('throttle:10,1');
 Route::get('/auth/google/callback', [GoogleLoginController::class, 'callback'])->middleware('throttle:10,1');
+
+//   ★ 본인 확인용 — 로그인한 사람만. 비밀번호를 모르는 구글 회원이 설정에 들어갈 통로다.
+Route::get('/auth/google/confirm', [GoogleLoginController::class, 'confirm'])
+    ->middleware(['auth', 'throttle:10,1'])->name('google.confirm');
 
 // ── 이메일 주소 확인 ──────────────────────────────────────
 //   ★ 라우트 이름 'verification.verify' 는 바꿀 수 없다.

@@ -150,7 +150,11 @@ class Post extends Model
     //   두 번째 인자는 외래키 칸 이름이다. 관례와 다른 이름(author_id)이라 직접 적는다.
     public function author(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'author_id');
+        // ★ withTrashed() — 탈퇴한 회원도 가져온다.
+        //   이게 없으면 탈퇴한 사람의 글에서 작성자가 null 이 되어 화면이 깨진다.
+        //   우리는 글을 남기기로 했으므로, 글은 작성자를 계속 가리켜야 한다.
+        //   이름은 User 쪽에서 '탈퇴한 사용자'로 바꿔 내준다.
+        return $this->belongsTo(User::class, 'author_id')->withTrashed();
     }
 
     public function media(): BelongsTo

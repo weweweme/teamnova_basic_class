@@ -197,6 +197,16 @@
     <a class="btn-settings" href="/trash">🗑 휴지통 열기</a>
   </section>
 
+  {{-- ── 회원 탈퇴 ──────────────────────────────────────────── --}}
+  <section class="settings-section">
+    <h2>회원 탈퇴</h2>
+    <p class="muted">
+      쓰신 글과 댓글은 남고 작성자만 가려집니다.
+      {{ \App\Http\Controllers\AccountController::GRACE_DAYS }}일 안에 다시 로그인하시면 되돌릴 수 있습니다.
+    </p>
+    <a class="btn-settings" href="/settings/leave">탈퇴 안내 보기</a>
+  </section>
+
   {{-- ── 계정 정보 (아이디는 못 바꿈 — 신원 키) ──────────────── --}}
   <section class="settings-section">
     <h2>계정 정보</h2>

@@ -113,7 +113,7 @@ body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
 .pagination .page-nav.disabled { color: #bbb; background: #f7f7f7; border-color: #eee; }
 
 /* 가운데 페이지 번호 묶음 */
-.pagination .page-numbers { display: flex; gap: 4px; }
+.pagination .page-numbers { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
 .pagination .page-num { min-width: 34px; padding: 7px 0; text-align: center;
   border: 1px solid #ddd; border-radius: 6px; color: #555; font-size: 14px; text-decoration: none; }
 .pagination .page-num:hover { background: #f5f5f5; }

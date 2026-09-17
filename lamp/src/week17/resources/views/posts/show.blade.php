@@ -160,7 +160,7 @@
       @endforeach
     </ul>
 
-    {{ $comments->onEachSide(1)->links() }}
+    {{ $comments->links() }}
 
     @auth
       <form class="comment-form" method="post" action="/posts/{{ $post->id }}/comments">

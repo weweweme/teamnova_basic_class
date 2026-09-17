@@ -16,6 +16,6 @@
   @else
     <p class="muted">📝 글 {{ $posts->total() }}개 · {{ $posts->currentPage() }}/{{ $posts->lastPage() }} 페이지</p>
     @include('partials.search-posts')
-    {{ $posts->onEachSide(1)->links() }}
+    {{ $posts->links() }}
   @endif
 @endsection

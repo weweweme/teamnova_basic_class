@@ -36,6 +36,6 @@
       @endforeach
     </ul>
 
-    {{ $notifications->onEachSide(1)->links() }}
+    {{ $notifications->links() }}
   @endif
 @endsection

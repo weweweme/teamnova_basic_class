@@ -16,6 +16,6 @@
   @else
     <p class="muted">👤 유저 {{ $users->total() }}명 · {{ $users->currentPage() }}/{{ $users->lastPage() }} 페이지</p>
     @include('partials.search-users')
-    {{ $users->onEachSide(1)->links() }}
+    {{ $users->links() }}
   @endif
 @endsection

@@ -71,29 +71,69 @@
   {{-- ── 메일 알림 ─────────────────────────────────────────── --}}
   <section class="settings-section">
     <h2>메일 알림</h2>
+    @php
+      $me       = auth()->user();
+      $verified = $me->hasVerifiedEmail();
+    @endphp
+
     <p class="muted">
-      활동 알림은 <strong>켠 경우에만</strong> 보냅니다.
-      새 기기 로그인과 비밀번호 변경 같은 <strong>보안 알림은 끌 수 없습니다.</strong>
-      본인이 하지 않은 일을 알리는 것이라, 끄면 알림의 목적이 사라집니다.
+      주소를 적으면 그 주소로 <strong>인증 메일</strong>이 갑니다.
+      메일 속 링크를 눌러야 주인으로 인정되고, 그 뒤에 알림을 켤 수 있습니다.
     </p>
 
-    <form class="settings-form settings-form-col" method="post" action="/settings/notifications">
+    {{-- ① 이메일 주소 — 적고, 인증받는다 --}}
+    <form class="settings-form settings-form-col" method="post" action="/settings/email">
       @csrf
       @method('PATCH')
 
       <label>이메일
         <input type="email" name="email" maxlength="100"
-               value="{{ old('email', auth()->user()->email) }}" placeholder="비워 두면 메일을 받지 않습니다">
+               value="{{ old('email', $me->email) }}" placeholder="비워 두면 메일을 받지 않습니다">
       </label>
       @error('email')<span class="muted">{{ $message }}</span>@enderror
 
-      <label class="cookie-item">
-        <input type="checkbox" name="notify_activity" value="1" @checked(auth()->user()->notify_activity)>
+      @if ($me->email)
+        <p class="verify-state {{ $verified ? 'is-verified' : 'is-pending' }}">
+          @if ($verified)
+            ✓ 인증된 주소입니다 ({{ $me->email_verified_at->format('Y-m-d') }} 인증)
+          @else
+            ● 아직 인증하지 않은 주소입니다. 받은 메일의 링크를 눌러 주세요.
+          @endif
+        </p>
+      @endif
+
+      {{-- 버튼 이름이 지금 할 일을 말한다 --}}
+      <button type="submit">
+        @if (! $me->email)      인증 메일 보내기
+        @elseif (! $verified)   인증 메일 다시 보내기
+        @else                   주소 바꾸기
+        @endif
+      </button>
+    </form>
+
+    {{-- ② 활동 알림 — 인증을 마쳐야 켤 수 있다 --}}
+    <form class="settings-form settings-form-col settings-subform" method="post" action="/settings/notifications">
+      @csrf
+      @method('PATCH')
+
+      <label class="settings-check">
+        <input type="checkbox" name="notify_activity" value="1"
+               @checked(old('notify_activity', $me->notify_activity)) @disabled(! $verified)>
         <span>내 글에 댓글이 달리면 메일로 알려 주세요</span>
       </label>
+      @error('notify_activity')<span class="muted">{{ $message }}</span>@enderror
 
-      <button type="submit">저장</button>
+      @unless ($verified)
+        <span class="muted">이메일 인증을 마쳐야 켤 수 있습니다.</span>
+      @endunless
+
+      <button type="submit" @disabled(! $verified)>알림 설정 저장</button>
     </form>
+
+    <p class="muted">
+      새 기기 로그인과 비밀번호 변경 같은 <strong>보안 알림은 끌 수 없습니다.</strong>
+      본인이 하지 않은 일을 알리는 것이라, 끄면 알림의 목적이 사라집니다.
+    </p>
   </section>
 
   {{-- ── 로그인한 기기 ───────────────────────────────────── --}}

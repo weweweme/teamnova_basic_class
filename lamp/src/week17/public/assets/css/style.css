@@ -931,6 +931,21 @@ code { background: #24242c; color: #cfcfcf; padding: 1px 6px; border-radius: 4px
   font-weight: 600; color: #ddd; font-size: 14px; }
 .settings-form-col button { align-self: flex-start; }
 
+/* 체크 한 줄 — 위의 `.settings-form-col label` 이 세로 배치라, 체크 줄은 가로로 되돌린다 */
+.settings-form-col .settings-check {
+  flex-direction: row; align-items: center; gap: .5rem;
+  font-weight: 400; cursor: pointer; align-self: flex-start;
+}
+.settings-form-col .settings-check input { flex: none; }
+.settings-form-col .settings-check:has(input:disabled) { opacity: .5; cursor: not-allowed; }
+
+/* 이메일 확인 상태 */
+.settings-subform { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.08); }
+.settings-form-col button:disabled { opacity: .45; cursor: not-allowed; }
+.verify-state { margin: 0; font-size: 13px; }
+.verify-state.is-verified { color: #6ee7a8; }
+.verify-state.is-pending  { color: #f0b84c; }
+
 /* 휴지통 목록 */
 .trash-list { list-style: none; margin: 12px 0 0; padding: 0; }
 .trash-item { display: flex; justify-content: space-between; align-items: center; gap: 12px;

@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 // ============================================================
@@ -21,10 +22,17 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 // ============================================================
 #[Fillable(['username', 'email', 'notify_activity', 'nickname', 'password', 'avatar'])]
 #[Hidden(['password'])]
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     // ★ '이 모델은 알림을 받을 수 있다'는 표시.
     //   비밀번호 찾기 메일도 이 통로로 나간다 — 프레임워크가 $user->notify(...) 를 부른다.
+    //
+    // ★ MustVerifyEmail 계약 = '이 계정의 이메일은 주인 확인을 거쳐야 한다'는 선언.
+    //   계약을 붙이면 부모가 이미 갖고 있는 구현이 쓰인다:
+    //     hasVerifiedEmail()               email_verified_at 이 채워졌는지
+    //     markEmailAsVerified()            지금 시각으로 채운다
+    //     sendEmailVerificationNotification()  확인 메일을 보낸다
+    //   우리가 쓸 일은 '확인됐는지 묻기'와 '확인 메일 보내기' 두 가지뿐이다.
     use Notifiable;
 
     // ── 시각 컬럼이 하나뿐 ──────────────────────────────────
@@ -40,7 +48,7 @@ class User extends Authenticatable
     //     그래서 비밀번호를 바꾸지 않아도 그대로 로그인된다.
     protected function casts(): array
     {
-        return ['password' => 'hashed', 'notify_activity' => 'boolean'];
+        return ['password' => 'hashed', 'notify_activity' => 'boolean', 'email_verified_at' => 'datetime'];
     }
 
     // ── 등급 배지 ───────────────────────────────────────────

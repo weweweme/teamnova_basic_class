@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Session\DbSessionHandler;
 use App\Support\Highlight;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Session;
@@ -41,6 +43,21 @@ class AppServiceProvider extends ServiceProvider
         Blade::directive('highlight', fn ($args) => "<?php echo \App\Support\Highlight::of({$args}); ?>");
         Blade::directive('snippet',   fn ($args) => "<?php echo \App\Support\Highlight::snippet({$args}); ?>");
 
-        //
+        // ── 이메일 확인 메일 문구 ───────────────────────────
+        //   ★ 공식 확장 지점이다. 링크를 만드는 일(서명·만료)은 그대로 두고,
+        //     메일에 적히는 말만 우리 것으로 바꾼다.
+        //     기본 문구는 '가입하지 않았다면 무시하세요'인데, 우리는 가입이 아니라
+        //     설정에서 주소를 넣을 때 보내는 메일이라 맞지 않는다.
+        VerifyEmail::toMailUsing(function (object $notifiable, string $url) {
+            return (new MailMessage)
+                ->subject('[리뷰 커뮤니티] 이메일 인증을 완료해 주세요')
+                ->greeting($notifiable->nickname . '님, 안녕하세요.')
+                ->line('리뷰 커뮤니티 계정에 이 주소를 등록하려고 합니다.')
+                ->line('아래 버튼을 누르면 인증이 끝나고, 그때부터 댓글 알림 메일을 켤 수 있습니다.')
+                ->action('이메일 인증하기', $url)
+                ->line('이 링크는 ' . config('auth.verification.expire', 60) . '분 뒤에 만료됩니다.')
+                ->line('주소를 등록한 적이 없다면 이 메일을 무시하셔도 됩니다. 아무 일도 일어나지 않습니다.')
+                ->salutation('리뷰 커뮤니티 드림');
+        });
     }
 }

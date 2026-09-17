@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\MediaFeedController;
 use App\Http\Controllers\Auth\ConfirmPasswordController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CommentController;
@@ -130,6 +131,7 @@ Route::middleware(['auth', 'auth.session', 'password.confirm'])->group(function 
     Route::get('/settings', [SettingsController::class, 'index']);
     Route::patch('/settings/nickname', [SettingsController::class, 'nickname']);
     Route::patch('/settings/password', [SettingsController::class, 'password']);
+    Route::patch('/settings/email', [SettingsController::class, 'email'])->middleware('throttle:5,1');
     Route::patch('/settings/notifications', [SettingsController::class, 'notifications']);
     Route::post('/settings/logout-others', [SettingsController::class, 'logoutOtherDevices']);
     Route::delete('/settings/devices', [SettingsController::class, 'revokeDevice']);
@@ -160,6 +162,15 @@ Route::get('/api/browse', [MediaFeedController::class, 'browse']);
 // ── 쿠키 동의 ─────────────────────────────────────────────
 Route::get('/cookies', [ConsentController::class, 'edit']);
 Route::post('/consent', [ConsentController::class, 'store']);
+
+// ── 이메일 주소 확인 ──────────────────────────────────────
+//   ★ 라우트 이름 'verification.verify' 는 바꿀 수 없다.
+//     확인 메일의 링크를 프레임워크가 이 이름으로 만든다.
+//   ★ signed = 서명 확인(주소를 고치면 403). 링크에는 만료 시각도 함께 서명되어 있다.
+//   ★ auth  = 남이 주운 링크로 확인되지 않게, 본인 로그인 상태에서만 통과시킨다.
+//   ★ throttle:6,1 = 1분에 6번까지. 링크를 마구 눌러 보는 시도를 막는다.
+Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+    ->middleware(['auth', 'signed', 'throttle:6,1'])->name('verification.verify');
 
 // ── 비밀번호 재확인 ───────────────────────────────────────
 //   ★ 이름이 'password.confirm' 이어야 한다. 미들웨어가 이 이름으로 보낸다.

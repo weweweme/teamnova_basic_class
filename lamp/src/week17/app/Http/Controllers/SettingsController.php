@@ -80,21 +80,78 @@ class SettingsController extends Controller
         return back()->with('status', '비밀번호를 변경했습니다. 다른 기기의 로그인은 해제되었습니다.');
     }
 
-    // ── 메일 알림 받기 (PATCH /settings/notifications) ───────
-    //   ★ 활동 알림만 끄고 켤 수 있다. 보안 알림은 설정에 없다.
+    // ── 이메일 주소 (PATCH /settings/email) ──────────────────
+    //   ★ 주소를 적는 일과 알림을 켜는 일을 갈라 두었다.
+    //     주소는 '인증'을 거쳐야 쓸 수 있고, 알림은 그 뒤에 켜는 것이라 순서가 있다.
+    //     한 폼에 묶어 두면 저장을 눌렀을 때 무엇이 일어났는지 알기 어렵다.
+    public function email(Request $request)
+    {
+        $user = $request->user();
+
+        $data = $request->validate([
+            'email' => ['nullable', 'email', 'max:100', 'unique:users,email,' . $user->id],
+        ]);
+
+        $email = $data['email'] ?: null;
+
+        // ① 주소를 지웠다 — 인증 기록과 알림도 같이 내린다
+        if ($email === null) {
+            $user->forceFill([
+                'email'             => null,
+                'email_verified_at' => null,
+                'notify_activity'   => false,
+            ])->save();
+
+            return back()->with('status', '이메일 주소를 지웠습니다. 활동 알림도 함께 껐습니다.');
+        }
+
+        // ② 다른 주소로 바꿨다 — 인증을 처음부터 다시 받는다
+        //   ★ 옛 주소를 인증했다고 해서 새 주소의 주인이라는 뜻은 아니다.
+        if ($email !== $user->email) {
+            $user->forceFill([
+                'email'             => $email,
+                'email_verified_at' => null,
+                'notify_activity'   => false,
+            ])->save();
+
+            $user->sendEmailVerificationNotification();
+
+            return back()->with('status', $email . ' 로 인증 메일을 보냈습니다. 메일 속 링크를 눌러 주세요.');
+        }
+
+        // ③ 같은 주소인데 이미 인증했다 — 할 일이 없다
+        if ($user->hasVerifiedEmail()) {
+            return back()->with('status', '이미 인증된 주소입니다.');
+        }
+
+        // ④ 같은 주소인데 아직 인증 전이다 — 메일을 다시 보낸다
+        $user->sendEmailVerificationNotification();
+
+        return back()->with('status', $email . ' 로 인증 메일을 다시 보냈습니다.');
+    }
+
+    // ── 활동 알림 켜고 끄기 (PATCH /settings/notifications) ───
+    //   ★ 인증을 마친 주소에서만 켤 수 있다. 보안 알림은 여기 없다(끌 수 없다).
     public function notifications(Request $request)
     {
+        $user = $request->user();
+
         $data = $request->validate([
-            'email'           => ['nullable', 'email', 'max:100', 'unique:users,email,' . $request->user()->id],
             'notify_activity' => ['nullable', 'boolean'],
         ]);
 
-        $request->user()->update([
-            'email'           => $data['email'] ?: null,
-            'notify_activity' => (bool) ($data['notify_activity'] ?? false),
-        ]);
+        $wants = (bool) ($data['notify_activity'] ?? false);
 
-        return back()->with('status', '알림 설정을 저장했습니다.');
+        // ★ 화면에서도 막지만, 판정은 서버가 다시 한다.
+        if ($wants && ! $user->hasVerifiedEmail()) {
+            return back()->withErrors([
+                'notify_activity' => '이메일 인증을 마친 뒤에 켤 수 있습니다.',
+            ]);
+        }
+
+        $user->update(['notify_activity' => $wants]);
+
+        return back()->with('status', $wants ? '이제 댓글 알림 메일을 보내 드립니다.' : '활동 알림을 껐습니다.');
     }
 
     // ── 다른 기기 로그아웃 (비밀번호 변경 없이) ─────────────

@@ -70,12 +70,14 @@ class Notification extends Model
         // ── 메일도 한 통 보낸다 ─────────────────────────────
         //   ★ 화면 알림은 위 한 줄로 끝났고, 여기서는 '누구에게 무엇을 보낼지'만 적는다.
         //     보내는 일(연결·재시도·형식)은 프레임워크가 한다.
-        //   ★ 두 가지를 확인한다 — 이메일을 적었는가, 활동 알림을 켰는가.
+        //   ★ 세 가지를 확인한다 — 주소를 적었는가, 그 주소가 확인된 주소인가, 알림을 켰는가.
+        //     주소 확인을 다시 보는 이유: 설정에서 이미 막지만, 메일이 실제로 나가는 곳은 여기다.
+        //     확인하지 않은 주소로는 한 통도 나가지 않아야 한다 — 남의 주소일 수 있다.
         //     활동 알림은 기본이 꺼짐이다. 묻지 않고 보내는 메일은 동의가 아니다.
         //     (새 기기 로그인 · 비밀번호 변경 같은 보안 알림은 이 설정과 무관하게 나간다)
         $recipient = User::find($recipientId);
 
-        if ($recipient?->email && $recipient->notify_activity) {
+        if ($recipient?->email && $recipient->hasVerifiedEmail() && $recipient->notify_activity) {
             $recipient->notify(new CommentPosted($comment, $type));
         }
     }
